@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for DocType</comment>
+
+    <entry key="docType">Dokument Art</entry>
+    <entry key="docType_plural">Dokumentarten</entry>
+    <entry key="docType_reload">Neu laden vorhandenen Dokumentarten</entry>
+    <entry key="docType_print">Drucken Tabelle Dokumentarten</entry>
+    <entry key="docType_new">Definieren Sie einen neuen Dokument Art</entry>
+    <entry key="docType_edit">Bearbeiten Sie ausgewählten Dokument Art</entry>
+    <entry key="docType_delete">Löschen ausgewählten Dokument Art</entry>
+
+    <!-- attributes -->
+    <entry key="docType_id">Id</entry>
+    <entry key="docType_name">Name</entry>
+    <entry key="docType_description">Beschreibung</entry>
+
+</properties>

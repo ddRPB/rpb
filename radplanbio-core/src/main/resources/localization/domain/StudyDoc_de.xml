@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyDoc</comment>
+
+    <entry key="studyDoc">Dokument</entry>
+    <entry key="studyDoc_plural">Dokumente</entry>
+    <entry key="studyDoc_reload">Neu laden vorhandenen Dokumente</entry>
+    <entry key="studyDoc_print">Drucken Tabelle Dokumente</entry>
+    <entry key="studyDoc_new">Definieren Sie eines neues Dokument</entry>
+    <entry key="studyDoc_edit">Bearbeiten ausgewähltes Dokument</entry>
+    <entry key="studyDoc_delete">Löschen ausgewähltes Dokument</entry>
+
+    <!-- attributes -->
+    <entry key="studyDoc_id">Id</entry>
+    <entry key="studyDoc_filename">Dateiname</entry>
+    <entry key="studyDoc_displayname">Anzeigename</entry>
+    <entry key="studyDoc_description">Beschreibung</entry>
+
+    <!-- many-to-one -->
+    <entry key="studyDoc_type">Typ</entry>
+    <entry key="studyDoc_study">Studie</entry>
+
+</properties>

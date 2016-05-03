@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Role</comment>
+
+    <entry key="role">Rolle</entry>
+    <entry key="role_plural">Rollen</entry>
+    <entry key="role_reload">Neu laden vorhandenen Rollen</entry>
+    <entry key="role_print">Drucken Tabelle Rollen</entry>
+    <entry key="role_new">Definieren Sie eine neue Rolle</entry>
+    <entry key="role_edit">Bearbeiten Sie ausgewählte Rolle</entry>
+    <entry key="role_delete">Löschen ausgewählte Rolle</entry>
+
+    <!-- attributes -->
+    <entry key="role_id">Id</entry>
+    <entry key="role_roleName">Name</entry>
+    <entry key="role_description">Beschreibung</entry>
+
+    <!-- uniques -->
+    <entry key="role_roleName_already_exists">Rolle Name ist bereits vorhanden</entry>
+    <entry key="role_composite_unique_constraint_error">Eine zusammengesetzte eindeutige Einschränkung hat versagt Rolle</entry>
+</properties>

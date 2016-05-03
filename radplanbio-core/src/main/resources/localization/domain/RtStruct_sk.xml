@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for RtStruct</comment>
+
+    <entry key="rtStruct">RT-Struct</entry>
+    <entry key="rtStruct_plural">RT-Structs</entry>
+    <entry key="rtStruct_reload">Reload existing RT-Structs</entry>
+    <entry key="rtStruct_print">Print RT-Structs table</entry>
+    <entry key="rtStruct_new">Define a new RT-Struct</entry>
+    <entry key="rtStruct_edit">Edit selected RT-Struct</entry>
+    <entry key="rtStruct_delete">Delete selected RT-Struct</entry>
+
+    <!-- attributes -->
+    <entry key="rtStruct_id">Id</entry>
+    <entry key="rtStruct_identifier">Identifier</entry>
+    <entry key="rtStruct_name">Name</entry>
+    <entry key="rtStruct_description">Description</entry>
+
+    <!-- many-to-one -->
+    <entry key="rtStruct_type">Type</entry>
+
+    <!-- uniques -->
+    <entry key="rtStuct_identifier_already_exists">RT-Struct identifier already exists</entry>
+</properties>

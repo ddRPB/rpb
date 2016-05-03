@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for CurriculumVitaeItemType</comment>
+
+    <entry key="curriculumVitaeItemType">CV item Typ</entry>
+    <entry key="curriculumVitaeItemType_plural">Typen</entry>
+    <entry key="curriculumVitaeItemType_reload">Neu laden vorhandenen CV item Typen</entry>
+    <entry key="curriculumVitaeItemType_print">Drucken Tabelle CV item Typen</entry>
+    <entry key="curriculumVitaeItemType_new">Definieren Sie eine neues CV item Typ</entry>
+    <entry key="curriculumVitaeItemType_edit">Bearbeiten Sie ausgewähltes CV item Typ</entry>
+    <entry key="curriculumVitaeItemType_delete">Löschen ausgewähltes CV item Typ</entry>
+
+    <!-- attributes -->
+    <entry key="curriculumVitaeItemType_id">Id</entry>
+    <entry key="curriculumVitaeItemType_name">Name</entry>
+    <entry key="curriculumVitaeItemType_description">Beschreibung</entry>
+
+    <!-- many-to-one -->
+    <entry key="curriculumVitaeItemType_parent">Parent</entry>
+
+    <!-- one-to-many -->
+    <entry key="curriculumVitaeItemType_children">Children</entry>
+
+</properties>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudySubject</comment>
+
+    <entry key="studySubject">Proband</entry>
+    <entry key="studySubject_plural">Probanden</entry>
+    <entry key="studySubject_reload">Neu laden vorhandenen Studie Probanden</entry>
+    <entry key="studySubject_print">Drucken Tabelle Studie Probanden </entry>
+    <entry key="studySubject_new">Definieren Sie einen neuen Studie Proband</entry>
+    <entry key="studySubject_edit">Bearbeiten Sie ausgewählten Studie Proband</entry>
+    <entry key="studySubject_delete">Löschen ausgewählten Studie Proband</entry>
+
+    <!-- attributes -->
+    <entry key="studySubject_id">Id</entry>
+    <entry key="studySubject_oid">Oid</entry>
+    <entry key="studySubject_studySubjectId">StudySubjectID</entry>
+    <entry key="studySubject_secondaryId">SecondaryID</entry>
+    <entry key="studySubject_personId">PID</entry>
+    <entry key="studySubject_gender">Geschlecht</entry>
+    <entry key="studySubject_enrollmentDate">Eintritt</entry>
+    <entry key="studySubject_dateOfBirth">Geburtsdatum</entry>
+    <entry key="studySubject_yearOfBirth">Geburtsjahr</entry>
+
+    <entry key="studySubject_person">Persone</entry>
+    <entry key="studySubject_arm">Studienarm</entry>
+</properties>

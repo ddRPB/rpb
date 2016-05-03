@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Person</comment>
+
+    <entry key="person">Person</entry>
+    <entry key="person_plural">Persons</entry>
+    <entry key="person_reload">Reload existing Persons</entry>
+    <entry key="person_print">Print Persons table</entry>
+    <entry key="person_new">Define a new Person</entry>
+    <entry key="person_edit">Edit selected Person</entry>
+    <entry key="person_delete">Delete selected Person</entry>
+
+    <!-- attributes -->
+    <entry key="person_id">Id</entry>
+    <entry key="person_titlesBefore">Titles before</entry>
+    <entry key="person_firstname">Firstname</entry>
+    <entry key="person_surname">Surname</entry>
+    <entry key="person_titlesAfter">Titles after</entry>
+    <entry key="person_birthname">Maiden name</entry>
+    <entry key="person_comment">Comment</entry>
+
+    <entry key="person_birthdate">Birth date</entry>
+    <entry key="person_city">Residence</entry>
+    <entry key="person_zip">ZIP</entry>
+
+    <!-- many-to-one -->
+    <entry key="person_status">Status</entry>
+
+    <!-- one-to-many -->
+    <entry key="person_studyPersonnel">Study positions</entry>
+    <entry key="person_curriculumVitaeItems">CV</entry>
+
+</properties>
