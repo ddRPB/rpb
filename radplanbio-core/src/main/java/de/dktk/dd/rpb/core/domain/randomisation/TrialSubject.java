@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -191,12 +191,13 @@ public class TrialSubject implements Identifiable<Integer>, Serializable {
     public String getStrata() {
         List<String> stratum = new ArrayList<String>();
 
-        for (PrognosticVariable pv : this.prognosticVariables) {
-            try {
-                stratum.add(pv.getCriterion().getId() + "_" + pv.getStratum());
-            }
-            catch (Exception err) {
-                log.error("Criterion violation", err);
+        if (this.prognosticVariables != null) {
+            for (PrognosticVariable pv : this.prognosticVariables) {
+                try {
+                    stratum.add(pv.getCriterion().getId() + "_" + pv.getStratum());
+                } catch (Exception err) {
+                    log.error("Criterion violation", err);
+                }
             }
         }
 

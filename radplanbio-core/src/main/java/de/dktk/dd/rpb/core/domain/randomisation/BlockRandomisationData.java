@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,9 @@ public class BlockRandomisationData extends AbstractRandomisationData {
     //region Constructors
 
     public BlockRandomisationData() {
-        // NOOP
+        if (this.blocks == null) {
+            this.blocks = new HashMap<>();
+        }
     }
 
     //endregion
@@ -73,11 +75,15 @@ public class BlockRandomisationData extends AbstractRandomisationData {
     }
 
     public void setBlocks(Map<String, Block> blocks) {
+        if (this.blocks == null) {
+            this.blocks = new HashMap<>();
+        }
+
         this.blocks = blocks;
     }
 
     public Block getBlock(String stratum) {
-        return blocks.get(stratum);
+        return blocks != null ? blocks.get(stratum) : null;
     }
 
     public void setBlock(String stratum, Block currentBlock) {

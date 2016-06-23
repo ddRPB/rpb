@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 import java.util.ArrayList;
@@ -94,7 +95,15 @@ public class BlockRandomisationTest {
         }
 
         for(TreatmentArm arm : study.getTreatmentArms()){
-            assertEquals(patientsPerArm, arm.getSubjects().size());
+
+            // At least
+            assertTrue("Should be at least <" + (patientsPerArm - 1) + "> but was <" + arm.getSubjects().size() +">", arm.getSubjects().size() >= patientsPerArm - 1);
+
+            // At most
+            assertTrue("Should be at most <" + (patientsPerArm + 1) + "> but was <" + arm.getSubjects().size() + ">", arm.getSubjects().size() <= patientsPerArm + 1);
+
+            // Does not necessary need to be as planned
+            //assertEquals(patientsPerArm - 1, arm.getSubjects().size());
         }
     }
 
@@ -243,7 +252,14 @@ public class BlockRandomisationTest {
             }
 
 
-            assertEquals(patientsPerArm, arm.getSubjects().size());
+            // At least
+            assertTrue("Should be at least <" + (patientsPerArm - 1) + "> but was <" + arm.getSubjects().size() +">", arm.getSubjects().size() >= patientsPerArm - 1);
+
+            // At most
+            assertTrue("Should be at most <" + (patientsPerArm + 1) + "> but was <" + arm.getSubjects().size() + ">", arm.getSubjects().size() <= patientsPerArm + 1);
+
+            // Does not necessary need to be as planned
+            //assertEquals(patientsPerArm, arm.getSubjects().size());
         }
 
         assertEquals(patientsPerArm * numberOfTreatmentArms, skuska1yestreatment1 + skuska1yestreatment2 + skuska1notreatment1 + skuska1notreatment2 + skuska2yestreatment1 + skuska2yestreatment2 + skuska2notreatment1 + skuska2notreatment2);
