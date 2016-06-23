@@ -1,4 +1,4 @@
-//package de.dkfz.portal.dao;
+//package de.dktk.dd.rpb.core.dao.admin;
 //
 //import java.util.Set;
 //

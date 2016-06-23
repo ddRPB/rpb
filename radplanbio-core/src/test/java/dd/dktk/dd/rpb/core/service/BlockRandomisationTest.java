@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,64 +54,70 @@ public class BlockRandomisationTest {
 
     @Test
     public void testOneSiteTwoGroupsNoStrata() {
+        // Configuration
+        conf.setMinimumBlockSize(3);
+        conf.setMaximumBlockSize(6);
+        conf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
+
         study.setIsStratifyTrialSite(false);
         PartnerSite site1 = new PartnerSite();
-        site1.setIdentifier("SKUSKA1");
+        site1.setIdentifier("SITE1");
+        study.setIsStratifyTrialSite(true);
 
         List<Study> studies = new ArrayList<Study>();
         studies.add(study);
         site1.setStudies(studies);
 
-        List<Integer> sizes = new ArrayList<Integer>();
-        sizes.add(10);
-        sizes.add(10);
-        List<TreatmentArm> arms = new ArrayList<TreatmentArm>();
+        // Two arms
+        int numberOfTreatmentArms = 2;
+        // Planned subjects per arm (two arms)
+        int patientsPerArm = 49;
 
-        for (int i = 0; i < sizes.size(); i++) {
+        List<TreatmentArm> arms = new ArrayList<TreatmentArm>();
+        for (int i = 0; i < numberOfTreatmentArms; i++) {
             TreatmentArm arm = new TreatmentArm();
             arm.setName("Dummy treatment arm: " + (i + 1));
-            arm.setPlannedSubjectsCount(sizes.get(i));
+            arm.setPlannedSubjectsCount(patientsPerArm);
             arms.add(arm);
         }
 
         study.setTreatmentArms(arms);
 
-        conf.setMinimumBlockSize(2);
-        conf.setMaximumBlockSize(2);
-        conf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
-
-
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < numberOfTreatmentArms * patientsPerArm; i++) {
             subject = new TrialSubject();
             subject.setTrialSite(site1);
-
 
             TreatmentArm assignedArm = study.getRandomisationConfiguration().getScheme().randomise(subject);
 
             subject.setTreatmentArm(assignedArm);
             assignedArm.addSubject(subject);
-
-
         }
 
         for(TreatmentArm arm : study.getTreatmentArms()){
-            assertEquals(10, arm.getSubjects().size());
+            assertEquals(patientsPerArm, arm.getSubjects().size());
         }
     }
 
     @Test
     public void testTwoSitesTwoGroupsWithPartnerSitesStrata() {
+        conf.setMinimumBlockSize(3);
+        conf.setMaximumBlockSize(6);
+        // set null for ABSOLUTE (not variable block size, when min and max are the same)
+        conf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
+
         Random rndb = new Random();
 
-        List<Integer> sizes = new ArrayList<Integer>();
-        sizes.add(400);
-        sizes.add(400);
+        // Two arms
+        int numberOfTreatmentArms = 2;
+        // Planned subjects per arm (two arms)
+        int patientsPerArm = 154;
+
         List<TreatmentArm> arms = new ArrayList<TreatmentArm>();
 
-        for (int i = 0; i < sizes.size(); i++) {
+        for (int i = 0; i < numberOfTreatmentArms; i++) {
             TreatmentArm arm = new TreatmentArm();
             arm.setName("Dummy treatment arm: " + (i + 1));
-            arm.setPlannedSubjectsCount(sizes.get(i));
+            arm.setPlannedSubjectsCount(patientsPerArm);
             arms.add(arm);
         }
 
@@ -119,24 +125,19 @@ public class BlockRandomisationTest {
         study.setTreatmentArms(arms);
 
         PartnerSite site1 = new PartnerSite();
-        site1.setIdentifier("SKUSKA1");
+        site1.setIdentifier("SITE1");
 
         PartnerSite site2 = new PartnerSite();
-        site2.setIdentifier("SKUSKA2");
+        site2.setIdentifier("SITE2");
 
         List<Study> studies = new ArrayList<Study>();
         studies.add(study);
         site1.setStudies(studies);
 
-
-        conf.setMinimumBlockSize(2);
-        conf.setMaximumBlockSize(2);
-        conf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
-
         boolean isYes = rndb.nextBoolean();
         boolean onetwo = rndb.nextBoolean();
 
-        for (int i = 0; i < 400; i++) {
+        for (int i = 0; i < patientsPerArm * numberOfTreatmentArms; i++) {
             subject = new TrialSubject();
             if (onetwo) {
                 subject.setTrialSite(site1);
@@ -157,7 +158,7 @@ public class BlockRandomisationTest {
             try {
                 //
                 v1.setValue(isYes ? "yes" : "no");
-                 //                            v2.setValue("option" + j);
+                //                            v2.setValue("option" + j);
 //                            v3.setValue("option" + k);
             }
             catch (Exception err) {
@@ -185,7 +186,7 @@ public class BlockRandomisationTest {
         for(TreatmentArm arm : study.getTreatmentArms()){
 
             for (TrialSubject sub: arm.getSubjects()) {
-                if (sub.getTrialSite().getIdentifier().equals("SKUSKA1")) {
+                if (sub.getTrialSite().getIdentifier().equals("SITE1")) {
                     if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 1")) {
                         for (PrognosticVariable pv : sub.getPrognosticVariables()) {
                             String value = (String)pv.getValue();
@@ -212,7 +213,7 @@ public class BlockRandomisationTest {
                         }
                     }
                 }
-                else if (sub.getTrialSite().getIdentifier().equals("SKUSKA2")) {
+                else if (sub.getTrialSite().getIdentifier().equals("SITE2")) {
                     if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 1")) {
                         for (PrognosticVariable pv : sub.getPrognosticVariables()) {
                             String value = (String)pv.getValue();
@@ -242,10 +243,10 @@ public class BlockRandomisationTest {
             }
 
 
-            assertEquals(200, arm.getSubjects().size());
+            assertEquals(patientsPerArm, arm.getSubjects().size());
         }
 
-        assertEquals(400, skuska1yestreatment1 + skuska1yestreatment2 + skuska1notreatment1 + skuska1notreatment2 + skuska2yestreatment1 + skuska2yestreatment2 + skuska2notreatment1 + skuska2notreatment2);
+        assertEquals(patientsPerArm * numberOfTreatmentArms, skuska1yestreatment1 + skuska1yestreatment2 + skuska1notreatment1 + skuska1notreatment2 + skuska2yestreatment1 + skuska2yestreatment2 + skuska2notreatment1 + skuska2notreatment2);
     }
 
 //    @Ignore
