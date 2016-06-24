@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for RtStructType</comment>
+
+    <entry key="rtStructType">RT-Strukt Typ</entry>
+    <entry key="rtStructType_plural">RT-Strukture Typen</entry>
+    <entry key="rtStructType_reload">Neu laden vorhandenen RT-Strukture Typen</entry>
+    <entry key="rtStructType_print">Drucken Tabelle  RT-Strukture Typen</entry>
+    <entry key="rtStructType_new">Definieren Sie einen neuen RT-Strukt Typ</entry>
+    <entry key="rtStructType_edit">Bearbeiten Sie ausgewählten RT-Strukt Typ</entry>
+    <entry key="rtStructType_delete">Löschen ausgewählten RT-Strukt Typ</entry>
+
+    <!-- attributes -->
+    <entry key="rtStructType_id">Id</entry>
+    <entry key="rtStructType_name">Name</entry>
+    <entry key="rtStructType_description">Beschreibung</entry>
+
+</properties>

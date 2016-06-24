@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="About RadPlanBio" title="About RadPlanBio" url="/about.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <p:panel header="About">
+            <p>
+                <p:outputPanel>
+                    <h3>RadPlanBio</h3>
+
+                    <p style="text-align:justify;">
+                    Proposal: Radiotherapy is a mainstay of modern oncology. During the last years, multiparametric imagebased treatment planning, monitoring,
+                    and follow-up has become standard of care in curatively intended radiation oncology. This provides a host of dose-space/volume-time
+                    resoluted data of individual patients which, if integrated with detailed clinical baseline and outcome data, is a powerful research tool
+                    to evaluate dose-space/volume-time responses in tumors and normal tissues. This is the basis to generate novel predictive multiparameter models for
+                    tumor-controlprobability (TCP) and normal tissue complication probability (NTCP). These predictive models can be translated into innovative studies on
+                    personalized radiotherapy, e.g. for biologically based inhomogeneous dose distributions which may reduce treatment sequelae or increase the chance to
+                    locally control tumors.
+                    <img src="${request.contextPath}/resources/img/rpb-icon.jpg"
+                         width="120"
+                         height="90"
+                         alt="cancer"
+                         style="float: right; padding: 10px 0px 10px 10px;"
+                        />
+                        The data also are essential for comparative analysis of different treatment approaches, e.g. particles vs. photons or different
+                    treatment combinations.Furthermore, if linked to investigations of tissues originating from the same patients, these data may provide a backbone for
+                    identification and validation of biomarkers for radiation oncology. Such infrastructure is also necessary for rapid online medical quality assurance,
+                    including checks for consistent contouring, dose planning and protocol adherence in prospective radiotherapy trials and for linking DKTK research with
+                    similar efforts by international partners. To be successful this research requires a radiotherapy-specific large-scale, systematic and sustainable IT infrastructure.
+                    This infrastructure is currently not available in Germany, and it has been requested by the International Review Board that such an infrastructure has to be
+                    established with high priority in the radiation oncology program of the DKTK. Therefore, under consideration of the German medico-legal requirements,
+                    a RadPlanBio-Platform will be established across the DKTK partner sites and beyond. As an internationally unique feature, the RadPlanBio-Platform will also
+                    incorporate preclinical data from experimental radiotherapy studies on animals. The RadPlanBio-Platform will be linked to the clinical communication platform
+                    and to international partner initiatives.
+                    </p>
+
+                    <h5>Proposed features:</h5>
+                    <ul>
+                        <li>central certified server (virtual server structure), web access to all partner sites</li>
+                        <li>portioned secured areas for each partner site</li>
+                        <li>automated data exchange based on DICOM and DICOM-RT</li>
+                        <li>link to outcome data bank</li>
+                        <li>link to biodatabase</li>
+                        <li>preclinical radio-biology animal data base set-up in analogy to clinical database</li>
+                        <li>searchable inventory</li>
+                        <li>link to modern flexible dose-plan analysis tools</li>
+                        <li>link to CCP-IT and export for communication with external inventories (national, international)</li>
+                    </ul>
+
+                    <h5>RadPlanBio design principles:</h5>
+                    <ul>
+                        <li>reusability -- a modular approach which enables flexible deployment to partner sites based on their needs</li>
+                        <li>interoperability -- the usage of well established standards for a clinical data exchange and SaaS architecture</li>
+                        <li>security -- encryption of connection </li>
+                        <li>patient privacy -- patient PID generation and pseudonymisation of DICOM data</li>
+                    </ul>
+                </p:outputPanel>
+            </p>
+
+            <!-- Give focus to first link to ease keyboard navigation -->
+            <script type="text/javascript">
+                $(function() {
+                    setTimeout(function() {
+                        APP.focusTo('form:logo_link');
+                    }, 200);
+                });
+            </script>
+        </p:panel>
+    </ui:define>
+</ui:composition>

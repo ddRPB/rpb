@@ -1,0 +1,915 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="#{msg.account_plural}" title="#{msg.account_plural}" url="/admin/userAccount.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbUserAccount.tab.activeIndex}">
+
+            <!-- Default user accounts -->
+            <p:tab title="#{msg.account_plural}">
+
+                <!-- Default accounts toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.account_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newAccountDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newAccountForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbUserAccount.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newAccountDialog').show();"
+                                immediate="true"
+                                update=":newAccountForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbUserAccount.prepareNewEntity}"
+                                rendered="#{mbUserAccount.tab.activeIndex == 0}"
+                                />
+
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.account_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbUserAccount.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbUserAccount.load}"
+                                rendered="#{mbUserAccount.tab.activeIndex == 0}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.account_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            id="btnUserAccountsHelp"
+                            value="#{msg.menu_help}"
+                            title="To be implemented"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Default accounts table -->
+                <p:dataTable
+                        id="dtEntities"
+                        var="account"
+                        value="#{mbUserAccount.entityList}"
+                        widgetVar="accountsTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbUserAccount.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{account.id}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbUserAccount.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbUserAccount.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!--AJAX onclick on datatable row-->
+                    <p:ajax event="rowSelect" update=":form:tabView:dtAccountRoles" />
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbUserAccount.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Username -->
+                    <p:column
+                            id="colUserName"
+                            headerText="#{msg.account_username}"
+                            sortBy="#{account.username}"
+                            filterBy="#{account.username}"
+                            filterMatchMode="contains"
+                            style="width:15%"
+                            visible="#{mbUserAccount.columnVisibilityList[0]}"
+                            >
+                        <h:outputText value="#{account.username}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Email -->
+                    <p:column
+                            headerText="#{msg.account_email}"
+                            sortBy="#{account.email}"
+                            filterBy="#{account.email}"
+                            filterMatchMode="contains"
+                            style="width:25%"
+                            visible="#{mbUserAccount.columnVisibilityList[1]}"
+                            >
+                        <h:outputText value="#{account.email}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Partner Site -->
+                    <p:column
+                        id="colAccountSite"
+                        headerText="#{msg.account_partnerSite}"
+                        sortBy="#{account.partnerSite.siteName}"
+                        filterBy="#{account.partnerSite.siteName}"
+                        filterMatchMode="in"
+                        style="width:20%"
+                        visible="#{mbUserAccount.columnVisibilityList[2]}"
+                        >
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="#{msg.partnerSite_plural}"
+                                    onchange="PF('accountsTable').filter()"
+                                    panelStyle="width:270px"
+                                    scrollHeight="150"
+                                    >
+                                <f:selectItems
+                                        value="#{mbPartnerSite.entityList}"
+                                        var="partnerSite"
+                                        itemLabel="#{partnerSite.siteName}"
+                                        itemValue="#{partnerSite.siteName}"
+                                        itemDescription="#{partnerSite.description}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{account.partnerSite.siteName}" style="float: left;" />
+                    </p:column>
+
+                    <!-- IsEnabled -->
+                    <p:column
+                        sortBy="#{account.isEnabled}"
+                        filterBy="#{account.isEnabled}"
+                        filterMatchMode="exact"
+                        style="width:18%"
+                        visible="#{mbUserAccount.columnVisibilityList[3]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.account_isEnabled}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('accountsTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="#{account.isEnabled}" disabled="true" />
+                    </p:column>
+
+                    <!--IsLdap-->
+                    <p:column
+                        sortBy="#{account.isLdapUser()}"
+                        filterBy="#{account.isLdapUser()}"
+                        filterMatchMode="exact"
+                        style="width:18%"
+                        visible="#{mbUserAccount.columnVisibilityList[4]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="LDAP" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('accountsTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="#{account.isLdapUser()}" disabled="true" />
+                    </p:column>
+
+                    <!--API-key enabled -->
+                    <p:column
+                            sortBy="#{account.apiKeyEnabled}"
+                            filterBy="#{account.apiKeyEnabled}"
+                            filterMatchMode="exact"
+                            style="width:18%"
+                            visible="#{mbUserAccount.columnVisibilityList[5]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.account_apiKeyEnabled}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('accountsTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="#{account.apiKeyEnabled}" disabled="true" />
+                    </p:column>
+
+                    <!-- PrivilegesCount-->
+                    <p:column
+                        sortBy="#{account.privilegesCount}"
+                        style="width:5%"
+                        visible="#{mbUserAccount.columnVisibilityList[6]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.account_privilegesCount}" />
+                        </f:facet>
+                        <h:outputText value="#{account.privilegesCount}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        style="width:17%"
+                        exportable="false"
+                        toggleable="false"
+                        >
+                        <p:commandButton
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            update=":accountDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('accountDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                    value="#{account}"
+                                    target="#{mbUserAccount.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                title="#{msg.menu_delete}"
+                                icon="ui-icon-trash"
+                                update=":viewAccountForm:deleteDisplay"
+                                oncomplete="PF('viewAccountDialog').show();"
+                                immediate="true"
+                                process="@this"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{account}"
+                                    target="#{mbUserAccount.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbUserAccount.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbUserAccount.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbUserAccount.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbUserAccount.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.account_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.account_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- User account roles association -->
+            <p:tab title="#{msg.account_roles}">
+
+                <!-- User Account Roles toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="Assign role to account"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newAccountRoleDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newAccountRoleForm:newDisplayRole"
+                                process="@this"
+                                actionListener="#{mbUserAccount.prepareNewRoles}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.menu_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtAccountRoles" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- User Account Roles datatable -->
+                <p:dataTable
+                    id="dtAccountRoles"
+                    var="accountRole"
+                    value="#{mbUserAccount.selectedEntity.roles}"
+                    widgetVar="accountRolesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbRole.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{accountRole.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbRole.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbRole.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Username -->
+                    <p:column
+                            id="colRoleName"
+                            headerText="#{msg.role}"
+                            sortBy="#{accountRole.name}"
+                            filterBy="#{accountRole.name}"
+                            filterMatchMode="contains"
+                            style="width:78%"
+                            >
+                        <h:outputText value="#{accountRole.name}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+
+                        <p:commandButton
+                                title="#{msg.menu_delete}"
+                                icon="ui-icon-trash"
+                                update=":viewAccountRoleForm:deleteDisplayRole"
+                                oncomplete="PF('viewAccountRoleDialog').show();"
+                                immediate="true"
+                                process="@this"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{accountRole}"
+                                    target="#{mbRole.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbUserAccount.selectedEntity.roles.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbUserAccount.selectedEntity.roles.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbUserAccount.selectedEntity.roles.size() > 1}"
+                                >
+                            <f:param value="#{mbUserAccount.selectedEntity.roles.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtAccountRoles" fileName="#{msg.account_roles}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtAccountRoles" fileName="#{msg.account_roles}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New Account -->
+        <p:dialog
+                id="dlgNewAccount"
+                header="#{msg.account_new}"
+                widgetVar="newAccountDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newAccountForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <h:outputLabel value="#{msg.account_username}: *" for="txtUsernameNew" />
+                    <p:inputText
+                            id="txtUsernameNew"
+                            value="#{mbUserAccount.newEntity.username}"
+                            required="true"
+                            requiredMessage="Please enter username, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputLabel value="LDAP: *" for="chbIsLdapNew" />
+                    <p:inputSwitch id="chbIsLdapNew" value="#{mbUserAccount.isLdapUserSource}">
+                        <p:ajax update=":newAccountForm, :growl" />
+                    </p:inputSwitch>
+
+                    <h:outputLabel value="#{msg.account_password}: *" for="txtPasswordNew" rendered="#{!mbUserAccount.isLdapUserSource}" />
+                    <h:inputSecret
+                            id="txtPasswordNew"
+                            value="#{mbUserAccount.newEntity.password}"
+                            required="true"
+                            requiredMessage="Please enter password, it is mandatory!"
+                            maxlength="255"
+                            rendered="#{!mbUserAccount.isLdapUserSource}"
+                            />
+
+                    <h:outputLabel value="Repeat #{msg.account_password}: *" for="txtPasswordRepeatNew" rendered="#{!mbUserAccount.isLdapUserSource}" />
+                    <h:inputSecret
+                            id="txtPasswordRepeatNew"
+                            value="#{mbUserAccount.newEntity.passwordCopy}"
+                            required="true"
+                            requiredMessage="Please repeat the password to ensure that there is no misstype!"
+                            maxlength="255"
+                            rendered="#{!mbUserAccount.isLdapUserSource}"
+                            />
+
+                    <h:outputLabel value="#{msg.account_email}:" for="txtEmailNew" />
+                    <p:inputText
+                            id="txtEmailNew"
+                            value="#{mbUserAccount.newEntity.email}"
+                            maxlength="255"
+                            validatorMessage="Invalid email format"
+                            >
+                        <f:validateRegex pattern="^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$" />
+                    </p:inputText>
+
+                    <!-- IsEnabled -->
+                    <h:outputLabel value="#{msg.account_isEnabled}:" for="chbIsEnabledNew" />
+                    <p:inputSwitch id="chbIsEnabledNew" value="#{mbUserAccount.newEntity.isEnabled}">
+                        <p:ajax update=":newAccountForm, :growl" />
+                    </p:inputSwitch>
+
+                    <!-- Partner Site -->
+                    <h:outputLabel value="#{msg.account_partnerSite}:" for="ddlPartnerSiteNew" />
+                    <p:selectOneMenu
+                            id="ddlPartnerSiteNew"
+                            value="#{mbUserAccount.newEntity.partnerSite}"
+                            converter="#{partnerSiteConverter}"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="partnerSiteNewIter"
+                            style="width:250px"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbPartnerSite.entityList}"
+                                var="site"
+                                itemLabel="#{site.siteName}"
+                                itemValue="#{site}"
+                                itemDescription="#{site.description}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{partnerSiteNewIter.siteName}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- EDC username -->
+                    <h:outputLabel value="OpenClinica #{msg.account_username}: " for="txtOcUsernameNew" />
+                    <p:inputText
+                            id="txtOcUsernameNew"
+                            value="#{mbUserAccount.newEntity.ocUsername}"
+                            maxlength="255"
+                            />
+
+                    <!-- ApiKey enabled -->
+                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledNew" />
+                    <p:inputSwitch id="chbIsApiKeyEnabledNew" value="#{mbUserAccount.newEntity.apiKeyEnabled}">
+                        <p:ajax update=":newAccountForm, :growl" />
+                    </p:inputSwitch>
+
+                    <!-- ApiKey -->
+                    <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKeyNew" />
+                    <p:inputText
+                            id="txtApiKeyNew"
+                            value="#{mbUserAccount.newEntity.apiKey}"
+                            required="true"
+                            requiredMessage="Please generate API-key, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <!-- Generate ApiKey -->
+                    <h:outputText value="" />
+                    <p:commandButton
+                            value="Generate #{msg.account_apiKey}"
+                            update=":newAccountForm, :growl"
+                            actionListener="#{mbUserAccount.doGenerateApiKey(mbUserAccount.newEntity)}"
+                            process="@this newAccountForm"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":newAccountForm, :form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbUserAccount.doCreateEntity}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAccount','newAccountForm');"
+                                process="@this newAccountForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Account -->
+        <p:dialog
+                id="dlgAccountDetails"
+                header="#{msg.account_edit}"
+                widgetVar="accountDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="accountDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.account_username}:" for="txtUsernameEdit" />
+                    <h:outputText id="txtUsernameEdit" value="#{mbUserAccount.selectedEntity.username}" />
+
+                    <!-- LDAP -->
+                    <h:outputLabel value="LDAP:" for="chbIsLdapEdit" />
+                    <p:inputSwitch id="chbIsLdapEdit" value="#{mbUserAccount.selectedEntity.isLdapUser()}" disabled="true" />
+
+                    <!-- Email -->
+                    <h:outputLabel value="#{msg.account_email}:" for="txtEmail" />
+                    <p:inputText
+                        id="txtEmail"
+                        value="#{mbUserAccount.selectedEntity.email}"
+                        maxlength="255"
+                        validatorMessage="Invalid email format"
+                        >
+                        <f:validateRegex pattern="^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$" />
+                    </p:inputText>
+
+                    <!-- Enabled -->
+                    <h:outputLabel value="#{msg.account_isEnabled}:" for="chbIsEnabledEdit" />
+                    <p:inputSwitch id="chbIsEnabledEdit" value="#{mbUserAccount.selectedEntity.isEnabled}">
+                        <p:ajax update=":accountDetailsForm, :growl" />
+                    </p:inputSwitch>
+
+                    <!-- PartnerSite -->
+                    <h:outputLabel value="#{msg.account_partnerSite}:" for="cmbPartnerSites" />
+                    <p:selectOneMenu
+                            id="cmbPartnerSites"
+                            value="#{mbUserAccount.selectedEntity.partnerSite}"
+                            converter="#{partnerSiteConverter}"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="partnerSiteEditIter"
+                            style="width:250px"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbPartnerSite.entityList}"
+                                var="site"
+                                itemLabel="#{site.siteName}"
+                                itemValue="#{site}"
+                                itemDescription="#{site.description}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{partnerSiteEditIter.siteName}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- OC username -->
+                    <h:outputLabel value="OpenClinica #{msg.account_username}:" for="txtOcUsernameEdit" />
+                    <p:inputText
+                            id="txtOcUsernameEdit"
+                            value="#{mbUserAccount.selectedEntity.ocUsername}"
+                            maxlength="255"
+                            />
+
+                    <!-- ApiKey enabled -->
+                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledEdit" />
+                    <p:inputSwitch id="chbIsApiKeyEnabledEdit" value="#{mbUserAccount.selectedEntity.apiKeyEnabled}">
+                        <p:ajax update=":accountDetailsForm, :growl" />
+                    </p:inputSwitch>
+
+                    <!-- ApiKey -->
+                    <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKeyEdit" />
+                    <p:inputText
+                            id="txtApiKeyEdit"
+                            value="#{mbUserAccount.selectedEntity.apiKey}"
+                            maxlength="255"
+                            />
+
+                    <!-- Generate ApiKey -->
+                    <h:outputText value="" />
+                    <p:commandButton
+                            value="Generate #{msg.account_apiKey}"
+                            update=":accountDetailsForm, :growl"
+                            actionListener="#{mbUserAccount.doGenerateApiKey(mbUserAccount.selectedEntity)}"
+                            process="@this accountDetailsForm"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update="accountDetailsForm, :form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAccountDetails','accountDetailsForm');"
+                                actionListener="#{mbUserAccount.doUpdateEntity}"
+                                process="@this accountDetailsForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Account -->
+        <p:dialog
+            id="dlgViewAccount"
+            header="#{msg.account_delete}"
+            widgetVar="viewAccountDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="viewAccountForm">
+                <p:panelGrid
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.account_username}:" for="txtAccountUsernameDelete" />
+                    <h:outputText id="txtAccountUsernameDelete" value="#{mbUserAccount.selectedEntity.username}" />
+
+                    <!-- LDAP -->
+                    <h:outputLabel value="LDAP:" for="chbIsLdapDelete" />
+                    <p:inputSwitch id="chbIsLdapDelete" value="#{mbUserAccount.selectedEntity.isLdapUser()}" disabled="true" />
+
+                    <!-- Email -->
+                    <h:outputLabel value="#{msg.account_email}:" for="txtAccountEmailDelete" />
+                    <h:outputText id="txtAccountEmailDelete" value="#{mbUserAccount.selectedEntity.email}" />
+
+                    <!-- IsEnabled -->
+                    <h:outputLabel value="#{msg.account_isEnabled}:"  for="chbAccounIsEnabledDelete" />
+                    <p:inputSwitch id="chbAccounIsEnabledDelete" value="#{mbUserAccount.selectedEntity.isEnabled}" disabled="true" />
+
+                    <!-- PartnerSite -->
+                    <h:outputLabel value="#{msg.account_partnerSite}:" for="txtAccountSiteDelete" />
+                    <h:outputText id="txtAccountSiteDelete" value="#{mbUserAccount.selectedEntity.partnerSite.siteName}" title="#{mbUserAccount.selectedEntity.partnerSite.description}" />
+
+                    <!-- EDC username -->
+                    <h:outputLabel value="OpenClinica #{msg.account_username}:" for="txtAccountOCusernameDelete" />
+                    <h:outputText id="txtAccountOCusernameDelete" value="#{mbUserAccount.selectedEntity.ocUsername}" />
+
+                    <!-- ApiKey enabled -->
+                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledDelete" />
+                    <p:inputSwitch id="chbIsApiKeyEnabledDelete" value="#{mbUserAccount.selectedEntity.apiKeyEnabled}" disabled="true" />
+
+                    <!-- ApiKey -->
+                    <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKeyDelete" />
+                    <h:outputText id="txtApiKeyDelete" value="#{mbUserAccount.selectedEntity.apiKey}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewAccount','viewAccountForm');"
+                            actionListener="#{mbUserAccount.doDeleteEntity}"
+                            process="@this viewAccountForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- New Role -->
+        <p:dialog
+                id="dlgNewAccountRole"
+                header="Assign a role for selected user account"
+                widgetVar="newAccountRoleDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newAccountRoleForm">
+                <p:panelGrid
+                        id="newDisplayRole"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Selected User-->
+                    <h:outputLabel value="#{msg.account_username}:" />
+                    <h:outputText value="#{mbUserAccount.selectedEntity.username}" />
+
+                    <!-- Role -->
+                    <h:outputLabel value="#{msg.role}:" for="ddlAccountRoleNew" />
+                    <p:selectManyMenu
+                            id="ddlAccountRoleNew"
+                            value="#{mbUserAccount.assignedRoles}"
+                            converter="omnifaces.SelectItemsConverter"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Role is mandatory!"
+                            filter="true"
+                            filterMatchMode="contains"
+                            showCheckbox="true"
+                            var="roleIterNew"
+                            scrollHeight="220"
+                            >
+                        <f:selectItems
+                                value="#{mbRole.entityList}"
+                                var="roleNew"
+                                itemLabel="#{roleNew.name}"
+                                itemValue="#{roleNew}"
+                                itemDescription="#{roleNew.description}"
+                                />
+                        <p:column style="width:10%">
+                            <h:outputText
+                                    styleClass="ui-icon ui-icon-circle-check"
+                                    rendered="#{mbUserAccount.selectedEntity.hasRole(roleIterNew)}"
+                                    />
+                        </p:column>
+                        <p:column>
+                            <h:outputText value="#{roleIterNew.name}" title="#{roleIterNew.description}" />
+                        </p:column>
+                    </p:selectManyMenu>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtAccountRoles, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbUserAccount.doAddRoles(mbUserAccount.assignedRoles)}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAccountRole','newAccountRoleForm');"
+                                process="@this newAccountRoleForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Role -->
+        <p:dialog
+                id="dlgViewAccountRole"
+                header="User Account Role"
+                widgetVar="viewAccountRoleDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="viewAccountRoleForm">
+                <p:panelGrid
+                        id="deleteDisplayRole"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Selected User-->
+                    <h:outputLabel value="#{msg.account_username}:" />
+                    <h:outputText value="#{mbUserAccount.selectedEntity.username}" />
+
+                    <!-- Role -->
+                    <h:outputLabel value="#{msg.role}:" for="txtAccountRoleNameDelete" />
+                    <h:outputText id="txtAccountRoleNameDelete" value="#{mbRole.selectedEntity.name}" />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtAccountRoles, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewAccountRole','viewAccountRoleForm');"
+                                actionListener="#{mbUserAccount.doRemoveRole(mbRole.selectedEntity)}"
+                                process="@this viewAccountRoleForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('newAccountDialog').hide();
+                    PF('accountDialog').hide();
+                    PF('viewAccountDialog').hide();
+
+                    PF('newAccountRoleDialog').hide();
+                    PF('viewAccountRoleDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

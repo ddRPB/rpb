@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Login content page (using main master page from layouts)-->
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"	
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="Login" title="Login" url="#" rendered="#{userContext.isAnonymousUser()}" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Content page-->
+	<ui:define name="content">
+		<!-- Our form is not a jsf form... I assume this will assign the action for the form -->
+		<script>$("form").attr('action','${request.contextPath}/logincheck.faces');</script>
+
+        <!-- When logged in show the user information -->
+        <p:panel
+            header="#{msg.welcome}"
+            rendered="#{userContext.isLoggedIn()}"
+            >
+            <p>
+                <h:outputFormat value="#{msg.you_are_connected_to}">
+                    <f:param value="#{userContext.username}" />
+                    <f:param value="#{msg.application_name}"/>
+                </h:outputFormat>
+            </p>
+        </p:panel>
+
+        <!-- Otherwise show login box -->
+        <p:outputPanel
+            rendered="#{userContext.isAnonymousUser()}"
+            >
+            <!-- Login panel definition -->
+            <p:panel
+                id="loginPanel"
+                header="Login"
+                styleClass="loginBox"
+                >
+                <!-- Give it a focus after load -->
+                <p:focus context="loginPanel" />
+
+                <p:outputPanel>
+                    <p>#{msg.login_instructions}</p>
+                </p:outputPanel>
+
+                <table>
+                    <tbody>
+                        <!-- If there are any error in param  show the error message -->
+                        <c:if test="${not empty param.login_error}">
+                            <tr>
+                                <td
+                                    colspan="2"
+                                    style="background-color: orange; text-align: center;"
+                                    >
+                                        ${msg.login_error}
+                                </td>
+                            </tr>
+                        </c:if>
+
+                        <!-- Session expired error message -->
+                        <c:if test="${not empty param.session_expired}">
+                            <tr>
+                                <td colspan="2">${msg.session_expired}</td>
+                            </tr>
+                        </c:if>
+
+                        <!-- The login user interface-->
+                        <tr>
+                            <td>
+                                <!-- Username label j_username is the standard way for Spring security framework -->
+                                <label for="j_username">
+                                    <strong>#{msg.login_login}</strong>
+                                </label>
+                            </td>
+                            <td>
+                                <!-- Username value automatically prefill the user name  it it is in param -->
+                                <c:if test="${not empty param.login_error}">
+                                    <c:set
+                                        var="username"
+                                        value="${sessionScope.SPRING_SECURITY_LAST_USERNAME}"
+                                        />
+                                </c:if>
+                                <input
+                                    id="j_username"
+                                    type="text"
+                                    name="j_username"
+                                    value="#{username}"
+                                    />
+                            </td>
+                        </tr>
+                        <tr>
+                            <!-- Password label j_password is the standard way for Spring security framework -->
+                            <td style="width: 100px;">
+                                <label for="j_password">
+                                        <strong>#{msg.login_password}</strong>
+                                </label>
+                            </td>
+                            <td>
+                                <input
+                                    id="j_password"
+                                    type="password"
+                                    name="j_password"
+                                    />
+                            </td>
+                        </tr>
+                        <tr>
+                            <!-- Option to choose authentication provider -->
+                            <td>
+                                <strong>
+                                    <label for="optAuthenticationType">${msg.login_authorisation}</label>
+                                </strong>
+                            </td>
+                            <td>
+                                <select id="optAuthenticationType" name="optAuthenticationType">
+                                    <option value="oc">OpenClinica</option>
+                                    <option value="default">RadPlanBio</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- Remmember the user -->
+                <p>
+                    <!--<input-->
+                        <!--id="_spring_security_remember_me"-->
+                        <!--type="checkbox"-->
+                        <!--name="_spring_security_remember_me"-->
+                        <!--/>-->
+                    <!--<label-->
+                        <!--for="_spring_security_remember_me"-->
+                        <!-->-->
+                        <!--${msg.login_rememberme}-->
+                    <!--</label>-->
+                </p>
+                <!-- Login buttons-->
+                <input
+                    name="submit"
+                    type="submit"
+                    value="${msg.login_submit}"
+                    />
+            </p:panel>
+        </p:outputPanel>
+	</ui:define>
+</ui:composition>

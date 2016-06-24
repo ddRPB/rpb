@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <changeSet id="insert-rtstruct-1" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="131" />
+            <column name="identifier" value="A_Celiac" />
+            <column name="name" value="Celiac artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-2" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="132" />
+            <column name="identifier" value="Breasts" />
+            <column name="name" value="Breasts" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-3" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="133" />
+            <column name="identifier" value="ChestWall" />
+            <column name="name" value="Chest Wall" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-4" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="134" />
+            <column name="identifier" value="Constrictors" />
+            <column name="name" value="Constrictors" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-5" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="135" />
+            <column name="identifier" value="Cochleas" />
+            <column name="name" value="Cochleas" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-6" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="136" />
+            <column name="identifier" value="FemHead" />
+            <column name="name" value="Femoral Head" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-7" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="137" />
+            <column name="identifier" value="GlotticLarynx" />
+            <column name="name" value="Glottic larynx" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-8" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="138" />
+            <column name="identifier" value="HGL" />
+            <column name="name" value="Hepatogastric ligament" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-9" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="139" />
+            <column name="identifier" value="LobarBronchus" />
+            <column name="name" value="Lobar bronchus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-10" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="140" />
+            <column name="identifier" value="BilatLung" />
+            <column name="name" value="Normal lung both (whole)" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-11" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="141" />
+            <column name="identifier" value="PH" />
+            <column name="name" value="Porta hepatis" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-12" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="142" />
+            <column name="identifier" value="SMA" />
+            <column name="name" value="Superior mesenteric artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

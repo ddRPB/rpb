@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" titl="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="#{msg.configuration}" title="#{msg.configuration}" url="#" />
+            <p:menuitem value="eCRF annotation types" title="eCRF annotation types" url="#" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbAnnotationType.tab.activeIndex}">
+
+            <!-- RadPlanBio CRF annotation types -->
+            <p:tab title="Annotation types" titletip="eCRF annotation types">
+
+                <!-- Annotation types toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup
+                        align="right"
+                        >
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.menu_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                        <p:hotkey bind="ctrl+shift+h" />
+                    </p:toolbarGroup>
+
+                    <!-- Left -->
+                    <p:toolbarGroup
+                        align="left"
+                        >
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="Define new annotation type for eCRF [ctrl+shift+n]"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newAnnotationTypeDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newAnnotationTypeForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbAnnotationType.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newAnnotationTypeDialog').show();"
+                                immediate="true"
+                                update=":newAnnotationTypeForm:newDisplay"
+                                process="@this"
+                                rendered="#{mbAnnotationType.tab.activeIndex == 1}"
+                                />
+                        <p:commandButton
+                                id="btnAnnotationTypesReload"
+                                title="Reload eCRF annotation types [ctrl+shift+r]"
+                                value="#{msg.menu_reload}"
+                                icon="ui-icon-refresh"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbAnnotationType.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbAnnotationType.load}"
+                                rendered="#{mbAnnotationType.tab.activeIndex == 1}"
+                                />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- RadPlanBio annotation types table -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="type"
+                    value="#{mbAnnotationType.entityList}"
+                    widgetVar="typesTable"
+                    resizableColumns="false"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbAnnotationType.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{type.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbAnnotationType.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbAnnotationType.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Name -->
+                    <p:column
+                            id="colName"
+                            headerText="Name"
+                            sortBy="#{type.name}"
+                            filterBy="#{type.name}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <h:outputText value="#{type.name}" style="float: left;"  />
+                    </p:column>
+
+                    <!-- Description -->
+                    <p:column
+                            id="description"
+                            headerText="Description"
+                            sortBy="#{type.description}"
+                            filterBy="#{type.description}"
+                            filterMatchMode="contains"
+                            style="width:58%"
+                            >
+                        <h:outputText value="#{type.description}" style="float: left;"  />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+
+                        <!-- Edit -->
+                        <p:commandButton
+                                title="#{msg.menu_edit}"
+                                icon="ui-icon-contact"
+                                update=":editAnnotationTypeForm:editDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editAnnotationTypeDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{type}"
+                                    target="#{mbAnnotationType.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <!-- Delete -->
+                        <p:commandButton
+                                title="#{msg.menu_delete}"
+                                icon="ui-icon-trash"
+                                update=":deleteAnnotationTypeForm:display"
+                                oncomplete="PF('deleteAnnotationTypeDialog').show();"
+                                immediate="true"
+                                process="@this"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{type}"
+                                    target="#{mbAnnotationType.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbAnnotationType.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbAnnotationType.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbAnnotationType.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbAnnotationType.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="AnnotationTypes" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="AnnotationTypes" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New -->
+        <p:dialog
+                id="dlgNewAnnotationType"
+                header="Create new CRF annontation type"
+                widgetVar="newAnnotationTypeDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newAnnotationTypeForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <h:outputLabel
+                            value="New CRF annotation type name: "
+                            for="txtNewName"
+                            />
+                    <p:inputText
+                            id="txtNewName"
+                            value="#{mbAnnotationType.newEntity.name}"
+                            required="true"
+                            requiredMessage="Please enter unique annotation type name, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputLabel
+                            value="Description: "
+                            for="txtNewDescription"
+                            />
+                    <p:inputTextarea
+                            id="txtNewDescription"
+                            value="#{mbAnnotationType.newEntity.description}"
+                            maxlength="255"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                icon="ui-icon-disk"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbAnnotationType.doCreateEntity}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAnnotationType','newAnnotationTypeForm');"
+                                process="@this newAnnotationTypeForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit -->
+        <p:dialog
+                id="dlgAnnotationTypeEdit"
+                header="Edit CRF annotation type"
+                widgetVar="editAnnotationTypeDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="editAnnotationTypeForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Name -->
+                    <h:outputLabel
+                            value="CRF annotation type name: "
+                            for="txtName"
+                            />
+                    <h:outputText
+                            id="txtName"
+                            value="#{mbAnnotationType.selectedEntity.name}"
+                            />
+
+                    <!-- Description -->
+                    <h:outputLabel
+                            value="Description: "
+                            for="txtDescription"
+                            />
+                    <p:inputTextarea
+                            id="txtDescription"
+                            value="#{mbAnnotationType.selectedEntity.description}"
+                            maxlength="255"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAnnotationTypeEdit','editAnnotationTypeForm');"
+                                actionListener="#{mbAnnotationType.doUpdateEntity}"
+                                process="@this editAnnotationTypeForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete -->
+        <p:dialog
+                id="dlgDeleteAnnotationType"
+                header="CRF annotation type"
+                widgetVar="deleteAnnotationTypeDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="deleteAnnotationTypeForm">
+                <p:panelGrid
+                        id="display"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <h:outputText value="Annotation type name: " />
+                    <h:outputText
+                            value="#{mbAnnotationType.selectedEntity.name}"
+                            />
+
+                    <h:outputText value="Annotation type description: " />
+                    <h:outputText
+                            value="#{mbAnnotationType.selectedEntity.description}"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteAnnotationType','deleteAnnotationTypeForm');"
+                                actionListener="#{mbAnnotationType.doDeleteEntity}"
+                                process="@this deleteAnnotationTypeForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('newAnnotationTypeDialog').hide();
+                    PF('deleteAnnotationTypeDialog').hide();
+                    PF('editAnnotationTypeDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

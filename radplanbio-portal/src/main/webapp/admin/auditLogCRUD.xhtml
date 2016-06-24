@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="#{msg.auditLog_plural}" title="#{msg.auditLog_plural}" url="/admin/auditLogCRUD.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView">
+
+            <!-- Tab -->
+            <p:tab title="#{msg.auditLog_plural}">
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.auditLog_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtEntities"
+                        var="entity"
+                        value="#{mbAuditLog}"
+                        widgetVar="entitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbAuditLog.selectedEntity}"
+                        selectionMode="single"
+                        rowIndexVar="rowIndex"
+                        lazy="true"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtEntities"
+                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbAuditLog.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Event date -->
+                    <p:column
+                            id="colAuditEventDate"
+                            sortBy="#{entity.eventDate}"
+                            filterBy="#{entity.eventDate}"
+                            visible="#{mbAuditLog.columnVisibilityList[0]}"
+                            filterMatchMode="contains"
+                            style="width:25%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_eventDate}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.eventDate}" style="float: left;">
+                            <f:convertDateTime
+                                pattern="dd-MM-yyyy HH:mm:ss"
+                                type="date"
+                                timeZone="CET"
+                                />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- Username -->
+                    <p:column
+                            sortBy="#{entity.username}"
+                            filterBy="#{entity.username}"
+                            visible="#{mbAuditLog.columnVisibilityList[1]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_username}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.username}" style="float: left;"  />
+                    </p:column>
+
+                    <!-- Event -->
+                    <p:column
+                            sortBy="#{entity.event}"
+                            filterBy="#{entity.event}"
+                            visible="#{mbAuditLog.columnVisibilityList[2]}"
+                            filterMatchMode="in"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_event}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="#{msg.enumAuditEvent_plural}"
+                                    onchange="PF('entitiesTable').filter()"
+                                    panelStyle="width:230px"
+                                    scrollHeight="150"
+                                    >
+                                <f:selectItems
+                                        value="#{mbAuditLog.auditEvents}"
+                                        var="enumAuditEvent"
+                                        itemLabel="#{enumAuditEvent.label}"
+                                        itemValue="#{enumAuditEvent.toString()}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.event}" style="float: left;" />
+                    </p:column>
+
+                    <!-- String1 -->
+                    <p:column
+                            sortBy="#{entity.stringAttribute1}"
+                            filterBy="#{entity.stringAttribute1}"
+                            visible="#{mbAuditLog.columnVisibilityList[3]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_stringAttribute1}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.stringAttribute1}" style="float: left;" />
+                    </p:column>
+
+                    <!-- String2 -->
+                    <p:column
+                            sortBy="#{entity.stringAttribute2}"
+                            filterBy="#{entity.stringAttribute2}"
+                            visible="#{mbAuditLog.columnVisibilityList[4]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_stringAttribute2}" style="float: left;" />
+                        </f:facet>
+                        <h:outputText value="#{entity.stringAttribute2}" />
+                    </p:column>
+
+                    <!-- String3 -->
+                    <p:column
+                            sortBy="#{entity.stringAttribute3}"
+                            filterBy="#{entity.stringAttribute3}"
+                            visible="#{mbAuditLog.columnVisibilityList[5]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_stringAttribute3}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.stringAttribute3}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbAuditLog.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbAuditLog.size == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbAuditLog.size > 1}"
+                                >
+                            <f:param value="#{mbAuditLog.size}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.auditLog_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.auditLog_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs" />
+</ui:composition>

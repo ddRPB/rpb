@@ -325,10 +325,10 @@
 
     <!--Email-->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="g06email.med.tu-dresden.de" />
+        <property name="host" value="server" />
         <property name="port" value="25" />
         <property name="username" value="RadPlanBioDD@med.tu-dresden.de" />
-        <property name="password" value="RPB_2013dd" />
+        <property name="password" value="pass" />
         <property name="protocol"  value="smtp" />
         <property name="javaMailProperties">
             <props>

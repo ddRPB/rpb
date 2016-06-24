@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="EDC" title="Electronic Data Capture System" url="#" />
+            <p:menuitem value="#{msg.study_plural}" title="#{msg.study_plural}" url="/admin/studyManagement.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbStudyManagement.tab.activeIndex}">
+
+            <!-- RadPlanBio studies -->
+            <p:tab title="#{msg.study_plural}">
+                <!-- Studies toolbar -->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                id="btnStudyNew"
+                                value="#{msg.menu_new}"
+                                title="Lookup for a new study in OpenClinica [ctrl+shift+n]"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newStudyDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newStudyForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbStudyManagement.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newStudyDialog').show();"
+                                immediate="true"
+                                update=":newStudyForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbStudyManagement.prepareNewEntity}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="Reload studies [ctrl+shift+r]"
+                                icon="ui-icon-refresh"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtStudies, :growl"
+                                actionListener="#{mbStudyManagement.reload}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtStudies, :growl"
+                                actionListener="#{mbStudyManagement.reload}"
+                                />
+                    </p:toolbarGroup>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.study_print}"
+                                icon="ui-icon-print"
+                                type="button"
+                                >
+                            <p:printer target="dtStudies" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                        <p:hotkey bind="ctrl+shift+h" />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- RadPlanBio studies table -->
+                <p:dataTable
+                    id="dtStudies"
+                    var="study"
+                    value="#{mbStudyManagement.entityList}"
+                    widgetVar="studiesTable"
+                    resizableColumns="false"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbStudyManagement.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{study.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbStudyManagement.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbStudyManagement.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Row -->
+                    <p:column headerText="#" style="width:5%" exportable="false" toggleable="false">
+                        <h:outputLabel value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Study OC identifier -->
+                    <p:column
+                            id="colStudyOcIdentifier"
+                            sortBy="#{study.ocStudyIdentifier}"
+                            filterBy="#{study.ocStudyIdentifier}"
+                            filterMatchMode="contains"
+                            style="width:40%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="Study identifier" />
+                        </f:facet>
+                        <h:outputText value="#{study.ocStudyIdentifier}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Principal study site -->
+                    <p:column
+                        sortBy="#{study.partnerSite.siteName}"
+                        style="width:30%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="Principal site" />
+                        </f:facet>
+                        <h:outputText value="#{study.partnerSite.siteName}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Stratify according to study site -->
+                    <p:column
+                          sortBy="#{study.isStratifyTrialSite}"
+                          filterBy="#{study.isStratifyTrialSite}"
+                          filterMatchMode="exact"
+                          style="width:10%"
+                          >
+                        <f:facet name="header">
+                            <h:outputText value="Stratify site" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('studiesTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="#{study.isStratifyTrialSite}" disabled="true" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <!-- Edit -->
+                        <p:commandButton
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":editStudyForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editStudyDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{study}"
+                                target="#{mbStudyManagement.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Delete -->
+                        <p:commandButton
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":deleteStudyForm:deleteDisplay"
+                            oncomplete="PF('deleteStudyDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{study}"
+                                target="#{mbStudyManagement.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudyManagement.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudyManagement.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbStudyManagement.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbStudyManagement.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtStudies" fileName="#{msg.study_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtStudies" fileName="#{msg.study_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New Study -->
+        <p:dialog
+                id="dlgNewStudy"
+                header="Create RadPlanBio for OC study"
+                widgetVar="newStudyDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newStudyForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- CTMS Study -->
+                    <h:outputLabel value="Selected study: " for="ddlStudyTitleNew" />
+                    <p:inputTextarea
+                            id="ddlStudyTitleNew"
+                            value="#{mbStudyManagement.newEntity.title}"
+                            style="width:350px"
+                            />
+
+                    <!-- OC study identifier -->
+                    <h:outputLabel
+                            value="OC study identifier: *"
+                            for="cmbOcStudyIdentifier"
+                            />
+                    <p:selectOneMenu
+                            id="cmbOcStudyIdentifier"
+                            value="#{mbStudyManagement.selectedStudyName}"
+                            panelStyle="width: 150px"
+                            var="s"
+                            style="width:400px"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="" />
+                        <f:selectItems
+                                value="#{mbStudyManagement.studyTypeList}"
+                                var="studyType"
+                                itemLabel="#{studyType.name}"
+                                itemValue="#{studyType.name}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Principal partner site -->
+                    <h:outputLabel
+                            value="Principal partner site: *"
+                            for="cmbPartnerSites"
+                            />
+                    <p:selectOneMenu
+                            id="cmbPartnerSites"
+                            value="#{mbStudyManagement.newEntity.partnerSite}"
+                            converter="#{partnerSiteConverter}"
+                            style="width:250px"
+                            required="true"
+                            requiredMessage="You have to select the principal site for the study."
+                            >
+                        <f:selectItem
+                                itemLabel="#{msg.search_select_one}"
+                                itemValue="-1"
+                                />
+                        <f:selectItems
+                                value="#{mbPartnerSite.entityList}"
+                                var="site"
+                                itemLabel="#{site.siteName}"
+                                itemValue="#{site}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Stratification -->
+                    <h:outputLabel
+                            value="Stratify study site: "
+                            for="chkStratifySiteNew"
+                            />
+                    <p:selectBooleanCheckbox
+                            id="chkStratifySiteNew"
+                            value="#{mbStudyManagement.newEntity.isStratifyTrialSite}"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtStudies, :deleteStudyForm, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbStudyManagement.doCreateStudy}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewStudy','newStudyForm');"
+                                process="@this newStudyForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Study -->
+        <p:dialog
+                id="dlgStudyEdit"
+                header="Edit RadPlanBio study"
+                widgetVar="editStudyDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="editStudyForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- CTMS Study -->
+                    <h:outputLabel value="Selected study: " />
+                    <p:inputTextarea
+                            value="#{mbStudyManagement.selectedEntity.title}"
+                            style="width:350px"
+                            />
+
+                    <!-- Connection to OC study -->
+                    <h:outputText value="OC study identifier: " for="ddlOcStudyIdentifierEdit" />
+                    <p:selectOneMenu
+                            id="ddlOcStudyIdentifierEdit"
+                            value="#{mbStudyManagement.selectedStudyName}"
+                            panelStyle="width: 150px"
+                            var="s"
+                            style="width:400px"
+                            rendered="#{mbStudyManagement.selectedEntity.ocStudyIdentifier == null}"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="" />
+                        <f:selectItems
+                                value="#{mbStudyManagement.studyTypeList}"
+                                var="studyType"
+                                itemLabel="#{studyType.name}"
+                                itemValue="#{studyType.name}"
+                                />
+                    </p:selectOneMenu>
+                    <h:outputText
+                            value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}"
+                            rendered="#{mbStudyManagement.selectedEntity.ocStudyIdentifier != null}"
+                            />
+
+                    <!-- Principal partner site -->
+                    <h:outputLabel
+                            value="Principal partner site: *"
+                            for="cmbPartnerSitesEdit"
+                            />
+                    <p:selectOneMenu
+                            id="cmbPartnerSitesEdit"
+                            value="#{mbStudyManagement.selectedEntity.partnerSite}"
+                            converter="#{partnerSiteConverter}"
+                            style="width:250px"
+                            required="true"
+                            requiredMessage="You have to select the principal site for the study."
+                            >
+                        <f:selectItem
+                                itemLabel="#{msg.search_select_one}"
+                                itemValue="-1"
+                                />
+                        <f:selectItems
+                                value="#{mbPartnerSite.entityList}"
+                                var="site"
+                                itemLabel="#{site.siteName}"
+                                itemValue="#{site}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Stratification -->
+                    <h:outputLabel
+                            value="Stratify study site: "
+                            for="chkStratifySiteEdit"
+                            />
+                    <p:selectBooleanCheckbox
+                            id="chkStratifySiteEdit"
+                            rendered="#{mbStudyManagement.selectedEntity != null}"
+                            value="#{mbStudyManagement.selectedEntity.isStratifyTrialSite}"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_update}"
+                            update=":form:tabView:dtStudies, :deleteStudyForm, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgStudyEdit','editStudyForm');"
+                            actionListener="#{mbStudyManagement.doUpdateEntity}"
+                            process="@this editStudyForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Study -->
+        <p:dialog
+                id="dlgDeleteStudy"
+                header="Delete study"
+                widgetVar="deleteStudyDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="deleteStudyForm">
+                <p:panelGrid
+                        id="deleteDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <h:outputText value="Study identifier: " />
+                    <h:outputText value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" />
+
+                    <h:outputText value="Principal partner site: " />
+                    <h:outputText value="#{mbStudyManagement.selectedEntity.partnerSite.siteName}" />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtStudies, :deleteStudyForm, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteStudy','deleteStudyForm');"
+                                actionListener="#{mbStudyManagement.doDeleteEntity}"
+                                process="@this deleteStudyForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                }
+                else {
+                    clearForm(formName);
+                    PF('newStudyDialog').hide();
+                    PF('deleteStudyDialog').hide();
+                    PF('editStudyDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

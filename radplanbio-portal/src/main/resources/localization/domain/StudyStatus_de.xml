@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyStatus</comment>
+
+    <entry key="studyStatus">Status</entry>
+    <entry key="studyStatus_plural">Statuses</entry>
+    <entry key="studyStatus_reload">Neu laden vorhandenen Statuses</entry>
+    <entry key="studyStatus_print">Drucken Tabelle Statuses</entry>
+    <entry key="studyStatus_new">Definieren Sie eine neue Status</entry>
+    <entry key="studyStatus_edit">Bearbeiten Sie ausgewählte Status</entry>
+    <entry key="studyStatus_delete">Löschen ausgewählten Status</entry>
+
+    <!-- attributes -->
+    <entry key="studyStatus_id">Id</entry>
+    <entry key="studyStatus_name">Name</entry>
+    <entry key="studyStatus_description">Beschreibung</entry>
+</properties>

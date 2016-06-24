@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+<!-- HTML root-->
+<html
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:appcc="http://java.sun.com/jsf/composite/components"
+    xml:lang="${userContext.locale}"
+    lang="${userContext.locale}"
+    >
+    <!-- This is the main template (MasterPage) -->
+    <!-- f:view is wrapping the root of markup language to ensure that all childs are part of the same view-->
+    <!-- Specifying contentType, encoding and language for I18N internationalisation-->
+    <f:view
+        contentType="text/html"
+        encoding="UTF-8"
+        lang="${userContext.locale}"
+        >
+        <!-- HTML head-->
+        <h:head>
+            <f:facet name="first">
+                <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+                <meta name="description" content="RadPlanBio - radiotherapy clinical research IT infrastructure" />
+                <meta name="keywords" content="DICOM, CDISC ODM, web services, software integration" />
+                <meta name="author" content="DKTK" />
+                <!-- Page title accorging to the Partner site settings -->
+                <title>RPB portal ${msg.partner_site_name}</title>
+            </f:facet>
+
+            <f:facet name="last">
+                <h:outputStylesheet name="css/main.css" />
+                <h:outputScript name="js/main.js" />
+            </f:facet>
+
+            <!-- Allows to use $ instead of jquery -->
+            <script type="text/javascript"> $ = jQuery;</script>
+            <!-- To support google map integration -->
+            <script src="https://maps.google.com/maps/api/js?sensor=false&amp;v=3.4" type="text/javascript"></script>
+
+            <!-- Favicon -->
+            <link rel="shortcut icon" type="image/x-icon" href="${request.contextPath}/resources/img/favicon.ico" />
+            <link rel="icon" type="image/x-icon" href="${request.contextPath}/resources/img/favicon.ico"  />
+        </h:head>
+
+        <!-- HTML body -->
+        <h:body>
+
+            <!-- RadPlanBio -->
+            <div class="headerBar">
+                <div class="headerText">RadPlanBio - radiotherapy clinical research IT infrastructure</div>
+            </div>
+
+            <!-- Growl is UI component for displaying messages -->
+            <p:growl
+                id="growl"
+                widgetVar="growlNotificationBar"
+                showDetail="true"
+                sticky="false"
+                life="8000"
+                />
+
+            <!-- Display the flag on top of project logo about the environemnt where appliation is running (development, productionm, etc.) -->
+            <!-- request.contextPath get the path to web app on the server -->
+            <!-- systemProperties define the flag-->
+            <img width="58" height="50" src="${request.contextPath}/resources/icons/environment/production.gif" class="versionEnv" alt="production" />
+
+            <!--<img-->
+                <!--width="58"-->
+                <!--height="50"-->
+                <!--src="${request.contextPath}/resources/icons/environment/${systemProperties['env_name'] eq null ? 'development' : systemProperties['env_name']}.gif"-->
+                <!--class="versionEnv" alt="${systemProperties['env_name'] eq null ? 'development' : systemProperties['env_name']}"-->
+                <!--/>-->
+
+            <!-- Main form HTML element (nested forms are not valid, be sure that there is no form in content page) -->
+            <h:form id="form" enctype="multipart/form-data; charset=utf-8">
+                <!-- Responsive layout -->
+                <div class="ui-grid headerDiv ui-grid-responsive">
+                    <!-- Header -->
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12">
+                            <!-- Banner -->
+                            <div id="divBanner" role="banner">
+                                <h:panelGrid columns="3" style="width: 100%">
+                                    <!-- Project image link-->
+                                    <h:outputLink id="logo_link" value="${facesContext.externalContext.requestContextPath}/home.faces">
+                                        <h:graphicImage
+                                                id="logoHeader"
+                                                width="170"
+                                                height="60"
+                                                alt="Logo DKFZ RadPlanBio"
+                                                name="img/dktk-logo.jpg"
+                                                style="border: 0;margin: 0;"
+                                                />
+                                    </h:outputLink>
+
+                                    <!-- Center project title-->
+                                    <h2 style="text-align: center;">
+                                        RPB portal #{msg.partner_site_name}
+                                    </h2>
+
+                                    <!-- Login status, language menu -->
+                                    <h:panelGroup>
+                                        <div style="float: right;">
+
+                                            <!-- If logged show the username -->
+                                            <h:outputLink
+                                                    rendered="#{userContext.isLoggedIn()}"
+                                                    style="margin-right: 5px;"
+                                                    value="${facesContext.externalContext.requestContextPath}/rpb/profile.faces"
+                                                    >
+                                                <h:outputText
+                                                        value="${userContext.username}"
+                                                        title="[#{mbMain.myAccount.partnerSite.siteName}]"
+                                                        />
+                                            </h:outputLink>
+
+                                            <!-- If not logged show login image and link -->
+                                            <h:outputLink
+                                                    id="login_link"
+                                                    value="${facesContext.externalContext.requestContextPath}/login.faces"
+                                                    styleClass="userInfo-user"
+                                                    rendered="#{userContext.isAnonymousUser()}"
+                                                    >
+                                                <h:outputText value="${msg.login_submit}"/>
+                                            </h:outputLink>
+
+                                            <!-- If logged show logout image and link -->
+                                            <h:outputLink
+                                                    id="logout_link"
+                                                    value="${facesContext.externalContext.requestContextPath}/logout.faces"
+                                                    styleClass="userInfo-user"
+                                                    rendered="#{userContext.isLoggedIn()}"
+                                                    >
+                                                <h:outputText value="#{msg.login_logout}"/>
+                                            </h:outputLink>
+
+                                            <!-- Navigate home link -->
+                                            <a id="home_link"
+                                               href="${facesContext.externalContext.requestContextPath}/home.faces"
+                                               class="userInfo-welcome"
+                                               >
+                                                #{msg.home}
+                                            </a>
+
+                                            <!-- Language switchers -->
+                                            <p:commandLink
+                                                id="switchToEnglish"
+                                                action="#{userContext.switchToEnglish()}"
+                                                styleClass="userInfo-en"
+                                                title="#{userContext.englishLanguage}"
+                                                rendered="#{!userContext.isLoggedIn() and !userContext.isEnglish()}"
+                                                />
+                                            <p:commandLink
+                                                id="switchToGerman"
+                                                action="#{userContext.switchToGerman()}"
+                                                styleClass="userInfo-de"
+                                                title="#{userContext.germanLanguage}"
+                                                rendered="#{!userContext.isLoggedIn() and !userContext.isGerman()}"
+                                                />
+
+                                            <!-- Logged in info -->
+                                            <br /> <br />
+                                            <h:outputLabel value="${msg.client_ip} " for="txtIpAddress" rendered="#{userContext.isLoggedIn()}" />
+                                            <h:outputFormat id="txtIpAddress" value="#{mbMain.clientIpAddress}" rendered="#{userContext.isLoggedIn()}" />
+                                            <br />
+                                            <h:outputLabel value="${msg.date} " for="txtDate" rendered="#{userContext.isLoggedIn()}"/>
+                                            <h:outputText
+                                                id="txtDate"
+                                                value="#{session.lastAccessedTime}"
+                                                title="dd-MM-yyyy"
+                                                rendered="#{userContext.isLoggedIn()}"
+                                                >
+                                                <f:convertDateTime
+                                                    pattern="dd-MM-yyyy"
+                                                    type="date"
+                                                    timeZone="CET"
+                                                    />
+                                            </h:outputText>
+                                        </div>
+                                    </h:panelGroup>
+
+                                </h:panelGrid>
+                            </div>
+
+                            <!-- Status menu -->
+                            <p:toolbar>
+                                <p:toolbarGroup align="left">
+                                    <!-- Active Study -->
+                                    <p:menuButton
+                                        id="statusView"
+                                        value="#{msg.active_study}: #{mbMain.activeStudy.uniqueIdentifier}"
+                                        rendered="#{userContext.hasRole('ROLE_EDC_USER')}"
+                                        >
+                                        <p:menuitem
+                                            value="#{msg.active_study_open}"
+                                            target="newPopup"
+                                            url="/edc/openElectronicDataCapture.faces"
+                                            rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}"
+                                            />
+                                        <p:menuitem
+                                            value="#{msg.active_study_change}"
+                                            url="/edc/ecrfStudies.faces"
+                                            />
+                                        <p:menuitem
+                                            value="#{msg.active_study_reload}"
+                                            immediate="true"
+                                            process="@this"
+                                            update=":form:statusView, :growl"
+                                            actionListener="#{mbMain.refreshActiveStudy}"
+                                            />
+                                    </p:menuButton>
+                                </p:toolbarGroup>
+
+                                <!-- Breadcrumbs -->
+                                <p:toolbarGroup align="right">
+                                    <ui:insert name="breadcrumbs" />
+                                </p:toolbarGroup>
+                            </p:toolbar>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center -->
+                <div class="ui-grid  ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <!-- Menu -->
+                        <div class="ui-grid-col-3 menuDiv">
+                            <!--<p:panel header="" toggleable="true" toggleOrientation="horizontal">-->
+                            <p:panelMenu>
+                                <p:submenu label="Menu">
+
+                                    <!-- Home -->
+                                    <p:menuitem
+                                            value="#{msg.home}"
+                                            url="/home.faces"
+                                            icon="ui-icon-home"
+                                            />
+
+                                    <!-- Clinical Trial Management -->
+                                    <p:submenu
+                                            label="CTMS - study management"
+                                            rendered="#{userContext.hasRole('ROLE_CTMS_USER')}"
+                                            >
+                                        <p:menuitem
+                                                value="#{msg.study_plural}"
+                                                url="/ctms/studies.faces"
+                                                icon="ui-icon-calculator"
+                                                />
+                                        <p:menuitem
+                                                value="#{msg.person_plural}"
+                                                url="/ctms/persons.faces"
+                                                icon="ui-icon-person"
+                                                />
+                                        <p:menuitem
+                                                value="#{msg.organisation_plural}"
+                                                url="/ctms/organisations.faces"
+                                                icon="ui-icon-suitcase"
+                                                />
+                                    </p:submenu>
+
+                                    <!-- Electronic Data Capture -->
+                                    <p:submenu
+                                            label="EDC - data capture"
+                                            rendered="#{userContext.hasRole('ROLE_EDC_USER')}"
+                                            >
+                                        <p:menuitem
+                                                value="#{msg.active_study_open}"
+                                                target="newPopup"
+                                                url="/edc/openElectronicDataCapture.faces"
+                                                icon="ui-icon-bookmark"
+                                                rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}"
+                                                />
+                                        <p:menuitem
+                                                value="#{msg.study_plural}/#{msg.studySubject_plural}/#{msg.studyEvent_plural}"
+                                                url="/edc/ecrfStudies.faces"
+                                                icon="ui-icon-document"
+                                                />
+                                        <p:menuitem
+                                                value="#{msg.randomisation}"
+                                                url="/edc/randomisedSubjects.faces"
+                                                icon="ui-icon-shuffle"
+                                                rendered="#{userContext.hasRole('ROLE_EDC_RANDOMISE')}"
+                                                />
+                                    </p:submenu>
+
+                                    <!-- DICOM research PACS server -->
+                                    <p:submenu
+                                            label="PACS - medical imaging"
+                                            rendered="#{userContext.hasRole('ROLE_PACS_USER')}"
+                                            >
+                                        <p:menuitem
+                                                value="DICOM Matrix"
+                                                url="/pacs/dicomMatrix.faces"
+                                                icon="ui-icon-image"
+                                                rendered="#{userContext.hasRole('ROLE_ADMIN')}"
+                                                />
+                                        <p:menuitem
+                                                value="DICOM #{msg.study_plural}"
+                                                url="/pacs/dicomPatientStudies.faces"
+                                                icon="ui-icon-image"
+                                                />
+                                        <p:menuitem
+                                                value="DICOM Lookup"
+                                                url="/pacs/dicomLookup.faces"
+                                                icon="ui-icon-image"
+                                                rendered="#{userContext.hasRole('ROLE_ADMIN')}"
+                                                />
+                                    </p:submenu>
+
+                                    <!-- PID -->
+                                    <p:submenu
+                                            label="PID - patient identity"
+                                            rendered="#{userContext.hasRole('ROLE_PID_USER')}"
+                                            >
+                                        <p:menuitem
+                                                value="Search Patient"
+                                                url="/pid/pidCRUD.faces"
+                                                icon="ui-icon-person"
+                                                />
+                                    </p:submenu>
+
+                                    <!-- Data -->
+                                    <p:submenu
+                                            label="Data"
+                                            rendered="#{userContext.hasRole('ROLE_USER')}"
+                                            >
+                                        <p:menuitem
+                                                value="Query"
+                                                url="/rpb/customQuery.faces"
+                                                icon="ui-icon-script"
+                                                rendered="#{userContext.hasRole('ROLE_QUERY')}"
+                                                />
+                                        <p:menuitem
+                                                value="Import"
+                                                url="/rpb/importData.faces"
+                                                icon="ui-icon-folder-open"
+                                                rendered="#{userContext.hasRole('ROLE_IMPORT')}"
+                                                />
+                                    </p:submenu>
+
+                                    <!-- Administration -->
+                                    <p:submenu
+                                        label="#{msg.administration}"
+                                        rendered="#{userContext.hasRole('ROLE_ADMIN')}"
+                                        >
+                                        <p:submenu label="#{msg.account_plural}">
+                                            <p:menuitem
+                                                    value="#{msg.role_plural}"
+                                                    url="/admin/roleCRUD.faces"
+                                                    icon="ui-icon-key"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.account_plural}"
+                                                    url="/admin/userAccountCRUD.faces"
+                                                    icon="ui-icon-contact"
+                                                    />
+                                        </p:submenu>
+                                        <p:submenu label="#{msg.configuration}">
+                                            <p:menuitem
+                                                    value="#{msg.partnerSite_plural}"
+                                                    url="/admin/partnerSiteCRUD.faces"
+                                                    icon="ui-icon-wrench"
+                                                    />
+                                            <p:menuitem
+                                                    value="Software"
+                                                    url="/admin/softwareCRUD.faces"
+                                                    icon="ui-icon-bookmark"
+                                                    />
+                                            <p:menuitem
+                                                    value="Annotatiton Types"
+                                                    url="/admin/annotationTypeCRUD.faces"
+                                                    icon="ui-icon-document-b"
+                                                    />
+                                            <p:submenu label="DICOM">
+                                                <p:menuitem
+                                                        value="RT-Struct Types"
+                                                        url="/admin/structTypeCRUD.faces"
+                                                        icon="ui-icon-gear"
+                                                        />
+                                                <p:menuitem
+                                                        value="RT-Structs"
+                                                        url="/admin/structCRUD.faces"
+                                                        icon="ui-icon-gear"
+                                                        />
+                                                <!--<p:menuitem-->
+                                                        <!--value="De-identification"-->
+                                                        <!--url="/admin/deidentCRUD.faces"-->
+                                                        <!--icon="ui-icon-gear"-->
+                                                        <!--/>-->
+                                            </p:submenu>
+                                        </p:submenu>
+                                        <p:submenu label="#{msg.study_plural}management">
+                                            <p:menuitem
+                                                    value="#{msg.study_plural}"
+                                                    url="/admin/studyManagement.faces"
+                                                    icon="ui-icon-calculator"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.studyPhase_plural}"
+                                                    url="/admin/ctms/studyPhaseCRUD.faces"
+                                                    icon="ui-icon-clock"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.studyStatus_plural}"
+                                                    url="/admin/ctms/studyStatusCRUD.faces"
+                                                    icon="ui-icon-flag"
+                                                    />
+                                            <p:menuitem
+                                                    value="Study Tag Types"
+                                                    url="/admin/ctms/studyTagTypeCRUD.faces"
+                                                    icon="ui-icon-tag"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.tumourEntity_plural}"
+                                                    url="/admin/ctms/tumourEntityCRUD.faces"
+                                                    icon="ui-icon-gear"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.sponsoringType_plural}"
+                                                    url="/admin/ctms/sponsoringTypeCRUD.faces"
+                                                    icon="ui-icon-star"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.docType_plural}"
+                                                    url="/admin/ctms/docTypeCRUD.faces"
+                                                    icon="ui-icon-folder-collapsed"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.personStatus_plural}"
+                                                    url="/admin/ctms/personStatusCRUD.faces"
+                                                    icon="ui-icon-note"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.curriculumVitaeItemType_plural}"
+                                                    url="/admin/ctms/cvItemTypeCRUD.faces"
+                                                    icon="ui-icon-script"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.eventType_plural}"
+                                                    url="/admin/ctms/eventTypeCRUD.faces"
+                                                    icon="ui-icon-calendar"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.studyPersonRole_plural}"
+                                                    url="/admin/ctms/studyPersonRoleCRUD.faces"
+                                                    icon="ui-icon-person"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.studyOrganisationRole_plural}"
+                                                    url="/admin/ctms/studyOrganisationRoleCRUD.faces"
+                                                    icon="ui-icon-suitcase"
+                                                    />
+                                            <p:menuitem
+                                                    value="#{msg.crfFieldAnnotation_plural}"
+                                                    url="/admin/ecrfAnnotations.faces"
+                                                    icon="ui-icon-comment"
+                                                    />
+                                            <p:menuitem
+                                                    value="Data Mapping"
+                                                    url="/admin/dataMappingCRUD.faces"
+                                                    icon="ui-icon-transferthick-e-w"
+                                                    />
+                                        </p:submenu>
+                                        <p:submenu label="CMS - content management">
+                                            <p:menuitem
+                                                    value="#{msg.rss_plural}"
+                                                    url="/admin/contentCRUD.faces"
+                                                    icon="ui-icon-clipboard"
+                                                    />
+                                        </p:submenu>
+                                        <p:menuitem
+                                                value="#{msg.auditLog_plural}"
+                                                url="/admin/auditLogCRUD.faces"
+                                                icon="ui-icon-lightbulb"
+                                                />
+                                    </p:submenu>
+                                </p:submenu>
+                            </p:panelMenu>
+                            <!--</p:panel>-->
+                        </div>
+
+                        <!-- MainContent-->
+                        <div class="ui-grid-col-9 contentDiv">
+                            <div
+                                id="messagesRegion"
+                                aria-label="form feedback"
+                                aria-live="assertive"
+                                aria-relevant="additions"
+                                >
+                                <appcc:messages id="messages" />
+                            </div>
+                            <!-- Center content placeholder-->
+                            <ui:insert name="content" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="ui-grid footerDiv  ui-grid-responsive">
+                    <div class="ui-grid-row">
+                        <div class="ui-grid-col-12" align="center">
+                            <p:outputPanel layout="block">
+                                <p>
+                                    <br />
+                                    <a href="${facesContext.externalContext.requestContextPath}/home.faces">#{msg.home}</a> | <a href="${facesContext.externalContext.requestContextPath}/about.faces">RadPlanBio Platform</a> | <a href="${facesContext.externalContext.requestContextPath}/collaboration.faces">#{msg.collaboartion}</a> | <a href="${facesContext.externalContext.requestContextPath}/license.faces">#{msg.licence}</a> | <a href="${facesContext.externalContext.requestContextPath}/software.faces">Software</a> | <a href="${facesContext.externalContext.requestContextPath}/help.faces">#{msg.menu_help}</a> | <a href="${facesContext.externalContext.requestContextPath}/rssFeed.faces">RSS</a> | <a href="${facesContext.externalContext.requestContextPath}/impressum.faces">Impressum</a> | <a href="${facesContext.externalContext.requestContextPath}/contact.faces">#{msg.contact}</a>
+                                    <br />
+                                    <br />
+                                    <h:outputText value="#{msg.application_name} version: #{msg.version} © 2013-2016 DKTK" />
+                                </p>
+                            </p:outputPanel>
+                        </div>
+                    </div>
+                </div>
+            </h:form>
+
+            <!-- Placeholder for dialogs -->
+            <ui:insert name="dialogs" />
+
+            <!-- Menu is automaticaly expanding -->
+            <script type="text/javascript">
+                var menuIsExpanded = jQuery('div.ui-panelmenu-content.ui-widget-content.ui-helper-hidden').is(':visible');
+                if (!menuIsExpanded) {
+                    jQuery('.ui-panelmenu-panel a').first().click();
+                }
+            </script>
+        </h:body>
+    </f:view>
+</html>

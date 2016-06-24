@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudySubject</comment>
+
+    <entry key="studySubject">Subject</entry>
+    <entry key="studySubject_plural">Subjects</entry>
+    <entry key="studySubject_reload">Reload existing Study Subjects</entry>
+    <entry key="studySubject_print">Print Study Subjects table</entry>
+    <entry key="studySubject_new">Define a new Study Subject</entry>
+    <entry key="studySubject_edit">Edit selected Subject</entry>
+    <entry key="studySubject_delete">Delete selected Subject</entry>
+
+    <!-- attributes -->
+    <entry key="studySubject_id">Id</entry>
+    <entry key="studySubject_oid">OID</entry>
+    <entry key="studySubject_studySubjectId">StudySubjectID</entry>
+    <entry key="studySubject_secondaryId">SecondaryID</entry>
+    <entry key="studySubject_personId">PID</entry>
+    <entry key="studySubject_gender">Gender</entry>
+    <entry key="studySubject_enrollmentDate">Enrollment</entry>
+    <entry key="studySubject_dateOfBirth">Birthdate</entry>
+    <entry key="studySubject_yearOfBirth">Year of birth</entry>
+
+    <entry key="studySubject_person">Person</entry>
+    <entry key="studySubject_arm">Arm</entry>
+</properties>

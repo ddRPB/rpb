@@ -1,0 +1,1356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <!-- DICOM anonymisation configuration -->
+    <changeSet id="create-dicomattribute" author="Tomas Skripcak">
+        <createTable tableName="DICOMATTRIBUTE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)" />
+            <column name="tagnumber1" type="varchar(4)" />
+            <column name="tagnumber2" type="varchar(4)" />
+            <column name="vr" type="varchar(2)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-dicomattribute-tagunique" author="Tomas Skripcak">
+        <addUniqueConstraint tableName="DICOMATTRIBUTE"
+                             columnNames="tagnumber1, tagnumber2"
+                             constraintName="dicomattribute_u1"
+                />
+    </changeSet>
+
+    <changeSet id="create-deidentmethodtype" author="Tomas Skripcak">
+        <createTable tableName="DEIDENTMETHODTYPE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)" />
+            <column name="description" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-deidentmethod" author="Tomas Skripcak">
+        <createTable tableName="DEIDENTMETHOD">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)" />
+            <column name="description" type="varchar(1024)" />
+            <column name="value" type="varchar(6)" />
+            <column name="typeid" type="int">
+                <constraints referencedTableName="DEIDENTMETHODTYPE" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-deidentmethod-valueunique" author="Tomas Skripcak">
+        <addUniqueConstraint tableName="DEIDENTMETHOD"
+                             columnNames="value"
+                             constraintName="deidentmethod_u1"
+                />
+    </changeSet>
+
+    <changeSet id="alter-deidentmethod-fktypeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="DEIDENTMETHOD" baseColumnNames="typeid" constraintName="deidentmethod_fk1" referencedTableName="DEIDENTMETHODTYPE"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+    <changeSet id="create-deidentaction" author="Tomas Skripcak">
+        <createTable tableName="DEIDENTACTION">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(10)" />
+            <column name="description" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-deidentsetup" author="Tomas Skripcak">
+        <createTable tableName="DEIDENTSETUP">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="attributeid" type="int">
+                <constraints referencedTableName="DICOMATTRIBUTE" nullable="false" />
+            </column>
+            <column name="methodid" type="int">
+                <constraints referencedTableName="DEIDENTMETHOD" nullable="false" />
+            </column>
+            <column name="actionid" type="int">
+                <constraints referencedTableName="DEIDENTACTION" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-deidentsetup-fkattributeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="DEIDENTSETUP" baseColumnNames="attributeid" constraintName="deidentsetup_fk1" referencedTableName="DICOMATTRIBUTE"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+    <changeSet id="alter-deidentsetup-fkmethodid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="DEIDENTSETUP" baseColumnNames="methodid" constraintName="deidentsetup_fk2" referencedTableName="DEIDENTMETHOD"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+    <changeSet id="alter-deidentsetup-fkactionid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="DEIDENTSETUP" baseColumnNames="actionid" constraintName="deidentsetup_fk3" referencedTableName="DEIDENTACTION"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+    <changeSet id="alter-deidentsetup-fksunique" author="Tomas Skripcak">
+        <addUniqueConstraint tableName="DEIDENTSETUP"
+                             columnNames="attributeid, methodid"
+                             constraintName="deidentsetup_u1"
+                             />
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-accession-number" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="1" />
+            <column name="name" value="Accession Number" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0050" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-comments" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="2" />
+            <column name="name" value="Acquisition Comments" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="4000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-context-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="3" />
+            <column name="name" value="Acquisition Context Sequence" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="0555" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-date" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="4" />
+            <column name="name" value="Acquisition Date" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0022" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-datetime" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="5" />
+            <column name="name" value="Acquisition DateTime" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="002A" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-device-processing-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="6" />
+            <column name="name" value="Acquisition Device Processing Description" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="1400" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-protocol-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="7" />
+            <column name="name" value="Acquisition Protocol Description" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="9424" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-acquisition-time" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="8" />
+            <column name="name" value="Acquisition Time" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0032" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-actual-human-performers-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="9" />
+            <column name="name" value="Actual Human Performers Sequence" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="4035" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-additional-patients-history" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="10" />
+            <column name="name" value="Additional Patient's History" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="21B0" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-admission-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="11" />
+            <column name="name" value="Admission ID" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0010" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-admitting-date" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="12" />
+            <column name="name" value="Admitting Date" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0020" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-admitting-diagnoses-code-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="13" />
+            <column name="name" value="Admitting Diagnoses Code Sequence" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="1084" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-admitting-diagnoses-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="14" />
+            <column name="name" value="Admitting Diagnoses Description" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="1080" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-admitting-time" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="15" />
+            <column name="name" value="Admitting Time" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0021" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-affected-sop-instance-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="16" />
+            <column name="name" value="Affected SOP Instance UID" />
+            <column name="tagnumber1" value="0000" />
+            <column name="tagnumber2" value="1000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-allergies" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="17" />
+            <column name="name" value="Allergies" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="2110" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-arbitrary" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="18" />
+            <column name="name" value="Arbitrary" />
+            <column name="tagnumber1" value="4000" />
+            <column name="tagnumber2" value="0010" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-author-observer-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="19" />
+            <column name="name" value="Author Observer Sequence" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="A078" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-branch-of-service" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="20" />
+            <column name="name" value="Branch of Service" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="1081" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-cassette-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="21" />
+            <column name="name" value="Cassette ID" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="1007" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-comments-on-performed-procedure-step" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="22" />
+            <column name="name" value="Comments on Performed Procedure Step" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="0280" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-concatenation-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="23" />
+            <column name="name" value="Concatenation UID" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="9161" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-confidentiality-constraint-on-patient-data-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="24" />
+            <column name="name" value="Confidentiality Constraint on Patient Data Description" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="3001" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-confidentiality-content-creators-name" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="25" />
+            <column name="name" value="Content Creator's Name" />
+            <column name="tagnumber1" value="0070" />
+            <column name="tagnumber2" value="0084" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-content-creators-identification-code-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="26" />
+            <column name="name" value="Content Creator's Identification Code Sequence" />
+            <column name="tagnumber1" value="0070" />
+            <column name="tagnumber2" value="0086" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-content-date" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="27" />
+            <column name="name" value="Content Date" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0023" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-content-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="28" />
+            <column name="name" value="Content Sequence" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="A730" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-content-time" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="29" />
+            <column name="name" value="Content Time" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0033" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-context-group-extension-creator-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="30" />
+            <column name="name" value="Context Group Extension Creator UID" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="010D" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-context-group-extension-creator-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="30" />
+            <column name="name" value="Context Group Extension Creator UID" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="010D" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-contrast-bolus-agent" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="31" />
+            <column name="name" value="Contrast Bolus Agent" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="0010" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-contribution-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="32" />
+            <column name="name" value="Contribution Description" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="A003" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-country-of-residence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="33" />
+            <column name="name" value="Country of Residence" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="2150" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-creator-version-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="34" />
+            <column name="name" value="Creator Version UID" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="9123" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-current-patient-location" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="35" />
+            <column name="name" value="Current Patient Location" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0300" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-curve-data" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="36" />
+            <column name="name" value="Curve Data" />
+            <column name="tagnumber1" value="50xx" />
+            <column name="tagnumber2" value="xxxx" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-curve-date" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="37" />
+            <column name="name" value="Curve Date" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0025" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-curve-time" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="38" />
+            <column name="name" value="Curve Time" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0035" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-custodial-organization-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="39" />
+            <column name="name" value="Custodial Organization Sequence" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="A07C" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-data-set-trailing-padding" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="40" />
+            <column name="name" value="Data Set Trailing Padding" />
+            <column name="tagnumber1" value="FFFC" />
+            <column name="tagnumber2" value="FFFC" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-derivation-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="41" />
+            <column name="name" value="Derivation Description" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="2111" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-detector-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="42" />
+            <column name="name" value="Detector ID" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="700A" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-device-serial-number" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="43" />
+            <column name="name" value="Device Serial Number" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="1000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-device-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="44" />
+            <column name="name" value="Device UID" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="1002" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-digital-signature-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="45" />
+            <column name="name" value="Digital Signature UID" />
+            <column name="tagnumber1" value="0400" />
+            <column name="tagnumber2" value="0100" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-digital-signatures-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="46" />
+            <column name="name" value="Digital Signatures Sequence" />
+            <column name="tagnumber1" value="FFFA" />
+            <column name="tagnumber2" value="FFFA" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-dimension-organization-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="47" />
+            <column name="name" value="Dimension Organization UID" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="9164" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-discharge-diagnosis-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="48" />
+            <column name="name" value="Discharge Diagnosis Description" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0040" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-distribution-address" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="49" />
+            <column name="name" value="Distribution Address" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="011A" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-distribution-name" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="50" />
+            <column name="name" value="Distribution Name" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="0119" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-dose-reference-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="51" />
+            <column name="name" value="Dose Reference UID" />
+            <column name="tagnumber1" value="300A" />
+            <column name="tagnumber2" value="0013" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-ethnic-group" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="52" />
+            <column name="name" value="Ethnic Group" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="2160" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-failed-sop-instance-uid-list" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="53" />
+            <column name="name" value="Failed SOP Instance UID List" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0058" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-fiducial-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="54" />
+            <column name="name" value="Fiducial UID" />
+            <column name="tagnumber1" value="0070" />
+            <column name="tagnumber2" value="031A" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-filler-order-number-of-imaging-service-request" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="55" />
+            <column name="name" value="Filler Order Number of Imaging Service Request" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="2017" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-frame-comments" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="56" />
+            <column name="name" value="Frame Comments" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="9158" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-frame-of-reference-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="57" />
+            <column name="name" value="Frame of Reference UID" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="0052" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-gantry-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="58" />
+            <column name="name" value="Gantry ID" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="1008" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-generator-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="59" />
+            <column name="name" value="Generator ID" />
+            <column name="tagnumber1" value="0018" />
+            <column name="tagnumber2" value="1005" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-graphic-annotation-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="60" />
+            <column name="name" value="Graphic Annotation Sequence" />
+            <column name="tagnumber1" value="0070" />
+            <column name="tagnumber2" value="0001" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-human-performers-name" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="61" />
+            <column name="name" value="Human Performers Name" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="4037" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-human-performers-organization" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="62" />
+            <column name="name" value="Human Performers Organization" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="4036" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-icon-image-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="63" />
+            <column name="name" value="Icon Image Sequence" />
+            <column name="tagnumber1" value="0088" />
+            <column name="tagnumber2" value="0200" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-identifying-comments" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="64" />
+            <column name="name" value="Identifying Comments" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="4000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-image-comments" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="65" />
+            <column name="name" value="Image Comments" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="4000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-image-presentation-comments" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="66" />
+            <column name="name" value="Image Presentation Comments" />
+            <column name="tagnumber1" value="0028" />
+            <column name="tagnumber2" value="4000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-image-service-request-comments" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="67" />
+            <column name="name" value="Imaging Service Request Comments" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="2400" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-impressions" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="68" />
+            <column name="name" value="Impressions" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="0300" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-instance-creator-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="69" />
+            <column name="name" value="Instance Creator UID" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0014" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-institution-address" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="70" />
+            <column name="name" value="Institution Address" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0081" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-institution-code-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="71" />
+            <column name="name" value="Institution Code Sequence" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0082" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-institution-name" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="72" />
+            <column name="name" value="Institution Name" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="0080" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-institution-department-name" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="73" />
+            <column name="name" value="Institutional Department Name" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="1040" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-insurance-plan-identification" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="74" />
+            <column name="name" value="Insurance Plan Identification" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="1050" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-intended-recipients-of-results-identification-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="75" />
+            <column name="name" value="Intended Recipients of Results Identification Sequence" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="1011" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-approver-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="76" />
+            <column name="name" value="Interpretation Approver Sequence" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="0111" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-author" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="77" />
+            <column name="name" value="Interpretation Author" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="010C" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-diagnosis-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="78" />
+            <column name="name" value="Interpretation Diagnosis Description" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="0115" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-id-issuer" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="79" />
+            <column name="name" value="Interpretation ID Issuer" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="0202" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-recorder" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="80" />
+            <column name="name" value="Interpretation Recorder" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="0102" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-text" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="81" />
+            <column name="name" value="Interpretation Text" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="010B" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-interpretation-transcriber" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="82" />
+            <column name="name" value="Interpretation Transcriber" />
+            <column name="tagnumber1" value="4008" />
+            <column name="tagnumber2" value="010A" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-irradiation-event-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="83" />
+            <column name="name" value="Irradiation Event UID" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="3010" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-issuer-of-admission-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="84" />
+            <column name="name" value="Issuer of Admission ID" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0011" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-issuer-of-patient-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="85" />
+            <column name="name" value="Issuer of Patient ID" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="0021" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-issuer-of-service-episode-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="86" />
+            <column name="name" value="Issuer of Service Episode ID" />
+            <column name="tagnumber1" value="0038" />
+            <column name="tagnumber2" value="0061" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-lagre-palette-color-lookup-table-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="87" />
+            <column name="name" value="Large Palette Color Lookup Table UID" />
+            <column name="tagnumber1" value="0028" />
+            <column name="tagnumber2" value="1214" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-last-menstrual-date" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="88" />
+            <column name="name" value="Last Menstrual Date" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="21D0" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-last-mac" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="89" />
+            <column name="name" value="MAC" />
+            <column name="tagnumber1" value="0400" />
+            <column name="tagnumber2" value="0404" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-media-storage-sop-instance-uid" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="90" />
+            <column name="name" value="Media Storage SOP Instance UID" />
+            <column name="tagnumber1" value="0002" />
+            <column name="tagnumber2" value="0003" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-medical-alerts" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="91" />
+            <column name="name" value="Medical Alerts" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="2000" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-medical-record-locator" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="92" />
+            <column name="name" value="Medical Record Locator" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="1090" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-military-rank" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="93" />
+            <column name="name" value="Military Rank" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="1080" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-modified-attributes-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="94" />
+            <column name="name" value="Modified Attributes Sequence" />
+            <column name="tagnumber1" value="0400" />
+            <column name="tagnumber2" value="0550" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-modified-image-description" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="95" />
+            <column name="name" value="Modified Image Description" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="3406" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-modified-device-id" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="96" />
+            <column name="name" value="Modifying Device ID" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="3401" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-modified-device-manufacturer" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="97" />
+            <column name="name" value="Modifying Device Manufacturer" />
+            <column name="tagnumber1" value="0020" />
+            <column name="tagnumber2" value="3404" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-name-of-physicians-reading-study" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="98" />
+            <column name="name" value="Name of Physician(s) Reading Study" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="1060" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-names-of-intended-recipient-of-results" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="99" />
+            <column name="name" value="Names of Intended Recipient of Results" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="1010" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-occupation" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="100" />
+            <column name="name" value="Occupation" />
+            <column name="tagnumber1" value="0010" />
+            <column name="tagnumber2" value="2180" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-operators-identification-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="101" />
+            <column name="name" value="Operators' Identification Sequence" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="1072" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-operators-name" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="102" />
+            <column name="name" value="Operators' Name" />
+            <column name="tagnumber1" value="0008" />
+            <column name="tagnumber2" value="1070" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-original-attributes-sequence" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="103" />
+            <column name="name" value="Original Attributes Sequence" />
+            <column name="tagnumber1" value="0400" />
+            <column name="tagnumber2" value="0561" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-order-callback-phone-number" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="104" />
+            <column name="name" value="Order Callback Phone Number" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="2010" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-order-entered-by" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="105" />
+            <column name="name" value="Order Entered By" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="2008" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-dicomattribute-order-enterer-location" author="Tomas Skripcak">
+        <insert tableName="DICOMATTRIBUTE">
+            <column name="id" value="106" />
+            <column name="name" value="Order Enterer Location" />
+            <column name="tagnumber1" value="0040" />
+            <column name="tagnumber2" value="2009" />
+        </insert>
+    </changeSet>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <changeSet id="insert-deidentmethod-type-profile" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHODTYPE">
+            <column name="id" value="1" />
+            <column name="name" value="PROFILE" />
+            <column name="description" value="Generic DICOM deidentification profile." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-type-option" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHODTYPE">
+            <column name="id" value="2" />
+            <column name="name" value="OPTION" />
+            <column name="description" value="Generic DICOM deidentification option." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-basicprofile" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="1" />
+            <column name="name" value="Basic Application Confidentiality Profile" />
+            <column name="description" value="Basic Application Confidentiality Profile." />
+            <column name="value" value="113100" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-pixeloption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="2" />
+            <column name="name" value="Clean Pixel Data Option" />
+            <column name="description" value="Clean Pixel Data Option." />
+            <column name="value" value="113101" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-visualoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="3" />
+            <column name="name" value="Clean Recognizable Visual Features Option" />
+            <column name="description" value="Clean Recognizable Visual Features Option." />
+            <column name="value" value="113102" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-graphicsoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="4" />
+            <column name="name" value="Clean Graphics Option" />
+            <column name="description" value="Clean Graphics Option." />
+            <column name="value" value="113103" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-structuredcontentoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="5" />
+            <column name="name" value="Clean Structured Content Option" />
+            <column name="description" value="Clean Structured Content Option." />
+            <column name="value" value="113104" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-discriptorsoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="6" />
+            <column name="name" value="Clean Descriptors Option" />
+            <column name="description" value="Clean Descriptors Option." />
+            <column name="value" value="113105" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-tinffdsoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="7" />
+            <column name="name" value="Retain Longitudinal Temporal Information With Full Dates Option" />
+            <column name="description" value="Retain Longitudinal Temporal Information With Full Dates Option." />
+            <column name="value" value="113106" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-tinfmdsoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="8" />
+            <column name="name" value="Retain Longitudinal Temporal Information With Modified Dates Option" />
+            <column name="description" value="Retain Longitudinal Temporal Information With Modified Dates Option." />
+            <column name="value" value="113107" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-patcharoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="9" />
+            <column name="name" value="Retain Patient Characteristics Option" />
+            <column name="description" value="Retain Patient Characteristics Option." />
+            <column name="value" value="113108" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-devidentoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="10" />
+            <column name="name" value="Retain Device Identity Option" />
+            <column name="description" value="Retain Device Identity Option." />
+            <column name="value" value="113109" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-uidsoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="11" />
+            <column name="name" value="Retain UIDs Option" />
+            <column name="description" value="Retain UIDs Option." />
+            <column name="value" value="113110" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentmethod-saveprivateoption" author="Tomas Skripcak">
+        <insert tableName="DEIDENTMETHOD">
+            <column name="id" value="12" />
+            <column name="name" value="Retain Safe Private Option" />
+            <column name="description" value="Retain Safe Private Option." />
+            <column name="value" value="113111" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-remove" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="1" />
+            <column name="name" value="X" />
+            <column name="description" value="Remove" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-replace" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="2" />
+            <column name="name" value="C" />
+            <column name="description" value="Replace (VR consistent) with values of similar meaning" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-keep" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="3" />
+            <column name="name" value="K" />
+            <column name="description" value="Keep (unchanged for non-sequence attributes, cleaned for sequences)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-replaced" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="4" />
+            <column name="name" value="D" />
+            <column name="description" value="Replace (non-zero length, VR consistent) dummy value" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-replacez" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="5" />
+            <column name="name" value="Z" />
+            <column name="description" value="Replace (zero length allowed, VR consistent) dummy value" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-replaceu" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="6" />
+            <column name="name" value="U" />
+            <column name="description" value="Replace (non-zero length UID) that is internally consistent within a set of Instances" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-zd" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="7" />
+            <column name="name" value="Z/D" />
+            <column name="description" value="Z unless D is required to maintain IOD conformance (Type 2 versus Type 1)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-xz" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="8" />
+            <column name="name" value="X/Z" />
+            <column name="description" value="X unless Z is required to maintain IOD conformance (Type 3 versus Type 2)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-xd" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="9" />
+            <column name="name" value="X/D" />
+            <column name="description" value="X unless D is required to maintain IOD conformance (Type 3 versus Type 1)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-xzd" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="10" />
+            <column name="name" value="X/Z/D" />
+            <column name="description" value="X unless Z or D is required to maintain IOD conformance (Type 3 versus Type 2 versus Type 1)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentaction-xzu" author="Tomas Skripcak">
+        <insert tableName="DEIDENTACTION">
+            <column name="id" value="11" />
+            <column name="name" value="X/Z/U*" />
+            <column name="description" value="X unless Z or replacement of contained instance UIDs (U) is required to maintain IOD conformance (Type 3 versus Type 2 versus Type 1 sequences containing UID references)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentsetup-115" author="Tomas Skripcak">
+        <insert tableName="DEIDENTSETUP">
+            <column name="attributeid" value="1" />
+            <column name="methodid" value="1" />
+            <column name="actionid" value="5" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentsetup-211" author="Tomas Skripcak">
+        <insert tableName="DEIDENTSETUP">
+            <column name="attributeid" value="2" />
+            <column name="methodid" value="1" />
+            <column name="actionid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentsetup-262" author="Tomas Skripcak">
+        <insert tableName="DEIDENTSETUP">
+            <column name="attributeid" value="2" />
+            <column name="methodid" value="6" />
+            <column name="actionid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentsetup-311" author="Tomas Skripcak">
+        <insert tableName="DEIDENTSETUP">
+            <column name="attributeid" value="3" />
+            <column name="methodid" value="1" />
+            <column name="actionid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-deidentsetup-352" author="Tomas Skripcak">
+        <insert tableName="DEIDENTSETUP">
+            <column name="attributeid" value="3" />
+            <column name="methodid" value="5" />
+            <column name="actionid" value="2" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

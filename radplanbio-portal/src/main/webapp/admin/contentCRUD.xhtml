@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" titl="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="CMS" title="Content Management System" url="#" />
+            <p:menuitem value="#{msg.rss_plural}" title="#{msg.rss_plural}" url="/admin/contentCRUD.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbContent.tab.activeIndex}">
+
+            <!-- News content -->
+            <p:tab title="#{msg.rss_plural}">
+
+                <!-- News content toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.rss_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newArticleDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newArticleForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbContent.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newArticleDialog').show();"
+                                immediate="true"
+                                update=":newArticleForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbContent.prepareNewEntity}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.rss_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbContent.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbContent.load}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.rss_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                        <p:hotkey bind="ctrl+shift+h" />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- Articles table -->
+                <p:dataTable
+                        id="dtEntities"
+                        var="article"
+                        value="#{mbContent.entityList}"
+                        widgetVar="articlesTable"
+                        resizableColumns="false"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbContent.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{article.id}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbContent.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbContent.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Row -->
+                    <p:column
+                            headerText="#"
+                            style="width:5%"
+                            exportable="false"
+                            toggleable="false"
+                            >
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Date -->
+                    <p:column
+                            id="colContentCreatedDate"
+                            headerText="#{msg.rss_createdDate}"
+                            sortBy="#{article.createdDate}"
+                            style="width:15%"
+                            >
+                        <h:outputText value="#{article.createdDate}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- Title -->
+                    <p:column
+                            headerText="#{msg.rss_title}"
+                            sortBy="#{article.title}"
+                            filterBy="#{article.title}"
+                            filterMatchMode="contains"
+                            style="width:63%"
+                            >
+                        <h:outputText value="#{article.title}"  style="float: left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                            style="width:17%"
+                            >
+
+                        <p:commandButton
+                                title="#{msg.menu_edit}"
+                                icon="ui-icon-contact"
+                                immediate="true"
+                                process="@this"
+                                update=":articleDetailsForm:editDisplay"
+                                oncomplete="PF('editArticleDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{article}"
+                                    target="#{mbContent.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                title="#{msg.menu_delete}"
+                                icon="ui-icon-trash"
+                                immediate="true"
+                                process="@this"
+                                update=":viewArticleForm:deleteDisplay"
+                                oncomplete="PF('viewArticleDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{article}"
+                                    target="#{mbContent.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbContent.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbContent.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbContent.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbContent.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.rss_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.rss_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New -->
+        <p:dialog
+                id="dlgNewArticle"
+                header="#{msg.rss_new}"
+                widgetVar="newArticleDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newArticleForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <h:outputLabel value="#{msg.rss_createdDate}: *" for="datePublishedNew" />
+                    <p:calendar
+                            id="datePublishedNew"
+                            value="#{mbContent.newEntity.createdDate}"
+                            pattern="dd.MM.yyyy"
+                            showButtonPanel="true"
+                            navigator="true"
+                            required="true"
+                            showOn="button"
+                            requiredMessage="Publication date is mandatory!"
+                            />
+
+                    <h:outputLabel value="#{msg.rss_title}: *" for="txtTitleNew" />
+                    <h:inputText
+                            id="txtTitleNew"
+                            value="#{mbContent.newEntity.title}"
+                            required="true"
+                            requiredMessage="Please enter title, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputLabel value="#{msg.rss_summary}: *" for="txtAbstractNew" />
+                    <p:editor
+                            id="txtAbstractNew"
+                            value="#{mbContent.newEntity.summary}"
+                            required="true"
+                            requiredMessage="Please enter summary, it is mandatory!"
+                            maxlength="512"
+                            width="500"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbContent.doCreateEntity}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewArticle','newArticleForm');"
+                                process="@this newArticleForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit -->
+        <p:dialog
+            id="dlgArticleDetails"
+            header="#{msg.rss_edit}"
+            widgetVar="editArticleDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="articleDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <h:outputLabel value="#{msg.rss_createdDate}: *" for="datePublished" />
+                    <p:calendar
+                            id="datePublished"
+                            value="#{mbContent.selectedEntity.createdDate}"
+                            pattern="dd.MM.yyyy"
+                            showButtonPanel="true"
+                            navigator="true"
+                            required="true"
+                            showOn="button"
+                            requiredMessage="Publication date is mandatory!"
+                            />
+
+                    <h:outputLabel value="#{msg.rss_title}: *" for="txtTitleEdit" />
+                    <h:inputText
+                            id="txtTitleEdit"
+                            value="#{mbContent.selectedEntity.title}"
+                            required="true"
+                            requiredMessage="Please enter title, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputLabel value="#{msg.rss_summary}: *" for="txtAbstractEdit" />
+                    <p:editor
+                            id="txtAbstractEdit"
+                            value="#{mbContent.selectedEntity.summary}"
+                            required="true"
+                            requiredMessage="Please enter summary, it is mandatory!"
+                            maxlength="512"
+                            width="500"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgArticleDetails','articleDetailsForm');"
+                            actionListener="#{mbContent.doUpdateEntity}"
+                            process="@this articleDetailsForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete -->
+        <p:dialog
+                id="dlgViewArticle"
+                header="#{msg.rss_delete}"
+                widgetVar="viewArticleDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="viewArticleForm">
+                <p:panelGrid
+                        id="deleteDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <h:outputLabel value="#{msg.rss_createdDate}: *" for="datePublished"/>
+                    <h:outputText value="#{mbContent.selectedEntity.createdDate}">
+                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" />
+                    </h:outputText>
+
+                    <h:outputLabel value="#{msg.rss_title}: *" for="txtTitle" />
+                    <h:outputText
+                            id="txtTitle"
+                            escape="false"
+                            value="#{mbContent.selectedEntity.title}"
+                            />
+
+                    <h:outputLabel value="#{msg.rss_summary}: *" for="txtAbstract" />
+                    <h:outputText
+                            id="txtAbstract"
+                            escape="false"
+                            value="#{mbContent.selectedEntity.summary}"
+                            style="text-align:justify;"
+                            />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewArticle','viewArticleForm');"
+                                actionListener="#{mbContent.doDeleteEntity}"
+                                process="@this viewArticleForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('newArticleDialog').hide();
+                    PF('viewArticleDialog').hide();
+                    PF('editArticleDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,865 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="#{msg.configuration}" title="#{msg.configuration}" url="#" />
+            <p:menuitem value="#{msg.partnerSite_plural}" title="#{msg.partnerSite_plural}" url="#" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbPartnerSite.tab.activeIndex}">
+
+            <!-- Partner Sites -->
+            <p:tab title="#{msg.partnerSite_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.partnerSite_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newSiteDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newSiteForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbPartnerSite.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newSiteDialog').show();"
+                                immediate="true"
+                                update=":newSiteForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbPartnerSite.prepareNewEntity}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.partnerSite_reload}"
+                                icon="ui-icon-refresh"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPartnerSite.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPartnerSite.load}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.partnerSite_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Partner Sites -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="site"
+                    value="#{mbPartnerSite.entityList}"
+                    widgetVar="sitesTable"
+                    sortMode="multiple"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbPartnerSite.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{site.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbPartnerSite.filteredEntities}"
+                    sortBy="#{mbPartnerSite.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!--AJAX onclick on datatable row-->
+                    <p:ajax event="rowSelect" update=":form:tabView:displayPacs, :form:tabView:displayEdc, :form:tabView:displayPortal, :form:tabView:displayServer, :form:tabView:displayPidGenerator" />
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Identifier -->
+                    <p:column
+                        id="colSiteIdentifier"
+                        sortBy="#{site.identifier}"
+                        filterBy="#{site.identifier}"
+                        filterMatchMode="contains"
+                        style="width:10%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="ID" />
+                        </f:facet>
+                        <h:outputText value="#{site.identifier}" style="float: left;"  />
+                    </p:column>
+
+                    <!-- Name -->
+                    <p:column
+                        sortBy="#{site.siteName}"
+                        filterBy="#{site.siteName}"
+                        filterMatchMode="contains"
+                        style="width:20%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.partnerSite_siteName}" />
+                        </f:facet>
+                        <h:outputText value="#{site.siteName}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Description -->
+                    <p:column
+                        sortBy="#{site.siteName}"
+                        filterBy="#{site.siteName}"
+                        filterMatchMode="contains"
+                        style="width:30%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.partnerSite_description}" />
+                        </f:facet>
+                        <h:outputText value="#{site.description}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Is Enabled -->
+                    <p:column
+                        sortBy="#{site.isEnabled}"
+                        filterBy="#{site.isEnabled}"
+                        filterMatchMode="exact"
+                        style="width:18%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.partnerSite_isEnabled}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('sitesTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox  value="#{site.isEnabled}" disabled="true" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        style="width:17%"
+                        exportable="false"
+                        >
+                        <p:commandButton
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            update=":siteDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('siteDialog').show();"
+                            >
+                            <f:setPropertyActionListener value="#{site}" target="#{mbPartnerSite.selectedEntity}" />
+                        </p:commandButton>
+
+                        <p:commandButton
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":viewSiteForm:deleteDisplay"
+                            oncomplete="PF('viewSiteDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
+                            <f:setPropertyActionListener value="#{site}" target="#{mbPartnerSite.selectedEntity}" />
+                       </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPartnerSite.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPartnerSite.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPartnerSite.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbPartnerSite.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.partnerSite_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.partnerSite_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Portal -->
+            <p:tab
+                id="tabPortal"
+                title="#{msg.partnerSite_portal}"
+                >
+                <p:toolbar>
+                    <p:toolbarGroup align="left" />
+                    <p:toolbarGroup  align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+                <p:panelGrid
+                        id="displayPortal"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;width: 100%"
+                        >
+
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+
+                    <h:outputLabel value="Portal base URL (local):" for="txtPortalBaseUrl" />
+                    <h:inputText
+                            id="txtPortalBaseUrl"
+                            value="#{mbPartnerSite.selectedSitePortal.portalBaseUrl}"
+                            requiredMessage="Please enter portal base URL, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            size="50"
+                            />
+
+                    <h:outputLabel value="Portal URL (public):" for="txtPortalPublicUrl" />
+                    <h:inputText
+                            id="txtPortalPublicUrl"
+                            value="#{mbPartnerSite.selectedSitePortal.publicUrl}"
+                            maxlength="255"
+                            size="50"
+                            />
+
+                    <h:outputLabel value="Version:" for="txtPortalVersion" />
+                    <h:inputText
+                            id="txtPortalVersion"
+                            value="#{mbPartnerSite.selectedSitePortal.version}"
+                            maxlength="15"
+                            />
+
+                    <h:outputText value="Enabled:" for="chbPortalIsEnabled" />
+                    <h:selectBooleanCheckbox id="chbPortalIsEnabled" value="#{mbPartnerSite.selectedSitePortal.isEnabled}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                id="btnPortalSave"
+                                value="#{msg.menu_save}"
+                                title="Save [ctrl+shift+s]"
+                                update=":form:tabView:displayPortal, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbPartnerSite.doUpdatePortal}"
+                                process="@this displayPortal"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+s"
+                                update=":form:tabView:displayPortal, :growl"
+                                actionListener="#{mbPartnerSite.doUpdatePortal}"
+                                process="@this displayPortal"
+                                rendered="#{mbPartnerSite.tab.activeIndex==1}"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </p:tab>
+
+            <!-- PACS -->
+            <p:tab
+                id="tabPacs"
+                title="#{msg.partnerSite_pacs} (ConQuest)"
+                >
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <p:toolbarGroup  align="left" />
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                        id="displayPacs"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;width: 100%"
+                        >
+
+                        <h:outputLabel value="#{msg.partnerSite}:" />
+                        <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+
+                        <h:outputLabel value="PACS base URL (ConQuest web server):" for="txtPacsBaseUrl" />
+                        <h:inputText
+                                id="txtPacsBaseUrl"
+                                value="#{mbPartnerSite.selectedSitePacs.pacsBaseUrl}"
+                                requiredMessage="Please enter PACS base URL, it is mandatory!"
+                                maxlength="255"
+                                required="true"
+                                size="50"
+                                />
+
+                        <h:outputLabel value="Version:" for="txtPacsVersion" />
+                        <h:inputText
+                                id="txtPacsVersion"
+                                value="#{mbPartnerSite.selectedSitePacs.version}"
+                                maxlength="15"
+                                />
+
+                        <h:outputLabel value="Enabled: " for="chbPacsIsEnabled"/>
+                        <h:selectBooleanCheckbox id="chbPacsIsEnabled" value="#{mbPartnerSite.selectedSitePacs.isEnabled}" />
+
+                        <!-- Footer -->
+                        <f:facet name="footer">
+                            <p:commandButton
+                                    id="btnPacsSave"
+                                    value="#{msg.menu_save}"
+                                    title="Save [ctrl+shift+s]"
+                                    update=":form:tabView:displayPacs, :growl"
+                                    icon="ui-icon-disk"
+                                    actionListener="#{mbPartnerSite.doUpdatePacs}"
+                                    process="@this displayPacs"
+                                    />
+                            <p:hotkey
+                                    bind="ctrl+shift+s"
+                                    update=":form:tabView:displayPacs, :growl"
+                                    actionListener="#{mbPartnerSite.doUpdatePacs}"
+                                    process="@this displayPacs"
+                                    rendered="#{mbPartnerSite.tab.activeIndex==2}"
+                                    />
+                        </f:facet>
+                    </p:panelGrid>
+            </p:tab>
+
+            <!-- EDC -->
+            <p:tab
+                id="tabEdc"
+                title="#{msg.partnerSite_edc} (OpenClinica)"
+                >
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <p:toolbarGroup align="left" />
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                        id="displayEdc"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;width: 100%"
+                        >
+
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+
+                    <h:outputLabel value="EDC base URL (OpenClinica web site - public):" for="txtEdcBaseUrl" />
+                    <h:inputText
+                            id="txtEdcBaseUrl"
+                            value="#{mbPartnerSite.selectedSiteEdc.edcBaseUrl}"
+                            requiredMessage="Please enter EDC base URL, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            size="50"
+                            />
+
+                    <h:outputLabel value="EDC SOAP URL (OpenClinica SOAP web services site - public):" for="txtEdcSoapBaseUrl" />
+                    <h:inputText
+                            id="txtEdcSoapBaseUrl"
+                            value="#{mbPartnerSite.selectedSiteEdc.soapBaseUrl}"
+                            requiredMessage="Please enter EDC SOAP URL, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            size="50"
+                            />
+
+                    <h:outputLabel value="Version:" for="txtEdcVersion" />
+                    <h:inputText
+                            id="txtEdcVersion"
+                            value="#{mbPartnerSite.selectedSiteEdc.version}"
+                            maxlength="15"
+                            />
+
+                    <h:outputText value="Enabled:" for="chbEdcIsEnabled" />
+                    <h:selectBooleanCheckbox
+                            id="chbEdcIsEnabled"
+                            value="#{mbPartnerSite.selectedSiteEdc.isEnabled}"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                title="Save [ctrl+shift+s]"
+                                update=":form:tabView:displayEdc, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbPartnerSite.doUpdateEdc}"
+                                process="@this displayEdc"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+s"
+                                update=":form:tabView:displayEdc, :growl"
+                                actionListener="#{mbPartnerSite.doUpdateEdc}"
+                                process="@this displayEdc"
+                                rendered="#{mbPartnerSite.tab.activeIndex==3}"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </p:tab>
+
+            <!-- PID generator -->
+            <p:tab
+                id="tabPid"
+                title="#{msg.partnerSite_pid} generator"
+                >
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <p:toolbarGroup align="left" />
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                        id="displayPidGenerator"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;width: 100%"
+                        >
+
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+
+                    <h:outputLabel value="PID generator base URL (Mainzelliste web services - local):" for="txtPidBaseUrl" />
+                    <h:inputText
+                            id="txtPidBaseUrl"
+                            value="#{mbPartnerSite.selectedSitePid.generatorBaseUrl}"
+                            requiredMessage="Please enter PID generator base URL, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            size="50"
+                            />
+
+                    <h:outputLabel value="PID generator secret apiKey:" for="txtPidApiKey" />
+                    <h:inputSecret
+                            id="txtPidApiKey"
+                            value="#{mbPartnerSite.selectedSitePid.apiKey}"
+                            requiredMessage="Please enter PID generator connection apiKey, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            redisplay="true"
+                            />
+
+                    <h:outputLabel value="Version:" for="txtPidVersion" />
+                    <h:inputText
+                            id="txtPidVersion"
+                            value="#{mbPartnerSite.selectedSitePid.version}"
+                            maxlength="15"
+                            />
+
+                    <h:outputLabel value="Enabled:" for="chbPidIsEnabled" />
+                    <h:selectBooleanCheckbox
+                            id="chbPidIsEnabled"
+                            value="#{mbPartnerSite.selectedSitePid.isEnabled}"
+                            />
+
+                    <h:outputLabel value="Admin username:" for="txtPidAdminUsername" />
+                    <h:inputText
+                            id="txtPidAdminUsername"
+                            value="#{mbPartnerSite.selectedSitePid.adminUsername}"
+                            requiredMessage="Please enter PID generator admin username, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            />
+
+                    <h:outputLabel value="Admin password:" for="txtPidAdminPassword" />
+                    <h:inputSecret
+                            id="txtPidAdminPassword"
+                            value="#{mbPartnerSite.selectedSitePid.adminPassword}"
+                            requiredMessage="Please enter PID generator admin password, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            redisplay="true"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                id="btnPidSave"
+                                value="#{msg.menu_save}"
+                                title="Save [ctrl+shift+s]"
+                                update=":form:tabView:displayPidGenerator, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbPartnerSite.doUpdatePid}"
+                                process="@this displayPidGenerator"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+s"
+                                update=":form:tabView:displayPidGenerator, :growl"
+                                actionListener="#{mbPartnerSite.doUpdatePid}"
+                                process="@this displayPidGenerator"
+                                rendered="#{mbPartnerSite.tab.activeIndex==4}"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+
+            </p:tab>
+
+            <!-- Web-API -->
+            <p:tab
+                id="tabIEServer"
+                title="#{msg.partnerSite_server}"
+                >
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <p:toolbarGroup  align="left" />
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                        id="displayServer"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;width: 100%"
+                        >
+
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+
+                    <h:outputLabel value="Server IP address:" for="txtServerIpAddress" />
+                    <h:inputText
+                            id="txtServerIpAddress"
+                            value="#{mbPartnerSite.selectedSiteServer.ipAddress}"
+                            requiredMessage="Please enter server IP address, it is mandatory!"
+                            maxlength="255"
+                            required="true"
+                            />
+
+                    <h:outputLabel value="Server port:" for="txtServerPort" />
+                    <h:inputText
+                            id="txtServerPort"
+                            value="#{mbPartnerSite.selectedSiteServer.port}"
+                            requiredMessage="Please enter server port, it is mandatory!"
+                            maxlength="5"
+                            required="true"
+                            />
+
+                    <h:outputLabel value="Server URL (public):" for="txtServerPublicUrl" />
+                    <h:inputText
+                            id="txtServerPublicUrl"
+                            value="#{mbPartnerSite.selectedSiteServer.publicUrl}"
+                            maxlength="255"
+                            size="50"
+                            />
+
+                    <h:outputText value="Version:" for="txtServerVersion" />
+                    <h:inputText
+                            id="txtServerVersion"
+                            value="#{mbPartnerSite.selectedSiteServer.version}"
+                            maxlength="15"
+                            />
+
+                    <h:outputText value="Enabled:" for="chbServerIsEnabled" />
+                    <h:selectBooleanCheckbox id="chbServerIsEnabled" value="#{mbPartnerSite.selectedSiteServer.isEnabled}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                title="Save [ctrl+shift+s]"
+                                update=":form:tabView:displayServer, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbPartnerSite.doUpdateIEServer}"
+                                process="@this displayServer"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+s"
+                                update=":form:tabView:displayServer, :growl"
+                                actionListener="#{mbPartnerSite.doUpdateIEServer}"
+                                process="@this displayServer"
+                                rendered="#{mbPartnerSite.tab.activeIndex==5}"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New PartnerSite -->
+        <p:dialog
+                id="dlgNewSite"
+                header="#{msg.partnerSite_new}"
+                widgetVar="newSiteDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newSiteForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Identifier -->
+                    <h:outputLabel value="#{msg.partnerSite_identifier}: *" for="txtIdentifier" />
+                    <h:inputText
+                            id="txtIdentifier"
+                            value="#{mbPartnerSite.newEntity.identifier}"
+                            required="true"
+                            requiredMessage="Please enter site name, it is mandatory!"
+                            maxlength="10"
+                            />
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.partnerSite_siteName}: *" for="txtSiteName" />
+                    <h:inputText
+                            id="txtSiteName"
+                            value="#{mbPartnerSite.newEntity.siteName}"
+                            required="true"
+                            requiredMessage="Please enter site name, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.partnerSite_description}: " for="txtDescription" />
+                    <h:inputTextarea
+                            id="txtDescription"
+                            value="#{mbPartnerSite.newEntity.description}"
+                            required="false"
+                            />
+
+                    <!-- Latitude -->
+                    <h:outputLabel value="#{msg.partnerSite_latitude}:" for="txtLatitude" />
+                    <h:inputText id="txtLatitude" value="#{mbPartnerSite.newEntity.latitude}" />
+
+                    <!-- Longitude -->
+                    <h:outputLabel value="#{msg.partnerSite_longitude}:" for="txtLongitude" />
+                    <h:inputText id="txtLongitude" value="#{mbPartnerSite.newEntity.longitude}" />
+
+                    <!-- IsEnabled -->
+                    <h:outputText value="#{msg.partnerSite_isEnabled}:" for="chbIsEnabled"/>
+                    <h:selectBooleanCheckbox id="chbIsEnabled" value="#{mbPartnerSite.newEntity.isEnabled}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :form:tabView:displayPacs, :form:tabView:displayEdc, :form:tabView:displayPortal, :form:tabView:displayServer, :form:tabView:displayPidGenerator, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbPartnerSite.doCreateEntity}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSite','newSiteForm');"
+                                process="@this newSiteForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit PartnerSite -->
+        <p:dialog
+            id="dlgSiteDetails"
+            header="#{msg.partnerSite_edit}"
+            widgetVar="siteDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="siteDetailsForm">
+                <p:panelGrid
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <h:outputLabel value="#{msg.partnerSite_identifier}:" for="txtIdentifierEdit" />
+                    <h:outputText id="txtIdentifierEdit" value="#{mbPartnerSite.selectedEntity.identifier}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_siteName}:" for="txtNameEdit" />
+                    <h:inputText
+                            id="txtNameEdit"
+                            value="#{mbPartnerSite.selectedEntity.siteName}"
+                            required="true"
+                            requiredMessage="Please enter site name, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputLabel value="#{msg.partnerSite_description}:" for="txtDescriptionEdit" />
+                    <h:inputTextarea id="txtDescriptionEdit" value="#{mbPartnerSite.selectedEntity.description}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_latitude}:" for="txtLatitudeEdit" />
+                    <h:inputText id="txtLatitudeEdit" value="#{mbPartnerSite.selectedEntity.latitude}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_longitude}:" for="txtLongitudeEdit" />
+                    <h:inputText id="txtLongitudeEdit" value="#{mbPartnerSite.selectedEntity.longitude}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_isEnabled}:" for="chbIsEnabledEdit" />
+                    <h:selectBooleanCheckbox id="chbIsEnabledEdit" value="#{mbPartnerSite.selectedEntity.isEnabled}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgSiteDetails','siteDetailsForm');"
+                                actionListener="#{mbPartnerSite.doUpdateEntity}"
+                                process="@this siteDetailsForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete PartnerSite -->
+        <p:dialog
+            id="dlgViewSite"
+            header="#{msg.partnerSite_delete}"
+            widgetVar="viewSiteDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="viewSiteForm">
+                <p:panelGrid
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <h:outputLabel value="#{msg.partnerSite_identifier}:" for="txtIdentifierDelete" />
+                    <h:outputText id="txtIdentifierDelete" value="#{mbPartnerSite.selectedEntity.identifier}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_siteName}:" for="txtNameDelete" />
+                    <h:outputText id="txtNameDelete" value="#{mbPartnerSite.selectedEntity.siteName}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_description}:" for="txtDescriptionDelete" />
+                    <h:outputText id="txtDescriptionDelete" value="#{mbPartnerSite.selectedEntity.description}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_latitude}:" for="txtLatitudeDelete" />
+                    <h:outputText id="txtLatitudeDelete" value="#{mbPartnerSite.selectedEntity.latitude}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_longitude}:" for="txtLongitudeDelete" />
+                    <h:outputText id="txtLongitudeDelete" value="#{mbPartnerSite.selectedEntity.longitude}" />
+
+                    <h:outputLabel value="#{msg.partnerSite_isEnabled}:" for="chbIsEnabledDelete" />
+                    <h:selectBooleanCheckbox id="chbIsEnabledDelete" value="#{mbPartnerSite.selectedEntity.isEnabled}" disabled="true" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewSite','viewSiteForm');"
+                                actionListener="#{mbPartnerSite.doDeleteEntity}"
+                                process="@this viewSiteForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newSiteDialog').hide();
+                    PF('viewSiteDialog').hide();
+                    PF('siteDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

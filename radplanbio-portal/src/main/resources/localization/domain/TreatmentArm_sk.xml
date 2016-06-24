@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for TreatmentArm</comment>
+
+    <entry key="treatmentArm">Treatment Arm</entry>
+    <entry key="treatmentArm_plural">Treatment Arms</entry>
+    <entry key="treatmentArm_reload">Reload existing Treatment Arms</entry>
+    <entry key="treatmentArm_print">Print Treatment Arms table</entry>
+    <entry key="treatmentArm_new">Define a new Treatment Arm</entry>
+    <entry key="treatmentArm_edit">Edit selected Treatment Arm</entry>
+    <entry key="treatmentArm_delete">Delete selected Treatment Arm</entry>
+
+    <!-- attributes -->
+    <entry key="treatmentArm_id">Id</entry>
+    <entry key="treatmentArm_name">Name</entry>
+    <entry key="treatmentArm_description">Description</entry>
+    <entry key="treatmentArm_plannedSubjectsCount">Planned subjects</entry>
+
+    <!-- many-to-one -->
+    <entry key="treatmentArm_study">Study</entry>
+
+    <!-- one-to-many -->
+    <entry key="treatmentArm_subjects">Subjects</entry>
+
+</properties>

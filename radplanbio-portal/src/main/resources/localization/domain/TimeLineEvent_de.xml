@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for TimeLineEvent</comment>
+
+    <entry key="timeLineEvent">Timeline Ereignis</entry>
+    <entry key="timeLineEvent_plural">Timeline Ereignissen</entry>
+    <entry key="timeLineEvent_reload">Neu laden vorhandenen Timeline Ereignissen</entry>
+    <entry key="timeLineEvent_print">Drucken Tabelle Timeline Ereignissen</entry>
+    <entry key="timeLineEvent_new">Definieren Sie eine neue Timeline Ereignis</entry>
+    <entry key="timeLineEvent_edit">Bearbeiten Sie ausgewählte Timeline Ereignis</entry>
+    <entry key="timeLineEvent_delete">Löschen ausgewählten Timeline Ereignis</entry>
+
+    <!-- attributes -->
+    <entry key="timeLineEvent_id">Id</entry>
+    <entry key="timeLineEvent_name">Name</entry>
+    <entry key="timeLineEvent_description">Beschreibung</entry>
+    <entry key="timeLineEvent_startDate">Anfang</entry>
+    <entry key="timeLineEvent_endDate">Ende</entry>
+
+    <!-- many-to-one -->
+    <entry key="timeLineEvent_type">Typ</entry>
+    <entry key="timeLineEvent_study">Studie</entry>
+    <entry key="timeLineEvent_organisation">Organisation</entry>
+
+</properties>

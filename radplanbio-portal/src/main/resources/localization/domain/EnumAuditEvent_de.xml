@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for AuditEvent</comment>
+
+    <entry key="enumAuditEvent">Ereignis</entry>
+    <entry key="enumAuditEvent_plural">Ereignissen</entry>
+
+</properties>

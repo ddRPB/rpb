@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Study</comment>
+
+    <entry key="study">Studie</entry>
+    <entry key="study_plural">Studien</entry>
+    <entry key="study_reload">Neu laden vorhandenen Studien</entry>
+    <entry key="study_print">Drucken Tabelle Studien</entry>
+    <entry key="study_new">Definieren Sie eine neue Studie</entry>
+    <entry key="study_edit">Bearbeiten ausgewählte Studie</entry>
+    <entry key="study_delete">Löschen ausgewählte Studie</entry>
+
+    <entry key="study_id">Id</entry>
+    <entry key="study_edcIdentifier">EDC Identifier</entry>
+    <entry key="study_name">Kurze Titel</entry>
+    <entry key="study_title">Titel</entry>
+    <entry key="study_description">Beschreibung</entry>
+    <entry key="study_expectedTotalEnrollment">Voraussichtlichen Teilnahme</entry>
+    <entry key="study_comment">Kommentar</entry>
+
+    <entry key="study_randomisationConf">Randomisierung</entry>
+
+    <entry key="study_principalSite">Hauptstandort</entry>
+    <entry key="study_phase">Phase</entry>
+    <entry key="study_sponsoringType">Sponsoring</entry>
+    <entry key="study_protocolType">Protokolltyp</entry>
+    <entry key="study_status">Status</entry>
+
+    <!-- one-to-many -->
+    <entry key="study_studyTags">Tags</entry>
+    <entry key="study_timeLineEvents">Timeline</entry>
+    <entry key="study_personnel">Studienpersonal</entry>
+    <entry key="study_organisations">Organisationen</entry>
+    <entry key="study_arms">Behandlungsarmen</entry>
+    <entry key="study_randomisationSites">Randomisierung Standorte</entry>
+    <entry key="study_stratificationCriteria">Stratifikation</entry>
+    <entry key="study_eligibilityCriteria">Auswahlkriterien</entry>
+    <entry key="study_documents">Unterlagen</entry>
+
+    <!-- many-to-many -->
+    <entry key="study_tumourEntities">Entitäten</entry>
+    <entry key="study_partnerSites">Partnerstandorte</entry>
+
+</properties>

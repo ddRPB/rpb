@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.contact}" title="#{msg.contact}" url="/contact.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <p:panel header="#{msg.contact}">
+            <p>
+                <p:outputPanel>
+                    <h3>Contact RadPlanBio Partner Site Administrator</h3>
+                    <p>
+                        Please fill out the following form to contact your Administrator with questions about RadPlanBio.
+                        <br />
+                        All fields are required!
+                    </p>
+                </p:outputPanel>
+
+                <!-- Grid -->
+                <p:panelGrid id="display"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;width:500px"
+                    >
+
+                    <!-- Name -->
+                    <p:outputLabel value="Name:" for="txtName" />
+                    <p:inputText id="txtName"
+                        required="true"
+                        requiredMessage="You have to provide your name, it is mandatory!"
+                        size="60"
+                        />
+
+                    <!-- Email -->
+                    <p:outputLabel value="Email:" for="txtEmail"/>
+                    <p:inputText id="txtEmail"
+                            value="#{mbContact.from}"
+                            required="true"
+                            requiredMessage="You have to provide your email, it is mandatory!"
+                            size="60"
+                            />
+
+                    <!-- Subject -->
+                    <p:outputLabel value="#{msg.email_subject}:" for="txtSubject" />
+                    <p:inputText id="txtSubject"
+                            value="#{mbContact.subject}"
+                            required="true"
+                            requiredMessage="You have to provide subject for question (subject), it is mandatory!"
+                            size="60"
+                            />
+
+                    <!-- Message -->
+                    <p:outputLabel value="Message:" for="txtMessage" />
+                    <p:inputTextarea id="txtMessage"
+                        value="#{mbContact.body}"
+                        required="true"
+                        requiredMessage="You have to provide message, it is mandatory!"
+                        autoResize="true"
+                        cols="60"
+                        rows="20"
+                        />
+
+                    <!-- Commands -->
+                    <h:outputText value="" />
+                    <p:commandButton id="btnEmailSend"
+                            value="#{msg.email_send}"
+                            title="Send an email to administrator"
+                            icon="ui-icon-mail-closed"
+                            action="#{mbContact.sendEmailToAdmin}"
+                            ajax="false"
+                            update=":display:growl"
+                            />
+                </p:panelGrid>
+            </p>
+
+            <!-- Give focus to first link to ease keyboard navigation -->
+            <script type="text/javascript">
+                $(function() {
+                    setTimeout(function() {
+                        APP.focusTo('form:logo_link');
+                    }, 200);
+                });
+            </script>
+        </p:panel>
+    </ui:define>
+</ui:composition>
+
+

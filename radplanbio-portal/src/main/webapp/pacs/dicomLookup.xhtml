@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="PACS" title="PACS - medical imaging" url="#" />
+            <p:menuitem value="DICOM Lookup" title="DICOM Lookup" url="/pacs/dicomLookup.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of the page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView">
+            <p:tab title="DICOM Lookup">
+                <!-- Panel -->
+                <p:accordionPanel id="pnlSearch" multiple="true">
+                    <!-- Switch View -->
+                    <p:tab title="#{msg.search_mode}">
+                        <p:panelGrid
+                            columnClasses="column"
+                            columns="2"
+                            >
+                            <h:outputLabel value="Root Q/R: *" for="ddlViewType" />
+                            <p:selectOneButton
+                                id="ddlViewType"
+                                value="#{mbDicomLookup.viewType}"
+                                >
+                                <!-- AJAX update -->
+                                <p:ajax event="change" update=":form:tabView:pnlSearch:pnlSearchCriteria, :growl" />
+
+                                <!-- Patient Root Q/R Find -->
+                                <f:selectItem itemLabel="PATIENT" itemValue="PATIENT" />
+                                <!-- Study Root Q/R Find -->
+                                <f:selectItem itemLabel="STUDY" itemValue="STUDY" />
+                            </p:selectOneButton>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Search Criteria -->
+                    <p:tab title="#{msg.search_criteria}">
+
+                        <p:panelGrid
+                            id="pnlSearchCriteria"
+                            columnClasses="column"
+                            columns="2"
+                            >
+
+                            <!-- Commands -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                    title="#{msg.icon_search}"
+                                    value="#{msg.icon_search}"
+                                    action="#{mbDicomLookup.search}"
+                                    icon="ui-icon-search"
+                                    ajax="false"
+                                    update=":growl"
+                                    />
+                                <p:commandButton
+                                    value="#{msg.menu_reset}"
+                                    title="#{msg.menu_reset}"
+                                    type="reset"
+                                    icon="ui-icon-close"
+                                    />
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:accordionPanel>
+
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+
+    </ui:define>
+</ui:composition>

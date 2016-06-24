@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <!-- Fix column name in software -->
+    <changeSet id="rename-sofware-platform" author="Tomas Skripcak">
+        <renameColumn
+                tableName="SOFTWARE"
+                columnDataType="VARCHAR(255)"
+                newColumnName="platform"
+                oldColumnName="paltform"
+                />
+    </changeSet>
+    
+    <!-- Create audit log table -->
+    <changeSet id="create-auditlog" author="Tomas Skripcak">
+        <createTable tableName="AUDITLOG">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="auditlog_pkey"/>
+            </column>
+            <column name="user" type="VARCHAR(255)" />
+            <column name="event" type="VARCHAR(255)" />
+            <column name="eventdate" type="TIMESTAMP WITH TIME ZONE" />
+            <column name="stringattribute1" type="VARCHAR(255)" />
+            <column name="stringattribute2" type="VARCHAR(255)" />
+            <column name="stringattribute3" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Fix column user in audit log -->
+    <changeSet id="rename-auditlog-user" author="Tomas Skripcak">
+        <renameColumn
+                tableName="AUDITLOG"
+                columnDataType="VARCHAR(255)"
+                newColumnName="username"
+                oldColumnName="user"
+                />
+    </changeSet>
+
+    <!-- Edit RT structs with LR option to be of correct type -->
+    <changeSet id="update-rtsturct-breast" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'SalivaryGland'</where>
+        </update>
+    </changeSet>
+
+    <!-- New annotation types -->
+    <changeSet id="insert-annotation-t-dicom-series-uid" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_SERIES_INSTANCE_UID" />
+            <column name="description" value="This annotation type allows to mark eCRF field, which will always store DICOM SeriesInstanceUID data." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-sr-text" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="DICOM_SR_TEXT" />
+            <column name="description" value="This annotation type allows to mark eCRF field, which will always store DICOM structured report text." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-roi" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="DICOM_ANALYSIS_ROI" />
+            <column name="description" value="Region of interest in DICOM image." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-segm-alg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_SEGM_ALG" />
+            <column name="description" value="Segmentation algorithm used for DICOM image segmentation." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-suvmax" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_SUVMAX" />
+            <column name="description" value="Standardised uptake value (SUV) maximum  (UMLS: C2986846)." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-suvpeak" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_SUVPEAK" />
+            <column name="description" value="Standardised uptake value (SUV) peak (UMLS: C2986847)." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-suvmean" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_SUVMEAN" />
+            <column name="description" value="Standardised uptake value (SUV) mean" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-tbrmax" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_TBRMAX" />
+            <column name="description" value="Target to background ratio (TBR) maximum" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-tbrpeak" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_TBRPEAK" />
+            <column name="description" value="Target to background ratio (TBR) peak" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-hvt14bg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_HVT14BG" />
+            <column name="description" value="Hypoxic volume (HV) with activity concentration (TBR) > 1.4 time background" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-hvt16bg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_HVT16BG" />
+            <column name="description" value="Hypoxic volume (HV) with activity concentration (TBR) > 1.6 time background" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-hvt18bg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_HVT18BG" />
+            <column name="description" value="Hypoxic volume (HV) with activity concentration (TBR) > 1.8 time background" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-analysis-hvt20bg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DICOM_ANALYSIS_HVT20BG" />
+            <column name="description" value="Hypoxic volume (HV) with activity concentration (TBR) > 2.0 time background" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K - A2 - (male, female, unknown, other/intersexual)-->
+    <changeSet id="insert-annotation-type-dicom-sex" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="SEX" />
+            <column name="description" value="Gender" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-ethnic" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="ETHNIC" />
+            <column name="description" value="Ethnic" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-race" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="RACE" />
+            <column name="description" value="Race" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K1 -->
+    <changeSet id="insert-annotation-type-tnm-datum" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNMDAT" />
+            <column name="description" value="Date of TNM documentation" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K2 -->
+    <changeSet id="insert-annotation-type-diagdat" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DIAGDAT" />
+            <column name="description" value="Date of diagnosis (UMLS: C1274082)" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K3 -->
+    <changeSet id="insert-annotation-type-diagage" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DIAGAGE" />
+            <column name="description" value="Age during first diagnosis" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K4 -->
+    <changeSet id="insert-annotation-type-diagnosis" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DIAGNOSIS" />
+            <column name="description" value="Diagnosis in ICD10 code" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K5 -->
+    <changeSet id="insert-annotation-type-icdver" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="ICDVER" />
+            <column name="description" value="Version of diagnosis catalogue ICD" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K6 -->
+    <changeSet id="insert-annotation-type-location" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TOPOLOGY" />
+            <column name="description" value="Topology code ICD-O-3" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K7 -->
+    <changeSet id="insert-annotation-type-icdotver" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="ICDOTVER" />
+            <column name="description" value="Version of topology catalogue ICD-O" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K8 L = Left, R = Right, B = Both, M = Middle, U = Uknown, Not available T = trifft nicht zu -->
+    <changeSet id="insert-annotation-type-locside" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="LOCSIDE" />
+            <column name="description" value="Organ specific side of tumour localisation" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K9 -->
+    <changeSet id="insert-annotation-type-morphology" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="MORPHOLOGY" />
+            <column name="description" value="Morphology code ICD-0-3" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K10 -->
+    <changeSet id="insert-annotation-type-icdomver" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="ICDOTMVER" />
+            <column name="description" value="Version of morphology catalogue ICD-O" />
+        </insert>
+    </changeSet>
+
+    <!--MDS-K - K11 -->
+    <!--G	Histopathologic grade GX, G1, G2, G3, G4 -->
+
+    <!--0 = malignes Melanom der Konjunktiva-->
+    <!--1 = gut differenziert-->
+    <!--2 = mäßig differenziert-->
+    <!--3 = schlecht differenziert-->
+    <!--4 = undifferenziert-->
+    <!--X = nicht bestimmbar-->
+    <!--L = low grade (G1 oder G2)-->
+    <!--M = intermediate (G2 oder G3)-->
+    <!--H = high grade (G3 oder G4)-->
+    <!--B = borderline-->
+    <!--U = unknown-->
+    <!--T = trifft nicht zu-->
+    <changeSet id="insert-annotation-type-grading" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="GRADING" />
+            <column name="description" value="Grading of tumour" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K - K12 0; 0A, 0IS; I; IA; IA1; IA2; IB; IB1; IB2; IC; IIA; IIA1; IIA2; IIB; IIC; III; IIIA; IIIB; IIIC; IIIC1; IIIC2; IV; IVA; IVB; IVC -->
+    <changeSet id="insert-annotation-type-uicc" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="UICC" />
+            <column name="description" value="UICC state" />
+        </insert>
+    </changeSet>
+
+    <!-- 1 = Edition 1, 2 = Edition 2, 3 = Edition 3, 4 = Edition 4, 5 = Edition 5, 6 = Edition 6, 7 = Edition 7	-->
+    <changeSet id="insert-annotation-type-uiccver" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="UICCVER" />
+            <column name="description" value="UICC version" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K  K13 -->
+    <!-- TX, T0, Tis, T1, T2, T3, T4	TX, T0, Tis, T1, T2, T3, T4	-->
+    <!--X; is; a; 0; 1mic; 1; 1a; 1a1; 1a2; 1b; 1b1; 1b2; 1c; 2; 2a; 2a1;-->
+    <!--2a2; 2b; 2c; 3; 3a; 3b; 3c; 3d; 4; 4a; 4b; 4c-->
+    <changeSet id="insert-annotation-type-tnm-t" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_T" />
+            <column name="description" value="Primary tumour" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K14 -->
+    <!-- (m) = multiple primary tumors recorded in a single site (without specified number)-->
+    <!-- (number) = number of multiple tumours -->
+    <!-- (empty) = no multiple tumours -->
+    <changeSet id="insert-annotation-type-tnm-m-symbol" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_M_SYMBOL" />
+            <column name="description" value="Multiple primary tumours in a single site (m suffix)" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K15 -->
+    <!--N	NX, N0, N1, N2, N2a, N2b, N2c, N3	NX, N0, N1, N2, N3 -->
+    <!--X; 0; 0(i+); 1; 1mi; 1a; 1b; 1c; 2; 2a; 2b; 2c; 3; 3a; 3b; 3c-->
+    <changeSet id="insert-annotation-type-tnm-n" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_N" />
+            <column name="description" value="Regional lymph node" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K16 -->
+    <!-- MX, M0, M1	-->
+    <!--X; 0; 1; 1a; 1b; 1c-->
+    <changeSet id="insert-annotation-type-tnm-m" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_M" />
+            <column name="description" value="Distant metastatis" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K17 -->
+    <changeSet id="insert-annotation-type-tclass" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_TCLASS" />
+            <column name="description" value="Classification for T primary tumour p/c/u" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K18 -->
+    <changeSet id="insert-annotation-type-nclass" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_NCLASS" />
+            <column name="description" value="Classification for N regional lymph node involvement: number/extent p/c/u" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K19 -->
+    <changeSet id="insert-annotation-type-mclass" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_MCLASS" />
+            <column name="description" value="Classification for M distant metastasis absent/present p/c/u" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K20 -->
+    <!-- y = classification is performed durign or following initial multi-modality therapy -->
+    <!-- (empty) = not applied -->
+    <changeSet id="insert-annotation-type-tnm-y-symbol" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_Y_SYMBOL" />
+            <column name="description" value="Classification is performed durign or following initial multi-modality therapy (y prefix)" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K21 -->
+    <!-- r = recurrent tumour-->
+    <!-- (empty) = not applied, the stagins is before the recurrense -->
+    <changeSet id="insert-annotation-type-tnm-r-symbol" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_R_SYMBOL" />
+            <column name="description" value="Recurrent tumour, staged after disease-free interval (r prefix)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-tnm-a-symbol" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_A_SYMBOL" />
+            <column name="description" value="The stage determined at autopsy (a prefix)" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K22	 1 = Edition 1, 2 = Edition 2, 3 = Edition 3, 4 = Edition 4, 5 = Edition 5, 6 = Edition 6, 7 = Edition 7 -->
+    <changeSet id="insert-annotation-type-tnmver" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNMVER" />
+            <column name="description" value="TNM version" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K23 -->
+    <!-- R0=kein Residualtumor -->
+    <!-- R1=Mikroskopischer Residualtumor -->
+    <!-- R2=Makroskopicher Residualtumor -->
+    <!-- R1(is)=In-Situ-Rest -->
+    <!-- R1(cy+)=cytologischer Rest -->
+    <!-- RX=Vorhandensein von Residualtumor kann nicht beurteilt -->
+    <changeSet id="insert-annotation-type-tnmlr" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_L_R" />
+            <column name="description" value="Local assesment of residual tumour" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K24 -->
+    <!-- R0=kein Residualtumor -->
+    <!-- R1=Mikroskopischer Residualtumor -->
+    <!-- R2=Makroskopicher Residualtumor -->
+    <!-- R1(is)=In-Situ-Rest -->
+    <!-- R1(cy+)=cytologischer Rest -->
+    <!-- RX=Vorhandensein von Residualtumor kann nicht beurteilt -->
+    <changeSet id="insert-annotation-type-tnmor" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_O_R" />
+            <column name="description" value="Overall assesment of residual tumour" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K25 -->
+    <changeSet id="insert-annotation-type-distantmetastases" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DISTANT_METASTASES" />
+            <column name="description" value="Distant metastases" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K26 -->
+    <changeSet id="insert-annotation-type-distmet-date" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DISTMETDAT" />
+            <column name="description" value="Date of diagnostic assurance of distant metastases" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K27 -->
+    <!-- PUL = Plumonary (Lungs) -->
+    <!-- OSS = Osseous -->
+    <!-- HEP = Hepatic -->
+    <!-- BRA = Brain -->
+    <!-- LYM = Lymph Nodes -->
+    <!-- MAR = Bone Marrow -->
+    <!-- PLE = Pleura -->
+    <!-- PER = Peritoneum -->
+    <!-- ADR = Adrenals -->
+    <!-- SKI = Slom -->
+    <!-- OTH = Other Organs -->
+    <!-- GEN = Generalisierte Metastasierung -->
+    <changeSet id="insert-annotation-type-distmet-LOC1" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="DISTMETLOC"  />
+            <column name="description" value="Localisation of distant metastases" />
+        </insert>
+    </changeSet>
+
+    <!-- LX, L0, L1 -->
+    <changeSet id="insert-annotation-type-tnm-l" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="TNM_L" />
+            <column name="description" value="Lymphatic Vessel Invasion (L)" />
+        </insert>
+    </changeSet>
+
+    <!-- VX, V0, V1, V2 -->
+    <changeSet id="insert-annotation-type-tnm-v" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="TNM_V" />
+            <column name="description" value="Venous Invasion (V)" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-death" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DEATH" />
+            <column name="description" value="Patient is death" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-death-dat" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="DEATHDAT" />
+            <column name="description" value="Date of death" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K32 -->
+    <changeSet id="insert-annotation-type-op" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="OP" />
+            <column name="description" value="Tumour was operated" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K33 -->
+    <!--K = kurativ-->
+    <!--P = palliativ-->
+    <!--D = diagnostisch-->
+    <!--R = Revision/Komplikation-->
+    <!--S = Sonstiges-->
+    <!--X = Fehlende Angabe-->
+    <changeSet id="insert-annotation-type-opintent" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="OPINTENT" />
+            <column name="description" value="The intent of tumour operation" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K34 -->
+    <changeSet id="insert-annotation-type-rtx" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="RTX" />
+            <column name="description" value="Tumour was irradiated" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K35 -->
+    <!--K = kurativ-->
+    <!--P = palliativ-->
+    <!--A = adjuvant-->
+    <!--N = neoadjuvant-->
+    <changeSet id="insert-annotation-type-rtx-intent" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="RTXINTENT" />
+            <column name="description" value="The intent of radiotherapy" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K36 -->
+    <changeSet id="insert-annotation-type-ctx" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="CTX" />
+            <column name="description" value="Chemotherapy applied" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K37 -->
+    <changeSet id="insert-annotation-type-ctx-intent" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="CTXINTENT" />
+            <column name="description" value="The intent of chemotherapy" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K38 -->
+    <changeSet id="insert-annotation-type-itx" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="ITX" />
+            <column name="description" value="Immunotherapy applied" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K39 -->
+    <changeSet id="insert-annotation-type-htx" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="HTX" />
+            <column name="description" value="Hormon therapy applied" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K40 -->
+    <changeSet id="insert-annotation-type-bonemtranspl" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="BONEMTRANSPL" />
+            <column name="description" value="Bone marrow transplat therapy applied" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K41 -->
+
+    <!-- MDS-K K42 -->
+
+    <!-- MDS-K K43 -->
+    <!-- Primary therapy response -->
+    <!--D = Divergentes Geschehen-->
+    <!--(CR =  Complete Response; Comlete Remission, PR = Partial Response; Partial Remission, SD = Stable Disease, PD = Progressive Disease,  NE = Not Evaluable, MR = minimal response, CRr = complete remission with resudials abnormalities)-->
+    <changeSet id="insert-annotation-type-rsorres-resp" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="RSORRES_RESP" />
+            <column name="description" value="Primary therapy response" />
+        </insert>
+    </changeSet>
+
+    <!-- MDS-K K44 -->
+
+    <!-- MDS-K K45 -->
+
+    <!-- MDS-K K46 -->
+
+    <!-- MDS-K K47 -->
+
+    <!-- MDS-K K48 -->
+
+    <!-- MDS-K K49 -->
+
+    <!-- MDS-K K50 -->
+
+    <!--ECOG101	Eastern Cooperative Oncology Group ECOG – performance status (NCI: C102408);  also called WHO or Zubrod	ECOG performance status:-->
+
+    <!--DOSE	Dose (UMLS: C0178602)	Dose:-->
+    <!--PDOSE	Planned dose (UMLS: C2826283)	Prescribed dose:-->
+    <!--EXDOSE	Exposure dose (UMLS: C2826651)	Applied dose:-->
+    <!--TDOSE	Total dose (UMLS: C2986497)	Total dose:-->
+
+    <!--STDAT_RTX	Start RTx (UMLS: C0808070) -->
+    <!--ENDAT_RTX	End RTx (UMLS: C0806020) -->
+
+    <!--GTV	Gross target volume GTV (NCI: C112913)	GTV:	ccm-->
+    <!--D95GTV	Gross target volume greater than 95 percent dose exposure percent value	D95 GTV:	%-->
+    <!--D107GTV	Gross target volume greater than 97 percent dose exposure percent value	D97 GTV:	%-->
+    <!--DMAXGTV	Gross target volume maximum percent dose exposure percent value	Dmax GTV:	%-->
+    <!--PTV	Planning target volume (UMLS: C0454199)	PTV:	ccm-->
+    <!--D95PTV	Planning target volume greater than 95 percent dose exposure percent value	D95 PTV:	%-->
+    <!--D107PTV	Planning target volume greater than 97 percent dose exposure percent value	D97 PTV:	%-->
+    <!--DMAXPTV	Planning target volume maximum percent dose exposure percent value	Dmax PTV:	%-->
+
+    <!--TUTESTCD	Tumor identification test name	Tumor identification	Tumor identification, Tumor split, Tumor merged	TUMIDENT, TUSPLIT, TUMERGE-->
+    <!--TUORRIES	Tumor identification result		Target, Non-targert, New	TARGET, NON-TARGET, NEW-->
+    <!--TULOC	    Tumor identification anatomical location	Abdominal Cavity, Adrenal Gland, Bladder, Bone, Breast, Central Nervous System, Cervix Uteri, Chest, Colon, Colorectal, Esophagus, Head and Neck, Heart, Kidney, Liver, Lung, Lymph Node, Oral Cavity, Ovary, Pancreas, Pelvis, Peritoneum, Pleural Cavity, Prostate Gland, Rectum, Skin, Small Intestine, Spleen, Stomach, Testis, Thyroid Gland, Other, Whole Body	ABDOMEN, LIVER, KIDNEY, SPLEEN, THYROID-->
+    <!--TULAT		Laterality	Left, Right, Bilateral, Not Applicable	LEFT, RIGHT, BILATERAL, NA-->
+    <!--TUDIR		Directionality	DORSAL, PROXIMAL-->
+    <!--TUDSTRBN	Distribution	ENTIRE, SINGLE, SEGMENT, MANY-->
+    <!--TUMETHOD	Tumor identification method	CT scan, X-ray, MRI	CT-SCAN, X-RAY, MRI-->
+
+    <!--RSCAT	Category for response assessment	Category for response assessment:	RSCAT	0 = RECIST 1.0, 1 = RECIST 1.1	0, 1-->
+    <!--RSTESTCD Tumor response assesment test code (UMLS: C3273026)	Tumor response assesment test:	RSTESTCD	Best Overall Response; Best Response, Non-Radiological Progression, Non-target Response, Overall Response, Target Response, New Lesion Progression	BESTRESP, NRADPROG, NTRGRESP, OVRLRESP, TRGRESP, NEWLPROG-->
+    <!--RSORRES_OVRLRESP	Overall response (UMLS: C3272903)		CR =  Complete Response; Comlete Remission, PR = Partial Response; Partial Remission, SD = Stable Disease, PD = Progressive Disease,  NE = Not Evaluable	CR, PR, SD, PD, NE-->
+    <!--RSORRES_TRGRESP	Response in target lesion (UMLS: C2986558)	CR =  Complete Response; Comlete Remission, PR = Partial Response; Partial Remission, SD = Stable Disease, PD = Progressive Disease,  NE = Not Evaluable	CR, PR, SD, PD, NE-->
+    <!--RSORRES_NTRGRESP	Response in non-target lesion (UMLS: C2986559)-->
+
+    <!--VITALSTATUS	Survival status	VITALSTATUS	1 = Alive (please give date last known alive or last assured external contact), 2 = lost to follow-up (please give date of last contact), 3 = dead (please give date and cause of death)-->
+    <!--ALIVEDAT	Date of last known alive or external contact 	Last known alive-->
+    <!--LOSTDAT	    Date of lost to follow up	Last contact	-->
+
+    <!-- Fix the abstract size -->
+    <changeSet id="update-article-abstract" author="Tomas Skripcak">
+        <modifyDataType
+                columnName="abstract"
+                newDataType="VARCHAR(2048)"
+                tableName="ARTICLE"
+                />
+    </changeSet>
+
+    <!-- Clean up old unused tables -->
+    <changeSet id="drop-table-datamap" author="Tomas Skripcak">
+        <dropTable tableName="datamap" />
+    </changeSet>
+
+    <changeSet id="drop-table-codelistitem" author="Tomas Skripcak">
+        <dropTable tableName="codelistitem" />
+    </changeSet>
+
+    <changeSet id="drop-table-codelist" author="Tomas Skripcak">
+        <dropTable tableName="codelist" />
+    </changeSet>
+
+    <changeSet id="drop-table-exportmapping" author="Tomas Skripcak">
+        <dropTable tableName="exportmapping" />
+    </changeSet>
+
+    <changeSet id="drop-table-headercolumn" author="Tomas Skripcak">
+        <dropTable tableName="headercolumn" />
+    </changeSet>
+
+    <changeSet id="drop-table-columndatatype" author="Tomas Skripcak">
+        <dropTable tableName="columndatatype" />
+    </changeSet>
+
+    <changeSet id="drop-table-header" author="Tomas Skripcak">
+        <dropTable tableName="header" />
+    </changeSet>
+
+    <changeSet id="drop-table-clientie" author="Tomas Skripcak">
+        <dropTable tableName="clientie" />
+    </changeSet>
+
+    <changeSet id="drop-table-encryptionkey" author="Tomas Skripcak">
+        <dropTable tableName="encryptionkey" />
+    </changeSet>
+
+    <!-- Data Mapping -->
+    <changeSet id="create-table-datamapping" author="Tomas Skripcak">
+        <createTable tableName="DATAMAPPING">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)" />
+            <column name="description" type="varchar(512)" />
+            <column name="type" type="varchar(255)" />
+            <column name="sourcetype" type="varchar(255)" />
+            <column name="targettype" type="varchar(255)" />
+            <column name="studyid" type="int">
+                <constraints referencedTableName="STUDY" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-datamapping-fkstudyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="DATAMAPPING" baseColumnNames="studyid" constraintName="datamapping_fk1" referencedTableName="STUDY"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <!-- Mapped Item-->
+    <changeSet id="create-table-mappeditem" author="Tomas Skripcak">
+        <createTable tableName="MAPPEDITEM">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="header" type="varchar(255)" />
+            <column name="studyeventoid" type="varchar(255)" />
+            <column name="serepeatkey" type="varchar(255)" />
+            <column name="formoid" type="varchar(255)" />
+            <column name="itemgroupoid" type="varchar(255)" />
+            <column name="itemoid" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet id="add-column-igrepeatkey-mappeditem" author="Tomas Skripcak">
+        <addColumn tableName="MAPPEDITEM">
+            <column name="igrepeatkey" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="add-column-type-mappeditem" author="Tomas Skripcak">
+        <addColumn tableName="MAPPEDITEM">
+            <column name="type" type="varchar(255)"></column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="add-column-mappingid-mappeditem" author="Tomas Skripcak">
+        <addColumn tableName="MAPPEDITEM">
+            <column name="mappingid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="add-column-targetmappingid-mappeditem" author="Tomas Skripcak">
+        <addColumn tableName="MAPPEDITEM">
+            <column name="targetmappingid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-mappeditem-fkmappingid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="MAPPEDITEM" baseColumnNames="mappingid" constraintName="mappeditem_fk1" referencedTableName="DATAMAPPING"
+                                 referencedColumnNames="id" />
+    </changeSet>
+    <changeSet id="alter-mappeditem-fktargetmappingid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="MAPPEDITEM" baseColumnNames="targetmappingid" constraintName="tagetmappeditem_fk1" referencedTableName="DATAMAPPING"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <!-- Mapping Record-->
+    <changeSet id="create-table-mappingrecord" author="Tomas Skripcak">
+        <createTable tableName="MAPPINGRECORD">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="defaultvalue" type="varchar(255)" />
+            <column name="multivaluesep" type="varchar(255)" />
+            <column name="dateformatstring" type="varchar(255)" />
+            <column name="sourceid" type="int">
+                <constraints referencedTableName="MAPPEDITEM" nullable="false" />
+            </column>
+            <column name="targetid" type="int">
+                <constraints referencedTableName="MAPPEDITEM" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="add-column-priority-mappingrecord" author="Tomas Skripcak">
+        <addColumn tableName="MAPPINGRECORD">
+            <column name="priority" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="add-column-mappingid-mappingrecord" author="Tomas Skripcak">
+        <addColumn tableName="MAPPINGRECORD">
+            <column name="mappingid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-mappingrecord-fksourceid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="MAPPINGRECORD" baseColumnNames="sourceid" constraintName="mappingrecord_fk1" referencedTableName="MAPPEDITEM"
+                                 referencedColumnNames="id" />
+    </changeSet>
+    <changeSet id="alter-mappingrecord-fktargetid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="MAPPINGRECORD" baseColumnNames="targetid" constraintName="mappingrecord_fk2" referencedTableName="MAPPEDITEM"
+                                 referencedColumnNames="id" />
+    </changeSet>
+    <changeSet id="alter-mappingrecord-fkmappingid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="MAPPINGRECORD" baseColumnNames="mappingid" constraintName="mappingrecord_fk3" referencedTableName="DATAMAPPING"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <!-- Code Map -->
+    <changeSet id="create-table-codemap" author="Tomas Skripcak">
+        <createTable tableName="CODEMAP">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="sourcevalue" type="varchar(255)" />
+            <column name="targetvalue" type="varchar(255)" />
+            <column name="recordid" type="int">
+                <constraints referencedTableName="MAPPINGRECORD" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-codemap-fkrecordid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="CODEMAP" baseColumnNames="recordid" constraintName="codemap_fk1" referencedTableName="MAPPINGRECORD"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <!--  RTSTRUCT INNER EAR -->
+    <changeSet id="insert-rtstruct-ear-inner" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq" />
+            <column name="identifier" value="Ear_Inner" />
+            <column name="name" value="Inner Ear" />
+            <column name="typeid" value="3" />
+        </insert>
+    </changeSet>
+
+    <!-- ServerIE (WebAPI) public url-->
+    <changeSet id="alter-serverie-add-publicurl" author="Tomas Skripcak">
+        <addColumn tableName="SERVERIE">
+            <column name="publicurl" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

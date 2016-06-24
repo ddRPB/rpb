@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="Software" title="Software" url="/software.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <p:panel header="Software">
+            <p>
+            <!--Software toolbar-->
+            <p:toolbar>
+                <!-- Right -->
+                <p:toolbarGroup align="right">
+                    <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="Print software"
+                            icon="ui-icon-print"
+                            >
+                        <p:printer target="dlSoftware" />
+                    </p:commandButton>
+                    <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="Help Software [ctrl+shift+h]"
+                            icon="ui-icon-help"
+                            onclick="target='_blank'"
+                            ajax="false"
+                            immediate="true"
+                            disabled="true"
+                            />
+                    <p:hotkey
+                            bind="ctrl+shift+h"
+                            onsuccess="target='_blank'"
+                            ajax="false"
+                            disabled="true"
+                            />
+                </p:toolbarGroup>
+                <!-- Left -->
+                <p:toolbarGroup align="left">
+                    <p:commandButton value="#{msg.menu_reload}"
+                            title="Roload available software [ctrl+shift+r]"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:dlSoftware, :growl"
+                            actionListener="#{mbSoftware.loadSoftware}"
+                            />
+                    <p:hotkey bind="ctrl+shift+r"
+                            immediate="true"
+                            process="@this"
+                            update=":form:dlSoftware, :growl"
+                            actionListener="#{mbSoftware.loadSoftware}"
+                            />
+                </p:toolbarGroup>
+            </p:toolbar>
+            <!-- Software data list -->
+            <p:dataList
+                    id="dlSoftware"
+                    value="#{mbSoftware.entityList}"
+                    var="software"
+                    paginator="true"
+                    rows="5"
+                    paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink}"
+                    emptyMessage="#{msg.search_empty}"
+                    itemType="square"
+                    type="none"
+                    >
+                <h:outputText value="#{software.name} "
+                        escape="false"
+                        style="font-weight:bold"
+                        />
+                <h:outputText value=" version: " />
+                [<h:outputText value="#{software.version}" />]
+                (<h:outputText value="#{software.platform}" />)
+                <a href="#{facesContext.externalContext.requestContextPath}/software/#{software.filename}">Download</a>
+                <br />
+                <hr />
+            </p:dataList>
+            </p>
+        </p:panel>
+
+        <!-- Give focus to first link to ease keyboard navigation -->
+        <script type="text/javascript">
+            $(function() {
+                setTimeout(function() {
+                    APP.focusTo('form:logo_link');
+                }, 200);
+            });
+        </script>
+    </ui:define>
+</ui:composition>

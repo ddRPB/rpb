@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for AuditLog</comment>
+
+    <entry key="auditLog">AuditLog</entry>
+    <entry key="auditLog_plural">AuditLogs</entry>
+    <entry key="auditLog_reload">Reload existing AuditLogs</entry>
+    <entry key="auditLog_print">Print AuditLogs table</entry>
+    <entry key="auditLog_new">Define a new AuditLog</entry>
+    <entry key="auditLog_edit">Edit selected AuditLog</entry>
+    <entry key="auditLog_delete">Delete selected AuditLog</entry>
+
+    <!-- attributes -->
+    <entry key="auditLog_id">Id</entry>
+    <entry key="auditLog_username">Username</entry>
+    <entry key="auditLog_event">Event</entry>
+    <entry key="auditLog_eventDate">Date</entry>
+    <entry key="auditLog_stringAttribute1">String1</entry>
+    <entry key="auditLog_stringAttribute2">String2</entry>
+    <entry key="auditLog_stringAttribute3">String3</entry>
+
+</properties>

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Spring framework configuration, data source, security methods, etc. -->
+<beans
+    default-lazy-init="true"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+            http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd"
+    >
+	<description><![CDATA[Main entry point for spring configuration]]></description>
+
+    <!--.............................................SPRING IOC CONTAINER............................................-->
+	<!-- Spring IOC will automatically scan the base package for
+	@Repository – DAO components in the persistence layer.
+    @Service – Service component in the business layer -->
+	<context:component-scan base-package="de.dktk.dd.rpb">
+		<!-- Exclude web beans as they live in the web application context -->
+		<context:exclude-filter type="regex" expression="de.dktk.dd.rpb.portal.web.*" />
+	</context:component-scan>
+
+    <!-- Inject to OC data repository setter -->
+    <bean id="openClinicaDataDao" class="de.dktk.dd.rpb.core.dao.edc.OpenClinicaDataDao">
+        <property name="dataSource" ref="ocDataSource" />
+    </bean>
+
+    <!-- Map returned view name "rssViewer" to bean id "rssViewer" -->
+    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+    <bean id="rssViewer" class="de.dktk.dd.rpb.portal.web.views.CustomRssViewer" />
+
+    <!--..........................................SPRING SUPPORT FOR VIEW SCOPE....................................-->
+    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <property name="scopes">
+            <map>
+                <entry key="view">
+                    <bean class="de.dktk.dd.rpb.portal.web.util.ViewScope"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <!--..........................................................................................................-->
+
+    <!-- Where the properties files are -->
+    <context:property-placeholder location="classpath*:database.properties,classpath*:hibernate.properties,classpath*:email.properties,classpath*:ldap.properties" />
+
+    <!--..........................................SPRING SECURITY AUTHENTICATION.....................................-->
+    <!-- Default authentication provider -->
+    <bean
+        id="defaultAuthenticationProvider"
+        class="de.dktk.dd.rpb.core.security.DefaultAuthenticationProvider"
+        >
+        <property name="userDetailsService">
+            <bean class="de.dktk.dd.rpb.core.security.DefaultUserDetailsServiceImpl" />
+        </property>
+    </bean>
+
+    <!-- OpenClinica authentication provider -->
+    <bean
+        id="openClinicaAuthenticationProvider"
+        class="de.dktk.dd.rpb.core.security.OpenClinicaAuthenticationProvider"
+        >
+        <property name="userDetailsService">
+            <bean class="de.dktk.dd.rpb.core.security.OpenClinicaUserDetailsServiceImpl" />
+        </property>
+    </bean>
+
+    <!-- ActiveDirectory -->
+    <bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+        <constructor-arg>
+            <value>${ldap.host}</value>
+        </constructor-arg>
+        <property name="userDn">
+            <value>${ldap.userDn}</value>
+        </property>
+        <property name="password">
+            <value>${ldap.password}</value>
+        </property>
+    </bean>
+
+    <bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">
+        <constructor-arg index="0" value=""></constructor-arg><!-- Optimal LDAP subtree -->
+        <constructor-arg index="1" value="${ldap.loginQuery}"></constructor-arg>
+        <constructor-arg index="2" ref="contextSource"></constructor-arg>
+        <property name="searchSubtree">
+            <value>true</value>
+        </property>
+    </bean>
+
+    <!-- LDAP provider -->
+    <bean id="ldapAuthenticationProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+        <constructor-arg>
+            <bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
+                <constructor-arg ref="contextSource"/>
+                <!-- How to find user in LDAP -->
+                <property name="userSearch" ref="userSearch"/>
+            </bean>
+        </constructor-arg>
+        <!-- Populator is used to populate authenticated user authorities - in this case they are RPB authorities -->
+        <constructor-arg>
+            <bean class="de.dktk.dd.rpb.core.security.DefaultLdapAuthoritiesPopulator"/>
+        </constructor-arg>
+    </bean>
+
+    <!-- Authentication manager as a container for providers -->
+    <security:authentication-manager alias="authenticationManager" erase-credentials="false">
+        <security:authentication-provider ref="defaultAuthenticationProvider" />
+        <security:authentication-provider ref="openClinicaAuthenticationProvider" />
+        <security:authentication-provider ref="ldapAuthenticationProvider"/>
+    </security:authentication-manager>
+
+    <!-- Where to go after authentication sucess -->
+    <bean
+        id="successHandler"
+        class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
+        >
+        <property name="defaultTargetUrl" value="/home.faces" />
+        <!-- Redirect to the page which the user originally wanted to visit -->
+        <property name="useReferer" value="true" />
+    </bean>
+
+    <!-- Where to go after authentication failure -->
+    <bean
+        id="failureHandler"
+        class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler"
+        >
+        <property
+            name="defaultFailureUrl"
+            value="/login.faces?login_error=1"
+            />
+    </bean>
+
+    <!-- Where to go when authentication page is needed -->
+    <bean
+        id="loginUrlAuthenticationEntryPoint"
+        class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
+        >
+        <constructor-arg name="loginFormUrl" value="/login.faces" />
+    </bean>
+
+    <!-- Custom filter for authentication which will choose which authentication provider to use -->
+    <bean
+        id="myAuthenticationFilter"
+        class="de.dktk.dd.rpb.core.security.MyAuthenticationFilter"
+        >
+        <property name="authenticationManager" ref="authenticationManager"/>
+        <property name="authenticationFailureHandler" ref="failureHandler"/>
+        <property name="authenticationSuccessHandler" ref="successHandler"/>
+        <property name="filterProcessesUrl" value="/logincheck.faces"/>
+    </bean>
+
+    <!-- Configuring annotations to secure business logic in domain level -->
+    <security:global-method-security
+        jsr250-annotations="enabled"
+        pre-post-annotations="enabled"
+        />
+    <!--.............................................................................................................-->
+
+	<!-- Enable the configuration of transactional behavior based on annotations -->
+	<tx:annotation-driven />
+
+    <!--...................................... TASK .................................................................-->
+    <task:annotation-driven executor="myExecutor" scheduler="myScheduler" />
+    <task:executor id="myExecutor" pool-size="5" />
+    <task:scheduler id="myScheduler" pool-size="10" />
+
+    <!--......................................DATA SOURCES...........................................................-->
+
+	<!-- RadPlanBio data source -->
+	<bean
+        id="dataSource"
+        class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close" 
+		lazy-init="false" 
+		p:driverClassName="${rpb.jdbc.driver}"
+		p:url="${rpb.jdbc.url}"
+		p:username="${rpb.jdbc.user}"
+		p:password="${rpb.jdbc.password}"
+		p:initialSize="1" 
+		p:maxActive="1" 
+		p:maxIdle="1" 
+		p:maxWait="5000"
+		p:poolPreparedStatements="true"
+		p:defaultAutoCommit="false" 
+		p:removeAbandoned="true" 
+		p:removeAbandonedTimeout="60">
+		<description>
+			Simple datasource. This is a direct access to the datasource that can be used for specific queries that need to bypass hibernate functionalities.
+			However, if you need to use JDBC, please look at hibernate SQL-QUERIES, they would most probably be a more elegant way to solve your problem.
+		</description>
+	</bean>
+
+    <!--Open Clinica data source-->
+    <bean
+        id="ocDataSource"
+        class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close"
+        lazy-init="false"
+        p:driverClassName="${oc.jdbc.driver}"
+        p:url="${oc.jdbc.url}"
+        p:username="${oc.jdbc.user}"
+        p:password="${oc.jdbc.password}"
+        p:initialSize="1"
+        p:maxActive="1"
+        p:maxIdle="1"
+        p:maxWait="5000"
+        p:poolPreparedStatements="true"
+        p:defaultAutoCommit="true"
+        p:removeAbandoned="true"
+        p:removeAbandonedTimeout="60">
+    <description>
+        Simple datasourc. This is a dircect access to the OpenClinica datasource.
+        I am planning to use this for custom query builder on top of OpenClinica data.
+    </description>
+    </bean>
+    <!--............................................................................,................................-->
+
+	<!-- Spring support for JPA -->
+	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor">
+		<description>Enable exception translation for beans annotated with @Repository</description>
+	</bean>
+
+    <!-- transactionManager is using defined entityManagerFacotry-->
+	<bean
+        id="transactionManager"
+        class="org.springframework.orm.jpa.JpaTransactionManager"
+		p:entityManagerFactory-ref="entityManagerFactory"
+        >
+		<description>Please read http://www.springframework.org/docs/reference/transaction.html</description>
+	</bean>
+
+    <!-- Hibernate JPA specific adapter for our entityManagerFactory -->
+	<bean
+        id="hibernateJpaVendorAdapter"
+        class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
+        >
+		<description>Allow spring to configure hibernate specific settings</description>
+	</bean>
+
+    <!--p:persistenceXmlLocation="classpath:META-INF/spring-persistence.xml"-->
+    <!-- Full control over EntityManagerFactory (or managing persistent entities objects) -->
+    <!-- It is related to defined dataSource -->
+    <!-- It uses spring-persistence.xml to cerate a PersistanceUnitInfo - radplanbioPU -->
+    <!-- Use hibernate as a data access adapter -->
+	<bean
+        id="entityManagerFactory"
+        class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+		p:dataSource-ref="dataSource"
+		p:persistenceUnitName="radplanbioPU"
+		p:jpaVendorAdapter-ref="hibernateJpaVendorAdapter"
+		p:jpaProperties="classpath:hibernate.properties"
+        p:packagesToScan="de.dktk.dd.rpb.core.domain"
+        />
+
+    <!-- Hibernate specific session factory obtained from defined entityManagerFactory -->
+	<util:property-path id="sessionFactory" path="entityManagerFactory.sessionFactory" />
+
+	<!-- bean validation -->
+	<bean
+        id="validator"
+        class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
+		p:validationMessageSource-ref="messageSource"
+        >
+		<description>Enable the bean validation provider, and configure it to use the messageSource when resolving properties</description>
+	</bean>
+
+	<!-- Localisation -->
+	<bean
+        id="messageSource"
+        class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+		p:fallbackToSystemLocale="false"
+		p:useCodeAsDefaultMessage="true"
+		p:defaultEncoding="UTF-8"
+        >
+		<description>Base message source to handle internationalization</description>
+		<property name="basenames">
+			<list>
+                <!-- main resources -->
+                <value>classpath:/localization/application</value>
+                <value>classpath:/localization/messages</value>
+                <!-- domain resources -->
+                <value>classpath:/localization/domain/AbstractCriterion</value>
+                <value>classpath:/localization/domain/AuditLog</value>
+                <value>classpath:/localization/domain/CrfFieldAnnotation</value>
+                <value>classpath:/localization/domain/CurriculumVitaeItem</value>
+                <value>classpath:/localization/domain/CurriculumVitaeItemType</value>
+                <value>classpath:/localization/domain/DefaultAccount</value>
+                <value>classpath:/localization/domain/DocType</value>
+                <value>classpath:/localization/domain/EnumAuditEvent</value>
+                <value>classpath:/localization/domain/EnumProtocolType</value>
+                <value>classpath:/localization/domain/EventType</value>
+                <value>classpath:/localization/domain/Organisation</value>
+                <value>classpath:/localization/domain/PartnerSite</value>
+                <value>classpath:/localization/domain/Person</value>
+                <value>classpath:/localization/domain/PersonStatus</value>
+                <value>classpath:/localization/domain/RandomisationConfiguration</value>
+                <value>classpath:/localization/domain/Role</value>
+                <value>classpath:/localization/domain/RtStruct</value>
+                <value>classpath:/localization/domain/RtStructType</value>
+                <value>classpath:/localization/domain/SampleContent</value>
+                <value>classpath:/localization/domain/SponsoringType</value>
+                <value>classpath:/localization/domain/Study</value>
+                <value>classpath:/localization/domain/StudyDoc</value>
+                <value>classpath:/localization/domain/StudyEvent</value>
+                <value>classpath:/localization/domain/StudyOrganisation</value>
+                <value>classpath:/localization/domain/StudyOrganisationRole</value>
+                <value>classpath:/localization/domain/StudyPerson</value>
+                <value>classpath:/localization/domain/StudyPersonRole</value>
+                <value>classpath:/localization/domain/StudyPhase</value>
+                <value>classpath:/localization/domain/StudyStatus</value>
+                <value>classpath:/localization/domain/StudySubject</value>
+                <value>classpath:/localization/domain/TimeLineEvent</value>
+                <value>classpath:/localization/domain/TreatmentArm</value>
+                <value>classpath:/localization/domain/TumourEntity</value>
+                <!-- our bean validation messages -->
+                <value>classpath:/localization/ValidationMessages</value>
+                <!-- default spring security messages -->
+                <value>classpath:org.springframework.security.messages</value>
+                <!-- default conversion messages -->
+                <value>classpath:javax.faces.Messages</value>
+                <!-- default bean validation messages -->
+                <value>classpath:org/hibernate/validator/ValidationMessages</value>
+			</list>
+		</property>
+        <property name="cacheSeconds" value="1" />
+    </bean>
+
+    <!--Email-->
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="server" />
+        <property name="port" value="25" />
+        <property name="username" value="RadPlanBioDD@med.tu-dresden.de" />
+        <property name="password" value="password" />
+        <property name="protocol"  value="smtp" />
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.auth">false</prop>
+                <prop key="mail.smtp.starttls.enable">false</prop>
+            </props>
+        </property>
+    </bean>
+</beans>

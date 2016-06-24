@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.menu_help}" title="#{msg.menu_help}" url="/help.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <p:panel header="Manuals">
+            <p>
+                <p:outputPanel>
+                    <p style="text-align:justify;">
+                        Welcome! The RadPlanBio manual provides comprehensive user and technical reference information, which provide first level of support while using RadPlanBio platform. We hope you'll find it useful.
+                    </p>
+                    Links to manuals (user):
+                    <ul>
+                        <li>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual.html">[EN] User manual [RadPlanBio - portal]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual.pdf">
+                                <h:graphicImage
+                                        width="15"
+                                        height="15"
+                                        alt="pdf"
+                                        name="img/pdf.png"
+                                        style="border: 0px;"
+                                        />
+                            </h:outputLink>
+                        </li>
+                        <li>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual_de.html">[DE] Benutzer Handbuch [RadPlanBio - portal]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual_de.pdf">
+                                <h:graphicImage
+                                        width="15"
+                                        height="15"
+                                        alt="pdf"
+                                        name="img/pdf.png"
+                                        style="border: 0px;"
+                                        />
+                            </h:outputLink>
+                        </li>
+                        <li>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual.html">[EN] User manual [RadPlanBio - desktop upload client]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual.pdf">
+                                <h:graphicImage
+                                        width="15"
+                                        height="15"
+                                        alt="pdf"
+                                        name="img/pdf.png"
+                                        style="border: 0px;"
+                                        />
+                            </h:outputLink>
+                        </li>
+                        <li>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual_de.html">[DE] Benutzer Handbuch [RadPlanBio - desktop upload client]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual_de.pdf">
+                                <h:graphicImage
+                                        width="15"
+                                        height="15"
+                                        alt="pdf"
+                                        name="img/pdf.png"
+                                        style="border: 0px;"
+                                        />
+                            </h:outputLink>
+                        </li>
+                    </ul>
+                    Links to manuals (admin):
+                    <ul>
+                        <li>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual.html">[EN] Admin manual [RadPlanBio - platform]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual.pdf">
+                                <h:graphicImage
+                                        width="15"
+                                        height="15"
+                                        alt="pdf"
+                                        name="img/pdf.png"
+                                        style="border: 0px;"
+                                        />
+                            </h:outputLink>
+                        </li>
+                        <li>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual_de.html">[DE] Admin Handbuch [RadPlanBio - platform]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual_de.pdf">
+                                <h:graphicImage
+                                        width="15"
+                                        height="15"
+                                        alt="pdf"
+                                        name="img/pdf.png"
+                                        style="border: 0px;"
+                                        />
+                            </h:outputLink>
+                        </li>
+                    </ul>
+                    Links to official manuals (supporting systems):
+                    <ul>
+                        <li><h:outputLink target="_blank" value="https://docs.openclinica.com/">[EN] Reference Guide [OpenClinica - EDC]</h:outputLink></li>
+                        <!--<li><h:outputLink target="_blank" value="https://catissueplus.atlassian.net/wiki/display/CAT/Home">[EN] Support Center [caTissue - BIObank]</h:outputLink></li>-->
+                    </ul>
+                </p:outputPanel>
+            </p>
+        </p:panel>
+
+        <!-- Give focus to first link to ease keyboard navigation -->
+        <script type="text/javascript">
+            $(function() {
+                setTimeout(function() {
+                    APP.focusTo('form:logo_link');
+                }, 200);
+            });
+        </script>
+    </ui:define>
+</ui:composition>

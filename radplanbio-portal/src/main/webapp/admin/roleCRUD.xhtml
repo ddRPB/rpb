@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="#{msg.role_plural}" title="#{msg.role_plural}" url="/admin/roleCRUD.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbRole.tab.activeIndex}">
+
+            <!-- User roles -->
+            <p:tab title="#{msg.role_plural}">
+
+                <!-- Roles toolbar -->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.role_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newEntityDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbRole.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newEntityDialog').show();"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbRole.prepareNewEntity}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.role_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbRole.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbRole.load}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.role_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="To be implemented [ctrl+shift+h]"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Roles table -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="role"
+                    value="#{mbRole.entityList}"
+                    widgetVar="rolesTable"
+                    resizableColumns="false"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbRole.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{role.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbRole.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbRole.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtEntities"
+                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbRole.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" style="width:5%" exportable="false" toggleable="false">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Name -->
+                    <p:column
+                            id="colRoleName"
+                            headerText="#{msg.role_roleName}"
+                            sortBy="#{role.name}"
+                            filterBy="#{role.name}"
+                            visible="#{mbRole.columnVisibilityList[0]}"
+                            filterMatchMode="contains"
+                            style="width:39%"
+                            >
+                        <h:outputText value="#{role.name}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Description-->
+                    <p:column
+                            headerText="#{msg.role_description}"
+                            sortBy="#{role.description}"
+                            visible="#{mbRole.columnVisibilityList[1]}"
+                            style="width:39%"
+                            >
+                        <h:outputText value="#{role.description}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <!-- Edit -->
+                        <p:commandButton
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":editEntityForm:editDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editEntityDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{role}"
+                                    target="#{mbRole.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <!-- Delete -->
+                        <p:commandButton
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":deleteEntityForm:deleteDisplay"
+                            oncomplete="PF('deleteEntityDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{role}"
+                                target="#{mbRole.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbRole.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbRole.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbRole.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbRole.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.role_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.role_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New -->
+        <p:dialog
+                id="dlgNewRole"
+                header="#{msg.role_new}"
+                widgetVar="newEntityDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="newEntityForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.role_roleName}: *" for="txtRoleNameNew" />
+                    <p:inputText
+                        id="txtRoleNameNew"
+                        value="#{mbRole.newEntity.name}"
+                        required="true"
+                        requiredMessage="Please enter the role name, it is mandatory!"
+                        maxlength="255"
+                        />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.role_description}:" for="txtRoleDescriptionNew" />
+                    <p:inputTextarea
+                        id="txtRoleDescriptionNew"
+                        value="#{mbRole.newEntity.description}"
+                        />
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbRole.doCreateEntity}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewRole','newEntityForm');"
+                                process="@this newEntityForm"
+                                />
+                        <p:commandButton
+                                type="reset"
+                                value="#{msg.menu_reset}"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit -->
+        <p:dialog
+                id="dlgRoleEdit"
+                header="#{msg.role_edit}"
+                widgetVar="editEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="editEntityForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.role_roleName}:" for="txtRoleNameEdit" />
+                    <h:outputText id="txtRoleNameEdit" value="#{mbRole.selectedEntity.name}" />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.role_description}:" for="txtRoleDescriptionEdit" />
+                    <p:inputTextarea
+                            id="txtRoleDescriptionEdit"
+                            value="#{mbRole.selectedEntity.description}"
+                            />
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgRoleEdit','editEntityForm');"
+                                actionListener="#{mbRole.doUpdateEntity}"
+                                process="@this editEntityForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete -->
+        <p:dialog
+                id="dlgViewRole"
+                header="#{msg.role_delete}"
+                widgetVar="deleteEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="deleteEntityForm">
+                <p:panelGrid
+                        id="deleteDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.role_roleName}:" for="txtRoleNameDelete" />
+                    <h:outputText id="txtRoleNameDelete" value="#{mbRole.selectedEntity.name}" />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.role_description}:" for="txtRoleDescriptionDelete" />
+                    <p:inputTextarea
+                        id="txtRoleDescriptionDelete"
+                        value="#{mbRole.selectedEntity.description}"
+                        readonly="true"
+                        />
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewRole','deleteEntityForm');"
+                                actionListener="#{mbRole.doDeleteEntity}"
+                                process="@this deleteEntityForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newEntityDialog').hide();
+                    PF('editEntityDialog').hide();
+                    PF('deleteEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

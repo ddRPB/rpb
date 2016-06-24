@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <changeSet id="create-crit" author="Tomas Skripcak">
+        <createTable tableName="CRIT">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="type" type="varchar(255)" />
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(255)" />
+            <column name="option1" type="varchar(255)" />
+            <column name="option2" type="varchar(255)" />
+            <column name="studyid" type="int">
+                <constraints referencedTableName="STUDY" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-crit-fkstudyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="CRIT" baseColumnNames="studyid" constraintName="crit_fk1" referencedTableName="STUDY"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <changeSet id="create-critconstraint" author="Tomas Skripcak">
+        <createTable tableName="CRITCONSTRAINT">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="type" type="varchar(255)" />
+            <column name="dichovalue" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-critconstraint-fkcrit" author="Tomas Skripcak">
+        <addColumn tableName="CRITCONSTRAINT">
+            <column name="critid" type="int">
+                <constraints referencedTableName="CRIT" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="alter-critconstraint-fkcritid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="CRITCONSTRAINT" baseColumnNames="critid" constraintName="critconstraint_fk1" referencedTableName="CRIT"
+                                 referencedColumnNames="id" />
+    </changeSet>
+    
+    <changeSet id="create-treatmentarm" author="Tomas Skripcak">
+        <createTable tableName="TREATMENTARM">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(255)" />
+            <column name="subjectcount" type="int" />
+            <column name="studyid" type="int">
+                <constraints referencedTableName="STUDY" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-treatmentarm-fkstudyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="TREATMENTARM" baseColumnNames="studyid" constraintName="treatmentarm_fk1" referencedTableName="STUDY"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <changeSet id="create-trialsubject" author="Tomas Skripcak">
+        <createTable tableName="TRIALSUBJECT">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="pid" type="varchar(255)" />
+            <column name="ocstudysubjectid" type="varchar(255)" />
+            <column name="armid" type="int">
+                <constraints referencedTableName="TREATMENTARM" nullable="false" />
+            </column>
+            <column name="siteid" type="int">
+                <constraints referencedTableName="PARTNERSITE" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-trialsubject-fkarmid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="TRIALSUBJECT" baseColumnNames="armid" constraintName="trialsubject_fk1" referencedTableName="TREATMENTARM"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+    <changeSet id="alter-trialsubject-fksiteid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="TRIALSUBJECT" baseColumnNames="siteid" constraintName="trialsubject_fk2" referencedTableName="PARTNERSITE"
+                                 referencedColumnNames="siteid" />
+    </changeSet>
+
+    <changeSet id="create-prognosticvar" author="Tomas Skripcak">
+        <createTable tableName="PROGNOSTICVAR">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="value" type="bytea" />
+            <column name="critid" type="int">
+                <constraints referencedTableName="CRIT" />
+            </column>
+            <column name="subjectid" type="int">
+                <constraints referencedTableName="TRIALSUBJECT" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-prognosticvar-fkcritid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="PROGNOSTICVAR" baseColumnNames="critid" constraintName="prognosticvar_fk1" referencedTableName="CRIT"
+                                 referencedColumnNames="id" />
+    </changeSet>
+    <changeSet id="alter-prognosticvar-fksubjectid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="PROGNOSTICVAR" baseColumnNames="subjectid" constraintName="prognosticvar_fk2" referencedTableName="TRIALSUBJECT"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+
+    <changeSet id="create-randconfig" author="Tomas Skripcak">
+        <createTable tableName="RANDCONFIG">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" referencedTableName="STUDY" />
+            </column>
+            <column name="type" type="varchar(255)" />
+            <column name="minblocksize" type="int" />
+            <column name="maxblocksize" type="int" />
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-randonfig-blocksizetype" author="Tomas Skripcak">
+        <addColumn tableName="RANDCONFIG">
+            <column name="blocksizetype" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="alter-randconfig-fkid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="RANDCONFIG" baseColumnNames="id" constraintName="randconfig_fk1" referencedTableName="STUDY"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+
+    <changeSet id="create-randdata" author="Tomas Skripcak">
+        <createTable tableName="RANDDATA">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" referencedTableName="RANDCONFIG" />
+            </column>
+            <column name="type" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-randdata-fkid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="RANDDATA" baseColumnNames="id" constraintName="randdata_fk1" referencedTableName="STUDY"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+
+    <changeSet id="create-randblock" author="Tomas Skripcak">
+        <createTable tableName="RANDBLOCK">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-randblock-mapkey" author="Tomas Skripcak">
+        <addColumn tableName="RANDBLOCK">
+            <column name="mapkey" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="create-randblock-dataid" author="Tomas Skripcak">
+        <addColumn tableName="RANDBLOCK">
+            <column name="dataid" type="int">
+                <constraints referencedTableName="RANDDATA" nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="create-radnblock-fkconstraint" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="RANDBLOCK"
+                                 baseColumnNames="dataid"
+                                 constraintName="randblock_fk1"
+                                 referencedTableName="RANDDATA"
+                                 referencedColumnNames="id" />
+    </changeSet>
+
+
+    <changeSet id="create-blockarm" author="Tomas Skripcak">
+        <createTable tableName="BLOCKARM">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="blockid" type="int">
+                <constraints referencedTableName="RANDBLOCK" nullable="false" />
+            </column>
+            <column name="armid" type="int">
+                <constraints referencedTableName="TREATMENTARM" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-blockarm-fkblockid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="BLOCKARM" baseColumnNames="blockid" constraintName="blockarm_fk1" referencedTableName="RANDBLOCK"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+    <changeSet id="alter-blockarm-fkarmid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="BLOCKARM" baseColumnNames="armid" constraintName="blockarm_fk2" referencedTableName="TREATMENTARM"
+                                 referencedColumnNames="id"  />
+    </changeSet>
+
+    <changeSet id="alter-study-stratifysite" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="stratifysite" type="boolean" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="create-studypartner" author="Tomas Skripcak">
+        <createTable tableName="STUDYPARTNER">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="studyid" type="int">
+                <constraints referencedTableName="STUDY" nullable="false" />
+            </column>
+            <column name="siteid" type="int">
+                <constraints referencedTableName="PARTNERSITE" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-studypartner-fkstudyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYPARTNER"
+                baseColumnNames="studyid"
+                constraintName="studypartner_fk1"
+                referencedTableName="STUDY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="alter-studypartner-fksiteid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYPARTNER"
+                baseColumnNames="siteid"
+                constraintName="studypartner_fk2"
+                referencedTableName="PARTNERSITE"
+                referencedColumnNames="siteid"
+                />
+    </changeSet>
+
+
+    <changeSet id="drop-studysite" author="Tomas Skripcak">
+       <dropTable tableName="STUDYSITE" />
+    </changeSet>
+    
+</databaseChangeLog>

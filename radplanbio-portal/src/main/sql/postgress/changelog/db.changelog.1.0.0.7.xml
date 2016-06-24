@@ -1,0 +1,1950 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <!-- Clean up old unused tables -->
+    <changeSet id="drop-table-article-category" author="Tomas Skripcak">
+        <dropTable tableName="articlecategory" />
+    </changeSet>
+    <changeSet id="drop-table-article-tag" author="Tomas Skripcak">
+        <dropTable tableName="articletag" />
+    </changeSet>
+    <changeSet id="drop-table-department" author="Tomas Skripcak">
+        <dropTable tableName="department" />
+    </changeSet>
+
+    <!-- StudyPhase -->
+    <changeSet id="create-table-studyphase" author="Tomas Skripcak">
+        <createTable tableName="STUDYPHASE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Study -> StudyPhase referrence -->
+    <changeSet id="alter-table-study-phaseid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="phaseid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-study-phaseid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDY"
+                baseColumnNames="phaseid"
+                constraintName="study_fk2"
+                referencedTableName="STUDYPHASE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- StudyPhase records-->
+    <changeSet id="insert-studyphase-na" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="N/A"  />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-preclinical" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Preclinical" />
+            <column name="description" value="Testing of drug in non-human subjects, to gather efficacy, toxicity and pharmacokinetic information" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase0" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase 0" />
+            <column name="description" value="Pharmacodynamics and Pharmacokinetics particularly oral bioavailability and half-life of the drug" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase01" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase 0/Phase I" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase1" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase I" />
+            <column name="description" value="Testing of drug on healthy volunteers for dose-ranging" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase12" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase I/Phase II" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase2" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase II" />
+            <column name="description" value="Testing of drug on patients to assess efficacy and safety" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase23" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase II/Phase III" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase3" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase III" />
+            <column name="description" value="Testing of drug on patients to assess efficacy, effectiveness and safety" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase34" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase III/Phase IV" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studyphase-phase4" author="Tomas Skripcak">
+        <insert tableName="STUDYPHASE">
+            <column name="id"  valueSequenceNext="studyphase_id_seq" />
+            <column name="name" value="Phase IV" />
+            <column name="description" value="Postmarketing surveillance – watching drug use in public" />
+        </insert>
+    </changeSet>
+
+    <!-- StudyStatus -->
+    <changeSet id="create-table-studystatus" author="Tomas Skripcak">
+        <createTable tableName="STUDYSTATUS">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Study -> StudyStatus referrence -->
+    <changeSet id="alter-table-study-statusid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="statusid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-study-statusid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDY"
+                baseColumnNames="statusid"
+                constraintName="study_fk3"
+                referencedTableName="STUDYSTATUS"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- StudyStatus records-->
+    <changeSet id="insert-studystatus-anfrage" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Anfrage" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-rekrutierung-laeuft" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Rekrutierung läuft" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-rekrutierung-beendet" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Rekrutierung beendet" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-studie-abgeschlossen" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Studie abgeschlossen" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-abgelehnt" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Abgelehnt" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-in-vorbereitung" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="In Vorbereitung" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-initiierung-laeuft" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Initierung laüft" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-rekrutierung-unterbrochen" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Rekrutierung unterbrochen" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-laeuft" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="laüft (Auswertungsstudie)"  />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-on-hold" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="on-hold"  />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studystatus-initierung-offen" author="Tomas Skripcak">
+        <insert tableName="STUDYSTATUS">
+            <column name="id"  valueSequenceNext="studystatus_id_seq" />
+            <column name="name" value="Initiierung offen"  />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- TumourEntity -->
+    <changeSet id="create-table-tumourentity" author="Tomas Skripcak">
+        <createTable tableName="TUMOURENTITY">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-table-tumourentity-parentid" author="Tomas Skripcak">
+        <addColumn tableName="TUMOURENTITY">
+            <column name="parentid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-tumourentity-parentid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TUMOURENTITY"
+                baseColumnNames="parentid"
+                constraintName="tumourentity_fk1"
+                referencedTableName="TUMOURENTITY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- Study -> TumourEntity referrence -->
+    <changeSet id="alter-table-study-tumourentityid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="tumourentityid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-study-tumourentityid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDY"
+                baseColumnNames="tumourentityid"
+                constraintName="study_fk4"
+                referencedTableName="TUMOURENTITY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="drop-study-fk4" author="Tomas Skripcak">
+        <dropForeignKeyConstraint
+                baseTableName="STUDY"
+                constraintName="study_fk4"
+                />
+    </changeSet>
+    <changeSet id="drop-study-tumourentityid" author="Tomas Skripcak">
+        <dropColumn
+                tableName="STUDY"
+                columnName="tumourentityid"
+                />
+    </changeSet>
+
+    <!-- Study -> TumourEntities -->
+    <changeSet id="create-table-study-tumourentity" author="Tomas Skripcak">
+        <createTable tableName="STUDY_TUMOURENTITY">
+            <column name="studyid" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tumourentityid" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="study-tumourentity-primary-key" author="Tomas Skripcak">
+        <addPrimaryKey columnNames="studyid, tumourentityid" constraintName="study_tumourentity_pkey" tableName="STUDY_TUMOURENTITY"/>
+    </changeSet>
+    <changeSet id="study-tumourentity-fk1" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseColumnNames="studyid" baseTableName="STUDY_TUMOURENTITY" constraintName="study_tumourentity_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="STUDY"/>
+    </changeSet>
+    <changeSet id="study-tumourentity-fk2-" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseColumnNames="tumourentityid" baseTableName="STUDY_TUMOURENTITY" constraintName="study_tumourentity_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="TUMOURENTITY"/>
+    </changeSet>
+
+    <!-- TumourEntity records-->
+    <changeSet id="insert-tumourentity-mamma" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Mamma" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-magen" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Magen" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-lunge" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Lunge" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-hno" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="HNO" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-hodgkin-lymphom" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Hodgkin-Lymphom" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-hirn" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Hirn" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-dupuytren-ledderhose" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Dupuytren, Ledderhose" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-cup-syndrom-am-hals" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="CUP-Syndrom am Hals" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-mucositis" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Mucositis" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-non-hodgkin-lymphom" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Non-Hodgkin-Lymphom" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-nsclc" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="NSCLC" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-oropharynx" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Oropharynx" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-pankreas" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Pankreas" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-prostata" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Prostata" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-rektum" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Rektum" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-sarkom" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Sarkom" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-malignom" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Malignom" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-plattenepithel-ca" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="Plattenepithel-Ca" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tumourentity-na" author="Tomas Skripcak">
+        <insert tableName="TUMOURENTITY">
+            <column name="id"  valueSequenceNext="tumourentity_id_seq" />
+            <column name="name" value="N/A" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- SponsoringType -->
+    <changeSet id="create-table-sponsoringtype" author="Tomas Skripcak">
+        <createTable tableName="SPONSORINGTYPE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Study -> SponsoringType referrence -->
+    <changeSet id="alter-table-study-sponsoringtypeid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="sponsoringtypeid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-study-sponsoringtypeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDY"
+                baseColumnNames="sponsoringtypeid"
+                constraintName="study_fk5"
+                referencedTableName="SPONSORINGTYPE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- SponsoringType records-->
+    <changeSet id="insert-sponsoringtype-academic" author="Tomas Skripcak">
+        <insert tableName="SPONSORINGTYPE">
+            <column name="id"  valueSequenceNext="sponsoringtype_id_seq" />
+            <column name="name" value="Academic"  />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-sponsoringtype-commercial" author="Tomas Skripcak">
+        <insert tableName="SPONSORINGTYPE">
+            <column name="id"  valueSequenceNext="sponsoringtype_id_seq" />
+            <column name="name" value="Commercial" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-sponsoringtype-na" author="Tomas Skripcak">
+        <insert tableName="SPONSORINGTYPE">
+            <column name="id"  valueSequenceNext="sponsoringtype_id_seq" />
+            <column name="name" value="N/A" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- StudyPersonRole -->
+    <changeSet id="create-table-studypersonrole" author="Tomas Skripcak">
+        <createTable tableName="STUDYPERSONROLE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints unique="true" nullable="false" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+
+    <!-- StudyPersonRole records-->
+    <changeSet id="insert-studypersonrole-pruefer" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Prüfer" />
+            <column name="description" value="Investigator" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-vertreter" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Vertreter" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-arzt" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Arzt" />
+            <column name="description" value="MD" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-hauptpruefer" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Hauptprüfer" />
+            <column name="description" value="Principal investigator (PI)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-aerztlmitglied" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="ärztl. Mitglied" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-studynurse" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Study Nurse" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-documentation" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Dokumentation" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-studienarzt" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Studienarzt" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-mda" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="MDA" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-nichtaerztlmitglie-pruefgruppe" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="nichtärztl. Mitglied Prüfgruppe" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-studienleiter" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Studienleiter" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-studienkoordinator" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Studienkoordinator" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-studypi" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="PI study" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-studysitepi" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="PI study site" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-studypersonrole-verantwortlicherstr" author="Tomas Skripcak">
+        <insert tableName="STUDYPERSONROLE">
+            <column name="id"  valueSequenceNext="studypersonrole_id_seq" />
+            <column name="name" value="Verantwortlicher STR" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- CurriculumVitaeItemType -->
+    <changeSet id="create-table-curriculum-vitae-item-type" author="Tomas Skripcak">
+        <createTable tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+
+    <!-- CurriculumVitaeItemType -> CurriculumVitaeItemType referrence -->
+    <changeSet id="alter-table-curriculum-vitae-item-type-parentid" author="Tomas Skripcak">
+        <addColumn tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="parentid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-curriculum-vitae-item-type-parentid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="CURRICULUMVITAEITEMTYPE"
+                baseColumnNames="parentid"
+                constraintName="curriculumvitaeitemtype_fk1"
+                referencedTableName="CURRICULUMVITAEITEMTYPE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- CurriculumVitaeItemType records-->
+    <changeSet id="insert-curriculum-vitae-item-type-approbation" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Approbation" />
+            <column name="description" value="State license" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-consultant" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Consulting physician" />
+            <column name="description" value="Facharzt" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-intern" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Intern" />
+            <column name="description" value="Assistenzarzt" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-recent-position" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Recent position" />
+            <column name="description" value="Recent position" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-relevant-education" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Education" />
+            <column name="description" value="Relevant education" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-relevant-previous-position" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Previous position" />
+            <column name="description" value="Relevant previous position" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-relevant-ct-experience" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Clinical trial and research experience" />
+            <column name="description" value="Relevant clinical trial and research experience" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-relevantgcp-training" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Training" />
+            <column name="description" value="Documentation of GCP and other trainings" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-amgstudie" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="AMG study" />
+            <column name="description" value="Mittarbeiter AMG studie" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-curriculum-vitae-item-type-non-amgstudie" author="Tomas Skripcak">
+        <insert tableName="CURRICULUMVITAEITEMTYPE">
+            <column name="id"  valueSequenceNext="curriculumvitaeitemtype_id_seq" />
+            <column name="name" value="Non AMG study" />
+            <column name="description" value="Mittarbeiter non AMG studie" />
+        </insert>
+    </changeSet>
+
+    <!-- StudyOrganisationRole -->
+    <changeSet id="create-table-study-organisation-role" author="Tomas Skripcak">
+        <createTable tableName="STUDYORGANISATIONROLE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+    <changeSet id="insert-studyorganisationrole-sponsor" author="Tomas Skripcak">
+        <insert tableName="STUDYORGANISATIONROLE">
+            <column name="id"  valueSequenceNext="studyorganisationrole_id_seq" />
+            <column name="name" value="Sponsor" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- Organisation -->
+    <changeSet id="create-table-organisation" author="Tomas Skripcak">
+        <createTable tableName="ORGANISATION">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="parentid" type="int" />
+        </createTable>
+    </changeSet>
+    <!-- Organisation -> sub Organisation -->
+    <changeSet id="alter-key-organisation-parentid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="ORGANISATION"
+                baseColumnNames="parentid"
+                constraintName="organisation_fk1"
+                referencedTableName="ORGANISATION"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- StudyOrganisation -->
+    <changeSet id="create-table-studyorganisation" author="Tomas Skripcak">
+        <createTable tableName="STUDYORGANISATION">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="studyid" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="organisationid" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="roleid" type="int">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-key-studyorganisation-studyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYORGANISATION"
+                baseColumnNames="studyid"
+                constraintName="studyorganisation_fk1"
+                referencedTableName="STUDY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="alter-key-studyorganisation-organisationid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYORGANISATION"
+                baseColumnNames="organisationid"
+                constraintName="studyorganisation_fk2"
+                referencedTableName="ORGANISATION"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="alter-key-studyorganisation-roleid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYORGANISATION"
+                baseColumnNames="roleid"
+                constraintName="studyorganisation_fk3"
+                referencedTableName="STUDYORGANISATIONROLE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- PersonStatus-->
+    <changeSet id="create-table-person-status" author="Tomas Skripcak">
+        <createTable tableName="PERSONSTATUS">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+    <changeSet id="insert-personstatus-available" author="Tomas Skripcak">
+        <insert tableName="PERSONSTATUS">
+            <column name="id"  valueSequenceNext="personstatus_id_seq" />
+            <column name="name" value="Available" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-personstatus-discharged" author="Tomas Skripcak">
+        <insert tableName="PERSONSTATUS">
+            <column name="id"  valueSequenceNext="personstatus_id_seq" />
+            <column name="name" value="Discharged" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-personstatus-parental-leave" author="Tomas Skripcak">
+        <insert tableName="PERSONSTATUS">
+            <column name="id"  valueSequenceNext="personstatus_id_seq" />
+            <column name="name" value="Parental leave" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-personstatus-sick-leave" author="Tomas Skripcak">
+        <insert tableName="PERSONSTATUS">
+            <column name="id"  valueSequenceNext="personstatus_id_seq" />
+            <column name="name" value="Sick leave" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-personstatus-vacation" author="Tomas Skripcak">
+        <insert tableName="PERSONSTATUS">
+            <column name="id"  valueSequenceNext="personstatus_id_seq" />
+            <column name="name" value="Vacation" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-personstatus-na" author="Tomas Skripcak">
+        <insert tableName="PERSONSTATUS">
+            <column name="id"  valueSequenceNext="personstatus_id_seq" />
+            <column name="name" value="N/A" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- Person -->
+    <changeSet id="create-table-person" author="Tomas Skripcak">
+        <createTable tableName="PERSON">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="titlesbefore" type="varchar(255)" />
+            <column name="firstname" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="surname" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="titlesafter" type="varchar(255)" />
+            <column name="birthname" type="varchar(255)" />
+            <column name="comment" type="text" />
+            <column name="statusid" type="int" />
+        </createTable>
+    </changeSet>
+    <!-- Person -> PersonStatus refference -->
+    <changeSet id="alter-key-person-statusid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="PERSON"
+                baseColumnNames="statusid"
+                constraintName="person_fk1"
+                referencedTableName="PERSONSTATUS"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- CurriculumVitaeItem -->
+    <changeSet id="create-table-curriculum-vitae-item" author="Tomas Skripcak">
+        <createTable tableName="CURRICULUMVITAEITEM">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="startdate" type="date" />
+            <column name="enddate" type="date" />
+            <column name="comment" type="text" />
+            <column name="typeid" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="personid" type="int">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- CurriculumVitaeItem -> Study CurriculumVitaeItemType -->
+    <changeSet id="alter-key-curriculum-vitae-item-typeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="CURRICULUMVITAEITEM"
+                baseColumnNames="typeid"
+                constraintName="curriculumvitaeitem_fk1"
+                referencedTableName="CURRICULUMVITAEITEMTYPE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- CurriculumVitaeItem -> Employer (Organisation) -->
+    <changeSet id="alter-table-curriculum-vitae-item-employerid" author="Tomas Skripcak">
+        <addColumn tableName="CURRICULUMVITAEITEM">
+            <column name="employerid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-curriculum-vitae-item-employerid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="CURRICULUMVITAEITEM"
+                baseColumnNames="employerid"
+                constraintName="curriculumvitaeitem_fk2"
+                referencedTableName="ORGANISATION"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- CurriculumVitaeItem -> Workingplace (Organisation) -->
+    <changeSet id="alter-table-curriculum-vitae-item-workingplaceid" author="Tomas Skripcak">
+        <addColumn tableName="CURRICULUMVITAEITEM">
+            <column name="workingplaceid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-curriculum-vitae-item-workingplaceid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="CURRICULUMVITAEITEM"
+                baseColumnNames="workingplaceid"
+                constraintName="curriculumvitaeitem_fk3"
+                referencedTableName="ORGANISATION"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- CurriculumVitaeItem -> Person -->
+    <changeSet id="alter-key-curriculum-vitae-item-personid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="CURRICULUMVITAEITEM"
+                baseColumnNames="personid"
+                constraintName="curriculumvitaeitem_fk4"
+                referencedTableName="PERSON"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- StudyPerson -->
+    <changeSet id="create-table-studyperson" author="Tomas Skripcak">
+        <createTable tableName="STUDYPERSON">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="STARTDATE" type="date" />
+            <column name="ENDDATE" type="date" />
+            <column name="INFORMEDCONSENT" type="boolean" />
+            <column name="COMMENT" type="text" />
+        </createTable>
+    </changeSet>
+
+    <!-- StudyPerson -> Study referrence -->
+    <changeSet id="alter-table-studyperson-studyid" author="Tomas Skripcak">
+        <addColumn tableName="STUDYPERSON">
+            <column name="studyid" type="int">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-studyperson-studyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYPERSON"
+                baseColumnNames="studyid"
+                constraintName="studyperson_fk1"
+                referencedTableName="STUDY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- StudyPerson -> Person referrence -->
+    <changeSet id="alter-table-studyperson-personid" author="Tomas Skripcak">
+        <addColumn tableName="STUDYPERSON">
+            <column name="personid" type="int">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-studyperson-personid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYPERSON"
+                baseColumnNames="personid"
+                constraintName="studyperson_fk2"
+                referencedTableName="PERSON"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- StudyPerson -> StudyPersonRole referrence -->
+    <changeSet id="alter-table-studyperson-studypersonroleid" author="Tomas Skripcak">
+        <addColumn tableName="STUDYPERSON">
+            <column name="studypersonroleid" type="int">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-studyperson-studypersonroleid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDYPERSON"
+                baseColumnNames="studypersonroleid"
+                constraintName="studyperson_fk3"
+                referencedTableName="STUDYPERSONROLE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!--Study title-->
+    <changeSet id="alter-table-study-title" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="title" type="VARCHAR(4000)" />
+        </addColumn>
+    </changeSet>
+
+    <!--Study comment-->
+    <changeSet id="alter-table-study-comment" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="comment" type="text" />
+        </addColumn>
+    </changeSet>
+
+    <!-- TagType -->
+    <changeSet id="create-table-tag-type" author="Tomas Skripcak">
+        <createTable tableName="TAGTYPE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+            <column name="entity" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="isboolean" type="boolean" />
+            <column name="regex" type="varchar(255)" />
+            <column name="size" type="int" />
+            <column name="isrequired" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="maxoccurence" type="int" />
+        </createTable>
+    </changeSet>
+
+    <!-- Insert Study TagTypes -->
+    <changeSet id="insert-tag-type-study-dktk" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="DKTK" />
+            <column name="description" value="DKTK study" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="true" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-amg" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="AMG" />
+            <column name="description" value="AMG study" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="true" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-ucc" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="UCC" />
+            <column name="description" value="UCC study" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="true" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-bio" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="Biospeciment" />
+            <column name="description" value="Are there biospeciment samples collected in a study" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="true" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-dicom" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="DICOM" />
+            <column name="description" value="Are there DICOM data collected in a study" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="true" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-interncoop" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="Internal Cooperation" />
+            <column name="description" value="Is there internal cooperation with other clinics in the house" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="true" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-eudract" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="EudraCT Number" />
+            <column name="description" value="EudraCT Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-bfarm" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="BfArM Number" />
+            <column name="description" value="BfArM Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-nct" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="NCT Number" />
+            <column name="description" value="NCT Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-uccid" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="UCC Studien ID" />
+            <column name="description" value="UCC Studien ID" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-sponsorid" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="Prüfplancode Sponsor" />
+            <column name="description" value="Prüfplancode Sponsor" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-drksid" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="DRKS-ID" />
+            <column name="description" value="Deutsches Register Klinisher Studien Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-isrctnid" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="ISRCTN-ID" />
+            <column name="description" value="ISRCTN ID Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-ctcid" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="CTC-ID" />
+            <column name="description" value="CTC ID Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tag-type-study-cdrid" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="CDR-ID" />
+            <column name="description" value="CDR ID Number" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+
+    <!-- Tag -->
+    <changeSet id="create-table-tag" author="Tomas Skripcak">
+        <createTable tableName="TAG">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="entity" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="typeid" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="studyid" type="int" />
+            <column name="personid" type="int" />
+            <column name="organisationid" type="int" />
+        </createTable>
+    </changeSet>
+    <changeSet id="alter-key-tag-typeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TAG"
+                baseColumnNames="typeid"
+                constraintName="tag_fk1"
+                referencedTableName="TAGTYPE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="alter-key-tag-studyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TAG"
+                baseColumnNames="studyid"
+                constraintName="tag_fk2"
+                referencedTableName="STUDY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="alter-key-tag-personid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TAG"
+                baseColumnNames="personid"
+                constraintName="tag_fk3"
+                referencedTableName="PERSON"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <changeSet id="alter-key-tag-organisationid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TAG"
+                baseColumnNames="organisationid"
+                constraintName="tag_fk4"
+                referencedTableName="ORGANISATION"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- EventType -->
+    <changeSet id="create-table-eventtype" author="Tomas Skripcak">
+        <createTable tableName="EVENTTYPE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+    <changeSet id="insert-eventtype-rekrutierung" author="Tomas Skripcak">
+        <insert tableName="EVENTTYPE">
+            <column name="id"  valueSequenceNext="eventtype_id_seq" />
+            <column name="name" value="Rekrutierung" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-eventtype-str" author="Tomas Skripcak">
+        <insert tableName="EVENTTYPE">
+            <column name="id"  valueSequenceNext="eventtype_id_seq" />
+            <column name="name" value="STR" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-eventtype-deadline" author="Tomas Skripcak">
+        <insert tableName="EVENTTYPE">
+            <column name="id"  valueSequenceNext="eventtype_id_seq" />
+            <column name="name" value="Deadline" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-eventtype-fsi" author="Tomas Skripcak">
+        <insert tableName="EVENTTYPE">
+            <column name="id"  valueSequenceNext="eventtype_id_seq" />
+            <column name="name" value="FSI" />
+            <column name="description" value="Einschluss des ersten Patienten" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-eventtype-lsi" author="Tomas Skripcak">
+        <insert tableName="EVENTTYPE">
+            <column name="id"  valueSequenceNext="eventtype_id_seq" />
+            <column name="name" value="LSI" />
+            <column name="description" value="Einschluss des letzten Patienten" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-eventtype-lso" author="Tomas Skripcak">
+        <insert tableName="EVENTTYPE">
+            <column name="id"  valueSequenceNext="eventtype_id_seq" />
+            <column name="name" value="LSO" />
+            <column name="description" value="Letzte Studienvisite beim zuletzt eingeschlossenen Patienten" />
+        </insert>
+    </changeSet>
+
+    <!-- TimeLineEvent -->
+    <changeSet id="create-table-timelineevent" author="Tomas Skripcak">
+        <createTable tableName="TIMELINEEVENT">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+            <column name="startdate" type="date" />
+            <column name="enddate" type="date" />
+            <column name="typeid" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="studyid" type="int">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <!-- Drop unique name constraint on TimeLineEvent -->
+    <changeSet id="drop-unique-constraint-timelineevent-name" author="Tomas Skripcak">
+        <dropUniqueConstraint
+                constraintName="timelineevent_name_key"
+                tableName="TIMELINEEVENT"
+                />
+    </changeSet>
+    <!-- TimeLineEvent -> EventType Refference -->
+    <changeSet id="alter-key-timelineevent-typeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TIMELINEEVENT"
+                baseColumnNames="typeid"
+                constraintName="timelineevent_fk1"
+                referencedTableName="EVENTTYPE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <!-- TimeLineEvent -> Study Refference -->
+    <changeSet id="alter-key-timelineevent-studyid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TIMELINEEVENT"
+                baseColumnNames="studyid"
+                constraintName="timelineevent_fk2"
+                referencedTableName="STUDY"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+    <!-- TimeLineEvent -> Organisation Refference -->
+    <changeSet id="alter-table-timelineevent-organisationid" author="Tomas Skripcak">
+        <addColumn tableName="TIMELINEEVENT">
+            <column name="organisationid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-timelineevent-organisationid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="TIMELINEEVENT"
+                baseColumnNames="organisationid"
+                constraintName="timelineevent_fk3"
+                referencedTableName="ORGANISATION"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- CTMS User Role-->
+    <changeSet id="insert-role-ctms-user" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_CTMS_USER" />
+        </insert>
+    </changeSet>
+
+    <!-- REIDENTIFY Role -->
+    <changeSet id="insert-role-reidentify" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_REIDENTIFY" />
+        </insert>
+    </changeSet>
+
+    <!-- PartnerSite -->
+    <changeSet id="alter-partnersite-coordinates-lat-long" author="Tomas Skripcak">
+        <addColumn tableName="PARTNERSITE">
+            <column name="latitude" type="float" />
+            <column name="longitude" type="float" />
+        </addColumn>
+    </changeSet>
+
+    <!-- Study ocstudyidentifier -->
+    <changeSet id="alter-study-ocstudyidentifier-dropnotnull" author="Tomas Skripcak">
+        <dropNotNullConstraint
+               columnDataType="varchar(255)"
+               columnName="ocstudyidentifier"
+               tableName="STUDY"
+               />
+    </changeSet>
+    <changeSet id="alter-study-ocstudyidentifier-dropunique" author="Tomas Skripcak">
+        <dropUniqueConstraint
+              constraintName="study_unique_1"
+              tableName="STUDY"
+              />
+    </changeSet>
+
+    <!-- ProtocolType -->
+    <changeSet id="create-table-protocoltype" author="Tomas Skripcak">
+        <createTable tableName="PROTOCOLTYPE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="studydesign" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <!-- Study->ProtocolType referrence -->
+    <changeSet id="alter-table-study-protocoltypeid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="protocoltypeid" type="int">
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-study-protocoltypeid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+                baseTableName="STUDY"
+                baseColumnNames="protocoltypeid"
+                constraintName="study_fk6"
+                referencedTableName="PROTOCOLTYPE"
+                referencedColumnNames="id"
+                />
+    </changeSet>
+
+    <!-- New study attributes -->
+    <changeSet id="alter-table-study-name-desc-enroll" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="name" type="varchar(255)" />
+            <column name="description" type="varchar(4000)" />
+            <column name="expectedtotalenrollment" type="int" />
+        </addColumn>
+    </changeSet>
+
+    <!-- Edit RT structs with LR option to be of correct type -->
+    <changeSet id="update-rtsturct-hippocampus" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Hippocampus'</where>
+        </update>
+    </changeSet>
+
+    <!-- QUERY Role -->
+    <changeSet id="insert-role-query" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_QUERY" />
+        </insert>
+    </changeSet>
+
+    <!-- EXPORT Role -->
+    <changeSet id="insert-role-export" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_EXPORT" />
+        </insert>
+    </changeSet>
+
+    <!-- IMPORT Role -->
+    <changeSet id="insert-role-import" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_IMPORT" />
+        </insert>
+    </changeSet>
+
+    <!-- EDC OPEN Role -->
+    <changeSet id="insert-role-edc-open" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_EDC_OPEN" />
+        </insert>
+    </changeSet>
+
+    <!-- New Role attribute Description -->
+    <changeSet id="alter-table-role-description" author="Tomas Skripcak">
+        <addColumn tableName="ROLE">
+            <column name="description" type="varchar(4000)" />
+        </addColumn>
+    </changeSet>
+
+    <!-- EDC SUBMIT Role -->
+    <changeSet id="insert-role-edc-submit" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_EDC_SUBMIT" />
+        </insert>
+    </changeSet>
+
+    <!-- EDC RANDOMISE Role -->
+    <changeSet id="insert-role-edc-randomise" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_EDC_RANDOMISE" />
+        </insert>
+    </changeSet>
+
+    <!-- PID SEARCH Role -->
+    <changeSet id="insert-role-pid-search" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PID_SEARCH" />
+        </insert>
+    </changeSet>
+
+    <!-- PID NEW Role -->
+    <changeSet id="insert-role-pid-new" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PID_NEW" />
+        </insert>
+    </changeSet>
+
+    <!-- PID EDIT Role -->
+    <changeSet id="insert-role-pid-edit" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PID_EDIT" />
+        </insert>
+    </changeSet>
+
+    <!-- PID USER Role -->
+    <changeSet id="insert-role-pid-user" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PID_USER" />
+        </insert>
+    </changeSet>
+
+    <!-- EDC USER Role -->
+    <changeSet id="insert-role-edc-user" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id" valueSequenceNext="role_id_seq"/>
+            <column name="rolename" value="ROLE_EDC_USER" />
+        </insert>
+    </changeSet>
+
+    <!-- PACS USER Role -->
+    <changeSet id="insert-role-pacs-user" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PACS_USER" />
+        </insert>
+    </changeSet>
+
+    <!-- Alter DEFAULT ACCOUNT -->
+    <changeSet id="alter-default-account-last-visit" author="Tomas Skripcak">
+        <addColumn tableName="DEFAULTACCOUNT">
+            <column name="lastvisit" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-default-account-nonlocked" author="Tomas Skripcak">
+        <addColumn tableName="DEFAULTACCOUNT">
+            <column name="nonlocked" type="boolean"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-default-account-lock-counter" author="Tomas Skripcak">
+        <addColumn tableName="DEFAULTACCOUNT">
+            <column name="lockcounter" type="int"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-default-account-apikey" author="Tomas Skripcak">
+        <addColumn tableName="DEFAULTACCOUNT">
+            <column name="apikey" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-default-account-apikey-constrain" author="Tomas Skripcak">
+        <addUniqueConstraint tableName="DEFAULTACCOUNT" columnNames="apikey" />
+    </changeSet>
+    <changeSet id="alter-default-account-apikeyenabled" author="Tomas Skripcak">
+        <addColumn tableName="DEFAULTACCOUNT">
+            <column name="apikeyenabled" type="boolean"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- New structures -->
+    <changeSet id="insert-ctvnl1-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn_L1" />
+            <column name="name" value="CTVn axilla level 1" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvnl2-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn_L2" />
+            <column name="name" value="CTVn axilla level 2" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvnl3-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn_L3" />
+            <column name="name" value="CTVn axilla level 3" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvnl4-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn_L4" />
+            <column name="name" value="CTVn lymph node level 4" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvnimn-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn_IMN" />
+            <column name="name" value="CTVn internal mammary chain" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvninterpect-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn_interpect" />
+            <column name="name" value="CTVn interpectoral nodes" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvpbreast-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVp_breast" />
+            <column name="name" value="CTVp residual breast" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvpchestwall-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVp_chestwall" />
+            <column name="name" value="CTVp chest wall" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvptumourbed-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVp_tumourbed" />
+            <column name="name" value="CTVp tumour bed" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-aladcoronary-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="A_LADCoronary" />
+            <column name="name" value="LAD Coronary Artery" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-lungipsilat-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Lung_ipsilat" />
+            <column name="name" value="Lung ipsilateral" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-lungcontralat-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Lung_contralat" />
+            <column name="name" value="Lung contralateral" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-humeralhead-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="HumeralHead" />
+            <column name="name" value="Humeral Head" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-breastipsilat-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Breast_ipsilat" />
+            <column name="name" value="Breast ipsilateral" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-breastcontralat-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Breast_contralat" />
+            <column name="name" value="Breast contralateral" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-implant-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Implant" />
+            <column name="name" value="Implant" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="2" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-cnii-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CN_II" />
+            <column name="name" value="Second Cranial Nerve" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="3" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-gtvee-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="GTV_EE" />
+            <column name="name" value="GTV end exhale" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-gtvei-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="GTV_EI" />
+            <column name="name" value="GTV end inhale" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-gtvmip-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="GTV_MIP" />
+            <column name="name" value="GTV maximum intensity projection" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvp-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVp" />
+            <column name="name" value="CTV primary multiple" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ctvn-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="CTVn" />
+            <column name="name" value="CTV node multiple" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-gtvp-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="GTVp" />
+            <column name="name" value="GTV primary multiple" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-gtvn-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="GTVn" />
+            <column name="name" value="GTV node multiple" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ptvp-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="PTVp" />
+            <column name="name" value="PTV primary multiple" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-ptvn-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="PTVn" />
+            <column name="name" value="PTV node multiple" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-tbv-rtstruct" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="TBV" />
+            <column name="name" value="Tumour bed" />
+            <column name="description" value="" />
+            <column name="TYPEID" value="1" />
+        </insert>
+    </changeSet>
+
+    <!-- Edit RT structs with LR option to be of correct type -->
+    <changeSet id="update-rtstruct-earexternal-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Ear_External'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cni-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_I'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cniii-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_III'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cniv-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_IV'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnv-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_V'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnvi-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_VI'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnvii-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_VII'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnviii-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_VIII'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnix-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_IX'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnx-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_X'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnxi-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_XI'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-rtstruct-cnxii-lr" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'CN_XII'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

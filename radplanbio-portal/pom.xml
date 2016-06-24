@@ -218,26 +218,26 @@
 	<!-- ~~~~~~~~~ -->
 	<!-- REPORTING -->
 	<!-- ~~~~~~~~~ -->
-	<reporting>
-		<plugins>
-			<plugin>
-				<!-- http://mojo.codehaus.org/cobertura-maven-plugin/ -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>2.5.1</version>
-			</plugin>
-			<plugin>
-				<!-- http://mojo.codehaus.org/findbugs-maven-plugin/ -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.4.0</version>
-				<configuration>
-					<findbugsXmlOutput>true</findbugsXmlOutput>
-					<xmlOutput>true</xmlOutput>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
+	<!--<reporting>-->
+		<!--<plugins>-->
+			<!--<plugin>-->
+				<!--&lt;!&ndash; http://mojo.codehaus.org/cobertura-maven-plugin/ &ndash;&gt;-->
+				<!--<groupId>org.codehaus.mojo</groupId>-->
+				<!--<artifactId>cobertura-maven-plugin</artifactId>-->
+				<!--<version>2.5.1</version>-->
+			<!--</plugin>-->
+			<!--<plugin>-->
+				<!--&lt;!&ndash; http://mojo.codehaus.org/findbugs-maven-plugin/ &ndash;&gt;-->
+				<!--<groupId>org.codehaus.mojo</groupId>-->
+				<!--<artifactId>findbugs-maven-plugin</artifactId>-->
+				<!--<version>2.4.0</version>-->
+				<!--<configuration>-->
+					<!--<findbugsXmlOutput>true</findbugsXmlOutput>-->
+					<!--<xmlOutput>true</xmlOutput>-->
+				<!--</configuration>-->
+			<!--</plugin>-->
+		<!--</plugins>-->
+	<!--</reporting>-->
 
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- DEPENDENCIES -->
@@ -251,7 +251,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>radplanbio-core</artifactId>
-			<version>1.0.0.8</version>
+			<version>MAINLINE-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -298,12 +298,6 @@
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
-		</dependency>
-		<dependency>
-			<!-- jdbc driver depends on the database profile used -->
-			<groupId>${jdbc.groupId}</groupId>
-			<artifactId>${jdbc.artifactId}</artifactId>
-			<version>${jdbc.version}</version>
 		</dependency>
 
 		<!-- ~~~~~~~~~~~~~~~~ -->
@@ -818,9 +812,10 @@
 
 		<!-- Postgres JDBC driver -->
 		<dependency>
-			<groupId>postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>8.2-504.jdbc3</version>
+			<!-- jdbc driver depends on the database profile used -->
+			<groupId>${jdbc.groupId}</groupId>
+			<artifactId>${jdbc.artifactId}</artifactId>
+			<version>${jdbc.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>

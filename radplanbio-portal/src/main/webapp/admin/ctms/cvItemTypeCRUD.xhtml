@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
+            <p:menuitem value="CV Item Types" title="Curriculum Vitae Item Types" url="/admin/ctms/cvItemTypeCRUD.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <!-- TabView -->
+        <p:tabView id="tabView" activeIndex="#{mbCurriculumVitaeItemType.tab.activeIndex}">
+
+            <!-- CV Item Types -->
+            <p:tab title="CV Item Types" titletip="Curriculum Vitae Item Types">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="Define a new CV Item Type [ctrl+shift+n]"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newEntityDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbCurriculumVitaeItemType.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newEntityDialog').show();"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbCurriculumVitaeItemType.prepareNewEntity}"
+                                rendered="#{mbCurriculumVitaeItemType.tab.activeIndex == 0}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="Reload CV Item Types [ctrl+shift+r]"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbCurriculumVitaeItemType.loadTree}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbCurriculumVitaeItemType.loadTree}"
+                                rendered="#{mbCurriculumVitaeItemType.tab.activeIndex == 0}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="Print CV Item Types table"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Tree table -->
+                <p:treeTable
+                        id="dtEntities"
+                        var="entity"
+                        value="#{mbCurriculumVitaeItemType.root}"
+                        widgetVar="entitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbCurriculumVitaeItemType.selectedEntity}"
+                        sortBy="#{entity.name}"
+                        >
+
+                    <!-- Name -->
+                    <p:column
+                            id="colTypeName"
+                            style="width:25%"
+                            sortBy="#{entity.name}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="Name" />
+                        </f:facet>
+                        <h:outputText value="#{entity.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Description -->
+                    <p:column
+                            style="width:40%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="Description" />
+                        </f:facet>
+                        <h:outputText value="#{entity.description}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            style="width:17%"
+                            >
+                        <p:commandButton
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":entityDetailsForm:editDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editEntityDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{entity}"
+                                    target="#{mbCurriculumVitaeItemType.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbCurriculumVitaeItemType.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbCurriculumVitaeItemType.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbCurriculumVitaeItemType.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbCurriculumVitaeItemType.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:treeTable>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New CV Item Type -->
+        <p:dialog
+                id="dlgNewEntity"
+                header="New Curriculum Viate Item Type"
+                widgetVar="newEntityDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="newEntityForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Name -->
+                    <h:outputLabel value="Name: *" for="txtCvItemTypeNameNew" />
+                    <p:inputText
+                            id="txtCvItemTypeNameNew"
+                            value="#{mbCurriculumVitaeItemType.newEntity.name}"
+                            required="true"
+                            requiredMessage="Curriculum Vitae Item Type name is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <!-- Description -->
+                    <h:outputLabel value="Description:" for="txtCvItemTypeDescriptionNew" />
+                    <p:inputTextarea
+                            id="txtCvItemTypeDescriptionNew"
+                            value="#{mbCurriculumVitaeItemType.newEntity.description}"
+                            maxlength="4000"
+                            style="width:350px"
+                            />
+
+                    <!-- Parent -->
+                    <h:outputLabel value="Parent:" for="ddlCvItemTypeParentNew" />
+                    <p:selectOneMenu
+                            id="ddlCvItemTypeParentNew"
+                            value="#{mbCurriculumVitaeItemType.newEntity.parent}"
+                            converter="#{curriculumVitaeItemTypeConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="cvTypeIter"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbCurriculumVitaeItemType.entityList}"
+                                var="cvTypeNew"
+                                itemLabel="#{cvTypeNew.name}"
+                                itemValue="#{cvTypeNew}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{cvTypeIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
+                                actionListener="#{mbCurriculumVitaeItemType.doCreateEntity}"
+                                process="@this newEntityForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit CV Item Type -->
+        <p:dialog
+                id="dlgEntityDetails"
+                header="Edit Person Status details"
+                widgetVar="editEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Name -->
+                    <h:outputLabel value="Name: *" for="txtCvItemTypeNameEdit" />
+                    <p:inputText
+                            id="txtCvItemTypeNameEdit"
+                            value="#{mbCurriculumVitaeItemType.selectedEntity.name}"
+                            required="true"
+                            requiredMessage="Curriculum Vitae Item Type name is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <!-- Description -->
+                    <h:outputLabel value="Description:" for="txtCvItemTypeDescriptionEdit" />
+                    <p:inputTextarea
+                            id="txtCvItemTypeDescriptionEdit"
+                            value="#{mbCurriculumVitaeItemType.selectedEntity.description}"
+                            maxlength="4000"
+                            style="width:350px"
+                            />
+
+                    <!-- Parent -->
+                    <h:outputLabel value="Parent:" for="ddlCvItemTypeParentEdit" />
+                    <p:selectOneMenu
+                            id="ddlCvItemTypeParentEdit"
+                            value="#{mbCurriculumVitaeItemType.newEntity.parent}"
+                            converter="#{curriculumVitaeItemTypeConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="cvTypeIterEdit"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbCurriculumVitaeItemType.entityList}"
+                                var="cvTypeEdit"
+                                itemLabel="#{cvTypeEdit.name}"
+                                itemValue="#{cvTypeEdit}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{cvTypeIterEdit.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                id="btnEntityUpdate"
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                                actionListener="#{mbCurriculumVitaeItemType.doUpdateEntity}"
+                                process="@this entityDetailsForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newEntityDialog').hide();
+                    PF('editEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

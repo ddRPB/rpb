@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <!-- Fix software table -->
+    <changeSet id="drop-software-identifier" author="Tomas Skripcak">
+        <dropColumn tableName="SOFTWARE" columnName="identifier" />
+    </changeSet>
+
+    <changeSet id="add-software-platform" author="Tomas Skripcak">
+        <addColumn tableName="SOFTWARE">
+            <column name="PALTFORM" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+    <!-- New annotation types -->
+    <changeSet id="insert-annotation-type-treatment-arm" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" value="4" />
+            <column name="name" value="TREATMENT_ARM" />
+            <column name="description" value="This annotation type allows to mark eCRF field, which will always store randomised treatment arm data." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-treatment-arm-code" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" value="5" />
+            <column name="name" value="TREATMENT_ARM_CODE" />
+            <column name="description" value="This annotation type allows to mark eCRF field, which will always store radomised treatment arm code." />
+        </insert>
+    </changeSet>
+
+    <!-- Edit RT structs with LR option to be of correct type -->
+    <changeSet id="update-rtsturct-brachial-plexus" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'BrachialPlexus'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-breast" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Breast'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-cochlea" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Cochlea'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-cornea" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Cornea'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-ear-middle" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Ear_Middle'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-eye" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Eye'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-femur" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Femur'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-femoral-joint" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'FemoralJoint'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-femoral-head" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'FemHead'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-ghjoint" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'GHJoint'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-eye-globe" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Globe'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-kidney" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Kidney'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-lacrimal-gland" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'LacrimalGland'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-eye-lens" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Lens'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-lung" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Lung'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtsturct-mass-muscle" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'MassMuscle'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-main-bronchus" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'MainBronchus'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-optic-nerve" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'OpticNerve'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-paroid" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Parotid'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-retina" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Retina'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-rib" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Rib'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-testis" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'Testis'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-temperomandibular-joint" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'TMjoint'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-rtstruct-lobar-bronchus" author="Tomas Skripcak">
+        <update tableName="RTSTRUCT">
+            <column name="typeid" value="3" />
+            <where>IDENTIFIER = 'LobarBronchus'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

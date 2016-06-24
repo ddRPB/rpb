@@ -1,0 +1,1484 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="CTMS" title="Clinical Trial Management" url="#" />
+            <p:menuitem value="#{msg.person_plural}" title="#{msg.person_plural}" url="/ctms/persons.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- TabView -->
+        <p:tabView id="tabView" activeIndex="#{mbPerson.tab.activeIndex}">
+
+            <!-- Persons -->
+            <p:tab title="#{msg.person_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.person_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newEntityDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbPerson.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newEntityDialog').show();"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbPerson.prepareNewEntity}"
+                                rendered="#{mbPerson.tab.activeIndex == 0}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.person_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPerson.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPerson.load}"
+                                rendered="#{mbPerson.tab.activeIndex == 0}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.person_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtEntities"
+                        var="entity"
+                        value="#{mbPerson.entityList}"
+                        widgetVar="entitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowKey="#{entity.id}"
+                        selection="#{mbPerson.selectedEntity}"
+                        selectionMode="single"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbPerson.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbPerson.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!--AJAX onclick on datatable row -->
+                    <p:ajax event="rowSelect" update=":form:tabView:dtCvEntities, :form:tabView:dtPersonnelEntities" />
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtEntities"
+                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbPerson.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Surname -->
+                    <p:column
+                            id="colPersonSurname"
+                            sortBy="#{entity.surname}"
+                            filterBy="#{entity.surname}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            visible="#{mbPerson.columnVisibilityList[0]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_surname}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.surname}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Firstname -->
+                    <p:column
+                            id="colPersonFirstname"
+                            sortBy="#{entity.firstname}"
+                            filterBy="#{entity.firstname}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            visible="#{mbPerson.columnVisibilityList[1]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_firstname}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.firstname}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Birthname -->
+                    <p:column
+                            sortBy="#{entity.birthname}"
+                            filterBy="#{entity.birthname}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            visible="#{mbPerson.columnVisibilityList[2]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_birthname}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.birthname}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Status -->
+                    <p:column
+                            id="colPersonStatus"
+                            sortBy="#{entity.status.name}"
+                            filterBy="#{entity.status.name}"
+                            filterMatchMode="in"
+                            style="width:15%"
+                            visible="#{mbPerson.columnVisibilityList[3]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_status}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="#{msg.personStatus_plural}"
+                                    onchange="PF('entitiesTable').filter()"
+                                    panelStyle="width:160px"
+                                    scrollHeight="150"
+                                    >
+                                <f:selectItems
+                                        value="#{mbPersonStatus.entityList}"
+                                        var="status"
+                                        itemLabel="#{status.name}"
+                                        itemValue="#{status.name}"
+                                        itemDescription="#{status.description}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.status.name}" />
+                    </p:column>
+
+                    <!-- TitlesBefore -->
+                    <p:column
+                            sortBy="#{entity.titlesBefore}"
+                            filterBy="#{entity.titlesBefore}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            visible="#{mbPerson.columnVisibilityList[4]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_titlesBefore}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.titlesBefore}" style="float:left;" />
+                    </p:column>
+
+                    <!-- TitlesAfter -->
+                    <p:column
+                            sortBy="#{entity.titlesAfter}"
+                            filterBy="#{entity.titlesAfter}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            visible="#{mbPerson.columnVisibilityList[5]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_titlesAfter}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.titlesAfter}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <p:commandButton
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                    value="#{entity}"
+                                    target="#{mbPerson.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                icon="ui-icon-trash"
+                                title="#{msg.menu_delete}"
+                                update=":deleteEntityForm:deleteDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('deleteEntityDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{entity}"
+                                    target="#{mbPerson.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPerson.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPerson.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPerson.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbPerson.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.person_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.person_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- CVs -->
+            <p:tab title="#{msg.person_curriculumVitaeItems}">
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.curriculumVitaeItem_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newCvItemDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newCvItemForm:newCvItemDisplay"
+                                process="@this"
+                                actionListener="#{mbCurriculumVitaeItem.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newCvItemDialog').show();"
+                                immediate="true"
+                                update=":newCvItemForm:newCvItemDisplay"
+                                process="@this"
+                                actionListener="#{mbCurriculumVitaeItem.prepareNewEntity}"
+                                rendered="#{mbCurriculumVitaeItem.tab.activeIndex == 1}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.curriculumVitaeItem_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtCvEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtCvEntities"
+                        var="cvItem"
+                        value="#{mbPerson.selectedEntity.curriculumVitaeItems}"
+                        widgetVar="cvEntitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowKey="#{cvItem.id}"
+                        selection="#{mbCurriculumVitaeItem.selectedEntity}"
+                        selectionMode="single"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbCurriculumVitaeItem.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbCurriculumVitaeItem.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnCvEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtCvEntities"
+                                trigger=":form:tabView:dtCvEntities:btnCvEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbCurriculumVitaeItem.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Name -->
+                    <p:column
+                            id="colItemName"
+                            sortBy="#{cvItem.name}"
+                            filterBy="#{cvItem.name}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            visible="#{mbCurriculumVitaeItem.columnVisibilityList[0]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.curriculumVitaeItem_name}" />
+                        </f:facet>
+                        <h:outputText value="#{cvItem.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Type -->
+                    <p:column
+                            sortBy="#{cvItem.type.name}"
+                            filterBy="#{cvItem.type.name}"
+                            filterMatchMode="in"
+                            style="width:10%"
+                            visible="#{mbCurriculumVitaeItem.columnVisibilityList[1]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.curriculumVitaeItem_type}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="#{msg.curriculumVitaeItemType_plural}"
+                                    onchange="PF('cvEntitiesTable').filter()"
+                                    panelStyle="width:280px"
+                                    scrollHeight="200"
+                                    >
+                                <f:selectItems
+                                        value="#{mbCurriculumVitaeItemType.entityList}"
+                                        var="type"
+                                        itemLabel="#{type.name}"
+                                        itemValue="#{type.name}"
+                                        itemDescription="#{type.description}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{cvItem.type.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- StartDate -->
+                    <p:column
+                            id="colItemStartDate"
+                            sortBy="#{cvItem.startDate}"
+                            visible="#{mbCurriculumVitaeItem.columnVisibilityList[2]}"
+                            style="width:10%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.curriculumVitaeItem_startDate}" />
+                        </f:facet>
+                        <h:outputText value="#{cvItem.startDate}" style="float:left;">
+                            <f:convertDateTime
+                                    pattern="dd-MM-yyyy"
+                                    type="date"
+                                    timeZone="CET"
+                                    />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- EndDate -->
+                    <p:column
+                            sortBy="#{cvItem.endDate}"
+                            visible="#{mbCurriculumVitaeItem.columnVisibilityList[3]}"
+                            style="width:10%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.curriculumVitaeItem_endDate}" />
+                        </f:facet>
+                        <h:outputText value="#{cvItem.endDate}" style="float:left;">
+                            <f:convertDateTime
+                                    pattern="dd-MM-yyyy"
+                                    type="date"
+                                    timeZone="CET"
+                                    />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- Employer -->
+                    <p:column
+                            sortBy="#{cvItem.employer.name}"
+                            visible="#{mbCurriculumVitaeItem.columnVisibilityList[4]}"
+                            style="width:10%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.curriculumVitaeItem_employer}" />
+                        </f:facet>
+                        <h:outputText value="#{cvItem.employer.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- WorkingPlace -->
+                    <p:column
+                            sortBy="#{cvItem.workingPlace.name}"
+                            visible="#{mbCurriculumVitaeItem.columnVisibilityList[5]}"
+                            style="width:10%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.curriculumVitaeItem_workingPlace}" />
+                        </f:facet>
+                        <h:outputText value="#{cvItem.workingPlace.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                            style="width:17%"
+                            >
+                        <p:commandButton
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":editCvItemForm:editCvItemDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editCvItemDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{cvItem}"
+                                    target="#{mbCurriculumVitaeItem.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                icon="ui-icon-trash"
+                                title="#{msg.menu_delete}"
+                                update=":deleteCvItemForm:deleteCvItemDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('deleteCvItemDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{cvItem}"
+                                    target="#{mbCurriculumVitaeItem.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPerson.selectedEntity.curriculumVitaeItems.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPerson.selectedEntity.curriculumVitaeItems.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPerson.selectedEntity.curriculumVitaeItems.size() > 1}"
+                                >
+                            <f:param value="#{mbPerson.selectedEntity.curriculumVitaeItems.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtCvEntities" fileName="#{msg.person_curriculumVitaeItems}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtCvEntities" fileName="#{msg.person_curriculumVitaeItems}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Participating in Studies -->
+            <p:tab title="#{msg.person_studyPersonnel}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.studyPerson_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtPersonnelEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtPersonnelEntities"
+                        var="studyPerson"
+                        value="#{mbPerson.selectedEntity.studyPersonnel}"
+                        widgetVar="personnelEntitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowKey="#{studyPerson.id}"
+                        selection="#{mbStudyPerson.selectedEntity}"
+                        selectionMode="single"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbStudyPerson.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbStudyPerson.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnStudyPersonToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtPersonnelEntities"
+                                trigger=":form:tabView:dtPersonnelEntities:btnStudyPersonToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbStudyPerson.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Study-->
+                    <p:column
+                        id="colStudyTitle"
+                        sortBy="#{studyPerson.study.title}"
+                        filterBy="#{studyPerson.study.title}"
+                        filterMatchMode="contains"
+                        visible="#{mbStudyPerson.columnVisibilityList[0]}"
+                        style="width:30%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.studyPerson_study}" />
+                        </f:facet>
+                        <h:outputText value="#{studyPerson.study.title}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Position (Role) -->
+                    <p:column
+                            id="colPersonRole"
+                            sortBy="#{studyPerson.role.name}"
+                            filterBy="#{studyPerson.role.name}"
+                            filterMatchMode="in"
+                            style="width:25%"
+                            visible="#{mbStudyPerson.columnVisibilityList[1]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.studyPerson_role}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="#{msg.studyPersonRole_plural}"
+                                    onchange="PF('personnelEntitiesTable').filter()"
+                                    panelStyle="width:230px"
+                                    scrollHeight="200"
+                                    >
+                                <f:selectItems
+                                        value="#{mbStudyPersonRole.entityList}"
+                                        var="studyPersonRole"
+                                        itemLabel="#{studyPersonRole.name}"
+                                        itemValue="#{studyPersonRole.name}"
+                                        itemDescription="#{studyPersonRole.description}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{studyPerson.role.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Can obtain informed consent -->
+                    <p:column
+                            sortBy="#{studyPerson.canObtainInformedConsent}"
+                            filterBy="#{studyPerson.canObtainInformedConsent}"
+                            filterMatchMode="exact"
+                            style="width:15%"
+                            visible="#{mbStudyPerson.columnVisibilityList[2]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.studyPerson_canObtaionInformedConsent}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('personnelEntitiesTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox  value="#{studyPerson.canObtainInformedConsent}" disabled="true" />
+                    </p:column>
+
+                    <!-- StartDate -->
+                    <p:column
+                            sortBy="#{studyPerson.startDate}"
+                            style="width:15%"
+                            visible="#{mbStudyPerson.columnVisibilityList[3]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.studyPerson_startDate}" />
+                        </f:facet>
+                        <h:outputText value="#{studyPerson.startDate}" style="float:left;">
+                            <f:convertDateTime
+                                    pattern="dd-MM-yyyy"
+                                    type="date"
+                                    timeZone="CET"
+                                    />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- EndDate -->
+                    <p:column
+                            sortBy="#{studyPerson.endDate}"
+                            style="width:15%"
+                            visible="#{mbStudyPerson.columnVisibilityList[4]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.studyPerson_endDate}" />
+                        </f:facet>
+                        <h:outputText value="#{studyPerson.endDate}" style="float:left;">
+                            <f:convertDateTime
+                                    pattern="dd-MM-yyyy"
+                                    type="date"
+                                    timeZone="CET"
+                                    />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPerson.selectedEntity.studyPersonnel.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPerson.selectedEntity.studyPersonnel.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPerson.selectedEntity.studyPersonnel.size() > 1}"
+                                >
+                            <f:param value="#{mbPerson.selectedEntity.studyPersonnel.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtPersonnelEntities" fileName="#{msg.person_studyPersonnel}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtPersonnelEntities" fileName="#{msg.person_studyPersonnel}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New Person -->
+        <p:dialog
+                id="dlgNewEntity"
+                header="#{msg.person_new}"
+                widgetVar="newEntityDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="newEntityForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Titles before the first name -->
+                    <h:outputLabel value="#{msg.person_titlesBefore}:" for="txtPersonTitlesBeforeNew" />
+                    <p:inputText
+                        id="txtPersonTitlesBeforeNew"
+                        value="#{mbPerson.newEntity.titlesBefore}"
+                        maxlength="255"
+                        />
+
+                    <!-- First name -->
+                    <h:outputLabel value="#{msg.person_firstname}: *" for="txtPersonFirstnameNew" />
+                    <p:inputText
+                        id="txtPersonFirstnameNew"
+                        value="#{mbPerson.newEntity.firstname}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="Person first name is mandatory!"
+                        />
+
+                    <!-- Surname -->
+                    <h:outputLabel value="#{msg.person_surname}: *" for="txtPersonSurnameNew" />
+                    <p:inputText
+                        id="txtPersonSurnameNew"
+                        value="#{mbPerson.newEntity.surname}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="Person surname is mandatory!"
+                        />
+
+                    <!-- Titles after the surname -->
+                    <h:outputLabel value="#{msg.person_titlesAfter}:" for="txtPersonTitlesAfterNew" />
+                    <p:inputText
+                        id="txtPersonTitlesAfterNew"
+                        value="#{mbPerson.newEntity.titlesAfter}"
+                        maxlength="255"
+                        />
+
+                    <!-- Birthdate -->
+                    <!--<h:outputLabel value="#{msg.person_birthDate}: *" for="calPersonBirthDateNew" />-->
+                    <!--<p:calendar-->
+                        <!--id="calPersonBirthDateNew"-->
+                        <!--value="#{mbPerson.newEntity.birthdate}"-->
+                        <!--pattern="dd.MM.yyyy"-->
+                        <!--showButtonPanel="true"-->
+                        <!--navigator="true"-->
+                        <!--showOn="button"-->
+                        <!--required="true"-->
+                        <!--requiredMessage="Person birthdate is mandatory!"-->
+                        <!--/>-->
+
+                    <!-- Birthname -->
+                    <h:outputLabel value="#{msg.person_birthname}:" for="txtPersonBirthNameNew" />
+                    <p:inputText
+                        id="txtPersonBirthNameNew"
+                        value="#{mbPerson.newEntity.birthname}"
+                        maxlength="255"
+                        />
+
+                    <!-- Status -->
+                    <h:outputLabel value="#{msg.person_status}: *" for="ddlPersonStatusNew" />
+                    <p:selectOneMenu
+                            id="ddlPersonStatusNew"
+                            value="#{mbPerson.newEntity.status}"
+                            converter="#{personStatusConverter}"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Person status is mandatory!"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbPersonStatus.entityList}"
+                                var="personStatus"
+                                itemLabel="#{personStatus.name}"
+                                itemValue="#{personStatus}"
+                                itemDescription="#{personStatus.description}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Comment -->
+                    <h:outputLabel value="#{msg.person_comment}:" for="txtPersonCommentNew" />
+                    <p:inputTextarea
+                            id="txtPersonCommentNew"
+                            value="#{mbPerson.newEntity.comment}"
+                            maxlength="4000"
+                            style="width:350px"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
+                                actionListener="#{mbPerson.doCreateEntity}"
+                                process="@this newEntityForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Person -->
+        <p:dialog
+                id="dlgEntityDetails"
+                header="#{msg.person_edit}"
+                widgetVar="editEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Titles before the first name -->
+                    <h:outputLabel value="#{msg.person_titlesBefore}:" for="txtPersonTitlesBeforeEdit" />
+                    <p:inputText
+                            id="txtPersonTitlesBeforeEdit"
+                            value="#{mbPerson.selectedEntity.titlesBefore}"
+                            maxlength="255"
+                            />
+
+                    <!-- First name -->
+                    <h:outputLabel value="#{msg.person_firstname}: *" for="txtPersonFirstnameEdit" />
+                    <p:inputText
+                            id="txtPersonFirstnameEdit"
+                            value="#{mbPerson.selectedEntity.firstname}"
+                            maxlength="255"
+                            required="true"
+                            requiredMessage="Person first name is mandatory!"
+                            />
+
+                    <!-- Surname -->
+                    <h:outputLabel value="#{msg.person_surname}: *" for="txtPersonSurnameEdit" />
+                    <p:inputText
+                            id="txtPersonSurnameEdit"
+                            value="#{mbPerson.selectedEntity.surname}"
+                            maxlength="255"
+                            required="true"
+                            requiredMessage="Person surname is mandatory!"
+                            />
+
+                    <!-- Titles after the surname -->
+                    <h:outputLabel value="#{msg.person_titlesAfter}:" for="txtPersonTitlesAfterEdit" />
+                    <p:inputText
+                            id="txtPersonTitlesAfterEdit"
+                            value="#{mbPerson.selectedEntity.titlesAfter}"
+                            maxlength="255"
+                            />
+
+                    <!-- Birthdate -->
+                    <!--<h:outputLabel value="#{msg.person_birthDate}: *" for="calPersonBirthDateNew" />-->
+                    <!--<p:calendar-->
+                    <!--id="calPersonBirthDateNew"-->
+                    <!--value="#{mbPerson.newEntity.birthdate}"-->
+                    <!--pattern="dd.MM.yyyy"-->
+                    <!--showButtonPanel="true"-->
+                    <!--navigator="true"-->
+                    <!--showOn="button"-->
+                    <!--required="true"-->
+                    <!--requiredMessage="Person birthdate is mandatory!"-->
+                    <!--/>-->
+
+                    <!-- Birthname -->
+                    <h:outputLabel value="#{msg.person_birthname}:" for="txtPersonBirthNameEdit" />
+                    <p:inputText
+                            id="txtPersonBirthNameEdit"
+                            value="#{mbPerson.selectedEntity.birthname}"
+                            maxlength="255"
+                            />
+
+                    <!-- Status -->
+                    <h:outputLabel value="#{msg.person_status}: *" for="ddlPersonStatusEdit" />
+                    <p:selectOneMenu
+                            id="ddlPersonStatusEdit"
+                            value="#{mbPerson.selectedEntity.status}"
+                            converter="#{personStatusConverter}"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Person status is mandatory!"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbPersonStatus.entityList}"
+                                var="personStatus"
+                                itemLabel="#{personStatus.name}"
+                                itemValue="#{personStatus}"
+                                itemDescription="#{personStatus.description}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Comment -->
+                    <h:outputLabel value="#{msg.person_comment}:" for="txtPersonCommentEdit" />
+                    <p:inputTextarea
+                            id="txtPersonCommentEdit"
+                            value="#{mbPerson.selectedEntity.comment}"
+                            maxlength="4000"
+                            style="width:350px"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                id="btnEntityUpdate"
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                                actionListener="#{mbPerson.doUpdateEntity}"
+                                process="@this entityDetailsForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Person -->
+        <p:dialog
+                id="dlgDeleteEntity"
+                header="#{msg.person_delete}"
+                widgetVar="deleteEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="deleteEntityForm">
+                <p:panelGrid
+                        id="deleteDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Titles before the first name -->
+                    <h:outputLabel value="#{msg.person_titlesBefore}:" for="txtPersonTitlesBeforeDelete" />
+                    <h:outputText id="txtPersonTitlesBeforeDelete" value="#{mbPerson.selectedEntity.titlesBefore}" />
+
+                    <!-- First name -->
+                    <h:outputLabel value="#{msg.person_firstname}:" for="txtPersonFirstnameDelete" />
+                    <h:outputText id="txtPersonFirstnameDelete" value="#{mbPerson.selectedEntity.firstname}" />
+
+                    <!-- Surname -->
+                    <h:outputLabel value="#{msg.person_surname}:" for="txtPersonSurnameDelete" />
+                    <h:outputText id="txtPersonSurnameDelete" value="#{mbPerson.selectedEntity.surname}" />
+
+                    <!-- Titles after the surname -->
+                    <h:outputLabel value="#{msg.person_titlesAfter}:" for="txtPersonTitlesAfterDelete" />
+                    <h:outputText id="txtPersonTitlesAfterDelete" value="#{mbPerson.selectedEntity.titlesAfter}" />
+
+                    <!-- Birthname -->
+                    <h:outputLabel value="#{msg.person_birthname}:" for="txtPersonBirthNameDelete" />
+                    <h:outputText id="txtPersonBirthNameDelete" value="#{mbPerson.selectedEntity.birthname}" />
+
+                    <!-- Status -->
+                    <h:outputLabel value="#{msg.person_status}:" for="txtPersonStatusDelete" />
+                    <h:outputText id="txtPersonStatusDelete" value="#{mbPerson.selectedEntity.status.name}" />
+
+                    <!-- Comment -->
+                    <h:outputLabel value="#{msg.person_comment}:" for="txtPersonCommentDelete" />
+                    <h:outputText id="txtPersonCommentDelete" value="#{mbPerson.selectedEntity.comment}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtEntities, :deleteEntityForm, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteEntity','deleteEntityForm');"
+                                actionListener="#{mbPerson.doDeleteEntity}"
+                                process="@this deleteEntityForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- New CV item -->
+        <p:dialog
+                id="dlgNewCvItem"
+                header="#{msg.curriculumVitaeItem_new}"
+                widgetVar="newCvItemDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="newCvItemForm">
+                <p:panelGrid
+                        id="newCvItemDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Selected Person -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_person}:" />
+                    <h:outputText value="#{mbPerson.selectedEntity.fullName}" />
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_name}: *" for="txtCvItemNameNew" />
+                    <p:inputText
+                            id="txtCvItemNameNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.name}"
+                            maxlength="255"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Curriculum vitae item name is mandatory!"
+                            />
+
+                    <!-- Type -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_type}: *" for="ddlCvItemTypeNew" />
+                    <p:selectOneMenu
+                            id="ddlCvItemTypeNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.type}"
+                            converter="#{curriculumVitaeItemTypeConverter}"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Curriculum vitae item type is mandatory!"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbCurriculumVitaeItemType.entityList}"
+                                var="cvItemTypeNew"
+                                itemLabel="#{cvItemTypeNew.name}"
+                                itemValue="#{cvItemTypeNew}"
+                                itemDescription="#{cvItemTypeNew.description}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- StartDate -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_startDate}: *" for="calCvItemStartDateNew" />
+                    <p:calendar
+                            id="calCvItemStartDateNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.startDate}"
+                            pattern="dd.MM.yyyy"
+                            showButtonPanel="true"
+                            navigator="true"
+                            required="true"
+                            showOn="button"
+                            requiredMessage="Start date is mandatory!"
+                            />
+
+                    <!-- EndDate -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_endDate}:" for="calCvItemEndDateNew" />
+                    <p:calendar
+                            id="calCvItemEndDateNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.endDate}"
+                            pattern="dd.MM.yyyy"
+                            showButtonPanel="true"
+                            navigator="true"
+                            required="false"
+                            showOn="button"
+                            />
+
+                    <!-- Employer -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_employer}:" for="ddlCvItemEmployerNew" />
+                    <p:selectOneMenu
+                            id="ddlCvItemEmployerNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.employer}"
+                            converter="#{organisationConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="employerIter"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbOrganisation.entityList}"
+                                var="employerNew"
+                                itemLabel="#{employerNew.name}"
+                                itemValue="#{employerNew}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{employerIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Working place -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_workingPlace}:" for="ddlCvItemPlaceOfWorkNew" />
+                    <p:selectOneMenu
+                            id="ddlCvItemPlaceOfWorkNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.workingPlace}"
+                            converter="#{organisationConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="placeIter"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbOrganisation.entityList}"
+                                var="placeOfWorkNew"
+                                itemLabel="#{placeOfWorkNew.name}"
+                                itemValue="#{placeOfWorkNew}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{placeIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Comment -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_comment}: " for="txtCvItemCommentNew" />
+                    <p:inputTextarea
+                            id="txtCvItemCommentNew"
+                            value="#{mbCurriculumVitaeItem.newEntity.comment}"
+                            maxlength="4000"
+                            style="width:350px"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtCvEntities, :newCvItemForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewCvItem','newCvItemForm');"
+                                actionListener="#{mbPerson.addNewCvItem(mbCurriculumVitaeItem.newEntity)}"
+                                process="@this newCvItemForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit CV item -->
+        <p:dialog
+                id="dlgEditCvItem"
+                header="#{msg.curriculumVitaeItem_edit}"
+                widgetVar="editCvItemDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="editCvItemForm">
+                <p:panelGrid
+                        id="editCvItemDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Selected Person -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_person}:" />
+                    <h:outputText value="#{mbPerson.selectedEntity.fullName}" />
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_name}: *" for="txtCvItemNameEdit" />
+                    <p:inputText
+                            id="txtCvItemNameEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.name}"
+                            maxlength="255"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Curriculum vitae item name is mandatory!"
+                            />
+
+                    <!-- Type -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_type}: *" for="ddlCvItemTypeEdit" />
+                    <p:selectOneMenu
+                            id="ddlCvItemTypeEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.type}"
+                            converter="#{curriculumVitaeItemTypeConverter}"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="Curriculum vitae item type is mandatory!"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbCurriculumVitaeItemType.entityList}"
+                                var="cvItemTypeNew"
+                                itemLabel="#{cvItemTypeNew.name}"
+                                itemValue="#{cvItemTypeNew}"
+                                itemDescription="#{cvItemTypeNew.description}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- StartDate -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_startDate}: *" for="calCvItemStartDateEdit" />
+                    <p:calendar
+                            id="calCvItemStartDateEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.startDate}"
+                            pattern="dd.MM.yyyy"
+                            showButtonPanel="true"
+                            navigator="true"
+                            required="true"
+                            showOn="button"
+                            requiredMessage="Start date is mandatory!"
+                            />
+
+                    <!-- EndDate -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_endDate}:" for="calCvItemEndDateEdit" />
+                    <p:calendar
+                            id="calCvItemEndDateEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.endDate}"
+                            pattern="dd.MM.yyyy"
+                            showButtonPanel="true"
+                            navigator="true"
+                            required="false"
+                            showOn="button"
+                            />
+
+                    <!-- Employer -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_employer}:" for="ddlCvItemEmployerEdit" />
+                    <p:selectOneMenu
+                            id="ddlCvItemEmployerEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.employer}"
+                            converter="#{organisationConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="employerIterEdit"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbOrganisation.entityList}"
+                                var="employerEdit"
+                                itemLabel="#{employerEdit.name}"
+                                itemValue="#{employerEdit}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{employerIterEdit.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Working place -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_workingPlace}:" for="ddlCvItemPlaceOfWorkEdit" />
+                    <p:selectOneMenu
+                            id="ddlCvItemPlaceOfWorkEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.workingPlace}"
+                            converter="#{organisationConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="placeIterEdit"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbOrganisation.entityList}"
+                                var="placeOfWorkEdit"
+                                itemLabel="#{placeOfWorkEdit.name}"
+                                itemValue="#{placeOfWorkEdit}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{placeIterEdit.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Comment -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_comment}:" for="txtCvItemCommentEdit" />
+                    <p:inputTextarea
+                            id="txtCvItemCommentEdit"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.comment}"
+                            maxlength="4000"
+                            style="width:350px"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtCvEntities, :editCvItemForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEditCvItem','editCvItemForm');"
+                                actionListener="#{mbCurriculumVitaeItem.doUpdateEntity}"
+                                process="@this editCvItemForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete CV item -->
+        <p:dialog
+                id="dlgDeleteCvItem"
+                header="#{msg.curriculumVitaeItem_delete}"
+                widgetVar="deleteCvItemDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="deleteCvItemForm">
+                <p:panelGrid
+                        id="deleteCvItemDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Selected Person -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_person}:" />
+                    <h:outputText value="#{mbPerson.selectedEntity.fullName}" />
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_name}:" />
+                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.name}" />
+
+                    <!-- Type -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_type}:" for="txtCvItemTypeDelete" />
+                    <h:outputText
+                            id="txtCvItemTypeDelete"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.type.name}"
+                            title="#{mbCurriculumVitaeItem.selectedEntity.type.description}"
+                            />
+
+                    <!-- StartDate -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_startDate}:" />
+                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.startDate}">
+                        <f:convertDateTime
+                                pattern="dd-MM-yyyy"
+                                type="date"
+                                timeZone="CET"
+                                />
+                    </h:outputText>
+
+                    <!-- EndDate -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_endDate}:" />
+                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.endDate}">
+                        <f:convertDateTime
+                                pattern="dd-MM-yyyy"
+                                type="date"
+                                timeZone="CET"
+                                />
+                    </h:outputText>
+
+                    <!-- Employer -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_employer}:" />
+                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.employer.name}" />
+
+                    <!-- Working place -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_workingPlace}:" />
+                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.workingPlace.name}" />
+
+                    <!-- Comment -->
+                    <h:outputLabel value="#{msg.curriculumVitaeItem_comment}: " for="txtCvItemCommentDelete" />
+                    <p:inputTextarea
+                            id="txtCvItemCommentDelete"
+                            value="#{mbCurriculumVitaeItem.selectedEntity.comment}"
+                            maxlength="4000"
+                            style="width:350px"
+                            readonly="true"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtCvEntities, :deleteCvItemForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteCvItem','deleteCvItemForm');"
+                                actionListener="#{mbPerson.removeSelectedCvItem(mbCurriculumVitaeItem.selectedEntity)}"
+                                process="@this deleteCvItemForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newEntityDialog').hide();
+                    PF('editEntityDialog').hide();
+                    PF('deleteEntityDialog').hide();
+
+                    PF('newCvItemDialog').hide();
+                    PF('editCvItemDialog').hide();
+                    PF('deleteCvItemDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

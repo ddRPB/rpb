@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for PartnerSite</comment>
+
+    <entry key="partnerSite">Standort</entry>
+    <entry key="partnerSite_plural">Standorte</entry>
+    <entry key="partnerSite_reload">Neu laden vorhandenen Standorte</entry>
+    <entry key="partnerSite_print">>Drucken Tabelle Standorte</entry>
+    <entry key="partnerSite_new">Definieren Sie eine neue Standort</entry>
+    <entry key="partnerSite_edit">Bearbeiten Sie ausgewählte Standort</entry>
+    <entry key="partnerSite_delete">Löschen ausgewählten Standort</entry>
+
+    <!-- attributes -->
+    <entry key="partnerSite_id">Id</entry>
+    <entry key="partnerSite_identifier">Kennzeichnung</entry>
+    <entry key="partnerSite_siteName">Name</entry>
+    <entry key="partnerSite_description">Beschreibung</entry>
+    <entry key="partnerSite_latitude">Latitude</entry>
+    <entry key="partnerSite_longitude">Longitude</entry>
+    <entry key="partnerSite_isEnabled">Aktiviert</entry>
+
+    <!-- one-to-one -->
+    <entry key="partnerSite_pacs">PACS</entry>
+    <entry key="partnerSite_edc">EDC</entry>
+    <entry key="partnerSite_portal">Portal</entry>
+    <entry key="partnerSite_pid">PID</entry>
+    <entry key="partnerSite_server">Web-API</entry>
+
+    <!-- one-to-many -->
+    <entry key="partnerSite_defaultAccounts">Benutzerkonten</entry>
+
+    <!-- many-to-many -->
+    <entry key="partnerSite_studies">Studien</entry>
+
+</properties>

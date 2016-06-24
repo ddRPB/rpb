@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="EDC" title="EDC - data capture" url="#" />
+            <p:menuitem value="#{msg.randomisation}" title="#{msg.randomisation}" url="/edc/randomisedSubjects.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView" activeIndex="#{mbRandomisation.tab.activeIndex}">
+
+            <f:event type="preRenderView" listener="#{mbRandomisation.onLoad}" />
+
+            <!-- RadPlanBio ranomised trial subjects -->
+            <p:tab title="#{msg.studySubject_plural}">
+
+                <!-- Studies toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.studySubject_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtSubjects" />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-280005')}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.studySubject_reload}"
+                                icon="ui-icon-refresh"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtSubjects, :growl"
+                                actionListener="#{mbRandomisation.reload}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtSubjects, :growl"
+                                actionListener="#{mbRandomisation.reload}"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- RadPlanBio subjects table -->
+                <p:dataTable
+                        id="dtSubjects"
+                        var="subject"
+                        value="#{mbRandomisation.entityList}"
+                        widgetVar="subjectsTable"
+                        resizableColumns="true"
+                        paginator="true"
+                        draggableColumns="false"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbRandomisation.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{subject.studySubjectId}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbRandomisation.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbRandomisation.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- OC Study subject ID-->
+                    <p:column
+                            id="colStudySubjectId"
+                            headerText="#{msg.studySubject_studySubjectId}"
+                            sortBy="#{subject.studySubjectId}"
+                            filterBy="#{subject.studySubjectId}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <h:outputText value="#{subject.studySubjectId}" style="float:left;" />
+                    </p:column>
+
+                    <!-- PID -->
+                    <p:column
+                            headerText="#{msg.studySubject_personId}"
+                            sortBy="#{subject.uniqueIdentifier}"
+                            filterBy="#{subject.uniqueIdentifier}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <h:outputText value="#{subject.uniqueIdentifier}" style="float:left;"  />
+                    </p:column>
+
+                    <!-- Treatment arm -->
+                    <p:column
+                            headerText="#{msg.studySubject_arm}"
+                            sortBy="#{subject.arm.name}"
+                            filterBy="#{subject.arm.name}"
+                            filterMatchMode="in"
+                            style="width:30%"
+                            >
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="#{msg.treatmentArm_plural}"
+                                    onchange="PF('subjectsTable').filter()"
+                                    panelStyle="width:130px"
+                                    scrollHeight="60"
+                                    >
+                                <f:selectItems
+                                        value="#{mbRandomisation.rpbActiveStudy.treatmentArms}"
+                                        var="treatmentArm"
+                                        itemLabel="#{treatmentArm.name}"
+                                        itemValue="#{treatmentArm.name}"
+                                        itemDescription="#{treatmentArm.description}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{subject.arm.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                          headerText="#{msg.menu_commands}"
+                          exportable="false"
+                          toggleable="false"
+                          style="width:17%"
+                          >
+                        <!-- Randomise -->
+                        <p:commandButton
+                                icon="ui-icon-shuffle"
+                                title="Randomise"
+                                update=":randomiseSubjectForm:randomiseDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('randomiseSubjectDialog').show();"
+                                disabled="#{subject.isAlreadyRandomised}"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{subject}"
+                                    target="#{mbRandomisation.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Table footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbRandomisation.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbRandomisation.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbRandomisation.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbRandomisation.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export Datatable-->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtSubjects" fileName="#{msg.randomisation}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtSubjects" fileName="#{msg.randomisation}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- Randomise Subject -->
+        <p:dialog
+            id="dlgSubjectRandomise"
+            header="Randomise #{msg.studySubject}"
+            widgetVar="randomiseSubjectDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="randomiseSubjectForm">
+                <p:panelGrid
+                    id="randomiseDisplay"
+                    columns="1"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+                    <p:panelGrid
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                        <!-- Study subject ID -->
+                        <h:outputText value="#{msg.studySubject_studySubjectId}:" />
+                        <h:outputText value="#{mbRandomisation.selectedEntity.studySubjectId}" />
+
+                        <!-- Randomised subject site -->
+                        <h:outputText value="#{msg.partnerSite}:" />
+                        <h:outputText value="#{mbRandomisation.newTrialSubject.trialSite.siteName}" />
+
+                        <!-- Stratify site -->
+                        <h:outputText value="Stratify #{msg.partnerSite}:" />
+                        <h:outputText value="#{mbRandomisation.rpbActiveStudy.isStratifyTrialSite}" />
+
+                        <!-- Assigned arm -->
+                        <h:outputLabel value="#{msg.studySubject_arm}:" for="txtAssignedArm" />
+                        <h:inputText id="txtAssignedArm"
+                                value="#{mbRandomisation.newTrialSubject.treatmentArm}"
+                                disabled="true"
+                                style="font-family:consolas, courier new,monospace;"
+                                />
+                    </p:panelGrid>
+
+                    <!-- Prognostic Variables -->
+                    <p:dataList
+                            value="#{mbRandomisation.newTrialSubject.prognosticVariables}"
+                            var="prognosticVariable"
+                            type="definition"
+                            >
+                        <p:panelGrid
+                                columns="2"
+                                cellpadding="4"
+                                style="margin:0 auto;"
+                                >
+                            <h:outputText
+                                    for="rbtnCriterium"
+                                    value="#{prognosticVariable.criterion.name}: *" />
+                            <p:selectOneMenu
+                                    id="rbtnCriterium"
+                                    value="#{prognosticVariable.value}"
+                                    required="true"
+                                    requiredMessage="Criterion is mandatory!"
+                                    converter="#{stringConverter}"
+                                    >
+                                <f:selectItem
+                                        itemLabel="#{msg.search_select_one}"
+                                        itemValue=""
+                                        />
+                                <f:selectItems value="#{prognosticVariable.criterion.configuredValues}" />
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                    </p:dataList>
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="Assign random treatment arm"
+                                update=":form:tabView:dtSubjects, :randomiseSubjectForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgSubjectRandomise','randomiseSubjectForm');"
+                                actionListener="#{mbRandomisation.doRandomise}"
+                                process="@this randomiseSubjectForm"
+                                />
+                        <!--<p:commandButton-->
+                                <!--value="Import assigned arm into eCRF"-->
+                                <!--update=":form:tabView:dtSubjects, :growl"-->
+                                <!--icon="ui-icon-disk"-->
+                                <!--oncomplete="handleSubmitRequest(xhr, status, args, 'dlgSubjectRandomise','randomiseSubjectForm');"-->
+                                <!--actionListener="#{mbRandomisation.doImportArm}"-->
+                                <!--process="@this randomiseSubjectForm"-->
+                                <!--rendered="false"-->
+                                <!--/>-->
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('randomiseSubjectDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for DefaultAccount</comment>
+
+    <entry key="account">Benutzer Konto</entry>
+    <entry key="account_plural">Benutzer Konten</entry>
+    <entry key="account_reload">Neu laden vorhandenen Benutzer Konten</entry>
+    <entry key="account_print">Drucken Tabelle Benutzer Konten</entry>
+    <entry key="account_new">Definieren Sie ein neues Benutzerkonto</entry>
+    <entry key="account_edit">Bearbeiten ausgewählte Benutzerkonto</entry>
+    <entry key="account_delete">Löschen ausgewählte Benutzerkonto</entry>
+
+    <!-- attributes -->
+    <entry key="account_id">Id</entry>
+    <entry key="account_username">Benutzername</entry>
+    <entry key="account_password">Passwort</entry>
+    <entry key="account_email">E-mail</entry>
+    <entry key="account_isEnabled">Aktiviert</entry>
+    <entry key="account_privilegesCount">Berechtigungen</entry>
+    <entry key="account_apiKey">API-key</entry>
+    <entry key="account_apiKeyEnabled">API-key aktiviert</entry>
+
+    <!-- many-to-one -->
+    <entry key="account_partnerSite">Standort</entry>
+
+    <!-- one-to-many -->
+
+    <!-- many-to-many -->
+    <entry key="account_roles">Benutzer Rollen</entry>
+
+    <!-- uniques -->
+    <entry key="account_username_already_exists">Benutzerkonto ist bereits vorhanden</entry>
+    <entry key="account_composite_unique_constraint_error">A composite unique constraint has failed on DefaultAccount</entry>
+</properties>

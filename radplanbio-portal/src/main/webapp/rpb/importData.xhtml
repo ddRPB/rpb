@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="Data" title="Data" url="#" />
+            <p:menuitem value="Import" title="Import" url="/rpb/importData.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <ui:define name="content">
+        <p:tabView id="tabView">
+
+            <!-- Import source data -->
+            <p:tab title="Data" titletip="Input data from source system">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <!-- Reset button -->
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- Form -->
+                <p:panelGrid
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;"
+                        >
+
+                    <!-- Show user the active study -->
+                    <h:outputLabel value="Study: *" for="txtStudyIdentifier" />
+                    <h:outputText id="txtStudyIdentifier" value="#{mbImportData.mainBean.activeStudy.uniqueIdentifier}" />
+
+                    <!-- Type of data import -->
+                    <h:outputLabel value="Import type: *" for="ddlImportType" />
+                    <p:selectOneMenu
+                            id="ddlImportType"
+                            value="#{mbImportData.selectedImportType}"
+                            style="width:350px"
+                            required="true"
+                            requiredMessage="You have to select the type of import data."
+                            >
+                        <!-- AJAX update of selected item -->
+                        <p:ajax update=":growl"/>
+
+                        <f:selectItems value="#{mbImportData.importTypes}"
+                                var="type"
+                                itemLabel="#{type}"
+                                itemValue="#{type}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Upload input data file -->
+                    <h:outputLabel value="Import source data file (.xml (CDISC ODM), .csv): *" for="uploadImportFile" />
+                    <p:fileUpload id="uploadImportFile"
+                            fileUploadListener="#{mbImportData.handleUpload}"
+                            rendered="#{mbImportData.uploadedFile == null}"
+                            mode="advanced"
+                            update=":growl, :form:tabView:txtFileName, :form:tabView:btnTransformData"
+                            label="Choose a file or drag and drop it here:"
+                            sizeLimit="10048576"
+                            auto="false"
+                            allowTypes="/(\.|\/)(xml|csv)$/"
+                            invalidSizeMessage="The maximum file size allowed is 10 Megabyte!"
+                            invalidFileMessage="You are allowed to upload only (xml, csv files)!"
+                            dragDropSupport="true"
+                            fileLimit="1"
+                            />
+
+                    <!-- Filename -->
+                    <h:outputLabel value="Uploaded source data file name: *" for="txtFileName" />
+                    <p:inputText id="txtFileName"
+                                 value="#{mbImportData.uploadedFile.fileName}"
+                                 style="width:500px"
+                                 disabled="true"
+                                 required="true"
+                                 requiredMessage="You have upload source data file before continuing!"
+                            />
+
+                    <!-- Import mapping definition -->
+                    <h:outputLabel value="Import mapping: *" for="ddlImportMapping" />
+                    <p:selectOneMenu
+                            id="ddlImportMapping"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            required="true"
+                            requiredMessage="You have to select the mapping specification for import data."
+                            value="#{mbImportData.selectedMapping}"
+                            converter="#{mappingConverter}"
+                            >
+                        <!-- AJAX update of selected item -->
+                        <p:ajax update=":growl"/>
+
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1"/>
+                        <f:selectItems
+                                value="#{mbImportData.study.dataMappings}"
+                                var="mapping"
+                                itemLabel="#{mapping.name}"
+                                itemValue="#{mapping}"
+                                />
+                    </p:selectOneMenu>
+
+                    <!-- Transformed ODM data model -->
+                    <h:outputLabel value="Import data model (CDISC ODM): *" for="txtOdmModel" />
+                    <p:inputText id="txtOdmModel"
+                                 value="#{mbImportData.importDataOdm.description}"
+                                 style="width:500px"
+                                 disabled="true"
+                                 required="true"
+                                 requiredMessage="You have upload source data file before continuing!"
+                            />
+
+                    <!-- Subjects per import data set -->
+                    <h:outputLabel value="# of subjects in one import dataset: *" for="txtNrOfSubjects" />
+                    <p:inputText id="txtNrOfSubjects" value="#{mbImportData.subjectPerDataset}" />
+                    <p:slider for="txtNrOfSubjects" minValue="1" maxValue="50" />
+
+                    <!-- Other options, enabled validation, enabled rule validation etc... -->
+
+                    <!-- Data transformation process -->
+                    <p:commandButton  id="btnTransformData"
+                            value="Transform"
+                            title="Transform input data into target format"
+                            icon="ui-icon-play"
+                            immediate="true"
+                            process="@this"
+                            disabled="#{mbImportData.uploadedFile == null}"
+                            actionListener="#{mbImportData.transformData}"
+                            update=":growl, :form:tabView:txtOdmModel, :form:tabView:dtEntities"
+                            />
+
+                </p:panelGrid>
+
+            </p:tab>
+
+            <!-- Subjects detected for import -->
+            <p:tab title="Subjects" titletip="Study subjects for import">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="Print import subjects table"
+                                icon="ui-icon-print"
+                                type="button"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- Reload subject enrolled in OC -->
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="Reload enrolled subjects"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbImportData.reloadSubjects}"
+                                />
+
+                        <!-- Generate pseudonyms for all subjects -->
+                        <p:commandButton
+                                value="Generate PIDs"
+                                title="Generate pseudonyms for subjects"
+                                icon="ui-icon-person"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbImportData.generatePseudonyms}"
+                                />
+
+                        <!-- Enrol all subjects -->
+                        <p:commandButton
+                                value="Enrol"
+                                title="Enrol all into a study"
+                                icon="ui-icon-bookmark"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbImportData.enrolSubjects}"
+                                />
+
+                        <!-- Schedule all events -->
+                        <p:commandButton
+                                value="Schedule all event"
+                                title="All events for all subjects"
+                                icon="ui-icon-document"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbImportData.scheduleEvents}"
+                                />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtEntities"
+                        var="entity"
+                        value="#{mbImportData.subjectList}"
+                        widgetVar="entitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowKey="#{entity.studySubjectId}"
+                        selection="#{mbImportData.selectedSubject}"
+                        selectionMode="single"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbImportData.filteredSubjects}"
+                        sortMode="multiple"
+                        sortOrder="ASCENDING"
+                        sortBy="#{mbImportData.subjectsPreSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- IsEnabled -->
+                    <p:column
+                            sortBy="#{entity.isEnabled}"
+                            filterBy="#{entity.isEnabled}"
+                            filterMatchMode="exact"
+                            style="width:3%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="Enabled" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('entitiesTable').filter()" >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="#{entity.isEnabled}" disabled="true" />
+                    </p:column>
+
+                    <!-- PID -->
+                    <p:column
+                            sortBy="#{entity.pid}"
+                            filterBy="#{entity.pid}"
+                            filterMatchMode="contains"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="PID" />
+                        </f:facet>
+                        <h:outputText value="#{entity.pid}" style="float: left;" />
+                    </p:column>
+
+                    <!-- StudySubjectID -->
+                    <p:column
+                            id="colStudySubjectId"
+                            sortBy="#{entity.studySubjectId}"
+                            filterBy="#{entity.studySubjectId}"
+                            filterMatchMode="contains"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="StudySubjectID" />
+                        </f:facet>
+                        <h:outputText value="#{entity.studySubjectId}" style="float: left;" />
+                    </p:column>
+
+                    <!-- SubjectKey -->
+                    <p:column
+                            sortBy="#{entity.subjectKey}"
+                            filterBy="#{entity.subjectKey}"
+                            filterMatchMode="contains"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="SubjectKey" />
+                        </f:facet>
+                        <h:outputText value="#{entity.subjectKey}" style="float: left;" />
+                    </p:column>
+
+                    <!-- First name -->
+                    <p:column
+                            sortBy="#{entity.person.firstname}"
+                            filterBy="#{entity.person.firstname}"
+                            filterMatchMode="contains"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="First name" />
+                        </f:facet>
+                        <h:outputText value="#{entity.person.firstname}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Last name -->
+                    <p:column
+                            sortBy="#{entity.person.surname}"
+                            filterBy="#{entity.person.surname}"
+                            filterMatchMode="contains"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="Last name" />
+                        </f:facet>
+                        <h:outputText value="#{entity.person.surname}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Birthdate -->
+                    <p:column
+                            sortBy="#{entity.person.birthdate}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="Birthdate" />
+                        </f:facet>
+                        <p:calendar
+                                id="dateOfBirth"
+                                pattern="dd.MM.yyyy"
+                                value="#{entity.person.birthdate}"
+                                disabled="true"
+                                />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            style="width:17%"
+                            exportable="false"
+                            >
+                        <p:commandButton
+                                title="#{msg.menu_edit}"
+                                icon="ui-icon-contact"
+                                immediate="true"
+                                process="@this"
+                                update=":entityDetailsForm:editDisplay"
+                                oncomplete="PF('editEntityDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{entity}"
+                                    target="#{mbImportData.selectedSubject}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbImportData.subjectList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbImportData.subjectList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbImportData.subjectList.size() > 1}"
+                                >
+                            <f:param value="#{mbImportData.subjectList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="Subjects-import" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="Subjects-import" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Import summary -->
+            <p:tab title="Import summary" titletip="Import summary tab">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- Import data into OC -->
+                        <p:commandButton
+                                value="Import"
+                                title="Import data into EDC"
+                                icon="ui-icon-play"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":growl"
+                                actionListener="#{mbImportData.importData}"
+                                />
+
+                        <!-- Import data into OC -->
+                        <p:commandButton
+                                value="Download"
+                                title="Download import data files"
+                                icon="ui-icon-arrowthick-1-s"
+                                style="float: left;"
+                                ajax="false"
+                                update=":growl"
+                                actionListener="#{mbImportData.downloadData}"
+                                >
+                            <p:fileDownload value="#{mbImportData.zippedImportDataFile}" />
+                        </p:commandButton>
+
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+            </p:tab>
+
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- Edit -->
+        <p:dialog
+                id="dlgEntityDetails"
+                header="Study subject details"
+                widgetVar="editEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- IsEnabled-->
+                    <h:outputLabel value="Enabled for import:" for="chbStudySubjectEnabled" />
+                    <h:selectBooleanCheckbox id="chbStudySubjectEnabled" value="#{mbImportData.selectedSubject.isEnabled}" />
+
+                    <!-- PID -->
+                    <h:outputLabel value="PID: " for="txtPid" />
+                    <h:outputText id="txtPid" value="#{mbImportData.selectedSubject.pid}" />
+
+                    <!-- StudySubjectID -->
+                    <h:outputLabel value="Study Subject ID:" for="txtStudySubjectId" />
+                    <h:outputText id="txtStudySubjectId" value="#{mbImportData.selectedSubject.studySubjectId}" />
+
+                    <!-- SubjectKey -->
+                    <h:outputLabel value="SubjectKey:" for="txtSubjectKey" />
+                    <h:outputText id="txtSubjectKey" value="#{mbImportData.selectedSubject.subjectKey}" />
+
+                    <!-- Gender -->
+                    <h:outputLabel value="Gender: *" for="rbtnGenderNew" />
+                    <p:selectOneRadio
+                            id="rbtnGenderNew"
+                            value="#{mbImportData.selectedSubject.sex}"
+                            required="true"
+                            requiredMessage="You have to provide gender of subject, this field is mandatory!"
+                            >
+                        <f:selectItems value="#{mbImportData.genderValues}" />
+                    </p:selectOneRadio>
+
+                    <!-- First name -->
+                    <h:outputLabel value="First name:" for="txtFirstName" />
+                    <h:outputText id="txtFirstName" value="#{mbImportData.selectedSubject.person.firstname}" />
+
+                    <!-- Last name -->
+                    <h:outputLabel value="Last name:" for="txtLastName" />
+                    <h:outputText id="txtLastName" value="#{mbImportData.selectedSubject.person.surname}" />
+
+                    <!-- Birth name -->
+                    <h:outputLabel value="Birth name:" for="txtBirthName" />
+                    <h:outputText id="txtBirthName" value="#{mbImportData.selectedSubject.person.birthname}" />
+
+                    <!-- Birthdate -->
+                    <h:outputLabel value="Birthdate" for="calBirthDate" />
+                    <p:calendar
+                            id="calBirthDate"
+                            pattern="dd.MM.yyyy"
+                            value="#{mbImportData.selectedSubject.person.birthdate}"
+                            disabled="true"
+                            />
+
+                    <!-- City -->
+                    <h:outputLabel value="City:" for="txtCity" />
+                    <p:inputText
+                            id="txtCity"
+                            value="#{mbImportData.selectedSubject.person.city}"
+                            title="Place of residence is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- Zip code -->
+                    <h:outputLabel value="ZIP:" for="txtZip" />
+                    <p:inputText
+                            id="txtZip"
+                            value="#{mbImportData.selectedSubject.person.zipcode}"
+                            title="ZIP code is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- Force new PID (sureness of new patient record) -->
+                    <h:outputLabel value="I am sure that patient data is correct and I want to create a new PID:" />
+                    <h:selectBooleanCheckbox value="#{mbImportData.isSure}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                                actionListener="#{mbImportData.doUpdateSubject}"
+                                process="@this entityDetailsForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    PF('editEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="PACS" title="PACS - medical imaging" url="#" />
+            <p:menuitem value="DICOM Matrix" title="DICOM Matrix" url="/pacs/dicomMatrix.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of the page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView">
+            <p:tab title="DICOM Matrix">
+
+                <!-- Panel -->
+                <p:accordionPanel>
+                    <!-- Switch View -->
+                    <p:tab title="View">
+                        <p:panelGrid
+                            columnClasses="column"
+                            columns="2"
+                            >
+                            <h:outputLabel value="View type: *" for="ddlViewType" />
+                            <p:selectOneButton
+                                id="ddlViewType"
+                                value="#{mbDicomMatrix.viewType}"
+                                >
+
+                                <!-- AJAX update -->
+                                <p:ajax listener="#{mbDicomMatrix.changeView}" event="change" update=":form:tabView:pnlDicom, :form:tabView:pnlDicomRt, :growl" />
+
+                                <!-- Availability of DICOM data -->
+                                <f:selectItem itemLabel="DICOM" itemValue="DICOM" />
+                                <!-- Availability of DICOM-RT data (treatment plans) -->
+                                <f:selectItem itemLabel="DICOM-RT" itemValue="DICOM-RT" />
+
+                                <!-- Future: if I will have some automated testing condition on DICOM data I will provide them on different view -->
+                                <!-- e.g.: <f:selectItem itemLabel="DICOM-VALIDATE" itemValue="DICOM-VALIDATE" /> -->
+                            </p:selectOneButton>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:accordionPanel>
+
+                <h:panelGroup id="pnlDicomRt">
+                    <p:accordionPanel>
+                        <!-- RT-instance switch - which treatment plan ItemDefinition (from all that have been detected) should be shown -->
+                        <p:tab title="RT-instance" rendered="#{mbDicomMatrix.viewType == 'DICOM-RT'}">
+                            <p:panelGrid
+                                columnClasses="column"
+                                columns="2"
+                                >
+                                <!-- DICOM-RT withing which study event -->
+                                <h:outputLabel value="#{msg.studyEvent}: *" for="ddlStudyEvents" />
+                                <p:selectOneMenu
+                                    id="ddlStudyEvents"
+                                    value="#{mbDicomMatrix.selectedEventDef}"
+                                    converter="omnifaces.SelectItemsConverter"
+                                    >
+                                    <!-- AJAX update -->
+                                    <p:ajax listener="#{mbDicomMatrix.reloadOccurrences}" update=":form:tabView, :growl" />
+
+                                    <f:selectItem itemLabel="#{msg.search_select_one}" noSelectionOption="true" />
+                                    <f:selectItems
+                                        value="#{mbDicomMatrix.rpbStudy.getAnnotatedEventDefinitions('DICOM_STUDY_INSTANCE_UID')}"
+                                        var="rtEventDef"
+                                        itemValue="#{rtEventDef}"
+                                        itemLabel="#{rtEventDef.name}"
+                                        />
+                                </p:selectOneMenu>
+                                <h:outputLabel value="Occurence: *" />
+                                <p:selectOneMenu
+                                    id="ddlStudyEventData"
+                                    value="#{mbDicomMatrix.selectedEventDataRepeatKey}"
+                                    converter="omnifaces.SelectItemsConverter"
+                                    disabled="#{mbDicomMatrix.selectedEventDef == null}"
+                                    >
+                                    <!-- AJAX update -->
+                                    <p:ajax update=":form:tabView, :growl" />
+
+                                    <f:selectItem itemLabel="#{msg.search_select_one}" noSelectionOption="true" />
+                                    <f:selectItems
+                                        value="#{mbDicomMatrix.eventDataRepeatKeys}"
+                                        var="rtEventDataKey"
+                                        itemValue="#{rtEventDataKey}"
+                                        itemLabel="#{rtEventDataKey}"
+                                        />
+                                </p:selectOneMenu>
+                                <h:outputLabel value="DICOM: *" for="ddlItemDef" />
+                                <p:selectOneMenu
+                                    id="ddlItemDef"
+                                    value="#{mbDicomMatrix.selectedItemDef}"
+                                    converter="omnifaces.SelectItemsConverter"
+                                    disabled="#{mbDicomMatrix.selectedEventDef == null}"
+                                    >
+                                    <!-- AJAX update -->
+                                    <p:ajax update=":form:tabView, :growl" />
+
+                                    <f:selectItem itemLabel="#{msg.search_select_one}" noSelectionOption="true" />
+                                    <f:selectItems
+                                        value="#{mbDicomMatrix.rpbStudy.getAnnotatedItemDefinitionsForEventDef('DICOM_STUDY_INSTANCE_UID', mbDicomMatrix.selectedEventDef)}"
+                                        var="rtItemDef"
+                                        itemValue="#{rtItemDef}"
+                                        itemLabel="#{rtItemDef.oid}"
+                                        />
+                                </p:selectOneMenu>
+                            </p:panelGrid>
+                        </p:tab>
+                    </p:accordionPanel>
+                </h:panelGroup>
+
+                <h:panelGroup id="pnlDicom">
+                    <!-- DICOM view -->
+                    <!-- Toolbar -->
+                    <p:toolbar rendered="#{mbDicomMatrix.viewType == 'DICOM'}">
+                        <p:toolbarGroup align="left">
+                            <p:commandButton
+                                    value="#{msg.menu_reload}"
+                                    title="#{msg.studySubject_reload}"
+                                    icon="ui-icon-refresh"
+                                    action="#{mbDicomMatrix.load}"
+                                    ajax="false"
+                                    update=":form:tabView:dtEntities, :growl"
+                                    />
+                            <p:hotkey
+                                    bind="ctrl+shift+r"
+                                    immediate="true"
+                                    process="@this"
+                                    update=":form:tabView:dtEntities, :growl"
+                                    actionListener="#{mbDicomMatrix.load}"
+                                    />
+                        </p:toolbarGroup>
+                        <p:toolbarGroup align="right">
+                            <p:commandButton
+                                    value="#{msg.menu_help}"
+                                    title="#{msg.menu_help}"
+                                    icon="ui-icon-help"
+                                    onclick="target='_blank'"
+                                    ajax="false"
+                                    immediate="true"
+                                    action="#{mbMain.navigateToHelp('x1-240003')}"
+                                    />
+                        </p:toolbarGroup>
+                    </p:toolbar>
+
+                    <!-- DICOM Study Subjects Matrix -->
+                    <p:dataTable
+                            id="dtEntities"
+                            var="studySubject"
+                            value="#{mbDicomMatrix.entityList}"
+                            widgetVar="studySubjectsTable"
+                            resizableColumns="true"
+                            paginator="true"
+                            draggableColumns="false"
+                            rows="15"
+                            rowsPerPageTemplate="15,25,50"
+                            emptyMessage="#{msg.search_empty}"
+                            filteredValue="#{mbDicomMatrix.filteredEntities}"
+                            selection="#{mbDicomMatrix.selectedEntity}"
+                            selectionMode="single"
+                            rowKey="#{studySubject.studySubjectId}"
+                            rowIndexVar="rowIndex"
+                            sortMode="multiple"
+                            sortBy="#{mbDicomMatrix.preSortOrder}"
+                            disabledTextSelection="false"
+                            rendered="#{mbDicomMatrix.viewType == 'DICOM'}"
+                            >
+
+                        <!-- Table header -->
+                        <f:facet name="header">
+                            <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                            <p:columnToggler
+                                    datasource="dtEntities"
+                                    trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                    style="width:450px"
+                                    >
+                                <p:ajax event="toggle" listener="#{mbDicomMatrix.onEntityToggle}" />
+                            </p:columnToggler>
+                        </f:facet>
+
+                        <!-- Row -->
+                        <p:column exportable="false" toggleable="false" style="width:5%">
+                            <f:facet name="header">
+                                <h:outputText value="#" />
+                            </f:facet>
+                            <h:outputText value="#{rowIndex + 1}" />
+                        </p:column>
+
+                        <!-- StudySubject ID -->
+                        <p:column
+                                id="colStudySubjectId"
+                                headerText="#{msg.studySubject_studySubjectId}"
+                                sortBy="#{studySubject.studySubjectId}"
+                                filterBy="#{studySubject.studySubjectId}"
+                                visible="#{mbDicomMatrix.columnVisibilityList[0]}"
+                                style="width:10%"
+                                >
+                            <h:outputText value="#{studySubject.studySubjectId}" style="float: left;" />
+                        </p:column>
+
+                        <!-- PID -->
+                        <p:column
+                                headerText="#{msg.studySubject_personId}"
+                                sortBy="#{studySubject.pid}"
+                                filterBy="#{studySubject.pid}"
+                                visible="#{mbDicomMatrix.columnVisibilityList[1]}"
+                                style="width:10%"
+                                >
+                            <h:outputText style="font-family:consolas, courier new,monospace;float: left;" value="#{studySubject.pid}" />
+                        </p:column>
+
+                        <!-- Secondary ID -->
+                        <p:column
+                                headerText="#{msg.studySubject_secondaryId}"
+                                sortBy="#{studySubject.secondaryId}"
+                                filterBy="#{studySubject.secondaryId}"
+                                visible="#{mbDicomMatrix.columnVisibilityList[2]}"
+                                style="width:10%"
+                                >
+                            <h:outputText value="#{studySubject.secondaryId}"  style="float: left;" />
+                        </p:column>
+
+                        <!-- Gender -->
+                        <p:column
+                                headerText="#{msg.studySubject_gender}"
+                                sortBy="#{studySubject.sex}"
+                                filterBy="#{studySubject.sex}"
+                                filterMatchMode="in"
+                                visible="#{mbDicomMatrix.columnVisibilityList[3]}"
+                                style="width:10%"
+                                >
+                            <f:facet name="filter">
+                                <p:selectCheckboxMenu
+                                        label="Options"
+                                        onchange="PF('studySubjectsTable').filter()"
+                                        panelStyle="width:50px"
+                                        scrollHeight="50"
+                                        >
+                                    <f:selectItem itemLabel="m" itemValue="m" />
+                                    <f:selectItem itemLabel="f" itemValue="f" />
+                                </p:selectCheckboxMenu>
+                            </f:facet>
+                            <h:outputText value="#{studySubject.sex}" />
+                        </p:column>
+
+                        <!-- All DICOM annotated events -->
+                        <p:columns
+                                value="#{mbDicomMatrix.rpbStudy.getAnnotatedEventDefinitions('DICOM_STUDY_INSTANCE_UID')}"
+                                var="dicomStudyEvent"
+                                style="width:30%"
+                                columnIndexVar="colIndex"
+                                >
+                            <f:facet name="header">
+                                <h:outputText value="#{dicomStudyEvent.name}" title="#{dicomStudyEvent.description}" />
+                            </f:facet>
+
+                            <!-- All event occurences for subject -->
+                            <p:dataTable
+                                    id="dtEvents"
+                                    var="event"
+                                    value="#{studySubject.getEventOccurrencesForEventDef(dicomStudyEvent)}"
+                                    widgetVar="subjectEventsTable"
+                                    emptyMessage="#{msg.search_empty}"
+                                    rowKey="#{event.studyEventRepeatKey}"
+                                    rowIndexVar="subjectEventRowIndex"
+                                    disabledTextSelection="false"
+                                    >
+
+                                <!-- Row -->
+                                <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                                    <h:outputText value="#{subjectEventRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- All DICOM instance UIDs in EventDef -->
+                                <p:columns
+                                        value="#{mbDicomMatrix.rpbStudy.getAnnotatedItemDefinitionsForEventDef('DICOM_STUDY_INSTANCE_UID', dicomStudyEvent)}"
+                                        var="dicomStudyItemDefinition"
+                                        style="width:10%"
+                                        columnIndexVar="col2Index"
+                                        >
+                                    <f:facet name="header">
+                                        <h:outputText value="#{dicomStudyItemDefinition.label}" title="#{dicomStudyItemDefinition.description}" />
+                                    </f:facet>
+
+                                    <h:inputText
+                                        value="#{mbDicomMatrix.loadDicomStudyType(studySubject, event, dicomStudyItemDefinition)}"
+                                        title="#{mbDicomMatrix.loadDicomStudyLegend(studySubject, event, dicomStudyItemDefinition)}"
+                                        styleClass="#{mbDicomMatrix.loadDicomStudyStatus(studySubject, event, dicomStudyItemDefinition)}"
+                                        readonly="true"
+                                        />
+                                    <br />
+                                    <h:link
+                                        value="View"
+                                        outcome="/pacs/studyView.faces"
+                                        target="_blank"
+                                        rendered="#{mbDicomMatrix.loadDicomStudyStatus(studySubject, event, dicomStudyItemDefinition) == 'SUCCESS'}"
+                                        >
+                                        <f:param name="mode" value="rpbweasisstudyview" />
+                                        <f:param name="patientId" value="#{mbDicomMatrix.selectedEntity.pid}" />
+                                        <f:param name="studyUid" value="#{mbDicomMatrix.loadDicomStudyUid(studySubject, event, dicomStudyItemDefinition)}" />
+                                    </h:link>
+                                </p:columns>
+                            </p:dataTable>
+                        </p:columns>
+
+                        <!-- Footer -->
+                        <f:facet name="footer">
+                            <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomMatrix.entityList.size() == 0}" />
+                            <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomMatrix.entityList.size() == 1}" />
+                            <h:outputFormat
+                                    value="#{msg.search_results_status_n}"
+                                    rendered="#{mbDicomMatrix.entityList.size() > 1}"
+                                    >
+                                <f:param value="#{mbDicomMatrix.entityList.size()}" />
+                            </h:outputFormat>
+                        </f:facet>
+                    </p:dataTable>
+
+                    <!-- DICOM-RT view -->
+                    <!-- Toolbar -->
+                    <p:toolbar rendered="#{mbDicomMatrix.viewType == 'DICOM-RT' and mbDicomMatrix.canShowRtDataTable()}">
+                        <p:toolbarGroup align="left">
+                            <p:commandButton
+                                    value="#{msg.menu_reload}"
+                                    title="#{msg.studySubject_reload}"
+                                    icon="ui-icon-refresh"
+                                    action="#{mbDicomMatrix.load}"
+                                    ajax="false"
+                                    update=":form:tabView:dtRtEntities, :growl"
+                                    />
+                            <p:hotkey
+                                    bind="ctrl+shift+r"
+                                    immediate="true"
+                                    process="@this"
+                                    update=":form:tabView:dtRtEntities, :growl"
+                                    actionListener="#{mbDicomMatrix.load}"
+                                    />
+                        </p:toolbarGroup>
+                        <p:toolbarGroup align="right">
+                            <p:commandButton
+                                    value="#{msg.menu_help}"
+                                    title="#{msg.menu_help}"
+                                    icon="ui-icon-help"
+                                    onclick="target='_blank'"
+                                    ajax="false"
+                                    immediate="true"
+                                    action="#{mbMain.navigateToHelp('x1-240003')}"
+                                    />
+                        </p:toolbarGroup>
+                    </p:toolbar>
+
+                    <!-- DICOM-RT Study Subjects Matrix -->
+                    <p:dataTable
+                        id="dtRtEntities"
+                        var="rtStudySubject"
+                        value="#{mbDicomMatrix.entityList}"
+                        widgetVar="rtStudySubjectsTable"
+                        resizableColumns="true"
+                        paginator="true"
+                        draggableColumns="false"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        filteredValue="#{mbDicomMatrix.filteredEntities}"
+                        selection="#{mbDicomMatrix.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{rtStudySubject.studySubjectId}"
+                        rowIndexVar="rtRowIndex"
+                        sortMode="multiple"
+                        sortBy="#{mbDicomMatrix.preSortOrder}"
+                        disabledTextSelection="false"
+                        rendered="#{mbDicomMatrix.viewType == 'DICOM-RT' and mbDicomMatrix.canShowRtDataTable()}"
+                        >
+
+                        <!-- Table header -->
+                        <f:facet name="header">
+                            <p:commandButton id="btnRtEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                            <p:columnToggler
+                                datasource="dtRtEntities"
+                                trigger=":form:tabView:dtRtEntities:btnRtEntitiesToggler"
+                                style="width:450px"
+                                >
+                                <p:ajax event="toggle" listener="#{mbDicomMatrix.onEntityToggle}" />
+                            </p:columnToggler>
+                        </f:facet>
+
+                        <!-- Row -->
+                        <p:column exportable="false" toggleable="false" style="width:5%">
+                            <f:facet name="header">
+                                <h:outputText value="#" />
+                            </f:facet>
+                            <h:outputText value="#{rtRowIndex + 1}" />
+                        </p:column>
+
+                        <!-- StudySubject ID -->
+                        <p:column
+                            id="colRtStudySubjectId"
+                            headerText="#{msg.studySubject_studySubjectId}"
+                            sortBy="#{rtStudySubject.studySubjectId}"
+                            filterBy="#{rtStudySubject.studySubjectId}"
+                            visible="#{mbDicomMatrix.columnVisibilityList[0]}"
+                            style="width:10%"
+                            >
+                            <h:outputText value="#{rtStudySubject.studySubjectId}" style="float: left;" />
+                        </p:column>
+
+                        <!-- PID -->
+                        <p:column
+                            headerText="#{msg.studySubject_personId}"
+                            sortBy="#{rtStudySubject.pid}"
+                            filterBy="#{rtStudySubject.pid}"
+                            visible="#{mbDicomMatrix.columnVisibilityList[1]}"
+                            style="width:10%"
+                            >
+                            <h:outputText style="font-family:consolas, courier new,monospace;float: left;" value="#{rtStudySubject.pid}" />
+                        </p:column>
+
+                        <!-- Secondary ID -->
+                        <p:column
+                            headerText="#{msg.studySubject_secondaryId}"
+                            sortBy="#{rtStudySubject.secondaryId}"
+                            filterBy="#{rtStudySubject.secondaryId}"
+                            visible="#{mbDicomMatrix.columnVisibilityList[2]}"
+                            style="width:10%"
+                            >
+                            <h:outputText value="#{rtStudySubject.secondaryId}"  style="float: left;" />
+                        </p:column>
+
+                        <!-- Gender -->
+                        <p:column
+                            headerText="#{msg.studySubject_gender}"
+                            sortBy="#{rtStudySubject.sex}"
+                            filterBy="#{rtStudySubject.sex}"
+                            filterMatchMode="in"
+                            visible="#{mbDicomMatrix.columnVisibilityList[3]}"
+                            style="width:10%"
+                            >
+                            <f:facet name="filter">
+                                <p:selectCheckboxMenu
+                                    label="Options"
+                                    onchange="PF('rtStudySubjectsTable').filter()"
+                                    panelStyle="width:50px"
+                                    scrollHeight="50"
+                                    >
+                                    <f:selectItem itemLabel="m" itemValue="m" />
+                                    <f:selectItem itemLabel="f" itemValue="f" />
+                                </p:selectCheckboxMenu>
+                            </f:facet>
+                            <h:outputText value="#{rtStudySubject.sex}" />
+                        </p:column>
+
+                        <!-- Treatment plans -->
+                        <p:column
+                            visible="#{mbDicomMatrix.columnVisibilityList[4]}"
+                            style="width:20%"
+                            >
+                            <f:facet name="header">
+                                <h:outputText value="RTPLAN" />
+                            </f:facet>
+
+                            <!-- RTPLANs in treatment case-->
+                            <p:dataTable
+                                id="dtRtPlans"
+                                var="rtPlan"
+                                value="#{mbDicomMatrix.loadTreatmentCase(rtStudySubject).rtPlans}"
+                                widgetVar="rtPlanTable"
+                                emptyMessage="#{msg.search_empty}"
+                                rowKey="#{rtPlan.label}"
+                                rowIndexVar="rtPlanRowIndex"
+                                disabledTextSelection="false"
+                                >
+
+                                <!-- Row -->
+                                <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                                    <h:outputText value="#{rtPlanRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- Plan Label -->
+                                <p:column>
+                                    <f:facet name="header">
+                                        <h:outputText value="Label" title="(Name)" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtPlan.label}" title="(#{rtPlan.name})" style="float:left;" />
+                                </p:column>
+
+                                <!-- Prescribed Dose -->
+                                <p:column>
+                                    <f:facet name="header">
+                                        <h:outputText value="Prescribed" title="(cGy)" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtPlan.rxDose}" style="float:left;" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:column>
+
+                        <!-- Delineated contour ROIs -->
+                        <p:column
+                            visible="#{mbDicomMatrix.columnVisibilityList[5]}"
+                            style="width:20%"
+                            >
+                            <f:facet name="header">
+                                <h:outputText value="RTSTRUCT" />
+                            </f:facet>
+
+
+                            <!-- RTSTRUCTs in treatment case-->
+                            <p:dataTable
+                                id="dtRtStructs"
+                                var="rtStruct"
+                                value="#{mbDicomMatrix.loadTreatmentCase(rtStudySubject).rtStructureSets}"
+                                widgetVar="rtStructTable"
+                                emptyMessage="#{msg.search_empty}"
+                                rowKey="#{rtStruct.label}"
+                                rowIndexVar="rtStructRowIndex"
+                                disabledTextSelection="false"
+                                >
+
+                                <!-- Row -->
+                                <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                                    <h:outputText value="#{rtStructRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- Plan Label -->
+                                <p:column style="width:70%">
+                                    <f:facet name="header">
+                                        <h:outputText value="Label" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtStruct.label}" style="float:left;" />
+                                </p:column>
+
+                                <!-- ROIs -->
+                                <p:column style="width:20%">
+                                    <f:facet name="header">
+                                        <h:outputText value="ROIs" />
+                                    </f:facet>
+                                    <h:outputText
+                                        value="#{rtStruct.structuresCount}"
+                                        title="#{rtStruct.structuresString}"
+                                        />
+                                </p:column>
+                            </p:dataTable>
+                        </p:column>
+
+                        <!-- Doses -->
+                        <p:column
+                            visible="#{mbDicomMatrix.columnVisibilityList[6]}"
+                            style="width:50%"
+                            >
+                            <f:facet name="header">
+                                <h:outputText value="RTDOSE" />
+                            </f:facet>
+
+                            <!-- RTDOSES in treatment case-->
+                            <p:dataTable
+                                id="dtRtDoses"
+                                var="rtDose"
+                                value="#{mbDicomMatrix.loadTreatmentCase(rtStudySubject).rtDoses}"
+                                widgetVar="rtDoseTable"
+                                emptyMessage="#{msg.search_empty}"
+                                rowKey="#{rtDose.sopInstanceUid}"
+                                rowIndexVar="rtDoseRowIndex"
+                                disabledTextSelection="false"
+                                >
+
+                                <!-- Row -->
+                                <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                                    <h:outputText value="#{rtDoseRowIndex + 1}" />
+                                </p:column>
+
+                                private double doseMax;
+
+                                <!-- DoseUnit -->
+                                <p:column style="width:7%">
+                                    <f:facet name="header">
+                                        <h:outputText value="Unit" title="Dose Unit" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtDose.doseUnit}" style="float:left;" />
+                                </p:column>
+
+                                <!-- DoseType -->
+                                <p:column style="width:17%">
+                                    <f:facet name="header">
+                                        <h:outputText value="Type" title="Dose Type" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtDose.doseType}" style="float:left;" />
+                                </p:column>
+
+                                <!-- DoseSummationType -->
+                                <p:column style="width:10%">
+                                    <f:facet name="header">
+                                        <h:outputText value="Sum" title="Dose Summation Type" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtDose.doseSummationType}" style="float:left;" />
+                                </p:column>
+
+                                <!-- GridScaling -->
+                                <p:column style="width:25%">
+                                    <f:facet name="header">
+                                        <h:outputText value="Scaling" title="Grid Scaling" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtDose.doseGridScaling}" style="float:left;" />
+                                </p:column>
+
+                                <!-- DoseMax -->
+                                <p:column style="width:7%">
+                                    <f:facet name="header">
+                                        <h:outputText value="Max" title="Dose Max" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtDose.doseMax}" style="float:left;" />
+                                </p:column>
+
+                                <!-- DVHs count -->
+                                <p:column style="width:10%">
+                                    <f:facet name="header">
+                                        <h:outputText value="DVHs" />
+                                    </f:facet>
+                                    <h:outputText value="#{rtDose.rtDvhsCount}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:column>
+
+                        <!-- Commands -->
+                        <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            style="width:5%"
+                            toggleable="false"
+                            >
+                            <p:commandButton
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":entityDetailsForm"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editEntityDialog').show();"
+                                >
+                                <f:setPropertyActionListener
+                                    value="#{rtStudySubject}"
+                                    target="#{mbDicomMatrix.selectedEntity}"
+                                    />
+                            </p:commandButton>
+                        </p:column>
+
+                        <!-- Footer -->
+                        <f:facet name="footer">
+                            <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomMatrix.entityList.size() == 0}" />
+                            <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomMatrix.entityList.size() == 1}" />
+                            <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbDicomMatrix.entityList.size() > 1}"
+                                >
+                                <f:param value="#{mbDicomMatrix.entityList.size()}" />
+                            </h:outputFormat>
+                        </f:facet>
+                    </p:dataTable>
+                </h:panelGroup>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- View StudySubject -->
+        <p:dialog
+            id="dlgEntityDetails"
+            widgetVar="editEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- StudySubjectID-->
+                    <h:outputLabel value="#{msg.studySubject_studySubjectId}: " />
+                    <h:outputText value="#{mbDicomMatrix.selectedEntity.studySubjectId}" />
+
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('editEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Spring Security configuration for restriction of user access -->
+<!-- For definition of security mechanism and algorithms go to src/main/resources/spring/applicationContext.xml -->
+<beans:beans
+    xmlns="http://www.springframework.org/schema/security"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd"
+    >
+
+	<!-- Configure Spring Security -->
+    <!-- use-expressions - allows restrictions like permitAll(), etc. -->
+	<http
+        auto-config="false"
+        entry-point-ref="loginUrlAuthenticationEntryPoint"
+        use-expressions="true"
+        >
+
+        <!--Define logout pages (.faces -> .xhtml)-->
+		<logout logout-url="/logout.faces" logout-success-url="/home.faces" />
+
+        <!-- Define rules for the user access -->
+
+        <!-- Only the admin has access to domain web sites for data administration-->
+        <intercept-url pattern="/admin/**/*" access="hasRole('ROLE_ADMIN')" />
+
+        <!-- RPB users -->
+        <intercept-url pattern="/logout*" access="isAuthenticated()" />
+        <intercept-url pattern="/rpb/profile.faces*" access="isAuthenticated()" />
+
+        <intercept-url pattern="/rpb/customQuery.faces*" access="hasRole('ROLE_QUERY')" />
+        <intercept-url pattern="/rpb/importData.faces*" access="hasRole('ROLE_IMPORT')" />
+
+        <!-- CTMS users -->
+        <intercept-url pattern="/ctms/**/*" access="hasRole('ROLE_CTMS_USER')" />
+
+        <!-- EDC users -->
+        <intercept-url pattern="/edc/ecrfStudies.faces*" access="hasRole('ROLE_EDC_USER')" />
+        <intercept-url pattern="/edc/randomisedSubjects.faces*" access="hasRole('ROLE_EDC_RANDOMISE')" />
+        <intercept-url pattern="/edc/openElectronicDataCapture.faces*" access="hasRole('ROLE_EDC_OPEN')" />
+
+        <!-- PID users -->
+        <intercept-url pattern="/pid/*" access="hasRole('ROLE_PID_USER')" />
+
+        <!-- PACS users-->
+        <intercept-url pattern="/pacs/dicomMatrix.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomLookup.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomDownload.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomImage.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomPatientStudies.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomSeriesDownload.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomStudyDownload.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/studySubjectView.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/studyView.faces*" access="hasRole('ROLE_PACS_USER')" />
+
+        <!-- Vissible for all-->
+		<intercept-url pattern="/resource/*" access="permitAll()" />
+		<intercept-url pattern="/javax.*/**" access="permitAll()" />
+		<intercept-url pattern="/login.faces*" access="permitAll()" />
+		<intercept-url pattern="/home.faces*" access="permitAll()" />
+		<intercept-url pattern="/error/*" access="permitAll()" />
+
+        <!-- Weasis needs to access this page without authentication -->
+        <intercept-url pattern="/pacs/viewXml.faces*" access="permitAll()" />
+        <intercept-url pattern="/pacs/wado.faces*" access="permitAll()" />
+
+        <!-- Define where to look for error page when access denied event occure -->
+		<access-denied-handler error-page="/error/accessdenied.faces" />
+
+        <!-- Declare the ussage of myAuthentificationf filter which is defined in /src/main/resources/spring/applicationContext.xml-->
+        <custom-filter position="FORM_LOGIN_FILTER" ref="myAuthenticationFilter" />
+	</http>
+</beans:beans>

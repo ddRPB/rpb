@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.account}" title="#{msg.account}" url="/rpb/profile.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <!-- Toolbar -->
+        <p:toolbar>
+            <p:toolbarGroup  align="left">
+                <p:commandButton
+                        value="#{msg.account_password}"
+                        title="#{msg.account_password}"
+                        icon="ui-icon-key"
+                        oncomplete="PF('passwordDialog').show();"
+                        style="float: left;"
+                        immediate="true"
+                        update=":passwordForm:passwordDisplay"
+                        process="@this"
+                        rendered="#{!userContext.hasRole('ROLE_EDC_OPEN')}"
+                        />
+            </p:toolbarGroup>
+            <p:toolbarGroup align="right">
+                <p:commandButton
+                        value="#{msg.menu_help}"
+                        title="#{msg.menu_help}"
+                        icon="ui-icon-help"
+                        disabled="True"
+                        />
+            </p:toolbarGroup>
+        </p:toolbar>
+
+        <p:panelGrid
+                id="displayProfile"
+                columns="2"
+                cellpadding="4"
+                style="margin:0 auto;float: left;width: 100%"
+                >
+
+            <!-- Header -->
+            <f:facet name="header">#{msg.account}</f:facet>
+
+            <h:outputText value="RPB #{msg.account_username}:" for="txtRpbUserName" />
+            <h:outputText id="txtRpbUserName" value="#{mbMain.myAccount.username}" />
+
+            <h:outputLabel value="OC #{msg.account_username}:" for="txtOcUserName" rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}" />
+            <h:outputText id="txtOcUserName" value="#{mbMain.myAccount.ocUsername}" rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}" />
+
+            <h:outputLabel value="#{msg.account_partnerSite}:" for="txtUserSite" />
+            <h:outputText
+                    id="txtUserSite"
+                    value="#{mbMain.myAccount.partnerSite.siteName}"
+                    title="#{mbMain.myAccount.partnerSite.description}"
+                    />
+
+            <h:outputText value="#{msg.account_email}:" for="txtUserEmail" />
+            <h:inputText
+                    id="txtUserEmail"
+                    value="#{mbMain.myAccount.email}"
+                    maxlength="255"
+                    size="50"
+                    disabled="true"
+                    />
+
+            <!-- RPB roles -->
+            <h:outputLabel value="RPB #{msg.role_plural}:" for="dtEntities" />
+            <p:dataTable
+                    id="dtEntities"
+                    var="userRole"
+                    value="#{mbMain.myAccount.roles}"
+                    widgetVar="userRolesTables"
+                    emptyMessage="#{msg.search_empty}"
+                    rowKey="#{userRole.id}"
+                    selection="#{mbRole.selectedEntity}"
+                    selectionMode="single"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbRole.filteredEntities}"
+                    style="width:400px"
+                    sortBy="#{userRole.name}"
+                    disabledTextSelection="false"
+                    >
+
+                <!-- Row -->
+                <p:column exportable="false" toggleable="false" style="width:3%">
+                    <f:facet name="header">
+                        <h:outputText value="#" />
+                    </f:facet>
+                    <h:outputText value="#{rowIndex + 1}" />
+                </p:column>
+
+                <!-- Role Name -->
+                <p:column
+                        id="colRoleName"
+                        sortBy="#{userRole.name}"
+                        headerText="#{msg.role_roleName}"
+                        >
+                    <h:outputText value="#{userRole.name}" title="#{userRole.description}" style="float:left;" />
+                </p:column>
+            </p:dataTable>
+
+            <!-- TODO: Audit log : last activity, login from, at time, etc. -->
+        </p:panelGrid>
+    </ui:define>
+
+    <ui:define name="dialogs">
+        <!-- Set password -->
+        <p:dialog
+                id="dlgPassword"
+                header="#{msg.account_password}"
+                widgetVar="passwordDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+            <h:form id="passwordForm">
+                <p:panelGrid
+                        id="passwordDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <h:outputText value="Old #{msg.account_password}: *" />
+                    <h:inputSecret
+                            value="#{mbMain.myAccount.oldPassword}"
+                            required="true"
+                            requiredMessage="Please enter old password, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputText value="#{msg.account_password}: *" />
+                    <h:inputSecret
+                            value="#{mbMain.myAccount.password}"
+                            required="true"
+                            requiredMessage="Please enter new password, it is mandatory!"
+                            maxlength="255"
+                            />
+
+                    <h:outputText value="Repeat #{msg.account_password}: *" />
+                    <h:inputSecret
+                            value="#{mbMain.myAccount.passwordCopy}"
+                            required="true"
+                            requiredMessage="Please repeat the new password to ensure that there is no misstype!"
+                            maxlength="255"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbUserAccount.doUpdatePassword(mbMain.myAccount)}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgPassword','passwordForm');"
+                                process="@this passwordForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('passwordDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

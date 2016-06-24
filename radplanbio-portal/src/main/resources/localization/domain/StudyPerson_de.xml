@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyPerson</comment>
+
+    <entry key="studyPerson">Studieperson</entry>
+    <entry key="studyPerson_plural">Studienpersonal</entry>
+    <entry key="studyPerson_reload">Neu laden vorhandenen Studienpersonal</entry>
+    <entry key="studyPerson_print">Drucken Tabelle Studienpersonal</entry>
+    <entry key="studyPerson_new">Definieren Sie eine neue Studienpersonal</entry>
+    <entry key="studyPerson_edit">Bearbeiten Sie ausgewählte Studienpersonal</entry>
+    <entry key="studyPerson_delete">Löschen ausgewählten Studienpersonal</entry>
+
+    <!-- attributes -->
+    <entry key="studyPerson_id">Id</entry>
+    <entry key="studyPerson_startDate">Anfang</entry>
+    <entry key="studyPerson_endDate">Ende</entry>
+    <entry key="studyPerson_canObtaionInformedConsent">Aufklärung</entry>
+    <entry key="studyPerson_comment">Kommentar</entry>
+
+    <!-- many-to-one -->
+    <entry key="studyPerson_study">Studie</entry>
+    <entry key="studyPerson_person">Person</entry>
+    <entry key="studyPerson_role">Rolle</entry>
+
+</properties>

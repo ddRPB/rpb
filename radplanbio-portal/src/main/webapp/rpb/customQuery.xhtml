@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="Data" title="Data" url="#" />
+            <p:menuitem value="Query builder" title="Query builder" url="/rpb/customQuery.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <p:tabView id="tabView" activeIndex="#{mbCustomQuery.activeTabIndex}">
+
+            <!-- Query builder -->
+            <p:tab id="tabQueryBuilder"
+                title="Custom query builder"
+                titletip="RPB custom query builder"
+                >
+
+                <!-- Query builder toolbar -->
+                <p:toolbar>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="Print selected query data elements"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="plItemDefinitions" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="Reload available query data elements"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:plItemDefinitions, :form:tabView:dtDataItems, :growl"
+                            actionListener="#{mbCustomQuery.load}"
+                            />
+                        <p:commandButton
+                            value="Run"
+                            title="Execute specified query"
+                            icon="ui-icon-play"
+                            style="float: left;"
+                            update=":form:tabView:plItemDefinitions, :form:tabView:dtDataItems, :growl"
+                            actionListener="#{mbCustomQuery.executeQuery}"
+                            />
+                        <p:commandButton
+                            value="#{msg.menu_reset}"
+                            title="Reset specified query data elements"
+                            icon="ui-icon-close"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:plItemDefinitions, :form:tabView:dtDataItems, :growl"
+                            actionListener="#{mbCustomQuery.resetQuery}"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Query options -->
+                <p:panelGrid
+                        id="pgQueryOptions"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;float: left;"
+                        >
+
+                    <!-- Query type -->
+                    <h:outputLabel value="Query type: " for="ddlQueryType" />
+                    <p:selectOneMenu id="ddlQueryType"
+                        style="width:250px"
+                        >
+                        <f:selectItem
+                                itemLabel="OC DB directly"
+                                itemValue="0"
+                                />
+                        <!--<f:selectItems-->
+                                <!--value="#{mbStructType.entityList}"-->
+                                <!--var="type"-->
+                                <!--itemLabel="#{type.name}"-->
+                                <!--itemValue="#{type}"-->
+                                <!--itemDescription="#{type.description}"-->
+                                <!--/>-->
+                    </p:selectOneMenu>
+
+                    <!-- Decoding item values -->
+                    <h:outputLabel value="Decode item values: " for="cbDecodeItemValues" />
+                    <p:selectBooleanCheckbox id="cbDecodeItemValues" value="#{mbCustomQuery.decodeItemValues}" />
+
+                </p:panelGrid>
+
+                <!-- PickList -->
+                <p:pickList
+                        id="plItemDefinitions"
+                        value="#{mbCustomQuery.queryDefinitions}"
+                        var="entity"
+                        itemValue="#{entity}"
+                        itemLabel="#{entity.label}"
+                        converter="#{transientConverter}"
+                        showSourceFilter="true"
+                        showTargetFilter="true"
+                        filterMatchMode="contains"
+                        styleClass="p4"
+                        >
+                    <f:facet name="sourceCaption">Available</f:facet>
+                    <f:facet name="targetCaption">Selected</f:facet>
+
+                    <p:column style="width:40%;">
+                        <f:facet name="header">
+                            <h:outputText value="Label" />
+                        </f:facet>
+                        <h:outputText value="#{entity.label}" title="#{entity.name}" />
+                    </p:column>
+
+                    <p:column style="width:60%;">
+                        <f:facet name="header">
+                            <h:outputText value="Description" />
+                        </f:facet>
+                        <h:outputText value="#{entity.description}" title="#{entity.oid}" />
+                    </p:column>
+
+                    <!-- (Event / Form / Group) -->
+                    <!--<p:column style="width:10%;" exportable="false">-->
+                        <!--<p:commandButton-->
+                                <!--icon="ui-icon-contact"-->
+                                <!--title="Edit"-->
+                                <!--update=":entityDetailsForm:editDisplay"-->
+                                <!--immediate="true"-->
+                                <!--process="@this"-->
+                                <!--oncomplete="editEntityDialog.show()"-->
+                                <!-->-->
+                            <!--<f:setPropertyActionListener-->
+                                    <!--value="#{entity}"-->
+                                    <!--target="#{mbStruct.selectedEntity}"-->
+                                    <!--/>-->
+                        <!--</p:commandButton>-->
+                    <!--</p:column>-->
+
+                </p:pickList>
+            </p:tab>
+
+            <!-- Query builder -->
+            <p:tab id="tabSqlQuery"
+                title="Query results"
+                titletip="Results for defined query"
+                >
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="Print data elements"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtDataItems" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="Reload data items"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtDataItems, :growl"
+                            actionListener="#{mbCustomQuery.executeQuery}"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtDataItems"
+                        var="entity"
+                        value="#{mbCustomQuery.dataItems}"
+                        widgetVar="entitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        emptyMessage="No data query results found with given criteria"
+                        rowKey="#{entity.studySubject.studySubjectId}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbCustomQuery.filteredDataItems}"
+                        sortMode="multiple"
+                        sortBy="#{mbCustomQuery.subjectsPreSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler trigger="btnToggler" datasource="dtDataItems" />
+                    </f:facet>
+
+                    <!-- StudySubjectId -->
+                    <p:column
+                            id="colStudySubjectId"
+                            sortBy="#{entity.studySubject.studySubjectId}"
+                            filterBy="#{entity.studySubject.studySubjectId}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="StudySubjectID" />
+                        </f:facet>
+                        <h:outputText value="#{entity.studySubject.studySubjectId}" />
+                    </p:column>
+
+                    <!-- PID -->
+                    <p:column id="colPid"
+                            sortBy="#{entity.studySubject.pid}"
+                            filterBy="#{entity.studySubject.pid}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="PID" />
+                        </f:facet>
+                        <h:outputText value="#{entity.studySubject.pid}" />
+                    </p:column>
+
+                    <!-- All the item data from query -->
+                    <p:columns id="colsDataItems"
+                            value="#{mbCustomQuery.columns}"
+                            var="column"
+                            columnIndexVar="colIndex"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{column.header}" />
+                        </f:facet>
+                        <h:outputText
+                                value="#{entity.getItemData(column.property)}"
+                                title="#{column.tooltip}"
+                                style="float: left;"
+                                />
+                    </p:columns>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbCustomQuery.dataItems.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbCustomQuery.dataItems.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbCustomQuery.dataItems.size() > 1}"
+                                >
+                            <f:param value="#{mbCustomQuery.dataItems.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}" rendered="#{userContext.hasRole('ROLE_EXPORT')}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtDataItems" fileName="QueryResults" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtDataItems" fileName="QueryResults" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs" />
+</ui:composition>

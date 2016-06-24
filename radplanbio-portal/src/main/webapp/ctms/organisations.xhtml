@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="CTMS" title="Clinical Trial Management" url="#" />
+            <p:menuitem value="#{msg.organisation_plural}" title="#{msg.organisation_plural}" url="/ctms/organisations.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- TabView -->
+        <p:tabView id="tabView" activeIndex="#{mbOrganisation.tab.activeIndex}">
+
+            <!-- Organisations -->
+            <p:tab title="#{msg.organisation_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.organisation_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newEntityDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbOrganisation.prepareNewEntity}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="PF('newEntityDialog').show();"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbOrganisation.prepareNewEntity}"
+                                rendered="#{mbOrganisation.tab.activeIndex == 0}"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.organisation_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbOrganisation.load}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbOrganisation.load}"
+                                rendered="#{mbOrganisation.tab.activeIndex == 0}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.organisation_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="To be implemented [ctrl+shift+h]"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Tree Table-->
+                <p:treeTable
+                        id="dtEntities"
+                        var="entity"
+                        value="#{mbOrganisation.root}"
+                        widgetVar="entitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbOrganisation.selectedEntity}"
+                        sortBy="#{entity.name}"
+                        >
+
+                    <!-- Name -->
+                    <p:column
+                            id="colOrganisationName"
+                            style="width:83%"
+                            sortBy="#{entity.name}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.organisation_name}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                            style="width:17%"
+                            >
+                        <p:commandButton
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":entityDetailsForm:editDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editEntityDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{entity}"
+                                    target="#{mbOrganisation.selectedEntity}"
+                                    />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                icon="ui-icon-trash"
+                                title="#{msg.menu_delete}"
+                                update=":deleteEntityForm:deleteDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('deleteEntityDialog').show();"
+                                >
+                            <f:setPropertyActionListener
+                                    value="#{entity}"
+                                    target="#{mbOrganisation.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbOrganisation.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbOrganisation.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbOrganisation.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbOrganisation.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:treeTable>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New Organisation -->
+        <p:dialog
+                id="dlgNewEntity"
+                header="#{msg.organisation_new}"
+                widgetVar="newEntityDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="newEntityForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Organisation name -->
+                    <h:outputLabel value="#{msg.organisation_name}: *" for="txtOrganisationNameNew" />
+                    <p:inputTextarea
+                            id="txtOrganisationNameNew"
+                            value="#{mbOrganisation.newEntity.name}"
+                            maxlength="255"
+                            style="width:350px"
+                            rendered="true"
+                            requiredMessage="Organisation name is mandatory!"
+                            />
+
+                    <!-- Parent -->
+                    <h:outputLabel value="#{msg.organisation_parent}:" for="ddlOrganisationParentNew" />
+                    <p:selectOneMenu
+                            id="ddlOrganisationParentNew"
+                            value="#{mbOrganisation.newEntity.parent}"
+                            converter="#{organisationConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="orgIter"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbOrganisation.entityList}"
+                                var="orgNew"
+                                itemLabel="#{orgNew.name}"
+                                itemValue="#{orgNew}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{orgIter.name}" />
+                        </p:column>
+                        <p:column>
+                            <h:outputText rendered="#{orgIter.parent != null}" value="#{orgIter.parent.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
+                                actionListener="#{mbOrganisation.doCreateEntity}"
+                                process="@this newEntityForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Organisation -->
+        <p:dialog
+                id="dlgEntityDetails"
+                header="#{msg.organisation_edit}"
+                widgetVar="editEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Organisation name -->
+                    <h:outputLabel value="#{msg.organisation_name}: *" for="txtOrganisationNameEdit" />
+                    <p:inputTextarea
+                            id="txtOrganisationNameEdit"
+                            value="#{mbOrganisation.selectedEntity.name}"
+                            maxlength="255"
+                            style="width:350px"
+                            rendered="true"
+                            requiredMessage="Organisation name is mandatory!"
+                            />
+
+                    <!-- Parent -->
+                    <h:outputLabel value="#{msg.organisation_parent}:" for="ddlOrganisationParentEdit" />
+                    <p:selectOneMenu
+                            id="ddlOrganisationParentEdit"
+                            value="#{mbOrganisation.selectedEntity.parent}"
+                            converter="#{organisationConverter}"
+                            style="width:350px"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="orgIter"
+                            >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbOrganisation.entityList}"
+                                var="orgEdit"
+                                itemLabel="#{orgEdit.name}"
+                                itemValue="#{orgEdit}"
+                                />
+                        <p:column>
+                            <h:outputText value="#{orgIter.name}" />
+                        </p:column>
+                        <p:column>
+                            <h:outputText rendered="#{orgIter.parent != null}" value="#{orgIter.parent.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                id="btnEntityUpdate"
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
+                                icon="ui-icon-disk"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                                actionListener="#{mbOrganisation.doUpdateEntity}"
+                                process="@this entityDetailsForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Organisation -->
+        <p:dialog
+                id="dlgDeleteEntity"
+                header="#{msg.organisation_delete}"
+                widgetVar="deleteEntityDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="deleteEntityForm">
+                <p:panelGrid
+                        id="deleteDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- Organisation name -->
+                    <h:outputLabel value="#{msg.organisation_name}:" for="txtOrganisationNameDelete" />
+                    <p:inputTextarea
+                            id="txtOrganisationNameDelete"
+                            value="#{mbOrganisation.selectedEntity.name}"
+                            style="width:350px"
+                            readonly="true"
+                            />
+
+                    <!-- Parent -->
+                    <h:outputLabel value="#{msg.organisation_parent}:" for="txtOrganisationParentDelete" />
+                    <h:outputText
+                        id="txtOrganisationParentDelete"
+                        value="#{mbOrganisation.selectedEntity.parent.name}"
+                        rendered="#{mbOrganisation.selectedEntity.parent != null}"
+                        />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_delete}"
+                                update=":form:tabView:dtEntities, :deleteEntityForm, :growl"
+                                icon="ui-icon-trash"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteEntity','deleteEntityForm');"
+                                actionListener="#{mbOrganisation.doDeleteEntity}"
+                                process="@this deleteEntityForm"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newEntityDialog').hide();
+                    PF('editEntityDialog').hide();
+                    PF('deleteEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

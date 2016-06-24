@@ -1,0 +1,1060 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="PID" title="PID - Patient Centric View" url="/pid/pidCRUD.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- Main Tab -->
+        <p:tabView id="tabView" activeIndex="#{mbPid.tab.activeIndex}">
+
+            <!-- Patient PIDs -->
+            <p:tab title="#{msg.person_patient_plural}">
+
+                <!-- Patient Search Form -->
+                <p:accordionPanel id="pnlSearchPatient" multiple="true">
+
+                    <p:tab title="#{msg.search_mode}">
+                        <p:panelGrid
+                                columnClasses="column"
+                                columns="2"
+                                >
+                            <!-- Search Mode -->
+                            <h:outputLabel value="IDAT:" />
+                            <p:inputSwitch value="#{mbPid.idatSearchMode}">
+                                <p:ajax update=":form:tabView:pnlSearchPatient:pnlSearchCriteria, :growl" />
+                            </p:inputSwitch>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Search Criteria -->
+                    <p:tab title="#{msg.search_criteria}">
+
+                        <p:panelGrid
+                            id="pnlSearchCriteria"
+                            columnClasses="column"
+                            columns="2"
+                            >
+
+                            <!-- PID - pseudonym -->
+                            <h:outputLabel value="PID: *" for="txtPid" rendered="#{!mbPid.idatSearchMode}" />
+                            <p:inputText
+                                id="txtPid"
+                                value="#{mbPid.newSearchPerson.pid}"
+                                required="true"
+                                requiredMessage="PID (pseudonym) is mandatory!"
+                                rendered="#{!mbPid.idatSearchMode}"
+                                />
+
+                            <!-- FirstName -->
+                            <h:outputLabel value="#{msg.person_firstname}: *" for="txtFirstName" rendered="#{mbPid.idatSearchMode}" />
+                            <p:inputText
+                                    id="txtFirstName"
+                                    value="#{mbPid.newSearchPerson.firstname}"
+                                    required="true"
+                                    requiredMessage="First name is mandatory!"
+                                    rendered="#{mbPid.idatSearchMode}"
+                                    />
+
+                            <!-- LastName -->
+                            <h:outputLabel value="#{msg.person_surname}: *" for="txtLastName" rendered="#{mbPid.idatSearchMode}" />
+                            <p:inputText
+                                    id="txtLastName"
+                                    value="#{mbPid.newSearchPerson.surname}"
+                                    required="true"
+                                    requiredMessage="Last name is mandatory!"
+                                    rendered="#{mbPid.idatSearchMode}"
+                                    />
+
+                            <!-- Birthdate -->
+                            <h:outputLabel value="#{msg.person_birthdate}: *" for="dateOfBirth" rendered="#{mbPid.idatSearchMode}" />
+                            <p:calendar
+                                    id="dateOfBirth"
+                                    pattern="dd.MM.yyyy"
+                                    value="#{mbPid.newSearchPerson.birthdate}"
+                                    required="true"
+                                    requiredMessage="Date of birth is mandatory!"
+                                    rendered="#{mbPid.idatSearchMode}"
+                                    />
+
+                            <!-- City -->
+                            <h:outputLabel value="#{msg.person_city}: " for="txtCity" rendered="#{mbPid.idatSearchMode}" />
+                            <p:inputText id="txtCity" value="#{mbPid.newSearchPerson.city}" rendered="#{mbPid.idatSearchMode}" />
+
+                            <!-- ZIP -->
+                            <h:outputLabel value="#{msg.person_zip}:" for="txtZip" rendered="#{mbPid.idatSearchMode}" />
+                            <p:inputText id="txtZip" value="#{mbPid.newSearchPerson.zipcode}" rendered="#{mbPid.idatSearchMode}" />
+
+                            <!-- Commands -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                    title="#{msg.icon_search}"
+                                    value="#{msg.icon_search}"
+                                    action="#{mbPid.searchPatient}"
+                                    icon="ui-icon-search"
+                                    ajax="false"
+                                    update=":form:tabView:dtEntities, :form:tabView:dtStudySubjects, :form:tabView:dtDicomStudies, :growl"
+                                    disabled="#{!userContext.hasRole('ROLE_PID_SEARCH')}"
+                                    />
+                                <p:commandButton
+                                    value="#{msg.menu_reset}"
+                                    title="#{msg.menu_reset}"
+                                    type="reset"
+                                    icon="ui-icon-close"
+                                    />
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:accordionPanel>
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="Define a new Pseudonym [ctrl+shift+n]"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newEntityDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbPid.prepareNewEntity}"
+                                disabled="#{!userContext.hasRole('ROLE_PID_NEW')}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+n"
+                                oncomplete="newEntityDialog.show()"
+                                immediate="true"
+                                update=":newEntityForm:newDisplay"
+                                process="@this"
+                                actionListener="#{mbPid.prepareNewEntity}"
+                                disabled="#{!userContext.hasRole('ROLE_PID_NEW')}"
+                                />
+
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="Reload PIDs [ctrl+shift+r]"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPid.loadAllPids}"
+                                disabled="#{!userContext.hasRole('ROLE_ADMIN')}"
+                                />
+                        <p:hotkey
+                                bind="ctrl+shift+r"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPid.loadAllPids}"
+                                disabled="#{!userContext.hasRole('ROLE_ADMIN')}"
+                                />
+
+                        <p:commandButton
+                                value="Depseudonymise"
+                                icon="ui-icon-unlocked"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtEntities, :growl"
+                                actionListener="#{mbPid.depseudonymiseAllPids}"
+                                disabled="#{!userContext.hasRole('ROLE_ADMIN')}"
+                                />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                id="btnPatientPidsPrint"
+                                value="#{msg.menu_print}"
+                                title="#{msg.menu_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-250004')}"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- PIDs -->
+                <p:dataTable
+                        id="dtEntities"
+                        var="person"
+                        value="#{mbPid.entityList}"
+                        widgetVar="pidsTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbPid.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{person.pid}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbPid.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbPid.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!--AJAX onclick on datatable row -->
+                    <p:ajax event="rowSelect" listener="#{mbPid.loadPatientDetails}" update=":form:tabView:dtStudySubjects :form:tabView:dtDicomStudies" />
+
+                    <!-- Data table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtEntities"
+                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbPid.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- PID -->
+                    <p:column
+                            id="colPersonPid"
+                            headerText="PID"
+                            sortBy="#{person.pid}"
+                            filterBy="#{person.pid}"
+                            filterMatchMode="contains"
+                            style="width:15%"
+                            visible="#{mbPid.columnVisibilityList[0]}"
+                            >
+                        <h:outputText value="#{person.pid}" style="font-family:consolas, courier new,monospace;" />
+                    </p:column>
+
+                    <!-- Firstname -->
+                    <p:column
+                            id="colFirstName"
+                            sortBy="#{person.firstname}"
+                            filterBy="#{person.firstname}"
+                            filterMatchMode="contains"
+                            style="width:15%"
+                            visible="#{mbPid.columnVisibilityList[1]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_firstname}" />
+                        </f:facet>
+                        <h:outputText value="#{person.firstname}"  style="float: left;" />
+                    </p:column>
+
+                    <!-- Lastname -->
+                    <p:column
+                            id="colLastName"
+                            sortBy="#{person.surname}"
+                            filterBy="#{person.surname}"
+                            filterMatchMode="contains"
+                            style="width:15%"
+                            visible="#{mbPid.columnVisibilityList[2]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_surname}" />
+                        </f:facet>
+                        <h:outputText value="#{person.surname}"  style="float: left;" />
+                    </p:column>
+
+                    <!-- Birthdate -->
+                    <p:column
+                            id="colDateOfBirth"
+                            sortBy="#{person.birthdate}"
+                            filterBy="#{person.birthdate}"
+                            filterMatchMode="contains"
+                            style="width:15%"
+                            visible="#{mbPid.columnVisibilityList[3]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_birthdate}" style="float: left;" />
+                        </f:facet>
+                        <p:calendar
+                                pattern="dd.MM.yyyy"
+                                value="#{person.birthdate}"
+                                disabled="true"
+                                />
+                    </p:column>
+
+                    <!-- Birth name -->
+                    <p:column
+                            sortBy="#{person.birthname}"
+                            filterBy="#{person.birthname}"
+                            filterMatchMode="contains"
+                            style="width:15%"
+                            visible="#{mbPid.columnVisibilityList[4]}"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_birthname}" style="float: left;" />
+                        </f:facet>
+                        <h:outputText value="#{person.birthname}" />
+                    </p:column>
+
+                    <!-- Place of residence -->
+                    <p:column
+                            sortBy="#{person.city}"
+                            filterBy="#{person.city}"
+                            filterMatchMode="contains"
+                            visible="#{mbPid.columnVisibilityList[5]}"
+                            style="width:15%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_city}" style="float: left;" />
+                        </f:facet>
+                        <h:outputText value="#{person.city}" />
+                    </p:column>
+
+                    <!-- ZIP of residence -->
+                    <p:column
+                            sortBy="#{person.zipcode}"
+                            filterBy="#{person.zipcode}"
+                            filterMatchMode="contains"
+                            visible="#{mbPid.columnVisibilityList[6]}"
+                            style="width:15%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.person_zip}" style="float: left;" />
+                        </f:facet>
+                        <h:outputText value="#{person.zipcode}" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            style="width:17%"
+                            toggleable="false"
+                            >
+                        <p:commandButton
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":entityDetailsForm:editDisplay"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('editEntityDialog').show();"
+                                >
+                                <f:setPropertyActionListener
+                                    value="#{person}"
+                                    target="#{mbPid.selectedEntity}"
+                                    />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPid.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPid.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPid.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbPid.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+            </p:tab>
+
+            <!-- Patient participating in Studies -->
+            <p:tab title="#{msg.study_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.studySubject_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtStudySubjects, :growl"
+                                actionListener="#{mbPid.loadPatientStudySubjects}"
+                                />
+
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.studySubject_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtStudySubjects" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-250004')}"
+                                disabled="true"
+                                />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- Patient StudySubjects -->
+                <p:dataTable
+                        id="dtStudySubjects"
+                        var="studySubject"
+                        value="#{mbPid.selectedEntity.studySubjects}"
+                        widgetVar="studySubjectsTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbStudySubject.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{studySubject.protocolStudySubjectId}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbStudySubject.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbStudySubject.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+                    <!-- Data table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnStudySubjectToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtStudySubjects"
+                                trigger=":form:tabView:dtStudySubjects:btnStudySubjectToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbStudySubject.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- StudySubject ID -->
+                    <p:column
+                            id="colStudySubjectId"
+                            headerText="#{msg.studySubject_studySubjectId}"
+                            sortBy="#{studySubject.studySubjectId}"
+                            filterBy="#{studySubject.studySubjectId}"
+                            filterMatchMode="contains"
+                            visible="#{mbStudySubject.columnVisibilityList[0]}"
+                            style="width:20%"
+                            >
+                        <h:outputText value="#{studySubject.studySubjectId}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Gender -->
+                    <p:column
+                            headerText="#{msg.studySubject_gender}"
+                            sortBy="#{studySubject.sex}"
+                            filterBy="#{studySubject.sex}"
+                            filterMatchMode="in"
+                            visible="#{mbStudySubject.columnVisibilityList[1]}"
+                            style="width:15%"
+                            >
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                    label="Options"
+                                    onchange="PF('studySubjectsTable').filter()"
+                                    panelStyle="width:50px"
+                                    scrollHeight="50"
+                                    >
+                                <f:selectItems
+                                        value="#{mbStudySubject.genderValues}"
+                                        var="gender"
+                                        itemLabel="#{gender}"
+                                        itemValue="#{gender}"
+                                        />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{studySubject.sex}" style="float:left;" />
+                    </p:column>
+
+                    <!-- EnrollmentDate-->
+                    <p:column
+                            headerText="#{msg.studySubject_enrollmentDate}"
+                            sortBy="#{studySubject.enrollmentDate}"
+                            filterBy="#{studySubject.enrollmentDate}"
+                            filterMatchMode="contains"
+                            visible="#{mbStudySubject.columnVisibilityList[2]}"
+                            style="width:15%"
+                            >
+                        <h:outputText value="#{studySubject.enrollmentDate}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Study -->
+                    <p:column
+                            headerText="#{msg.study}"
+                            sortBy="#{studySubject.study.name}"
+                            filterBy="#{studySubject.study.name}"
+                            filterMatchMode="contains"
+                            style="width:45%"
+                            visible="#{mbStudySubject.columnVisibilityList[3]}"
+                            >
+                        <h:outputText value="#{studySubject.study.name}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPid.selectedEntity.studySubjects.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPid.selectedEntity.studySubjects.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPid.selectedEntity.studySubjects.size() > 1}"
+                                >
+                            <f:param value="#{mbPid.selectedEntity.studySubjects.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+            </p:tab>
+
+            <!-- Patient have DICOM studies in reseach PACS -->
+            <p:tab title="DICOM">
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.menu_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtDicomStudies, :growl"
+                                actionListener="#{mbPid.loadPatientDicomStudies}"
+                                />
+
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.menu_print}"
+                                icon="ui-icon-print"
+                                >
+                            <p:printer target="dtDicomStudies" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-250004')}"
+                                disabled="true"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Patient DicomStudies -->
+                <p:dataTable
+                        id="dtDicomStudies"
+                        var="dicomStudy"
+                        value="#{mbPid.selectedEntity.dicomStudies}"
+                        widgetVar="dicomStudiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbDicomStudy.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{dicomStudy.studyInstanceUID}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbDicomStudy.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbDicomStudy.preSortOrder}"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Data table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnDicomStudyToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtDicomStudies"
+                                trigger=":form:tabView:dtDicomStudies:btnDicomStudyToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbStudySubject.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row expansion -->
+                    <p:column style="width:16px">
+                        <p:rowToggler />
+                    </p:column>
+
+                    <!-- Row -->
+                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- StudyInstance UID -->
+                    <p:column
+                            id="colDicomStudyUid"
+                            headerText="UID"
+                            sortBy="#{dicomStudy.studyInstanceUID}"
+                            filterBy="#{dicomStudy.studyInstanceUID}"
+                            filterMatchMode="contains"
+                            visible="#{mbDicomStudy.columnVisibilityList[0]}"
+                            style="width:20%"
+                            >
+                        <h:outputText value="#{dicomStudy.studyInstanceUID}" style="float: left;" />
+                    </p:column>
+
+                    <!-- DICOM study description-->
+                    <p:column
+                            headerText="DICOM Study Description"
+                            sortBy="#{dicomStudy.studyDescription}"
+                            visible="#{mbDicomStudy.columnVisibilityList[1]}"
+                            style="width:40%"
+                            >
+                        <h:outputText value="#{dicomStudy.studyDescription}" style="float: left;" />
+                    </p:column>
+
+                    <!-- DICOM study type deduced from series modalities -->
+                    <p:column
+                            headerText="Type"
+                            sortBy="#{dicomStudy.studyType}"
+                            filterBy="#{dicomStudy.studyType}"
+                            filterMatchMode="contains"
+                            visible="#{mbDicomStudy.columnVisibilityList[2]}"
+                            style="width:20%"
+                            >
+                        <h:outputText value="#{dicomStudy.studyType}" style="float: left;"  />
+                    </p:column>
+
+                    <!-- Date -->
+                    <p:column
+                            headerText="Date"
+                            sortBy="#{dicomStudy.studyDate}"
+                            filterBy="#{dicomStudy.studyDate}"
+                            filterMatchMode="contains"
+                            visible="#{mbDicomStudy.columnVisibilityList[3]}"
+                            style="width:10%"
+                            >
+                        <h:outputText value="#{dicomStudy.studyDate}" style="float: left;"  />
+                    </p:column>
+
+                    <!--<p:column-->
+                        <!--headerText="#{msg.menu_commands}"-->
+                        <!--exportable="false"-->
+                        <!--toggleable="false"-->
+                        <!--style="width:17%"-->
+                        <!--&gt;-->
+                        <!--<h:link-->
+                            <!--value="View"-->
+                            <!--outcome="/pacs/studyView.faces"-->
+                            <!--target="_blank"-->
+                            <!--&gt;-->
+                            <!--&lt;!&ndash;New funtionaltity which should enable weasis for outside&ndash;&gt;-->
+                            <!--<f:param name="mode" value="rpbweasisstudyview" />-->
+                            <!--<f:param name="patientId" value="#{mbMain.myAccount.partnerSite.identifier} + '-' + #{mbPid.selectedEntity.pid}" />-->
+                            <!--<f:param name="studyUid" value="#{dicomStudy.studyInstanceUID}" />-->
+                        <!--</h:link>-->
+                    <!--</p:column>-->
+
+                    <!-- DicomSeries -->
+                    <p:rowExpansion>
+
+                            <p:dataTable
+                                    id="dtDicomSeries"
+                                    var="dicomSerie"
+                                    value="#{dicomStudy.studySeries}"
+                                    widgetVar="dicomSeriesTable"
+                                    resizableColumns="true"
+                                    draggableColumns="false"
+                                    paginator="true"
+                                    rows="15"
+                                    rowsPerPageTemplate="15,25,50"
+                                    emptyMessage="#{msg.search_empty}"
+                                    selection="#{mbDicomSerie.selectedEntity}"
+                                    selectionMode="single"
+                                    rowKey="#{dicomSerie.seriesInstanceUID}"
+                                    rowIndexVar="subRowIndex"
+                                    filteredValue="#{mbDicomSerie.filteredEntities}"
+                                    sortMode="multiple"
+                                    sortBy="#{mbDicomSerie.preSortOrder}"
+                                    disabledTextSelection="false"
+                                    >
+
+                                <!-- Table header -->
+                                <f:facet name="header">
+                                    <p:commandButton id="btnDicomSeriesEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                                    <p:columnToggler
+                                        datasource="dtDicomSeries"
+                                        trigger=":form:tabView:dtDicomStudies:dtDicomSeries:btnDicomSeriesEntitiesToggler"
+                                        style="width:450px"
+                                        >
+                                        <p:ajax event="toggle" listener="#{mbDicomSerie.onEntityToggle}" />
+                                    </p:columnToggler>
+                                </f:facet>
+
+                                <!-- Row -->
+                                <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                    <h:outputText value="#{subRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- SeriesInstance UID -->
+                                <p:column
+                                    id="colDicomSerieUid"
+                                    headerText="UID"
+                                    sortBy="#{dicomSerie.seriesInstanceUID}"
+                                    filterBy="#{dicomSerie.seriesInstanceUID}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[0]}"
+                                    style="width:10%"
+                                    >
+                                    <h:outputText value="#{dicomSerie.seriesInstanceUID}" style="float: left;" />
+                                </p:column>
+
+                                <!-- Description -->
+                                <p:column
+                                    headerText="Description"
+                                    sortBy="#{dicomSerie.seriesDescription}"
+                                    filterBy="#{dicomSerie.seriesDescription}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[1]}"
+                                    style="width:50%"
+                                    >
+                                    <h:outputText value="#{dicomSerie.seriesDescription}" style="float: left;" />
+                                </p:column>
+
+                                <!-- Modality -->
+                                <p:column
+                                    headerText="Modality"
+                                    sortBy="#{dicomSerie.seriesModality}"
+                                    filterBy="#{dicomSerie.seriesModality}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[2]}"
+                                    style="width:20%"
+                                    >
+                                    <h:outputText value="#{dicomSerie.seriesModality}" style="float: left;" />
+                                </p:column>
+
+                                <!-- Time -->
+                                <p:column
+                                    headerText="Time"
+                                    sortBy="#{dicomSerie.seriesTime}"
+                                    visible="#{mbDicomSerie.columnVisibilityList[3]}"
+                                    style="width:10%"
+                                    >
+                                    <h:outputText value="#{dicomSerie.seriesTime}" style="float: left;" />
+                                </p:column>
+
+                                <!-- Footer -->
+                                <f:facet name="footer">
+                                    <h:outputText value="#{msg.search_results_status_0}" rendered="#{dicomStudy.studySeries.size() == 0}" />
+                                    <h:outputText value="#{msg.search_results_status_1}" rendered="#{dicomStudy.studySeries.size() == 1}" />
+                                    <h:outputFormat
+                                        value="#{msg.search_results_status_n}"
+                                        rendered="#{dicomStudy.studySeries.size() > 1}"
+                                        >
+                                        <f:param value="#{dicomStudy.studySeries.size()}" />
+                                    </h:outputFormat>
+                                </f:facet>
+                            </p:dataTable>
+                    </p:rowExpansion>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPid.selectedEntity.dicomStudies.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPid.selectedEntity.dicomStudies.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbPid.selectedEntity.dicomStudies.size() > 1}"
+                                >
+                            <f:param value="#{mbPid.selectedEntity.dicomStudies.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+            </p:tab>
+
+        </p:tabView>
+
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New Person PID -->
+        <p:dialog
+                id="dlgNewEntity"
+                header="New Patient Registration"
+                widgetVar="newEntityDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                >
+
+            <!-- Form -->
+            <h:form id="newEntityForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- PID -->
+                    <h:outputLabel value="PID:" for="txtPatientPidNew" />
+                    <h:outputText
+                            id="txtPatientPidNew"
+                            value="#{mbPid.newEntity.pid}"
+                            style="font-family:consolas, courier new,monospace;"
+                            />
+
+                    <!-- Firstname -->
+                    <h:outputLabel value="#{msg.person_firstname}: *" for="txtPatientFirstNameNew" />
+                    <p:inputText
+                            id="txtPatientFirstNameNew"
+                            value="#{mbPid.newEntity.firstname}"
+                            required="true"
+                            requiredMessage="First name is mandatory!"
+                            />
+
+                    <!-- Lastname -->
+                    <h:outputLabel value="#{msg.person_surname}: *" for="txtPatientLastNameNew" />
+                    <p:inputText
+                            id="txtPatientLastNameNew"
+                            value="#{mbPid.newEntity.surname}"
+                            required="true"
+                            requiredMessage="Last name is mandatory!"
+                            />
+
+                    <!-- Birthdate -->
+                    <h:outputLabel value="#{msg.person_birthdate}: *" for="calPatientBirthdateNew" />
+                    <p:calendar
+                            id="calPatientBirthdateNew"
+                            pattern="dd.MM.yyyy"
+                            value="#{mbPid.newEntity.birthdate}"
+                            required="true"
+                            requiredMessage="Date of birth is mandatory!"
+                            />
+
+                    <!-- Birthname -->
+                    <h:outputLabel value="#{msg.person_birthname}:" for="txtPatientBirthNameNew" />
+                    <p:inputText
+                            id="txtPatientBirthNameNew"
+                            value="#{mbPid.newEntity.birthname}"
+                            title="Maiden name is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- Place of residence -->
+                    <h:outputLabel value="#{msg.person_city}:" for="txtPatientResidenceNew" />
+                    <p:inputText
+                            id="txtPatientResidenceNew"
+                            value="#{mbPid.newEntity.city}"
+                            title="Place of residence is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- ZIP of residence -->
+                    <h:outputLabel value="#{msg.person_zip}:" for="txtPatientResidenceZipNew" />
+                    <p:inputText
+                            id="txtPatientResidenceZipNew"
+                            value="#{mbPid.newEntity.zipcode}"
+                            title="ZIP code is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- Force Sureness about the new patient data => force new PID if possible patient match -->
+                    <h:outputText
+                            value="I am sure that patient data is correct and I want to create a new PID number:"
+                            rendered="#{!mbPid.isSure}"
+                            />
+                    <p:selectBooleanCheckbox
+                            rendered="#{!mbPid.isSure}"
+                            value="#{mbPid.newEntity.isSure}"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="Generate PID"
+                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbPid.doCreateEntity}"
+                                process="@this newEntityForm"
+                                />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit -->
+        <p:dialog
+              id="dlgEntityDetails"
+              header="Patient details"
+              widgetVar="editEntityDialog"
+              resizable="false"
+              appendToBody="true"
+              modal="true"
+              closeOnEscape="true"
+              >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                        id="editDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                        >
+
+                    <!-- PID -->
+                    <h:outputLabel value="PID:" for="txtPatientPidEdit" />
+                    <h:outputText
+                            id="txtPatientPidEdit"
+                            value="#{mbPid.selectedEntity.pid}"
+                            style="font-family:consolas, courier new,monospace;"
+                            />
+
+
+                    <!-- Firstname -->
+                    <h:outputLabel value="#{msg.person_firstname}: *" for="txtPatientFirstNameEdit" />
+                    <p:inputText
+                            id="txtPatientFirstNameEdit"
+                            value="#{mbPid.selectedEntity.firstname}"
+                            required="true"
+                            requiredMessage="First name is mandatory!"
+                            />
+
+                    <!-- Lastname -->
+                    <h:outputLabel value="#{msg.person_surname}: *" for="txtPatientLastNameEdit" />
+                    <p:inputText
+                            id="txtPatientLastNameEdit"
+                            value="#{mbPid.selectedEntity.surname}"
+                            required="true"
+                            requiredMessage="Last name is mandatory!"
+                            />
+
+                    <!-- Birthdate -->
+                    <h:outputLabel value="#{msg.person_birthdate}: *" for="calPatientBirthdateEdit" />
+                    <p:calendar
+                            id="calPatientBirthdateEdit"
+                            pattern="dd.MM.yyyy"
+                            value="#{mbPid.selectedEntity.birthdate}"
+                            required="true"
+                            requiredMessage="Date of birth is mandatory!"
+                            />
+
+                    <!-- Birstname -->
+                    <h:outputLabel value="#{msg.person_birthname}:" for="txtPatientBirthNameEdit" />
+                    <p:inputText
+                            id="txtPatientBirthNameEdit"
+                            value="#{mbPid.selectedEntity.birthname}"
+                            title="Maiden name is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- Place of residence -->
+                    <h:outputLabel value="#{msg.person_city}:" for="txtPatientResidenceEdit" />
+                    <p:inputText
+                            id="txtPatientResidenceEdit"
+                            value="#{mbPid.selectedEntity.city}"
+                            title="Place of residence is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- ZIP of residence -->
+                    <h:outputLabel value="#{msg.person_zip}:" for="txtPatientResidenceZipEdit" />
+                    <p:inputText
+                            id="txtPatientResidenceZipEdit"
+                            value="#{mbPid.selectedEntity.zipcode}"
+                            title="ZIP code is recommended to ensure the uniqueness of PID"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_save}"
+                                icon="ui-icon-disk"
+                                update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                                actionListener="#{mbPid.doUpdateEntity}"
+                                process="@this entityDetailsForm"
+                                disabled="#{!userContext.hasRole('ROLE_PID_EDIT')}"
+                                />
+                        <p:commandButton
+                                value="Depseudonymise"
+                                icon="ui-icon-unlocked"
+                                update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{mbPid.depseudonymisePid}"
+                                disabled="#{!userContext.hasRole('ROLE_REIDENTIFY')}"
+                                />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newEntityDialog').hide();
+                    PF('editEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

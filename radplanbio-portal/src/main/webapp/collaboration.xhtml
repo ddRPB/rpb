@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.collaboartion}" title="#{msg.collaboartion}" url="/collaboration.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <p:panel header="#{msg.partnerSite_plural}">
+            <p:gmap
+                id="gmap"
+                center="51.056475, 13.787435"
+                zoom="5"
+                type="TERRAIN"
+                model="#{mbCollaboration.simpleModel}"
+                style="width:100%;height:600px"
+                >
+                <p:ajax event="overlaySelect" listener="#{mbCollaboration.onMarkerSelect}" update=":growl" />
+            </p:gmap>
+            
+            <!-- Give focus to first link to ease keyboard navigation -->
+            <script type="text/javascript">
+                $(function() {
+                    setTimeout(function() {
+                        APP.focusTo('form:logo_link');
+                    }, 200);
+                });
+            </script>
+        </p:panel>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,2018 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+    >
+    <!-- Default account and role association -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-1">
+        <createTable tableName="account_role">
+            <column name="accountid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="roleid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Annotation Type -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-2">
+        <createTable tableName="annotationtype">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="annotationtype_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Article -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-3">
+        <createTable tableName="article">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="article_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pubdate" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="abstract" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Article Category -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-4">
+        <createTable tableName="articlecategory">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="articlecategory_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Article Tag -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-5">
+        <createTable tableName="articletag">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="articletag_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Client IE -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-7">
+        <createTable tableName="clientie">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="clientie_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+            <column name="siteid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key" type="BYTEA">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Code list -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-8">
+        <createTable tableName="codelist">
+            <column autoIncrement="true" name="codelistid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="codelist_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="oid" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="datatypeid" type="INT4"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Code list item -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-9">
+        <createTable tableName="codelistitem">
+            <column autoIncrement="true" name="listitemid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="codelistitem_pkey"/>
+            </column>
+            <column name="codedvalue" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="decodedvalue" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="belongtolistid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Column data type -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-10">
+        <createTable tableName="columndatatype">
+            <column autoIncrement="true" name="typeid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="columndatatype_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- eCRF field annotation -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-11">
+        <createTable tableName="crffieldannotation">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="crffieldannotation_pkey"/>
+            </column>
+            <column name="eventdefinitionoid" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="formoid" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="groupoid" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="crfitemoid" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="typeid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="studyid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Data export -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-14">
+        <createTable tableName="dataexport">
+            <column autoIncrement="true" name="exportid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="dataexport_pkey"/>
+            </column>
+            <column name="initialisedwithpullid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asresultofpushid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exported" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Data import -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-15">
+        <createTable tableName="dataimport">
+            <column autoIncrement="true" name="importid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="dataimport_pkey"/>
+            </column>
+            <column name="initialisedwithpullid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asresultofpushid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="inported" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Data map -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-16">
+        <createTable tableName="datamap">
+            <column autoIncrement="true" name="mapid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="datamap_pkey"/>
+            </column>
+            <column name="datacolumnid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadatacolumnid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mandatory" type="BOOL"/>
+            <column name="datatypeid" type="INT4"/>
+            <column name="belongtoexportmappingid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="codelistid" type="INT4"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Default user account -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-17">
+        <createTable tableName="defaultaccount">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="defaultaccount_pkey"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="NULL::character varying" name="email" type="VARCHAR(255)"/>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+            <column name="partnersiteid" type="INT4"/>
+            <column defaultValue="NULL::character varying" name="ocusername" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Document type -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-18">
+        <createTable tableName="doctype">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="doctype_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- EDC -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-19">
+        <createTable tableName="edc">
+            <column autoIncrement="true" name="edcid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="edc_pkey"/>
+            </column>
+            <column name="edcbaseurl" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="soapbaseurl" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Encryption key -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-20">
+        <createTable tableName="encryptionkey">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="encryptionkey_pkey"/>
+            </column>
+            <column name="key" type="BYTEA">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Export mapping -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-21">
+        <createTable tableName="exportmapping">
+            <column autoIncrement="true" name="mappingid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="exportmapping_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dataheaderid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadataheaderid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Header (of table for mapping) -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-22">
+        <createTable tableName="header">
+            <column autoIncrement="true" name="headerid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="header_pkey"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Header column -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-23">
+        <createTable tableName="headercolumn">
+            <column autoIncrement="true" name="columnid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="headercolumn_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="belongtoheaderid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- PACS -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-24">
+        <createTable tableName="pacs">
+            <column autoIncrement="true" name="pacsid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="pacs_pkey"/>
+            </column>
+            <column name="pacsbaseurl" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Partner site -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-25">
+        <createTable tableName="partnersite">
+            <column autoIncrement="true" name="siteid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="partnersite_pkey"/>
+            </column>
+            <column name="sitename" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+            <column name="serverid" type="INT4"/>
+            <column name="pacsid" type="INT4"/>
+            <column name="portalid" type="INT4"/>
+            <column name="generatorid" type="INT4"/>
+            <column name="edcid" type="INT4"/>
+            <column name="identifier" type="VARCHAR(10)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- PIDG -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-26">
+        <createTable tableName="pidg">
+            <column autoIncrement="true" name="generatorid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="pidg_pkey"/>
+            </column>
+            <column name="generatorbaseurl" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="apikey" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="adminusername" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="adminpassword" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Portal -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-27">
+        <createTable tableName="portal">
+            <column autoIncrement="true" name="portalid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="portal_pkey"/>
+            </column>
+            <column name="portalbaseurl" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Pull data request -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-29">
+        <createTable tableName="pulldatarequest">
+            <column autoIncrement="true" name="pullid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="pulldatarequest_pkey"/>
+            </column>
+            <column name="sentfromsiteid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="senttositeid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="TEXT"/>
+            <column name="created" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Push data response -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-30">
+        <createTable tableName="pushdataresponse">
+            <column autoIncrement="true" name="pushid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="pushdataresponse_pkey"/>
+            </column>
+            <column name="sentfromsiteid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="senttositeid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="TEXT"/>
+            <column name="created" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Role -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-34">
+        <createTable tableName="role">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="role_pkey"/>
+            </column>
+            <column name="rolename" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- RT-Struct -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-35">
+        <createTable tableName="rtstruct">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="rtstruct_pkey"/>
+            </column>
+            <column name="identifier" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="typeid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- RT-Struct type -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-36">
+        <createTable tableName="rtstructtype">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="rtstructtype_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Server IE -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-37">
+        <createTable tableName="serverie">
+            <column autoIncrement="true" name="serverid" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="serverie_pkey"/>
+            </column>
+            <column name="ipaddress" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="port" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="true" name="isenabled" type="BOOL"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Study -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-38">
+        <createTable tableName="study">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="study_pkey"/>
+            </column>
+            <column name="ocstudyidentifier" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="siteid" type="INT4"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Study Document-->
+    <changeSet author="skripcakt (generated)" id="1391174688024-39">
+        <createTable tableName="studydoc">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="studydoc_pkey"/>
+            </column>
+            <column name="filename" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="displayname" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="doctypeid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+            <column name="studyid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Study site -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-41">
+        <createTable tableName="studysite">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="studysite_pkey"/>
+            </column>
+            <column name="ocsiteidentifier" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="studyid" type="INT4">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Keys -->
+    <changeSet author="skripcakt (generated)" id="1391174688024-44">
+        <addPrimaryKey columnNames="accountid, roleid" constraintName="account_role_pkey" tableName="account_role"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-45">
+        <addForeignKeyConstraint baseColumnNames="accountid" baseTableName="account_role" constraintName="account_role_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="defaultaccount"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-46">
+        <addForeignKeyConstraint baseColumnNames="roleid" baseTableName="account_role" constraintName="account_role_fk_2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-49">
+        <addForeignKeyConstraint baseColumnNames="siteid" baseTableName="clientie" constraintName="clientie_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-50">
+        <addForeignKeyConstraint baseColumnNames="datatypeid" baseTableName="codelist" constraintName="codelist_datatype_is_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="typeid" referencedTableName="columndatatype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-51">
+        <addForeignKeyConstraint baseColumnNames="belongtoheaderid" baseTableName="headercolumn" constraintName="column_belogn_to_header_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="headerid" referencedTableName="header"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-52">
+        <addForeignKeyConstraint baseColumnNames="typeid" baseTableName="crffieldannotation" constraintName="crffieldannotation_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="annotationtype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-53">
+        <addForeignKeyConstraint baseColumnNames="studyid" baseTableName="crffieldannotation" constraintName="crffiledannotation_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="study"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-55">
+        <addForeignKeyConstraint baseColumnNames="asresultofpushid" baseTableName="dataexport" constraintName="dataexport_as_result_of_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pushid" referencedTableName="pushdataresponse"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-56">
+        <addForeignKeyConstraint baseColumnNames="initialisedwithpullid" baseTableName="dataexport" constraintName="dataexport_initialised_with_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pullid" referencedTableName="pulldatarequest"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-57">
+        <addForeignKeyConstraint baseColumnNames="asresultofpushid" baseTableName="dataimport" constraintName="dataimport_as_result_of_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pushid" referencedTableName="pushdataresponse"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-58">
+        <addForeignKeyConstraint baseColumnNames="initialisedwithpullid" baseTableName="dataimport" constraintName="dataimport_initialised_with_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pullid" referencedTableName="pulldatarequest"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-59">
+        <addForeignKeyConstraint baseColumnNames="partnersiteid" baseTableName="defaultaccount" constraintName="defaultaccount_partnersite_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-60">
+        <addForeignKeyConstraint baseColumnNames="dataheaderid" baseTableName="exportmapping" constraintName="exportmapping_data_headers_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="headerid" referencedTableName="header"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-61">
+        <addForeignKeyConstraint baseColumnNames="metadataheaderid" baseTableName="exportmapping" constraintName="exportmapping_metadata_headers_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="headerid" referencedTableName="header"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-62">
+        <addForeignKeyConstraint baseColumnNames="belongtolistid" baseTableName="codelistitem" constraintName="list_item_belong_to_list_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="codelistid" referencedTableName="codelist"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-63">
+        <addForeignKeyConstraint baseColumnNames="belongtoexportmappingid" baseTableName="datamap" constraintName="map_belong_to_mapping_fk4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="mappingid" referencedTableName="exportmapping"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-64">
+        <addForeignKeyConstraint baseColumnNames="datacolumnid" baseTableName="datamap" constraintName="map_data_column_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="columnid" referencedTableName="headercolumn"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-65">
+        <addForeignKeyConstraint baseColumnNames="datatypeid" baseTableName="datamap" constraintName="map_datatype_fk3" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="typeid" referencedTableName="columndatatype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-66">
+        <addForeignKeyConstraint baseColumnNames="codelistid" baseTableName="datamap" constraintName="map_has_code_list_fk5" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="codelistid" referencedTableName="codelist"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-67">
+        <addForeignKeyConstraint baseColumnNames="metadatacolumnid" baseTableName="datamap" constraintName="map_metadata_column_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="columnid" referencedTableName="headercolumn"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-68">
+        <addForeignKeyConstraint baseColumnNames="edcid" baseTableName="partnersite" constraintName="partnersite_edc_fk5" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="edcid" referencedTableName="edc"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-69">
+        <addForeignKeyConstraint baseColumnNames="pacsid" baseTableName="partnersite" constraintName="partnersite_pacs_fk_2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pacsid" referencedTableName="pacs"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-70">
+        <addForeignKeyConstraint baseColumnNames="generatorid" baseTableName="partnersite" constraintName="partnersite_pidg_fk4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="generatorid" referencedTableName="pidg"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-71">
+        <addForeignKeyConstraint baseColumnNames="portalid" baseTableName="partnersite" constraintName="partnersite_portal_fk_3" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="portalid" referencedTableName="portal"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-72">
+        <addForeignKeyConstraint baseColumnNames="serverid" baseTableName="partnersite" constraintName="partnersite_server_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="serverid" referencedTableName="serverie"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-75">
+        <addForeignKeyConstraint baseColumnNames="sentfromsiteid" baseTableName="pulldatarequest" constraintName="pulldatarequest_sentfrom_partnersite_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-76">
+        <addForeignKeyConstraint baseColumnNames="senttositeid" baseTableName="pulldatarequest" constraintName="pulldatarequest_sento_partnersite_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-77">
+        <addForeignKeyConstraint baseColumnNames="sentfromsiteid" baseTableName="pushdataresponse" constraintName="pushdataresponse_sentfrom_partnersite_fk1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-78">
+        <addForeignKeyConstraint baseColumnNames="senttositeid" baseTableName="pushdataresponse" constraintName="pushdataresponse_sentto_partnersite_fk2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-81">
+        <addForeignKeyConstraint baseColumnNames="typeid" baseTableName="rtstruct" constraintName="rtstruct_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="rtstructtype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-82">
+        <addForeignKeyConstraint baseColumnNames="siteid" baseTableName="study" constraintName="study_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="siteid" referencedTableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-83">
+        <addForeignKeyConstraint baseColumnNames="doctypeid" baseTableName="studydoc" constraintName="studydoc_fk_1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="doctype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-84">
+        <addForeignKeyConstraint baseColumnNames="studyid" baseTableName="studydoc" constraintName="studydoc_fk_2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="study"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-90">
+        <addUniqueConstraint columnNames="name" constraintName="annotationtype_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="annotationtype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-91">
+        <addUniqueConstraint columnNames="name" constraintName="articlecategory_name_key" deferrable="false" disabled="false" initiallyDeferred="false" tableName="articlecategory"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-92">
+        <addUniqueConstraint columnNames="name" constraintName="articletag_name_key" deferrable="false" disabled="false" initiallyDeferred="false" tableName="articletag"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-93">
+        <addUniqueConstraint columnNames="name" constraintName="clientie_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="clientie"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-94">
+        <addUniqueConstraint columnNames="username" constraintName="defaultaccount_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="defaultaccount"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-95">
+        <addUniqueConstraint columnNames="name" constraintName="doctype_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="doctype"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-96">
+        <addUniqueConstraint columnNames="name" constraintName="mapping_name_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="exportmapping"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-97">
+        <addUniqueConstraint columnNames="identifier" constraintName="organdef_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="rtstruct"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-98">
+        <addUniqueConstraint columnNames="rolename" constraintName="role_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="role"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-99">
+        <addUniqueConstraint columnNames="sitename" constraintName="site_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="partnersite"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-100">
+        <addUniqueConstraint columnNames="ocstudyidentifier" constraintName="study_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="study"/>
+    </changeSet>
+    <changeSet author="skripcakt (generated)" id="1391174688024-101">
+        <addUniqueConstraint columnNames="filename" constraintName="studydoc_unique_1" deferrable="false" disabled="false" initiallyDeferred="false" tableName="studydoc"/>
+    </changeSet>
+
+    <!--Static enumeration for study document type-->
+    <changeSet id="insert-doctype-protocol" author="Tomas Skripcak">
+        <insert tableName="DOCTYPE">
+            <column name="name" value="STUDY_PROTOCOL" />
+            <column name="description" value="Study protocol document" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-doctype-info" author="Tomas Skripcak">
+        <insert tableName="DOCTYPE">
+            <column name="name" value="PATIENT_INFO" />
+            <column name="description" value="Information for patient, with consent document" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-doctype-specs" author="Tomas Skripcak">
+        <insert tableName="DOCTYPE">
+            <column name="name" value="STUDY_SPECIFICATION" />
+            <column name="description" value="Study specification document" />
+        </insert>
+    </changeSet>
+
+    <!--Static enumeration for two basic account roles in RadPlanBio-->
+    <changeSet id="insert-role-admin" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id" value="1" />
+            <column name="rolename" value="ROLE_ADMIN" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-role-user" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id" value="2" />
+            <column name="rolename" value="ROLE_USER" />
+        </insert>
+    </changeSet>
+
+    <!--Admin user (password) -->
+    <changeSet id="insert-user-admin" author="Tomas Skripcak">
+        <insert tableName="DEFAULTACCOUNT">
+            <column name="id" value="1" />
+            <column name="username" value="admin" />
+            <column name="password" value="5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8" />
+            <column name="isEnabled" value="TRUE" />
+        </insert>
+    </changeSet>
+
+    <!--Roles association-->
+    <changeSet id="insert-admin-user-role" author="Tomas Skripcak">
+        <insert tableName="ACCOUNT_ROLE">
+            <column name="accountid" value="1" />
+            <column name="roleid" value="1" />
+        </insert>
+    </changeSet>
+
+    <!--Default https data import/export servers-->
+    <changeSet id="insert-serverie" author="Tomas Skripcak">
+        <insert tableName="SERVERIE">
+            <column name="serverid" value="1" />
+            <column name="ipaddress" value="localhost" />
+            <column name="port" value="9000" />
+        </insert>
+    </changeSet>
+
+    <!--Local PACS server locations-->
+    <changeSet id="insert-pacs" author="Tomas Skripcak">
+        <insert tableName="PACS">
+            <column name="pacsid" value="1" />
+            <column name="pacsbaseurl" value="http://localhost/cgi-bin/dgate/" />
+        </insert>
+    </changeSet>
+
+    <!--Public portal locations-->
+    <changeSet id="insert-portal" author="Tomas Skripcak">
+        <insert tableName="PORTAL">
+            <column name="portalid" value="1" />
+            <column name="portalbaseurl" value="http://localhost:8080/" />
+        </insert>
+    </changeSet>
+
+    <!--Pseudonymisation connection settings-->
+    <changeSet id="insert-pidg" author="Tomas Skripcak">
+        <insert tableName="PIDG">
+            <column name="generatorid" value="1" />
+            <column name="generatorbaseurl" value="http://localhost:8080/mainzelliste/" />
+            <column name="apikey" value="mdat" />
+            <column name="adminUsername" value="admin" />
+            <column name="adminPassword" value="admin" />
+        </insert>
+    </changeSet>
+
+    <!--EDC communication settings-->
+    <changeSet id="insert-edc" author="Tomas Skripcak">
+        <insert tableName="EDC">
+            <column name="edcid" value="1" />
+            <column name="edcbaseurl" value="http://localhost:8080/OpenClinica/" />
+            <column name="soapbaseurl" value="http://localhost:8080/OpenClinica-ws/" />
+        </insert>
+    </changeSet>
+
+    <!-- Default RadPlanBio partner site -->
+    <changeSet id="insert-partner-site" author="Tomas Skripcak">
+        <insert tableName="PARTNERSITE">
+            <column name="siteid" value="1" />
+            <column name="identifier" value="XX" />
+            <column name="sitename" value="Default" />
+            <column name="description" value="Default site" />
+            <column name="serverid" value="1" />
+            <column name="pacsid" value="1" />
+            <column name="portalid" value="1" />
+            <column name="generatorid" value="1" />
+            <column name="edcid" value="1" />
+        </insert>
+    </changeSet>
+
+    <!-- eCRF Annotation types -->
+    <changeSet id="insert-annotationtype-dicom-patient" author="Tomas Skripcak">
+         <insert tableName="ANNOTATIONTYPE">
+             <column name="id" value="1" />
+             <column name="name" value="DICOM_PATIENT_ID" />
+             <column name="description" value="This annotation type allow to mark eCRF field, which will always store DICOM PatientID data." />
+         </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-dicom-study" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" value="2" />
+            <column name="name" value="DICOM_STUDY_INSTANCE_UID" />
+            <column name="description" value="This annotation type allow to mark eCRF field, which will always store DICOM StudyInstanceUID data." />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotation-type-dicom-sr-text" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" value="3" />
+            <column name="name" value="DICOM_SR_TEXT" />
+            <column name="description" value="This annotation type allows to mark eCRF field, which will always store DICOM structured report text." />
+        </insert>
+    </changeSet>
+
+    <!-- RT-Struct type -->
+    <changeSet id="insert-rtstructtype-common" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCTTYPE">
+            <column name="id" value="1" />
+            <column name="name" value="COMMON" />
+            <column name="description" value="Common structure" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-rtstructtype-common" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCTTYPE">
+            <column name="id" value="2" />
+            <column name="name" value="ORGAN" />
+            <column name="description" value="Organ structure" />
+        </insert>
+    </changeSet>
+
+    <!-- RT-Struct harmonised names for delineated contours -->
+    <changeSet id="insert-rtstruct-ignore" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="1" />
+            <column name="identifier" value="Ignore" />
+            <column name="name" value="Do not consider" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-ctv" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="2" />
+            <column name="identifier" value="CTV" />
+            <column name="name" value="CTV" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-gtv" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="3" />
+            <column name="identifier" value="GTV" />
+            <column name="name" value="GTV" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-ptv" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="4" />
+            <column name="identifier" value="PTV" />
+            <column name="name" value="PTV" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-boost" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="5" />
+            <column name="identifier" value="Boost" />
+            <column name="name" value="Boost" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-other" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="6" />
+            <column name="identifier" value="Other" />
+            <column name="name" value="Other" />
+            <column name="typeid" value="1" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-anal-canal" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="7" />
+            <column name="identifier" value="AnalCanal" />
+            <column name="name" value="Anal Canal" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-plumonary-artery" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="8" />
+            <column name="identifier" value="A_Pulmonary" />
+            <column name="name" value="Pulmonary Artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-carotid-artery" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="9" />
+            <column name="identifier" value="A_Carotid" />
+            <column name="name" value="Carotid Artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-brachiocephalic-artery" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="10" />
+            <column name="identifier" value="A_Brachiocephali" />
+            <column name="name" value="Brachiocephalic Artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-coronary-artery" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="11" />
+            <column name="identifier" value="A_Coronary" />
+            <column name="name" value="Coronary Artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-subclavicular-artery" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="12" />
+            <column name="identifier" value="A_Subclavicular" />
+            <column name="name" value="Subclavicular Artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-hypophyseal-artery" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="13" />
+            <column name="identifier" value="A_Hypophyseal" />
+            <column name="name" value="Hypophyseal Artery" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-aorta" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="14" />
+            <column name="identifier" value="Aorta" />
+            <column name="name" value="Aorta" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-anal-sphincter" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="15" />
+            <column name="identifier" value="AnalSphincter" />
+            <column name="name" value="Anal Sphincter" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-atrium" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="16" />
+            <column name="identifier" value="Atrium" />
+            <column name="name" value="Atrium" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-bladder" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="17" />
+            <column name="identifier" value="Bladder" />
+            <column name="name" value="Bladder" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-bladder-wall" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="18" />
+            <column name="identifier" value="BladderWall" />
+            <column name="name" value="Bladder Wall" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-brachial-plexus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="19" />
+            <column name="identifier" value="BrachialPlexus" />
+            <column name="name" value="Brachial Plexus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-brain" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="20" />
+            <column name="identifier" value="Brain" />
+            <column name="name" value="Brain" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-brain-stem" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="21" />
+            <column name="identifier" value="BrainStem" />
+            <column name="name" value="Brain Stem" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-breast" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="22" />
+            <column name="identifier" value="Breast" />
+            <column name="name" value="Breast" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-bronchial-tree" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="23" />
+            <column name="identifier" value="BronchialTree" />
+            <column name="name" value="Bronchial Tree" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-base-of-tongue" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="24" />
+            <column name="identifier" value="BaseOfTongue" />
+            <column name="name" value="Base of Tongue" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-carina" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="25" />
+            <column name="identifier" value="Carina" />
+            <column name="name" value="Carina" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-cauda-equina" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="26" />
+            <column name="identifier" value="CaudaEquina" />
+            <column name="name" value="Cauda Equina" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-cerebellum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="27" />
+            <column name="identifier" value="Cerebellum" />
+            <column name="name" value="Cerebellum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-cerebrum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="28" />
+            <column name="identifier" value="Cerebrum" />
+            <column name="name" value="Cerebrum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-chiasm" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="29" />
+            <column name="identifier" value="Chiasm" />
+            <column name="name" value="Optic Chiasm" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-seventh-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="30" />
+            <column name="identifier" value="CN_VII" />
+            <column name="name" value="Seventh Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-eighth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="31" />
+            <column name="identifier" value="CN_VIII" />
+            <column name="name" value="Eighth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-uterine-cervix" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="32" />
+            <column name="identifier" value="Cervix" />
+            <column name="name" value="Uterine Cervix" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-cochlea" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="33" />
+            <column name="identifier" value="Cochlea" />
+            <column name="name" value="Cochlea" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-colon" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="34" />
+            <column name="identifier" value="Colon" />
+            <column name="name" value="Colon" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-constrictor-muscle" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="35" />
+            <column name="identifier" value="ConstrMuscle" />
+            <column name="name" value="Constrictor Muscle" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-cronea" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="36" />
+            <column name="identifier" value="Cornea" />
+            <column name="name" value="Cornea" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-duodenum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="37" />
+            <column name="identifier" value="Duodenum" />
+            <column name="name" value="Duodenum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-middle-ear" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="38" />
+            <column name="identifier" value="Ear_Middle" />
+            <column name="name" value="Middle Ear" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-ear-external" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="39" />
+            <column name="identifier" value="Ear_External" />
+            <column name="name" value="External Ear" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-esophagus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="40" />
+            <column name="identifier" value="Esophagus" />
+            <column name="name" value="Esophagus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-upper-esophagus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="41" />
+            <column name="identifier" value="Esophagus_Upper" />
+            <column name="name" value="Upper Esophagus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-lower-esophagus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="42" />
+            <column name="identifier" value="Esophagus_Lower" />
+            <column name="name" value="Lower Esophagus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-middle-esophagus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="43" />
+            <column name="identifier" value="Esophagus_Middle" />
+            <column name="name" value="Middle Esophagus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-skin" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="44" />
+            <column name="identifier" value="External" />
+            <column name="name" value="Skin" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-eye" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="45" />
+            <column name="identifier" value="Eye" />
+            <column name="name" value="Eye" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-femur" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="46" />
+            <column name="identifier" value="Femur" />
+            <column name="name" value="Femur" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-femoral-joint" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="47" />
+            <column name="identifier" value="FemoralJoint" />
+            <column name="name" value="Femoral Joint" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-frontal-lobe" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="48" />
+            <column name="identifier" value="FrontalLobe" />
+            <column name="name" value="Frontal Lobe" />
+            <column name="typeid" value="2 "/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-glenohumeral-joint" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="49" />
+            <column name="identifier" value="GHJoint" />
+            <column name="name" value="Glenohumeral Joint" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-eye-globe" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="50" />
+            <column name="identifier" value="Globe" />
+            <column name="name" value="Eye Globe" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-glottis" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="51" />
+            <column name="identifier" value="Glottis" />
+            <column name="name" value="Glottis" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-great-vessel" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="52" />
+            <column name="identifier" value="GreatVessel" />
+            <column name="name" value="Great Vessel" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-heart" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="53" />
+            <column name="identifier" value="Heart" />
+            <column name="name" value="Heart" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-hippocampus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="54" />
+            <column name="identifier" value="Hippocampus" />
+            <column name="name" value="Hippocampus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-hypothalamus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="55" />
+            <column name="identifier" value="Hypothalamus" />
+            <column name="name" value="Hypothalamus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-kidney" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="56" />
+            <column name="identifier" value="Kidney" />
+            <column name="name" value="Kidney" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-large-bowel" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="57" />
+            <column name="identifier" value="LargeBowel" />
+            <column name="name" value="Large Bowel" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-larynx" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="58" />
+            <column name="identifier" value="Larynx" />
+            <column name="name" value="Larynx" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-lacrimal-gland" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="59" />
+            <column name="identifier" value="LacrimalGland" />
+            <column name="name" value="Lacrimal Gland" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-eye-lens" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="60" />
+            <column name="identifier" value="Lens" />
+            <column name="name" value="Eye Lens" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-lips" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="61" />
+            <column name="identifier" value="Lips" />
+            <column name="name" value="Lips" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-liver" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="62" />
+            <column name="identifier" value="Liver" />
+            <column name="name" value="Liver" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-lung" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="63" />
+            <column name="identifier" value="Lung" />
+            <column name="name" value="Lung" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-mandible" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="64" />
+            <column name="identifier" value="Mandible" />
+            <column name="name" value="Mandible" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-mass-muscle" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="65" />
+            <column name="identifier" value="MassMuscle" />
+            <column name="name" value="Masseter Muscle" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-mediastinum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="66" />
+            <column name="identifier" value="Mediastinum" />
+            <column name="name" value="Mediastinum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-main-bronchus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="67" />
+            <column name="identifier" value="MainBronchus" />
+            <column name="name" value="Main Bronchus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-occipital-lobe" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="68" />
+            <column name="identifier" value="OccipitalLobe" />
+            <column name="name" value="Occipital Lobe" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+   <changeSet id="insert-rtstruct-optic-nerve" author="Tomas Skripcak">
+       <insert tableName="RTSTRUCT">
+           <column name="id" value="69" />
+           <column name="identifier" value="OpticNerve" />
+           <column name="name" value="Optic Nerve" />
+           <column name="typeid" value="2" />
+       </insert>
+   </changeSet>
+
+    <changeSet id="insert-rtstruct-oral-cavity" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="70" />
+            <column name="identifier" value="OralCavity" />
+            <column name="name" value="Oral Cavity" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-ovary" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="71" />
+            <column name="identifier" value="Ovary" />
+            <column name="name" value="Ovary" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-parametrium" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="72" />
+            <column name="identifier" value="Parametrium" />
+            <column name="name" value="Parametrium" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-parietal-lobe" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="73" />
+            <column name="identifier" value="ParietalLobe" />
+            <column name="name" value="Parietal Lobe" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-pancreas" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="74" />
+            <column name="identifier" value="Pancreas" />
+            <column name="name" value="Pancreas" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-paroid" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="75" />
+            <column name="identifier" value="Parotid" />
+            <column name="name" value="Parotid" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-pelvic-bones" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="76" />
+            <column name="identifier" value="PelvicBones" />
+            <column name="name" value="Pelvic Bones" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-penile-bulb" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="77" />
+            <column name="identifier" value="PenileBulb" />
+            <column name="name" value="Penile Bulb" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-penis" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="78" />
+            <column name="identifier" value="Penis" />
+            <column name="name" value="Penis" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-perineum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="79" />
+            <column name="identifier" value="Perineum" />
+            <column name="name" value="Perineum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-pericardium" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="80" />
+            <column name="identifier" value="Pericardium" />
+            <column name="name" value="Pericardium" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-pharynx" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="81" />
+            <column name="identifier" value="Pharynx" />
+            <column name="name" value="Pharynx" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-pharyngeal-constrictor" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="82" />
+            <column name="identifier" value="PharynxConst" />
+            <column name="name" value="Pharyngeal Constrictor" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-pituitary" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="83" />
+            <column name="identifier" value="Pituitary" />
+            <column name="name" value="Pituitary" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-prostate" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="84" />
+            <column name="identifier" value="Prostate" />
+            <column name="name" value="Prostate" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-pubic-symphysis" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="85" />
+            <column name="identifier" value="PubicSymphysis" />
+            <column name="name" value="Pubic Symphysis" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-rectum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="86" />
+            <column name="identifier" value="Rectum" />
+            <column name="name" value="Rectum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-rectal-wall" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="87" />
+            <column name="identifier" value="RectalWall" />
+            <column name="name" value="Rectal Wall" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-retina" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="88" />
+            <column name="identifier" value="Retina" />
+            <column name="name" value="Retina" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-rib" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="89" />
+            <column name="identifier" value="Rib" />
+            <column name="name" value="Rib" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-sacrum" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="90" />
+            <column name="identifier" value="Sacrum" />
+            <column name="name" value="Sacrum" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-salivary-gland" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="91" />
+            <column name="identifier" value="SalivaryGland" />
+            <column name="name" value="Salivary Glands" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-seminal-vesicle" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="92" />
+            <column name="identifier" value="SeminalVesicle" />
+            <column name="name" value="Seminal Vesicle" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-small-bowel" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="93" />
+            <column name="identifier" value="SmallBowel" />
+            <column name="name" value="Small Bowel" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-spinal-cord" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="94" />
+            <column name="identifier" value="SpinalCord" />
+            <column name="name" value="Spinal Cord" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-spleen" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="95" />
+            <column name="identifier" value="Spleen" />
+            <column name="name" value="Spleen" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-stomach" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="96" />
+            <column name="identifier" value="Stomach" />
+            <column name="name" value="Stomach" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-submandibular-gland" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="97" />
+            <column name="identifier" value="Submandibular" />
+            <column name="name" value="Submandibular Gland" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-supertentorial" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="98" />
+            <column name="identifier" value="Supertentorial" />
+            <column name="name" value="Supertentorial" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-temporal-lobe" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="99" />
+            <column name="identifier" value="TemporalLobe" />
+            <column name="name" value="Temporal Lobe" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-testis" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="100" />
+            <column name="identifier" value="Testis" />
+            <column name="name" value="Testis" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-thyroid" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="101" />
+            <column name="identifier" value="Thyroid" />
+            <column name="name" value="Thyroid" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-tmjoint" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="102" />
+            <column name="identifier" value="TMjoint" />
+            <column name="name" value="Temperomandibular Joint" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-trachea" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="103" />
+            <column name="identifier" value="Trachea" />
+            <column name="name" value="Trachea" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-tongue" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="104" />
+            <column name="identifier" value="Tongue" />
+            <column name="name" value="Tongue" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-urethra" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="105" />
+            <column name="identifier" value="Urethra" />
+            <column name="name" value="Urethra" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-uterus" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="106" />
+            <column name="identifier" value="Uterus" />
+            <column name="name" value="Uterus" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-azygos-vein" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="107" />
+            <column name="identifier" value="V_Azygos" />
+            <column name="name" value="Azygos Vein" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-inferior-vena-cava" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="108" />
+            <column name="identifier" value="V_CavaInferior" />
+            <column name="name" value="Inferior vena cava" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-superior-vena-cava" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="109" />
+            <column name="identifier" value="V_CavaSuperior" />
+            <column name="name" value="Superior vena cava" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-plumonary-vein" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="110" />
+            <column name="identifier" value="V_Pulmonary" />
+            <column name="name" value="Pulmonary Vein" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-subclavicular-vein" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="111" />
+            <column name="identifier" value="V_SubClav" />
+            <column name="name" value="SubClavicular Vein" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-vagina" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="112" />
+            <column name="identifier" value="Vagina" />
+            <column name="name" value="Vagina" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-cervical-vertebrae" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="113" />
+            <column name="identifier" value="VB_Cervical" />
+            <column name="name" value="Cervical Vertebrae" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-thoracic-vertebrae" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="114" />
+            <column name="identifier" value="VB_Thoracic" />
+            <column name="name" value="Thoracic Vertebrae" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-lumbar-vertebrae" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="115" />
+            <column name="identifier" value="VB_Lumbar" />
+            <column name="name" value="Lumbar Vertebrae" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+    <changeSet id="insert-rtstruct-sacrum-vertabrae" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="116" />
+            <column name="identifier" value="VB_Sacrum" />
+            <column name="name" value="Sacrum Vertebrae" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-ventricle" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="117" />
+            <column name="identifier" value="Ventricle" />
+            <column name="name" value="Ventricle" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-vessels" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="118" />
+            <column name="identifier" value="Vessels" />
+            <column name="name" value="Vessels" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-vulva" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="119" />
+            <column name="identifier" value="Vulva" />
+            <column name="name" value="Vulva" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-bone" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="120" />
+            <column name="identifier" value="Bone" />
+            <column name="name" value="Bone" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-first-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="121" />
+            <column name="identifier" value="CN_I" />
+            <column name="name" value="First Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-third-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="122" />
+            <column name="identifier" value="CN_III" />
+            <column name="name" value="Third Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-fourth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="123" />
+            <column name="identifier" value="CN_IV" />
+            <column name="name" value="Fourth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-fifth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="124" />
+            <column name="identifier" value="CN_V" />
+            <column name="name" value="Fifth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-sixth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="125" />
+            <column name="identifier" value="CN_VI" />
+            <column name="name" value="Sixth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-nineth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="126" />
+            <column name="identifier" value="CN_IX" />
+            <column name="name" value="Nineth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-tenth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="127" />
+            <column name="identifier" value="CN_X" />
+            <column name="name" value="Tenth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-eleventh-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="128" />
+            <column name="identifier" value="CN_XI" />
+            <column name="name" value="Eleventh Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-twelfth-cranial-nerve" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="129" />
+            <column name="identifier" value="CN_XII" />
+            <column name="name" value="Twelfth Cranial Nerve" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-rtstruct-epiphysis" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCT">
+            <column name="id" value="130" />
+            <column name="identifier" value="Epiphysis" />
+            <column name="name" value="Epiphysis" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

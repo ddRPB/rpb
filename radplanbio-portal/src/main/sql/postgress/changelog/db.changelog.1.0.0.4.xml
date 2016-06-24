@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        >
+
+    <changeSet id="create-department" author="Tomas Skripcak">
+        <createTable tableName="DEPARTMENT">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(500)" />
+            <column name="partnersiteid" type="int">
+                <constraints referencedTableName="PARTNERSITE" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-department-fkpartnersiteid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="DEPARTMENT" baseColumnNames="partnersiteid" constraintName="department_fk1" referencedTableName="PARTNERSITE"
+                                 referencedColumnNames="siteid" />
+    </changeSet>
+
+    <changeSet id="alter-portal-version" author="Tomas Skripcak">
+        <addColumn tableName="PORTAL">
+            <column name="version" type="varchar(15)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="alter-edc-version" author="Tomas Skripcak">
+        <addColumn tableName="EDC">
+            <column name="version" type="varchar(15)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="alter-pacs-version" author="Tomas Skripcak">
+        <addColumn tableName="PACS">
+            <column name="version" type="varchar(15)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="alter-pidg-version" author="Tomas Skripcak">
+        <addColumn tableName="PIDG">
+            <column name="version" type="varchar(15)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="alter-serverie-version" author="Tomas Skripcak">
+        <addColumn tableName="SERVERIE">
+            <column name="version" type="varchar(15)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="create-software" author="Tomas Skripcak">
+        <createTable tableName="SOFTWARE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="identifier" type="serial">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(500)" />
+            <column name="version" type="varchar(15)" />
+            <column name="filename" type="varchar(255)" />
+            <column name="lastest" type="bool" />
+            <column name="portalid" type="int">
+                <constraints referencedTableName="PORTAL" nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-software-portalid" author="Tomas Skripcak">
+        <addForeignKeyConstraint baseTableName="SOFTWARE" baseColumnNames="portalid" constraintName="software_fk1" referencedTableName="PORTAL"
+                                 referencedColumnNames="portalid" />
+    </changeSet>
+
+    <changeSet id="alter-software-latest" author="Tomas Skripcak">
+        <renameColumn tableName="SOFTWARE" oldColumnName="lastest" newColumnName="latest" />
+    </changeSet>
+
+    <changeSet id="alter-department-identifier" author="Tomas Skripcak">
+        <addColumn tableName="DEPARTMENT">
+            <column name="identifier" type="serial">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="insert-rtstructtype-organlr" author="Tomas Skripcak">
+        <insert tableName="RTSTRUCTTYPE">
+            <column name="id" value="3"  />
+            <column name="name" value="ORGANLR" />
+            <column name="description" value="Organ L/R structure" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
