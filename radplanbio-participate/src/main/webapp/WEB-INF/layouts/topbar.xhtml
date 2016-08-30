@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    >
+    <div id="layout-topbar">
+    	<div id="layout-topbar-indent">
+
+            <!-- Status menu -->
+            <p:toolbar>
+
+                <!-- Left -->
+                <p:toolbarGroup align="left">
+                    <p:breadCrumb>
+                        <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+                    </p:breadCrumb>
+                </p:toolbarGroup>
+
+                <!-- Right -->
+                <p:toolbarGroup align="right">
+
+                    <!-- Active Study -->
+                    <p:menuButton value="#{userContext.username}">
+
+                        <p:menuitem
+                            value="#{msg.active_study_reload}"
+                            immediate="true"
+                            process="@this"
+                            actionListener="#{mbMain.refreshActiveStudy}"
+                            icon="fa fa-refresh"
+                            style="width: 200px;"
+                            />
+
+                        <p:menuitem
+                            value="#{msg.login_logout}"
+                            url="#{facesContext.externalContext.requestContextPath}/logout.faces"
+                            icon="fa fa-sign-out"
+                            style="width: 200px;"
+                            />
+
+                    </p:menuButton>
+                </p:toolbarGroup>
+            </p:toolbar>
+        </div>
+    </div>
+</ui:composition>

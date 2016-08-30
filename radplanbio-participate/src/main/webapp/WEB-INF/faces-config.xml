@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- PrimeFaces configuration -->
+<faces-config
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_1.xsd"
+    version="2.1"
+    >
+
+	<application>
+        <!-- Configurations of locale for internationalisation of the app -->
+		<locale-config>
+			<default-locale>en</default-locale>
+			<supported-locale>en</supported-locale>
+			<supported-locale>de</supported-locale>
+		</locale-config>
+
+        <!-- JSF and Spring beans are integrated -->
+        <el-resolver>org.springframework.web.jsf.el.SpringBeanFacesELResolver</el-resolver>
+
+        <!-- Specify the location of MessageBundle class -->
+        <message-bundle>de.dktk.dd.rpb.participate.web.util.MessageBundle</message-bundle>
+
+        <!-- Declare that keyword msg will be used in faces to access messages in MessageBundle -->
+        <!-- Bundle messages is in src/main/resources/localisation -->
+		<resource-bundle>
+			<base-name>de.dktk.dd.rpb.participate.web.util.MessageBundle</base-name>
+			<var>msg</var>
+		</resource-bundle>
+	</application>
+
+    <!-- Custom Exception Handler Factory (dealing with view expiration) -->
+    <factory>
+        <exception-handler-factory>de.dktk.dd.rpb.participate.web.util.RpbExceptionHandlerFactory</exception-handler-factory>
+    </factory>
+
+	<lifecycle>
+		<phase-listener>de.dktk.dd.rpb.participate.web.util.MultiPageMessagesSupport</phase-listener>
+		<phase-listener>de.dktk.dd.rpb.participate.web.util.LogPhaseListener</phase-listener>
+	</lifecycle>
+</faces-config>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyPersonRole</comment>
+
+    <entry key="studyPersonRole">Rolle</entry>
+    <entry key="studyPersonRole_plural">Rollen</entry>
+    <entry key="studyPersonRole_reload">Vorhandenen Rollen neu laden</entry>
+    <entry key="studyPersonRole_print">Tabelle Rollen drucken</entry>
+    <entry key="studyPersonRole_new">Neue Rolle definieren</entry>
+    <entry key="studyPersonRole_edit">Ausgewählte Rolle bearbeiten</entry>
+    <entry key="studyPersonRole_delete">Ausgewählte Rolle löschen</entry>
+
+    <!-- attributes -->
+    <entry key="studyPersonRole_id">Id</entry>
+    <entry key="studyPersonRole_name">Name</entry>
+    <entry key="studyPersonRole_description">Beschreibung</entry>
+
+</properties>

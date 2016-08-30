@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Spring Security configuration for restriction of user access -->
+<!-- For definition of security mechanism and algorithms go to src/main/resources/spring/applicationContext.xml -->
+<beans:beans
+    xmlns="http://www.springframework.org/schema/security"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd"
+    >
+
+	<!-- Configure Spring Security -->
+    <!-- use-expressions - allows restrictions like permitAll(), etc. -->
+	<http
+        auto-config="false"
+        entry-point-ref="loginUrlAuthenticationEntryPoint"
+        use-expressions="true"
+        >
+
+        <!-- Define logout pages (.faces -> .xhtml)-->
+		<logout logout-url="/logout.faces" logout-success-url="/home.faces" />
+
+        <!-- Define rules for the user access -->
+
+        <!-- RPB participate users -->
+        <intercept-url pattern="/logout*" access="isAuthenticated()" />
+        <intercept-url pattern="/home.faces*" access="isAuthenticated()" />
+
+        <!-- Visible for all-->
+		<intercept-url pattern="/resource/*" access="permitAll()" />
+		<intercept-url pattern="/javax.*/**" access="permitAll()" />
+		<intercept-url pattern="/login.faces*" access="permitAll()" />
+		<intercept-url pattern="/error/*" access="permitAll()" />
+
+        <!-- Define where to look for error page when access denied event occur -->
+		<access-denied-handler error-page="/error/access-denied.faces" />
+
+        <!-- Declare the ussage of myAuthentication filter which is defined in /src/main/resources/spring/applicationContext.xml-->
+        <!--<custom-filter position="FORM_LOGIN_FILTER" ref="myAuthenticationFilter" />-->
+	</http>
+</beans:beans>

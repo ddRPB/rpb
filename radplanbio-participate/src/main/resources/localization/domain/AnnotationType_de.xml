@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for AnnotationType</comment>
+
+    <entry key="annotationType">Beschriftung</entry>
+    <entry key="annotationType_plural">Beschriftungen</entry>
+    <entry key="annotationType_reload">Vorhandenen Beschriftungen neu laden</entry>
+    <entry key="annotationType_print">Tabelle Beschriftungen drucken</entry>
+    <entry key="annotationType_new">Neuen Beschriftung definieren</entry>
+    <entry key="annotationType_edit">Ausgewählten Beschriftung bearbeiten</entry>
+    <entry key="annotationType_delete">Ausgewählten Beschriftung löschen</entry>
+
+    <!-- attributes -->
+    <entry key="annotationType_id">Id</entry>
+    <entry key="annotationType_name">Name</entry>
+    <entry key="annotationType_description">Beschreibung</entry>
+
+</properties>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for CurriculumVitaeItem</comment>
+
+    <entry key="curriculumVitaeItem">CV item</entry>
+    <entry key="curriculumVitaeItem_plural">CV items</entry>
+    <entry key="curriculumVitaeItem_reload">Reload existing CV items</entry>
+    <entry key="curriculumVitaeItem_print">Print CV items table</entry>
+    <entry key="curriculumVitaeItem_new">Define a new CV item</entry>
+    <entry key="curriculumVitaeItem_edit">Edit selected CV item</entry>
+    <entry key="curriculumVitaeItem_delete">Delete selected CV item</entry>
+
+    <!-- attributes -->
+    <entry key="curriculumVitaeItem_id">Id</entry>
+    <entry key="curriculumVitaeItem_name">Name</entry>
+    <entry key="curriculumVitaeItem_startDate">Start</entry>
+    <entry key="curriculumVitaeItem_endDate">End</entry>
+    <entry key="curriculumVitaeItem_comment">Comment</entry>
+
+    <!-- many-to-one -->
+    <entry key="curriculumVitaeItem_type">Type</entry>
+    <entry key="curriculumVitaeItem_employer">Employer</entry>
+    <entry key="curriculumVitaeItem_workingPlace">Working place</entry>
+    <entry key="curriculumVitaeItem_person">Person</entry>
+
+</properties>

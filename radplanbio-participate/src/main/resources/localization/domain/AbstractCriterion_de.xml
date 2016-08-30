@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for AbstractCriterion</comment>
+
+    <entry key="abstractCriterion">Kriterium</entry>
+    <entry key="abstractCriterion_plural">Kriterien</entry>
+    <entry key="abstractCriterion_reload">Vorhandenen Kriterien neu laden</entry>
+    <entry key="abstractCriterion_print">Tabelle Kriterien drucken</entry>
+    <entry key="abstractCriterion_new">Neues Kriterium definieren</entry>
+    <entry key="abstractCriterion_edit">Ausgewähltes Kriterium bearbeiten</entry>
+    <entry key="abstractCriterion_delete">Ausgewähltes Kriterium löschen</entry>
+
+    <!-- attributes -->
+    <entry key="abstractCriterion_id">Id</entry>
+    <entry key="abstractCriterion_name">Name</entry>
+    <entry key="abstractCriterion_description">Beschreibung</entry>
+
+    <!-- many-to-one -->
+    <entry key="abstractCriterion_study">Studie</entry>
+    <entry key="abstractCriterion_contstraintType">Typ</entry>
+
+    <!-- one-to-many -->
+    <entry key="abstractCriterion_strata">Strata</entry>
+
+</properties>

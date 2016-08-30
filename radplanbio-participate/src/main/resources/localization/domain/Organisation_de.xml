@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Organisation</comment>
+
+    <entry key="organisation">Organisation</entry>
+    <entry key="organisation_plural">Organisationen</entry>
+    <entry key="organisation_reload">Vorhandenen Organisationen neu laden</entry>
+    <entry key="organisation_print">Tabelle Organisationen drucken</entry>
+    <entry key="organisation_new">Neue Organisation definieren</entry>
+    <entry key="organisation_edit">Ausgewählte Organisation bearbeiten</entry>
+    <entry key="organisation_delete">Ausgewählten Organisation löschen</entry>
+
+    <!-- attributes -->
+    <entry key="organisation_id">Id</entry>
+    <entry key="organisation_name">Name</entry>
+
+    <!-- many-to-one -->
+    <entry key="organisation_parent">Vorfahr</entry>
+
+    <!-- one-to-many -->
+    <entry key="organisation_children">Nachkommenschaft</entry>
+    <entry key="organisation_studyOrganisations">Studie Organisationen</entry>
+
+</properties>

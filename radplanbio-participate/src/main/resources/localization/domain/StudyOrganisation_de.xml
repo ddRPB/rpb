@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyOrganisation</comment>
+
+    <entry key="studyOrganisation">Studie Organisation</entry>
+    <entry key="studyOrganisation_plural">Studie Organisationen</entry>
+    <entry key="studyOrganisation_reload">Vorhandenen Studie Organisationen neu laden</entry>
+    <entry key="studyOrganisation_print">Tabelle Studie Organisationen drucken</entry>
+    <entry key="studyOrganisation_new">Neue Studie Organisation definieren</entry>
+    <entry key="studyOrganisation_edit">Ausgewählte Studie Organisation bearbeiten</entry>
+    <entry key="studyOrganisation_delete">Ausgewählte Studie Organisation löschen</entry>
+
+    <!-- attributes -->
+    <entry key="studyOrganisation_id">Id</entry>
+
+    <!-- many-to-one -->
+    <entry key="studyOrganisation_study">Studie</entry>
+    <entry key="studyOrganisation_oragnisation">Organisation</entry>
+    <entry key="studyOrganisation_role">Rolle</entry>
+
+</properties>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for SampleContent</comment>
+
+    <entry key="rss">RSS Artikel</entry>
+    <entry key="rss_plural">RSS Artikeln</entry>
+    <entry key="rss_reload">Vorhandenen RSS Artikeln neu laden</entry>
+    <entry key="rss_print">Tabelle RSS Artikeln drucken</entry>
+    <entry key="rss_new">Neuen RSS Artikel definieren</entry>
+    <entry key="rss_edit">Ausgewählten RSS Artikel bearbeiten</entry>
+    <entry key="rss_delete">Ausgewählten RSS Artikel löschen</entry>
+
+    <!-- attributes -->
+    <entry key="rss_id">Id</entry>
+    <entry key="rss_title">Titel</entry>
+    <entry key="rss_url">URL</entry>
+    <entry key="rss_summary">Zusammenfassung</entry>
+    <entry key="rrs_content">Inhalt</entry>
+    <entry key="rss_createdDate">Veröffentlicht am</entry>
+    <entry key="rss_author">Autor</entry>
+
+</properties>

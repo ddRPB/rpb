@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for TimeLine EventType</comment>
+
+    <entry key="eventType">Typ</entry>
+    <entry key="eventType_plural">Typen</entry>
+    <entry key="eventType_reload">Vorhandenen Timeline Ereignis Typen neu laden</entry>
+    <entry key="eventType_print">Tabelle Timeline Ereignis Typen drucken</entry>
+    <entry key="eventType_new">Neuen Timeline Ereignis Typ definieren</entry>
+    <entry key="eventType_edit">Ausgewählten Timeline Ereignis Typ bearbeiten</entry>
+    <entry key="eventType_delete">Ausgewählten Timeline Ereignis Typ löschen</entry>
+
+    <!-- attributes -->
+    <entry key="eventType_id">Id</entry>
+    <entry key="eventType_name">Name</entry>
+    <entry key="eventType_description">Beschreibung</entry>
+
+</properties>

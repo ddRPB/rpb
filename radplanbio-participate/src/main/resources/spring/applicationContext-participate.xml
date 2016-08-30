@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Spring framework configuration, data source, security methods, etc. -->
+<beans
+    default-lazy-init="true"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+            http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd"
+    >
+	<description><![CDATA[Main entry point for spring configuration]]></description>
+
+    <!--.............................................SPRING IOC CONTAINER............................................-->
+	<context:component-scan base-package="de.dktk.dd.rpb">
+		<!-- exclude web beans as they live in the web application context -->
+		<context:exclude-filter type="regex" expression="de.dktk.dd.rpb.participate.web.*" />
+
+        <!-- Standalone participate does not have any database -->
+        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.core.dao.*" />
+        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.core.repository.*" />
+        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.core.service.AuditLogService" />
+	</context:component-scan>
+
+    <!-- Inject to OC data repository setter -->
+    <bean id="openClinicaDataDao" class="de.dktk.dd.rpb.core.dao.edc.OpenClinicaDataDao">
+        <property name="dataSource" ref="ocDataSource" />
+    </bean>
+
+    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+
+    <!--..........................................SPRING SUPPORT FOR VIEW SCOPE....................................-->
+    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <property name="scopes">
+            <map>
+                <entry key="view">
+                    <bean class="de.dktk.dd.rpb.participate.web.util.ViewScope"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <!--..........................................................................................................-->
+
+    <!-- Where the properties files are -->
+    <context:property-placeholder location="classpath*:edc.properties,classpath*:database.properties" />
+
+    <!--..........................................SPRING SECURITY AUTHENTICATION.....................................-->
+
+    <!-- OpenClinica authentication provider -->
+    <bean
+        id="openClinicaRestApiAuthenticationProvider"
+        class="de.dktk.dd.rpb.core.security.OpenClinicaRestApiAuthenticationProvider"
+        >
+        <property name="userDetailsService">
+            <bean class="de.dktk.dd.rpb.core.security.OpenClinicaRestUserDetailsServiceImpl" />
+        </property>
+    </bean>
+
+    <!-- Authentication manager as a container for providers -->
+    <security:authentication-manager alias="authenticationManager" erase-credentials="false">
+        <security:authentication-provider ref="openClinicaRestApiAuthenticationProvider" />
+    </security:authentication-manager>
+
+    <!-- Where to go after authentication success -->
+    <bean
+        id="successHandler"
+        class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
+        >
+        <property name="defaultTargetUrl" value="/home.faces" />
+        <!-- Redirect to the page which the user originally wanted to visit -->
+        <property name="useReferer" value="true" />
+    </bean>
+
+    <!-- Where to go after authentication failure -->
+    <bean
+        id="failureHandler"
+        class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler"
+        >
+        <property
+            name="defaultFailureUrl"
+            value="/login.faces?login_error=1"
+            />
+    </bean>
+
+    <!-- Where to go when authentication page is needed -->
+    <bean
+        id="loginUrlAuthenticationEntryPoint"
+        class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
+        >
+        <constructor-arg name="loginFormUrl" value="/login.faces" />
+    </bean>
+
+    <!-- Custom filter for authentication which will choose which authentication provider to use -->
+    <bean
+        id="myAuthenticationFilter"
+        class="de.dktk.dd.rpb.core.security.MyAuthenticationFilter"
+        >
+        <property name="authenticationManager" ref="authenticationManager"/>
+        <property name="authenticationFailureHandler" ref="failureHandler"/>
+        <property name="authenticationSuccessHandler" ref="successHandler"/>
+        <property name="filterProcessesUrl" value="/logincheck.faces"/>
+    </bean>
+
+    <!-- Configuring annotations to secure business logic in domain level -->
+    <security:global-method-security
+        jsr250-annotations="enabled"
+        pre-post-annotations="enabled"
+        />
+    <!--.............................................................................................................-->
+
+	<!-- Enable the configuration of transactional behavior based on annotations -->
+	<tx:annotation-driven />
+
+    <!--Open Clinica data source-->
+    <bean
+        id="ocDataSource"
+        class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close"
+        lazy-init="false"
+        p:driverClassName="${oc.jdbc.driver}"
+        p:url="${oc.jdbc.url}"
+        p:username="${oc.jdbc.user}"
+        p:password="${oc.jdbc.password}"
+        p:initialSize="1"
+        p:maxActive="50"
+        p:maxIdle="1"
+        p:maxWait="5000"
+        p:poolPreparedStatements="true"
+        p:defaultAutoCommit="true"
+        p:removeAbandoned="true"
+        p:removeAbandonedTimeout="60">
+        <description>
+            Simple datasource. This is a direct access to the OpenClinica datasource.
+            I am planning to use this for custom query builder on top of OpenClinica data.
+        </description>
+    </bean>
+    <!--............................................................................,................................-->
+
+	<!-- Bean validation -->
+	<bean
+        id="validator"
+        class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
+		p:validationMessageSource-ref="messageSource"
+        >
+		<description>Enable the bean validation provider, and configure it to use the messageSource when resolving properties</description>
+	</bean>
+
+	<!-- Localisation -->
+	<bean
+        id="messageSource"
+        class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+		p:fallbackToSystemLocale="false"
+		p:useCodeAsDefaultMessage="true"
+		p:defaultEncoding="UTF-8"
+        >
+		<description>Base message source to handle internationalization</description>
+		<property name="basenames">
+			<list>
+                <!-- main resources -->
+                <value>classpath:/localization/application</value>
+                <value>classpath:/localization/messages</value>
+                <!-- domain resources -->
+                <value>classpath:/localization/domain/DefaultAccount</value>
+                <value>classpath:/localization/domain/ItemData</value>
+                <value>classpath:/localization/domain/ItemDefinition</value>
+                <value>classpath:/localization/domain/PartnerSite</value>
+                <value>classpath:/localization/domain/Study</value>
+                <value>classpath:/localization/domain/StudyEvent</value>
+                <value>classpath:/localization/domain/StudySubject</value>
+                <!-- our bean validation messages -->
+                <value>classpath:/localization/ValidationMessages</value>
+                <!-- default spring security messages -->
+                <value>classpath:org.springframework.security.messages</value>
+                <!-- default conversion messages -->
+                <value>classpath:javax.faces.Messages</value>
+                <!-- default bean validation messages -->
+                <value>classpath:org/hibernate/validator/ValidationMessages</value>
+			</list>
+		</property>
+        <property name="cacheSeconds" value="1" />
+    </bean>
+</beans>

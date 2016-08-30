@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for TumourEntity</comment>
+
+    <entry key="tumourEntity">Tumour Entity</entry>
+    <entry key="tumourEntity_plural">Tumour Entities</entry>
+    <entry key="tumourEntity_reload">Reload existing Tumour Entities</entry>
+    <entry key="tumourEntity_print">Print Tumour Entities table</entry>
+    <entry key="tumourEntity_new">Define a new Tumour Entity</entry>
+    <entry key="tumourEntity_edit">Edit selected Tumour Entity</entry>
+    <entry key="tumourEntity_delete">Delete selected Tumour Entity</entry>
+
+    <!-- attributes -->
+    <entry key="tumourEntity_id">Id</entry>
+    <entry key="tumourEntity_name">Name</entry>
+    <entry key="tumourEntity_description">Description</entry>
+
+    <!-- many-to-one -->
+    <entry key="tumourEntity_parent">Parent</entry>
+
+    <!-- one-to-many -->
+    <entry key="tumourEntity_children">Children</entry>
+
+</properties>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for TreatmentArm</comment>
+
+    <entry key="treatmentArm">Behandlungsarm</entry>
+    <entry key="treatmentArm_plural">Behandlungsarmen</entry>
+    <entry key="treatmentArm_reload">Vorhandenen Behandlungsarmen neu laden</entry>
+    <entry key="treatmentArm_print">Tabelle Behandlungsarmen drucken</entry>
+    <entry key="treatmentArm_new">Neues Behandlungsarm definieren</entry>
+    <entry key="treatmentArm_edit">Ausgewähltes Behandlungsarm bearbeiten</entry>
+    <entry key="treatmentArm_delete">Ausgewähltes Behandlungsarm löschen</entry>
+
+    <!-- attributes -->
+    <entry key="treatmentArm_id">Id</entry>
+    <entry key="treatmentArm_name">Name</entry>
+    <entry key="treatmentArm_description">Beschreibung</entry>
+    <entry key="treatmentArm_plannedSubjectsCount">Patienten Zahl</entry>
+
+    <!-- many-to-one -->
+    <entry key="treatmentArm_study">Studie</entry>
+
+    <!-- one-to-many -->
+    <entry key="treatmentArm_subjects">Patienten</entry>
+
+</properties>

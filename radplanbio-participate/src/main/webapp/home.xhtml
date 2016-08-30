@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+    xmlns:o="http://omnifaces.org/ui"
+	template="/WEB-INF/layouts/template.xhtml"
+    >
+    <!-- Definition of page content-->
+    <ui:define name="content">
+        <div class="layout-portlets-box">
+            <div class="Container100">
+                <h1 class="BigTopic" title="electronic Clinical Outcome Assessments/ Patient Reported Outcomes">Participate eCOA/ePRO</h1>
+                <!-- StudySubject-->
+                <p:panel header="#{msg.studySubject}">
+                    <h:panelGrid
+                        columns="2"
+                        cellpadding="4"
+                        style="margin-bottom:20px"
+                        >
+                        <!-- Dummy label for panel group (keep clean layout) -->
+                        <h:outputText value="#{msg.study}:" />
+                        <h:panelGroup id="grpStudy">
+
+                            <p:selectOneMenu
+                                id="ddlStudy"
+                                value="#{mbStudy.selectedStudyType}"
+                                converter="omnifaces.SelectItemsConverter"
+                                filter="true"
+                                filterMatchMode="contains"
+                                var="studyTypeIter"
+                                style="width:335px"
+                                >
+
+                                <!-- AJAX update of studies datatable -->
+                                <p:ajax listener="#{mbStudy.selectedParentStudyChanged}" update=":growl, :form:dtStudyEvent, :form:dtStudyEventData, :form:dtItems" />
+
+                                <!-- Items -->
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems
+                                    value="#{mbStudy.studyTypeList}"
+                                    var="studyType"
+                                    itemLabel="#{studyType.name}"
+                                    itemValue="#{studyType}"
+                                    />
+                                <p:column>
+                                    <h:outputText value="#{studyTypeIter.name}" />
+                                </p:column>
+                            </p:selectOneMenu>
+                        </h:panelGroup>
+
+                        <!-- Study Subject-->
+                        <p:outputLabel value="#{msg.studySubject}: " for="ddlStudySubjects" />
+                        <p:autoComplete
+                            id="ddlStudySubjects"
+                            dropdown="true"
+                            value="#{mbStudy.selectedStudySubject}"
+                            completeMethod="#{mbStudy.completeStudySubjects}"
+                            var="studySubject"
+                            itemLabel="#{studySubject.studySubjectLabel}"
+                            itemValue="#{studySubject}"
+                            forceSelection="true"
+                            scrollHeight="350"
+                            minQueryLength="1"
+                            maxResults="10"
+                            inputStyle="width:300px"
+                            >
+                            <o:converter converterId="omnifaces.ListConverter" list="#{mbStudy.studySubjectsList}" />
+
+                            <!-- Reload Events with forms and Items -->
+                            <p:ajax event="itemSelect" listener="#{mbStudy.onItemSelect}" update=":growl, :form:dtStudyEvent, :form:dtStudyEventData, :form:dtItems" />
+
+                            <!-- StudySybjectID -->
+                            <p:column headerText="#{msg.studySubject_studySubjectId}">
+                                <h:outputText value="#{studySubject.studySubjectLabel}" />
+                            </p:column>
+
+                            <!-- Pseudonym -->
+                            <p:column headerText="#{msg.studySubject_personId}">
+                                <h:outputText value="[#{studySubject.personID}]" />
+                            </p:column>
+
+                            <!-- Gender -->
+                            <p:column headerText="#{msg.studySubject_gender}">
+                                <h:outputText value="#{studySubject.sex}" />
+                            </p:column>
+                        </p:autoComplete>
+                    </h:panelGrid>
+                </p:panel>
+                <!-- Scheduled ePRO Study Events -->
+                <p:panel>
+                    <p:dataGrid
+                        id="dtStudyEvent"
+                        value="#{mbStudy.eventDataList}"
+                        var="event"
+                        columns="3"
+                        layout="grid"
+                        paginator="false"
+                        emptyMessage="#{msg.search_empty}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.data_entry}" />
+                        </f:facet>
+                        <p:panel style="text-align:center">
+
+                            <!-- Header -->
+                            <f:facet name="header" >
+                                <h:outputText value="#{event.eventName} [#{event.studyEventRepeatKey}]" title="#{event.status}" />
+                            </f:facet>
+
+                            <h:outputText value="#{event.startDate}" />
+
+                            <!-- CRFs -->
+                            <p:dataTable
+                                id="dtProForm"
+                                value="#{event.formDataList}"
+                                var="form"
+                                paginator="false"
+                                selection="#{mbStudy.selectedFormDataList}"
+                                rowKey="#{form.formOid}"
+                                >
+
+                                <!-- Selection checkbox -->
+                                <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+
+                                <!-- CRF -->
+                                <p:column headerText="eCRF">
+
+                                    <p:panel style="text-align:center">
+
+                                        <!-- Header -->
+                                        <f:facet name="header" >
+                                            <h:outputText value="#{form.formName}" />
+                                        </f:facet>
+
+                                        <!-- New data entry -->
+                                        <p:commandLink rendered="#{form.status eq 'Not Started'}">
+                                            <i class="fa fa-tablet Fs60 blue" title="#{form.status}"></i>
+                                        </p:commandLink>
+
+                                        <!-- Editable form-->
+                                        <p:commandLink rendered="#{form.status eq 'available'}">
+                                            <i class="fa fa-tablet Fs60 orange" title="#{form.status}"></i>
+                                        </p:commandLink>
+
+                                        <!-- Unavaliable (for participate) form (filled in EDC) -->
+                                        <p:commandLink rendered="#{form.status eq 'unavailable'}">
+                                            <i class="fa fa-tablet Fs60 green" title="#{form.status}"></i>
+                                        </p:commandLink>
+                                    </p:panel>
+                                </p:column>
+
+                                <!-- Footer -->
+                                <f:facet name="footer">
+                                    <!-- Redirect to Enketo -->
+                                    <p:commandButton
+                                        process="dtProForm"
+                                        update=":growl"
+                                        icon="fa fa-play Fs16 white"
+                                        actionListener="#{mbStudy.redirect}"
+                                        ajax="false"
+                                        style="width:150px;"
+                                        />
+                                    <!-- Mark as completed in EDC -->
+                                    <p:commandButton
+                                        process="dtProForm"
+                                        update=":growl, :form:dtStudyEvent, :form:dtStudyEventData, :form:dtItems"
+                                        icon="fa fa-check-circle Fs16 white"
+                                        actionListener="#{mbStudy.markAsComplete(event)}"
+                                        ajax="false"
+                                        style="width:150px;"
+                                        />
+                                </f:facet>
+                            </p:dataTable>
+                        </p:panel>
+                    </p:dataGrid>
+                </p:panel>
+                <!-- Study Events with CRF data -->
+                <p:panel>
+                    <p:dataGrid
+                        id="dtStudyEventData"
+                        value="#{mbStudy.selectedStudySubjectData.getEventOccurrences()}"
+                        var="eventData"
+                        columns="3"
+                        layout="grid"
+                        paginator="false"
+                        emptyMessage="#{msg.search_empty}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.data_view}" />
+                        </f:facet>
+
+                        <p:panel style="text-align:center">
+
+                            <!-- Header -->
+                            <f:facet name="header" >
+                                <h:outputText value="#{eventData.eventName} [#{eventData.studyEventRepeatKey}]" title="#{eventData.status}" />
+                            </f:facet>
+
+                            <h:outputText value="#{eventData.startDate}" />
+                            <p:dataList
+                                value="#{eventData.formDataList}"
+                                var="formData"
+                                type="unordered"
+                                itemType="none"
+                                paginator="false"
+                                >
+
+                                <p:panel style="text-align:center">
+
+                                    <!-- Header -->
+                                    <f:facet name="header" >
+                                        <h:outputText value="#{formData.formName}" title="#{formData.status}" />
+                                    </f:facet>
+
+                                    <!-- Viewable data -->
+                                    <p:commandLink update=":form:dtItems, :growl">
+                                        <f:setPropertyActionListener target="#{mbStudy.selectedEventData}" value="#{eventData}" />
+                                        <f:setPropertyActionListener target="#{mbStudy.selectedEventFormData}" value="#{formData}" />
+                                        <i class="fa fa-database Fs60 green"></i>
+                                    </p:commandLink>
+                                </p:panel>
+                            </p:dataList>
+                        </p:panel>
+                    </p:dataGrid>
+                </p:panel>
+                <!-- Selected CRF item data -->
+                <p:panel>
+                    <p:dataTable
+                        id="dtItems"
+                        value="#{mbStudy.selectedEventFormData.getAllItemData()}"
+                        var="itemData"
+                        widgetVar="itemsTable"
+                        resizableColumns="false"
+                        draggableColumns="false"
+                        paginator="false"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbStudy.selectedItemData}"
+                        selectionMode="single"
+                        rowKey="#{itemData.itemOid}"
+                        rowIndexVar="rowIndex"
+                        disabledTextSelection="false"
+                        >
+
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.itemData_plural}" />
+                        </f:facet>
+
+                        <!-- Item OID -->
+                        <!--<p:column-->
+                            <!--style="width:80%"-->
+                            <!--&gt;-->
+                            <!--<f:facet name="header">-->
+                                <!--<h:outputText value="OID" />-->
+                            <!--</f:facet>-->
+                            <!--<h:outputText value="#{itemData.itemOid}" style="float:left;" />-->
+                        <!--</p:column>-->
+
+                        <!--Order in form -->
+                        <p:column
+                            id="colItemOrder"
+                            headerText="#"
+                            style="width:10%"
+                            >
+                            <h:outputText value="#{itemData.orderInForm}" />
+                        </p:column>
+
+                        <!-- Left item text -->
+                        <p:column
+                            style="width:70%"
+                            >
+                            <f:facet name="header">
+                                <h:outputText value="#{msg.itemDefinition_question}" />
+                            </f:facet>
+                            <h:outputText value="#{itemData.itemDefinition.itemDetails.itemPresentInForm.leftItemText}" style="float:left;" />
+                        </p:column>
+
+                        <!-- Value -->
+                        <p:column
+                            headerText="#{msg.itemData_value}"
+                            style="width:20%"
+                            >
+                            <h:outputText value="#{itemData.value}" />
+                        </p:column>
+                    </p:dataTable>
+                </p:panel>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>

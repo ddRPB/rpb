@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Person/Patient</comment>
+
+    <entry key="person">Person</entry>
+    <entry key="person_patient">Patient</entry>
+    <entry key="person_plural">Personen</entry>
+    <entry key="person_patient_plural">Patienten</entry>
+    <entry key="person_reload">Vorhandenen Personen neu laden</entry>
+    <entry key="person_patient_reload">Vorhandenen Patienten neu laden</entry>
+    <entry key="person_print">Tabelle Personen drucken</entry>
+    <entry key="person_patient_print">Tabelle Patienten drucken</entry>
+    <entry key="person_new">Neue Person definieren</entry>
+    <entry key="person_patient_new">Neuen Patient definieren</entry>
+    <entry key="person_edit">Ausgewählte Person bearbeiten</entry>
+    <entry key="person_patient_edit">Ausgewählten Patient bearbeiten</entry>
+    <entry key="person_delete">Ausgewählten Person löschen</entry>
+    <entry key="person_patient_delete">Ausgewählten Patient löschen</entry>
+
+    <!-- attributes -->
+    <entry key="person_id">Id</entry>
+    <entry key="person_pid">PID</entry>
+    <entry key="person_idat">IDAT</entry>
+    <entry key="person_titlesBefore">Titel vor</entry>
+    <entry key="person_firstname">Vorname</entry>
+    <entry key="person_surname">Nachname</entry>
+    <entry key="person_titlesAfter">Titel nach</entry>
+    <entry key="person_birthname">Geburtsname</entry>
+    <entry key="person_comment">Kommentar</entry>
+
+    <entry key="person_birthdate">Geburtsdatum</entry>
+    <entry key="person_city">Wohnort</entry>
+    <entry key="person_zip">PLZ</entry>
+
+    <!-- many-to-one -->
+    <entry key="person_status">Status</entry>
+
+    <!-- one-to-many -->
+    <entry key="person_studyPersonnel">Studienstelle</entry>
+    <entry key="person_curriculumVitaeItems">CV</entry>
+
+</properties>

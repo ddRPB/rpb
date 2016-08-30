@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyEvent</comment>
+
+    <entry key="studyEvent">Event</entry>
+    <entry key="studyEvent_plural">Events</entry>
+    <entry key="studyEvent_reload">Reload existing Events</entry>
+    <entry key="studyEvent_print">Print Events table</entry>
+    <entry key="studyEvent_new">Define a new Event</entry>
+    <entry key="studyEvent_edit">Edit selected Event</entry>
+    <entry key="studyEvent_delete">Delete selected Event</entry>
+
+    <!-- attributes -->
+    <entry key="studyEvent_oid">OID</entry>
+    <entry key="studyEvent_name">Name</entry>
+    <entry key="studyEvent_description">Description</entry>
+    <entry key="studyEvent_category">Category</entry>
+    <entry key="studyEvent_type">Type</entry>
+    <entry key="studyEvent_repeating">Repeating</entry>
+    <entry key="studyEvent_startDate">Start</entry>
+    <entry key="studyEvent_status">Status</entry>
+</properties>

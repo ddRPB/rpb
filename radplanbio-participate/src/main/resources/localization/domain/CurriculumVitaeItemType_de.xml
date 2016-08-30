@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for CurriculumVitaeItemType</comment>
+
+    <entry key="curriculumVitaeItemType">CV Artikel Typ</entry>
+    <entry key="curriculumVitaeItemType_plural">Typen</entry>
+    <entry key="curriculumVitaeItemType_reload">Vorhandenen CV Artikel Typen neu laden</entry>
+    <entry key="curriculumVitaeItemType_print">Tabelle CV Artikel Typen drucken</entry>
+    <entry key="curriculumVitaeItemType_new">Neues CV Artikel Typ definieren</entry>
+    <entry key="curriculumVitaeItemType_edit">Ausgewähltes CV Artikel Typ bearbeiten</entry>
+    <entry key="curriculumVitaeItemType_delete">Ausgewähltes CV Artikel Typ löschen</entry>
+
+    <!-- attributes -->
+    <entry key="curriculumVitaeItemType_id">Id</entry>
+    <entry key="curriculumVitaeItemType_name">Name</entry>
+    <entry key="curriculumVitaeItemType_description">Beschreibung</entry>
+
+    <!-- many-to-one -->
+    <entry key="curriculumVitaeItemType_parent">Vorfahr</entry>
+
+    <!-- one-to-many -->
+    <entry key="curriculumVitaeItemType_children">Nachkommenschaft</entry>
+
+</properties>

@@ -1,0 +1,355 @@
+body {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 12px;
+}
+
+/* Links should have standard font and colour */
+a {
+    color: #333333;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+/* LABEL */
+form label.required {
+    font-weight: bold;
+}
+
+form .required-pseudo-label {
+    font-weight: bold;
+}
+
+/* usability: right align labels */
+.ui-fieldset-content td label {
+    display: block;
+    text-align: right;
+}
+
+.ui-fieldset-content td td label {
+    text-align: left;
+}
+
+/* usability */
+.ui-button {
+    margin-right: 0 !important;
+}
+
+/* action column in datatable */
+
+.actions-column {
+    width: 110px !important;
+}
+
+/* error messages */
+.ui-error-message {
+    display: inline-block;
+}
+
+/* aria live region for search results */
+#searchResultsRegion {
+    margin: 0 0 5px 5px;
+    display: inline-block;
+}
+
+/* alternate dataTable row color */
+.ui-datatable-odd {
+    background: none repeat scroll 0 0 #F2F5F9;
+}
+
+/* change dataTable row color when mouse goes over it and keep the selected line text black */
+.ui-datatable tr.ui-datatable-even:hover, .ui-datatable tr.ui-datatable-odd:hover {
+    background: #BDE5F8;
+    color: black !important;
+}
+
+/* put multiCheckbox selection on the left */
+.ui-datatable .ui-datatable-footer {
+    text-align: left !important;
+}
+
+/* fix p:selectOneMenu */
+.ui-selectonemenu label.ui-selectonemenu-label{
+    text-align:left !important;
+}
+
+/* ICONS for p:commandButon. Note the usage of JSF2 resource facility :-) */
+.iconView {
+    background-image: url("#{resource['icons/eye.png']}") !important;
+}
+.iconEdit {
+    background-image: url("#{resource['icons/pencil.png']}") !important;
+}
+.iconDelete {
+    background-image: url("#{resource['icons/cross.png']}") !important;
+}
+.iconSelect {
+    background-image: url("#{resource['icons/accept.png']}") !important;
+}
+.iconSearch {
+    background-image: url("#{resource['icons/find.png']}") !important;
+}
+.iconAdd {
+    background-image: url("#{resource['icons/add.png']}") !important;
+}
+
+/* p:fieldSet */
+.ui-fieldset {
+    text-align: left;
+    margin-top:0.2em;
+    margin-bottom:1.2em;
+}
+
+/* p:dataTable*/
+.ui-datatable .ui-datatable-data td,
+.ui-datatable .ui-datatable-data-empty td {
+    text-align: center;
+}
+
+/* p:layout*/
+.ui-layout-north {
+    z-index:20 !important;
+    overflow:visible !important;;
+}
+
+.ui-layout-north .ui-layout-unit-content {
+    overflow:visible !important;
+}
+
+.ui-layout-south .ui-layout-unit-content {
+    text-align: center;
+}
+
+.ui-layout, .ui-layout-doc, .ui-layout-unit, .ui-layout-wrap, .ui-layout-bd, .ui-layout-hd{
+    border: none;
+}
+
+/* p:panel */
+.ui-panel {
+    width: 98%;
+    margin-bottom: 0;
+}
+
+.ui-panel-content {
+    width: 98%;
+    margin:5px auto;
+}
+
+/* p:menuButton */
+ul.ui-menu-child {
+    width: 200px !important;
+}
+
+.ui-menu .ui-menu-item {
+    width: 200px !important;
+}
+
+.ui-menu.ui-widget li.ui-corner-all {
+    width: 200px !important;
+}
+
+.ui-menu.ui-widget {
+    min-width: 200px !important;
+}
+
+/* p:pickList */
+.ui-picklist.p4 .ui-picklist-list{
+    width: 800px;
+}
+
+/* header */
+.userInfo-welcome {
+    background: transparent url("#{resource['icons/home.png']}") no-repeat center left;
+    padding: 5px 5px 5px 20px;
+}
+.userInfo-user {
+    background: transparent url("#{resource['icons/login.png']}") no-repeat center left;
+    padding : 5px 5px 5px 20px;
+}
+.userInfo-fr {
+    background: transparent url("#{resource['icons/fr.gif']}") no-repeat center left;
+    padding : 5px 5px 5px 20px;
+}
+.userInfo-us {
+    background: transparent url("#{resource['icons/us.gif']}") no-repeat center left;
+    padding : 5px 5px 5px 20px;
+}
+
+.userInfo-en {
+    background: transparent url("#{resource['icons/en.gif']}") no-repeat center left;
+    padding : 5px 5px 5px 20px;
+}
+
+.userInfo-de {
+    background: transparent url("#{resource['icons/de.gif']}") no-repeat center left;
+    padding : 5px 5px 5px 20px;
+}
+
+/* login page */
+.loginBox {
+    width:500px;
+    margin:50px auto;
+}
+
+.environment {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 58px;
+    height: 58px;
+    z-index: 1000;
+}
+
+.Development {
+    background: transparent url("#{resource['icons/environment/development.gif']}") no-repeat center left;
+}
+.Integration {
+    background: transparent url("#{resource['icons/environment/integration.gif']}") no-repeat center left;
+}
+.Production {
+    background: transparent url("#{resource['icons/environment/production.gif']}") no-repeat center left;
+}
+
+.version {
+    position: fixed;
+    left: 170px;
+    top: 5px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 1;
+}
+
+/* RPB header bar */
+.headerBar {
+    overflow: hidden;
+    margin-top: 0px;
+    height: 20px;
+    width: 100%;
+    background: #3890D9;
+}
+
+.headerTextLeft {
+    float: left;
+    margin-top: 2px;
+    margin-left: 8px;
+    text-align: left;
+    color: #FFFFFF;
+    font-family: Tahoma, Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+.headerTextRight {
+    float: right;
+    margin-top: 2px;
+    margin-right: 10px;
+    text-align: right;
+    color: #FFFFFF;
+    font-family: Tahoma, Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+.SUCCESS{
+    background-color : rgba(0, 128, 0, 0.55) !important;
+}
+
+.FAILURE{
+    background-color: rgba(255, 0, 0, 0.39) !important;
+}
+
+.PARTIAL_SUCCESS{
+    background-color: rgba(255, 255, 0, 0.37) !important;
+}
+
+.fa.green {
+    color: green;
+}
+
+.fa.blue {
+    color: blue;
+}
+
+.fa.orange {
+    color: orange;
+}
+
+.Fs9 {
+    font-size:9px !important;
+}
+.Fs10 {
+    font-size:10px !important;
+}
+.Fs11 {
+    font-size:11px !important;
+}
+.Fs12 {
+    font-size:12px !important;
+}
+.Fs13 {
+    font-size:13px !important;
+}
+.Fs14 {
+    font-size:14px !important;
+}
+.Fs15 {
+    font-size:15px !important;
+}
+.Fs16 {
+    font-size:16px !important;
+}
+.Fs17 {
+    font-size:17px !important;
+}
+.Fs18 {
+    font-size:18px !important;
+}
+.Fs19 {
+    font-size:19px !important;
+}
+.Fs20 {
+    font-size:20px !important;
+}
+.Fs21 {
+    font-size:21px !important;
+}
+.Fs22 {
+    font-size:22px !important;
+}
+.Fs23 {
+    font-size:23px !important;
+}
+.Fs24 {
+    font-size:24px !important;
+}
+.Fs25 {
+    font-size:25px !important;
+}
+.Fs26 {
+    font-size:26px !important;
+}
+.Fs27 {
+    font-size:27px !important;
+}
+.Fs28 {
+    font-size:28px !important;
+}
+.Fs29 {
+    font-size:29px !important;
+}
+.Fs30 {
+    font-size:30px !important;
+}
+.Fs40 {
+    font-size:40px !important;
+}
+.Fs50 {
+    font-size:50px !important;
+}
+.Fs60 {
+    font-size:60px !important;
+}
+.Fs100 {
+    font-size:100px !important;
+}
+.Fs130 {
+    font-size:130px !important;
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Mapping</comment>
+
+    <entry key="mapping">Mapping Definition</entry>
+    <entry key="mapping_plural">Mapping Definitionen</entry>
+    <entry key="mapping_reload">Vorhandenen Mapping Definitionen neu laden</entry>
+    <entry key="mapping_print">Tabelle Mapping Definitionen drucken</entry>
+    <entry key="mapping_new">Neue Mapping Definition definieren</entry>
+    <entry key="mapping_edit">Ausgewählte Mapping Definition bearbeiten</entry>
+    <entry key="mapping_delete">Ausgewählten Mapping Definition löschen</entry>
+
+    <!-- attributes -->
+    <entry key="mapping_id">Id</entry>
+    <entry key="mapping_name">Name</entry>
+    <entry key="mapping_description">Beschreibung</entry>
+    <entry key="mapping_type">Art</entry>
+    <entry key="mapping_sourceType">Von</entry>
+    <entry key="mapping_targetType">Auf</entry>
+
+    <!-- many-to-one -->
+    <entry key="mapping_study">Studie</entry>
+
+    <!-- one-to-many -->
+    <entry key="mapping_records">Mapping-Aufzeichnungen</entry>
+    <entry key="mapping_sourceItemDefinitions">Quellendefinitionen</entry>
+    <entry key="mapping_targetItemDefinitions">Zieldefinitionen</entry>
+</properties>

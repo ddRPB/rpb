@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    >
+    <h:head>
+        <f:facet name="first">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+        </f:facet>
+        <title>RPB participate ${msg.partner_site_name}</title>
+        <h:outputText value="&lt;!--[if gte IE 9]&gt;" escape="false" />
+        <style type="text/css">
+            /* styles for IE 9 */
+        </style>
+        <h:outputText value="&lt;![endif]--&gt;" escape="false" />
+        <ui:insert name="head" />
+    </h:head>
+
+    <h:body>
+        <h:form id="loginForm" action="/j_spring_security_check" method='POST'>
+            <div id="layout-portlets-cover">
+                <div>
+                    <div>
+                        <div>
+                            <h:outputText id="txtLoginError" value="#{mbLogin.loginError}" />
+                        </div>
+                        <p:inputText
+                            id="j_username"
+                            value="#{mbLogin.username}"
+                            placeholder="#{msg.login_login}"
+                            />
+                        <br />
+                        <p:password
+                            id="j_password"
+                            value="#{mbLogin.password}"
+                            placeholder="#{msg.login_password}"
+                            feedback="false"
+                            />
+                        <br />
+                        <p:commandButton
+                            id="submit"
+                            value="#{msg.login_submit}"
+                            action="#{mbLogin.login}"
+                            update="txtLoginError"
+                            ajax="false"
+                            >
+                        </p:commandButton>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </h:body>
+</html>

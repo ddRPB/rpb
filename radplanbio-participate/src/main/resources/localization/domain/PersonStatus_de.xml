@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for PersonStatus</comment>
+
+    <entry key="personStatus">Status</entry>
+    <entry key="personStatus_plural">Status</entry>
+    <entry key="personStatus_reload">Vorhandene Status neu laden</entry>
+    <entry key="personStatus_print">Tabelle Status drucken</entry>
+    <entry key="personStatus_new">Neuen Status definieren</entry>
+    <entry key="personStatus_edit">Ausgewählten Status bearbeiten</entry>
+    <entry key="personStatus_delete">Ausgewählten Status löschen</entry>
+
+    <!-- attributes -->
+    <entry key="personStatus_id">Id</entry>
+    <entry key="personStatus_name">Name</entry>
+    <entry key="personStatus_description">Beschreibung</entry>
+
+</properties>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for StudyPhase</comment>
+
+    <entry key="studyPhase">Phase</entry>
+    <entry key="studyPhase_plural">Phasen</entry>
+    <entry key="studyPhase_reload">Vorhandenen Phasen neu laden</entry>
+    <entry key="studyPhase_print">Tabelle Phasen drucken</entry>
+    <entry key="studyPhase_new">Neue Phase definieren</entry>
+    <entry key="studyPhase_edit">Ausgewählte Phase bearbeiten</entry>
+    <entry key="studyPhase_delete">Ausgewählte Phase löschen</entry>
+
+    <!-- attributes -->
+    <entry key="studyPhase_id">Id</entry>
+    <entry key="studyPhase_name">Name</entry>
+    <entry key="studyPhase_description">Beschreibung</entry>
+</properties>

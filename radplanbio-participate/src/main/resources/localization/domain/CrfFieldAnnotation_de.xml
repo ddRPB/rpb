@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for CrfFieldAnnotation</comment>
+
+    <entry key="crfFieldAnnotation">eCRF Feld Anmerkung</entry>
+    <entry key="crfFieldAnnotation_plural">eCRF Feld Anmerkungen</entry>
+    <entry key="crfFieldAnnotation_reload">Vorhandenen eCRF Feld Anmerkungen neu laden</entry>
+    <entry key="crfFieldAnnotation_print">Tabelle eCRF Feld Anmerkungen drucken</entry>
+    <entry key="crfFieldAnnotation_new">Neue eCRF Feld Anmerkung definieren</entry>
+    <entry key="crfFieldAnnotation_edit">Ausgewählte eCRF Feld Anmerkung bearbeiten</entry>
+    <entry key="crfFieldAnnotation_delete">Ausgewählte eCRF Feld Anmerkung löschen</entry>
+
+    <!-- attributes -->
+    <entry key="crfFieldAnnotation_id">Id</entry>
+    <entry key="crfFieldAnnotation_eventDefinitionOid">Ereignis</entry>
+    <entry key="crfFieldAnnotation_formOid">Formular</entry>
+    <entry key="crfFieldAnnotation_groupOid">Gruppe</entry>
+    <entry key="crfFieldAnnotation_crfItemOid">Datenelement</entry>
+
+    <!-- many-to-one -->
+    <entry key="crfFieldAnnotation_annotationType">Typ</entry>
+    <entry key="crfFieldAnnotation_study">Studie</entry>
+
+</properties>

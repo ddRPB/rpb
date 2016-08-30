@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xml:lang="${userContext.locale}"
+      lang="${userContext.locale}"
+      >
+
+    <h:head>
+        <f:facet name="first">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="description" content="RadPlanBio - radiotherapy clinical research IT infrastructure" />
+            <meta name="keywords" content="DICOM, CDISC ODM, web services, software integration" />
+            <meta name="author" content="DKTK" />
+        </f:facet>
+        <f:facet name="last">
+            <h:outputStylesheet name="css/main.css" />
+            <!--<h:outputScript name="js/main.js" />-->
+        </f:facet>
+        <title>RPB participate ${msg.partner_site_name}</title>
+        <ui:insert name="head">
+            <!-- Favicon -->
+            <link rel="shortcut icon" type="image/x-icon" href="${request.contextPath}/resources/img/favicon.ico" />
+            <link rel="icon" type="image/x-icon" href="${request.contextPath}/resources/img/favicon.ico" />
+       </ui:insert>
+    </h:head>
+
+    <!-- SPARK -->
+    <h:body>
+        <!-- Growl is UI component for displaying messages -->
+        <p:growl
+            id="growl"
+            widgetVar="growlNotificationBar"
+            showDetail="true"
+            sticky="false"
+            life="8000"
+            />
+
+        <!-- Main form HTML element (nested forms are not valid, be sure that there is no form in content page) -->
+        <h:form id="form" enctype="multipart/form-data; charset=utf-8">
+
+            <div id="menu-mask"></div>
+
+            <ui:include src="topbar.xhtml" />
+
+            <div id="layout-portlets-cover">
+                <ui:insert name="content" />
+
+                <div align="center">
+                    <p:outputPanel layout="block">
+                            <h:outputText value="#{msg.application_name} version: #{msg.version} © 2013-2016 DKTK" />
+                    </p:outputPanel>
+                </div>
+            </div>
+
+            <p:ajaxStatus style="width:32px;height:32px;position:fixed;right:7px;bottom:7px">
+                <f:facet name="start">
+                    <p:graphicImage name="icons/ajaxloading.gif" />
+                </f:facet>
+
+                <f:facet name="complete">
+                    <h:outputText value="" />
+                </f:facet>
+            </p:ajaxStatus>
+        </h:form>
+    </h:body>
+</html>

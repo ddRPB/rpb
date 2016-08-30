@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for SponsoringType</comment>
+
+    <entry key="sponsoringType">Sonsoring</entry>
+    <entry key="sponsoringType_plural">Typen</entry>
+    <entry key="sponsoringType_reload">Vorhandenen Sonsoring Typen neu laden</entry>
+    <entry key="sponsoringType_print">Tabelle Sonsoring Typen drucken</entry>
+    <entry key="sponsoringType_new">Neuen Sponsoring Typ definieren</entry>
+    <entry key="sponsoringType_edit">Ausgewählten Sponsoring Typ bearbeiten</entry>
+    <entry key="sponsoringType_delete">Ausgewählten Sponsoring Typ löschen</entry>
+
+    <!-- attributes -->
+    <entry key="sponsoringType_id">Id</entry>
+    <entry key="sponsoringType_name">Name</entry>
+    <entry key="sponsoringType_description">Beschreibung</entry>
+</properties>
