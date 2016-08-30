@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 
+import de.dktk.dd.rpb.core.domain.Named;
 import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -33,14 +34,15 @@ import java.io.Serializable;
 
 /**
  * AnnotationType domain entity
- * RadPlanBio specific annotation type for CRF items in OpenClinica
+ *
+ * RadPlanBio specific annotation type for CRF item fields in EDC
  *
  * @author tomas@skripcak.net
  * @since 12 Sep 2013
  */
 @Entity
 @Table(name = "ANNOTATIONTYPE")
-public class AnnotationType implements Identifiable<Integer>, Serializable {
+public class AnnotationType implements Identifiable<Integer>, Named, Serializable {
 
     //region Finals
 
@@ -52,8 +54,11 @@ public class AnnotationType implements Identifiable<Integer>, Serializable {
     //region Members
 
     private Integer id; // pk
+
     private String name; // not null, unique
     private String description;
+
+    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
     //endregion
 
@@ -94,9 +99,9 @@ public class AnnotationType implements Identifiable<Integer>, Serializable {
 
     //region Name
 
-    @Size(max = 255)
     @NotEmpty
-    @Column(name = "NAME", nullable = false, length = 255)
+    @Size(max = 255)
+    @Column(name = "NAME", nullable = false)
     public String getName()  {
         return this.name;
     }
@@ -110,7 +115,7 @@ public class AnnotationType implements Identifiable<Integer>, Serializable {
     //region Description
 
     @Size(max = 255)
-    @Column(name = "DESCRIPTION", length = 255)
+    @Column(name = "DESCRIPTION")
     public String getDescription()  {
         return this.description;
     }
@@ -144,8 +149,6 @@ public class AnnotationType implements Identifiable<Integer>, Serializable {
         return this == other || (other instanceof AnnotationType && hashCode() == other.hashCode());
     }
 
-    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
-
     @Override
     public int hashCode() {
         return identifiableHashBuilder.hash(log, this);
@@ -158,9 +161,9 @@ public class AnnotationType implements Identifiable<Integer>, Serializable {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", this.getId())
-                .add("name", this.getName())
-                .add("description", this.getDescription())
+                .add("id", this.id)
+                .add("name", this.name)
+                .add("description", this.description)
                 .toString();
     }
 

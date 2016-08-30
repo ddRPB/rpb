@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,12 @@ import com.google.common.base.Objects;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-import de.dktk.dd.rpb.core.domain.edc.mapping.AbstractMappedItem;
-import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
+import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
+import de.dktk.dd.rpb.core.domain.edc.mapping.MappingRecord;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 import org.openclinica.ws.beans.StudySubjectWithEventsType;
 import org.openclinica.ws.beans.StudyType;
@@ -35,7 +36,11 @@ import org.openclinica.ws.beans.StudyType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -83,12 +88,12 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
     @XmlAttribute(name="DateOfBirth", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private String dateOfBirth;
 
-//    @XmlAttribute(name="EnrollmentDate", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    // @XmlAttribute(name="EnrollmentDate", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     @XmlTransient
     private String enrollmentDate;
-//
-//    @XmlAttribute(name="Status", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
-//    private String status;
+
+    @XmlAttribute(name="Status", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    private String status;
 
     @XmlElement(name="StudyEventData")
     private List<EventData> studyEventDataList;
@@ -146,9 +151,7 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         if (st != null) {
             if (this.study == null) {
                 this.setStudy(
-                        new Study(
-                                st
-                        )
+                        new Study(st)
                 );
             }
             else {
@@ -287,6 +290,37 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         this.enrollmentDate = enrollmentDate;
     }
 
+    public Date getDateEnrollment() {
+        if (this.enrollmentDate != null && !this.enrollmentDate.equals("")) {
+            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+            try {
+                return format.parse(this.enrollmentDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public String getDateEnrollmentString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getDateEnrollment();
+        return date != null ? format.format(date) : null;
+    }
+
+    //endregion
+
+    //region Status
+
+    public String getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(String value) {
+        this.status = value;
+    }
+
     //endregion
 
     //region StudyEventData List
@@ -313,19 +347,11 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
     }
 
     public boolean addDicomStudyForSubject(DicomStudy ds) {
-        if (this.person != null) {
-            return this.person.addDicomStudy(ds);
-        }
-
-        return false;
+        return this.person != null && this.person.addDicomStudy(ds);
     }
 
     public boolean removeDicomStudyFromSubject(DicomStudy ds) {
-        if (this.person != null) {
-            return this.person.removeDicomStudy(ds);
-        }
-
-        return false;
+        return this.person != null && this.person.removeDicomStudy(ds);
     }
 
     //endregion
@@ -370,7 +396,7 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
      */
     @Override
     public int hashCode() {
-        return identifiableHashBuilder.hash(log, this);
+        return identifiableHashBuilder.hash(log, this, this.subjectKey);
     }
 
     /**
@@ -382,6 +408,7 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         return Objects.toStringHelper(this)
                 .add("id", this.id)
                 .add("studySubjectId", this.studySubjectId)
+                .add("subjectKey", this.subjectKey)
                 .toString();
     }
 
@@ -389,37 +416,21 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
     //region Methods
 
-    //region DICOM Patient
+    //region Mapping
 
-    public boolean hasDicomStudyWithUid(String studyInstanceUid) {
-        if (this.person != null) {
-            return this.getPerson().hasDicomStudyWithUid(studyInstanceUid);
-        }
-
-        return Boolean.FALSE;
-    }
-
-    public DicomStudy getDicomStudyWithUid(String studyInstanceUid) {
-        if (this.person != null) {
-            return this.person.getDicomStudyWithUid(studyInstanceUid);
-        }
-
-        return null;
-    }
-
-    public boolean populateDataField(AbstractMappedItem target, String value) {
+    public boolean populateDataField(MappingRecord mappingRecord, String value) {
         Boolean result = false;
 
-        if (target instanceof MappedOdmItem) {
-            MappedOdmItem odmTarget = (MappedOdmItem) target;
+        if (mappingRecord.getTarget() instanceof MappedOdmItem) {
+            MappedOdmItem odmTarget = (MappedOdmItem) mappingRecord.getTarget();
             EventData targetEvent = null;
 
             // If subject data was loaded from ODM, this structure will be already initialised
             if (this.studyEventDataList != null) {
                 for (EventData ed : this.studyEventDataList) {
                     if (ed.getStudyEventOid().equals(odmTarget.getStudyEventOid())) {
-                        if (odmTarget.getStudyEventRepeatKey() != null && !odmTarget.getStudyEventRepeatKey().equals("")) {
-                            if (ed.getStudyEventRepeatKey() != null && ed.getStudyEventRepeatKey().equals(odmTarget.getStudyEventRepeatKey())) {
+                        if (mappingRecord.getStudyEventRepeatKey() != null && !mappingRecord.getStudyEventRepeatKey().equals("")) {
+                            if (ed.getStudyEventRepeatKey() != null && ed.getStudyEventRepeatKey().equals(mappingRecord.getStudyEventRepeatKey())) {
                                 targetEvent = ed;
                                 break;
                             }
@@ -432,12 +443,12 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
                 }
             }
             else {
-                this.studyEventDataList = new ArrayList<EventData>();
+                this.studyEventDataList = new ArrayList<>();
             }
 
             if (targetEvent == null) {
-                if (odmTarget.getStudyEventRepeatKey() != null && !odmTarget.getStudyEventRepeatKey().equals("")) {
-                    targetEvent = new EventData(odmTarget.getStudyEventOid(), odmTarget.getStudyEventRepeatKey());
+                if (mappingRecord.getStudyEventRepeatKey() != null && !mappingRecord.getStudyEventRepeatKey().equals("")) {
+                    targetEvent = new EventData(odmTarget.getStudyEventOid(), mappingRecord.getStudyEventRepeatKey());
                 }
                 else {
                     targetEvent = new EventData(odmTarget.getStudyEventOid());
@@ -467,8 +478,17 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
             if (targetForm.getItemGroupDataList() != null) {
                 for (ItemGroupData igd : targetForm.getItemGroupDataList()) {
                     if (igd.getItemGroupOid().equals(odmTarget.getItemGroupOid())) {
-                        targetItemGroup = igd;
-                        break;
+
+                        if (mappingRecord.getItemGroupRepeatKey() != null && !mappingRecord.getItemGroupRepeatKey().equals("")) {
+                            if (igd.getItemGroupRepeatKey() != null && igd.getItemGroupRepeatKey().equals(mappingRecord.getItemGroupRepeatKey())) {
+                                targetItemGroup = igd;
+                                break;
+                            }
+                        }
+                        else {
+                            targetItemGroup = igd;
+                            break;
+                        }
                     }
                 }
             }
@@ -477,8 +497,8 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
             }
 
             if (targetItemGroup == null) {
-                if (odmTarget.getItemGroupRepeatKey() != null && !odmTarget.getItemGroupRepeatKey().equals("")) {
-                    targetItemGroup = new ItemGroupData(odmTarget.getItemGroupOid(), odmTarget.getItemGroupRepeatKey());
+                if (mappingRecord.getItemGroupRepeatKey() != null && !mappingRecord.getItemGroupRepeatKey().equals("")) {
+                    targetItemGroup = new ItemGroupData(odmTarget.getItemGroupOid(), mappingRecord.getItemGroupRepeatKey());
                 }
                 else {
                     targetItemGroup = new ItemGroupData(odmTarget.getItemGroupOid());
@@ -499,10 +519,32 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region DICOM
+
+    public boolean hasDicomStudyWithUid(String studyInstanceUid) {
+        if (this.person != null) {
+            return this.getPerson().hasDicomStudyWithUid(studyInstanceUid);
+        }
+
+        return Boolean.FALSE;
+    }
+
+    public DicomStudy getDicomStudyWithUid(String studyInstanceUid) {
+        if (this.person != null) {
+            return this.person.getDicomStudyWithUid(studyInstanceUid);
+        }
+
+        return null;
+    }
+
+    //endregion
+
     //region EDC data
 
+    //region Event data
+
     public int getEventOccurrencesCountForEventDef(EventDefinition eventDef) {
-        List<EventData> results = new ArrayList<EventData>();
+        List<EventData> results = new ArrayList<>();
 
         if (this.studyEventDataList != null) {
             for (EventData ed : this.studyEventDataList) {
@@ -512,21 +554,64 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
             }
         }
 
-        return results != null ? results.size() : 0;
+        return results.size();
     }
 
-    public List<EventData> getEventOccurrencesForEventDef(EventDefinition eventDef) {
-        List<EventData> results = new ArrayList<EventData>();
+    /**
+     * Get only event occurrences that actually contain some CRF data (ignore the scheduled one)
+     *
+     * @return List of EventData entities
+     */
+    public List<EventData> getEventOccurrences() {
+        List<EventData> results = new ArrayList<>();
 
         if (this.studyEventDataList != null) {
             for (EventData ed : this.studyEventDataList) {
-                if (ed.getStudyEventOid().equals(eventDef.getOid())) {
+                // Ignore events that have data but have been removed from study (Definition is not in metadata)
+                if (!EnumEventDataStatus.INVALID.toString().equals(ed.getStatus())) {
+                    if (ed.getFormDataList() != null) {
+                        results.add(ed);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+    public List<EventData> getEventOccurrencesForEventDef(String eventDefOid) {
+        List<EventData> results = new ArrayList<>();
+
+        if (eventDefOid != null && this.studyEventDataList != null) {
+            for (EventData ed : this.studyEventDataList) {
+                if (ed.getStudyEventOid().equals(eventDefOid)) {
                     results.add(ed);
                 }
             }
         }
 
         return results;
+    }
+
+    public List<EventData> getEventOccurrencesForEventDef(EventDefinition eventDef) {
+        return this.getEventOccurrencesForEventDef(eventDef.getOid());
+    }
+
+    public List<EventData> getEventOccurrencesForEvenDefs(List<EventDefinition> eventDefs) {
+        List<EventData> results = new ArrayList<>();
+
+        if (this.studyEventDataList != null) {
+            for (EventData ed : this.studyEventDataList) {
+                for (EventDefinition eventDef : eventDefs) {
+                    if (ed.getStudyEventOid().equals(eventDef.getOid())) {
+                        results.add(ed);
+                    }
+                }
+            }
+        }
+
+        return results;
+
     }
 
     public EventData getEventOccurrenceForEventDef(EventDefinition eventDef, int repeatKey) {
@@ -540,6 +625,10 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
         return null;
     }
+
+    //endregion
+
+    //region Item data
 
     public ItemData getItemDataForItemDef(EventData eventData, ItemDefinition dicomItemDef) {
         if (dicomItemDef != null) {
@@ -565,6 +654,25 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         }
 
         return null;
+    }
+
+    //endregion
+
+    //endregion
+
+    //region Metadata
+
+    public void linkOdmDefinitions(Odm odm) {
+        if (odm != null) {
+            // Subject does not have metadata, Link next level in hierarchy (StudyEvent)
+            if (this.studyEventDataList != null) {
+
+                // EventDefinition linking
+                for (EventData eventData : this.studyEventDataList) {
+                    eventData.linkOdmDefinitions(odm);
+                }
+            }
+        }
     }
 
     //endregion

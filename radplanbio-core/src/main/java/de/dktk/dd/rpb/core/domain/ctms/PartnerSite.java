@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import javax.validation.constraints.Size;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.domain.Named;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 
 import org.apache.log4j.Logger;
@@ -43,7 +44,6 @@ import de.dktk.dd.rpb.core.domain.admin.Server;
 import de.dktk.dd.rpb.core.domain.admin.Pacs;
 import de.dktk.dd.rpb.core.domain.edc.Edc;
 
-
 /**
  * PartnerSite domain entity
  *
@@ -55,7 +55,7 @@ import de.dktk.dd.rpb.core.domain.edc.Edc;
  */
 @Entity
 @Table(name = "PARTNERSITE")
-public class PartnerSite implements Identifiable<Integer>, Serializable {
+public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //region Finals
 
@@ -68,7 +68,7 @@ public class PartnerSite implements Identifiable<Integer>, Serializable {
 
     private Integer siteId; // pk, auto-increment, serial
     private String identifier; // not null unique
-    private String siteName; // not null
+    private String name; // not null
     private String description;
     private Float latitude;
     private Float longitude;
@@ -143,17 +143,17 @@ public class PartnerSite implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    //region SiteName
+    //region Name
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "SITENAME", nullable = false, length = 255)
-    public String getSiteName() {
-        return this.siteName;
+    @Column(name = "SITENAME", nullable = false)
+    public String getName() {
+        return this.name;
     }
 
-    public void setSiteName(String value) {
-        this.siteName = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     //endregion
@@ -161,7 +161,7 @@ public class PartnerSite implements Identifiable<Integer>, Serializable {
     //region Description
 
     @Size(max = 255)
-    @Column(name = "DESCRIPTION", length = 255)
+    @Column(name = "DESCRIPTION")
     public String getDescription() {
         return this.description;
     }
@@ -381,7 +381,7 @@ public class PartnerSite implements Identifiable<Integer>, Serializable {
         return Objects.toStringHelper(this)
                 .add("id", this.siteId)
                 .add("identifier", this.identifier)
-                .add("sitename", this.siteName)
+                .add("sitename", this.name)
                 .add("description", this.description)
                 .add("latitude", this.latitude)
                 .add("longitude", this.longitude)

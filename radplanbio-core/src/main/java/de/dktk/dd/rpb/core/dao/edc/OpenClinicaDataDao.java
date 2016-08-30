@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 /**
@@ -55,16 +56,14 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
         String result = "";
 
         String sql = "SELECT ua.passwd as PasswordHash from user_account ua where ua.user_name = ?";
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, new Object[] { username });
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, username);
 
         // Can be multiple users with the same name but I want to have not LDAP user that is used for SOAP WS
         for (Map<String, Object> row : rows) {
             String hash = (String) row.get("PasswordHash");
-            // Skip LDAP accounts
-            if (hash.equals("*")) {
-                continue;
-            }
-            else {
+
+            // Skip LDAP and participate accounts
+            if (!hash.equals(Constants.OC_LDAPPASSHASH)) {
                 result = hash;
                 break;
             }
@@ -189,8 +188,8 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
     public boolean changeUserActiveStudy(String username, Study newActiveStudy) {
 
         String sql = "UPDATE USER_ACCOUNT\n" +
-            "SET active_study = ?\n" +
-            "WHERE user_name = ?";
+                "SET active_study = ?\n" +
+                "WHERE user_name = ?";
 
         Object[] params = { newActiveStudy.getId(), username };
         int rowsUpdated = getJdbcTemplate().update(sql, params);
@@ -395,43 +394,43 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
                 "ON ec.event_crf_id = id.event_crf_id\n" +
                 "AND i.item_id = id.item_id\n" +
                 "LEFT JOIN\n" + // Associate with decoded value for specific ItemTypes -> responseSetType (3, 5, 6, 7)
-                    "(\n" +
-                    "\tSELECT\n" + // Make union of ResponseSets (for decoding)
-                    "\t  version_id as crf_version_id\n" +
-                    "\t, response_set_id as set_id\n" +
-                    "\t, label\n" +
-                    "\t, options_values as value\n" +
-                    "\t, options_text as decode\n" +
-                    "\tFROM RESPONSE_SET\n" +
-                    "\tWHERE response_type_id = 3\n" + // check box (select one from many options)
-                    "\t UNION\n" +
-                    "\tSELECT\n" +
-                    "\t  version_id as crf_version_id\n" +
-                    "\t, response_set_id as set_id\n" +
-                    "\t, label\n" +
-                    "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
-                    "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
-                    "\tFROM RESPONSE_SET\n" +
-                    "\tWHERE response_type_id = 5\n" + // radio (select one from many options)
-                    "\t UNION\n" +
-                    "\tSELECT\n" +
-                    "\t  version_id as crf_version_id\n" +
-                    "\t, response_set_id as set_id\n" +
-                    "\t, label\n" +
-                    "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
-                    "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
-                    "\tFROM RESPONSE_SET\n" +
-                    "\tWHERE response_type_id = 6\n" + // drop down list (select one from many options)
-                    "\t UNION\n" +
-                    "\tSELECT\n" +
-                    "\t  version_id as crf_version_id\n" +
-                    "\t, response_set_id as set_id\n" +
-                    "\t, label\n" +
-                    "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
-                    "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
-                    "\tFROM RESPONSE_SET\n" +
-                    "\tWHERE response_type_id = 7\n" + // list box (select one or more from many options)
-                    "\t) cls\n" +
+                "(\n" +
+                "\tSELECT\n" + // Make union of ResponseSets (for decoding)
+                "\t  version_id as crf_version_id\n" +
+                "\t, response_set_id as set_id\n" +
+                "\t, label\n" +
+                "\t, options_values as value\n" +
+                "\t, options_text as decode\n" +
+                "\tFROM RESPONSE_SET\n" +
+                "\tWHERE response_type_id = 3\n" + // check box (select one from many options)
+                "\t UNION\n" +
+                "\tSELECT\n" +
+                "\t  version_id as crf_version_id\n" +
+                "\t, response_set_id as set_id\n" +
+                "\t, label\n" +
+                "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
+                "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
+                "\tFROM RESPONSE_SET\n" +
+                "\tWHERE response_type_id = 5\n" + // radio (select one from many options)
+                "\t UNION\n" +
+                "\tSELECT\n" +
+                "\t  version_id as crf_version_id\n" +
+                "\t, response_set_id as set_id\n" +
+                "\t, label\n" +
+                "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
+                "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
+                "\tFROM RESPONSE_SET\n" +
+                "\tWHERE response_type_id = 6\n" + // drop down list (select one from many options)
+                "\t UNION\n" +
+                "\tSELECT\n" +
+                "\t  version_id as crf_version_id\n" +
+                "\t, response_set_id as set_id\n" +
+                "\t, label\n" +
+                "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
+                "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
+                "\tFROM RESPONSE_SET\n" +
+                "\tWHERE response_type_id = 7\n" + // list box (select one or more from many options)
+                "\t) cls\n" +
                 "ON ifm.response_set_id = cls.set_id\n" +
                 "AND ifm.crf_version_id = cls.crf_version_id\n" +
                 "AND id.value = cls.value\n" +

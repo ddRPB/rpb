@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,9 @@ public enum AuditEvent {
     EDCStudySubjectEnrollment("EDCStudySubjectEnrollment"),
     EDCStudyEventScheduled("EDCStudyEventScheduled"),
     EDCDataQuery("EDCDataQuery"),
+
+    EDCParticipateNewForm("EDCParticipateNewForm"),
+    EDCParticipateEditableForm("EDCParticipateEditableForm"),
 
     PACSStudyView("PACSStudyView"),
     PACSSeriesView("PACSSeriesView"),

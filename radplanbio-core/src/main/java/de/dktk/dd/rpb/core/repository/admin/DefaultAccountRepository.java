@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2014  Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,42 +19,127 @@
 
 package de.dktk.dd.rpb.core.repository.admin;
 
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+
+import javax.inject.Inject;
+
+import org.apache.log4j.Logger;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import org.springframework.transaction.annotation.Transactional;
+
+import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.repository.support.Repository;
+import de.dktk.dd.rpb.core.dao.admin.DefaultAccountDao;
 
 /**
- * The DefaultAccountRepository is a data-centric service for the {@link DefaultAccount} entity.
- * It provides the expected methods to get/delete a {@link DefaultAccount} instance
- * plus some methods to perform searches.
- * <p>
- * Search logic is driven by 2 kinds of parameters: a {@link DefaultAccount} instance used
- * as a properties holder against which the search will be performed and a {@link de.dktk.dd.rpb.core.dao.support.SearchParameters}
- * instance from where you can control your search options including the usage
- * of named queries.
+ * Default implementation of the {@link IDefaultAccountRepository} interface.
+ * Note: you may use multiple DAO from this layer.
+ * @see DefaultAccountRepository
  *
- * DefaultAccountRepository Interfaces
+ * DefaultAccountRepository
  *
  * @author tomas@skripcak.net
  * @since 10 Apr 2013
  */
-public interface DefaultAccountRepository extends Repository<DefaultAccount, Integer> {
+@Named("defaultAccountRepository")
+@Singleton
+public class DefaultAccountRepository extends RepositoryImpl<DefaultAccount, Integer> implements IDefaultAccountRepository {
+
+    //region Finals
+
+    @SuppressWarnings("unused")
+    private static final Logger log = Logger.getLogger(DefaultAccountRepository.class);
+
+    //endregion
+
+    //region Injects
+
+    protected DefaultAccountDao defaultAccountDao;
+
+    @Inject
+    public void setAccountDao(DefaultAccountDao value) {
+        this.defaultAccountDao = value;
+    }
+
+    //endregion
+
+    //region Overrides
 
     /**
-     * Return the persistent instance of {@link DefaultAccount} with the given unique property value username,
-     * or null if there is no such persistent instance.
-     *
-     * @param username the unique value
-     * @return the corresponding {@link DefaultAccount} persistent instance or null
+     * Dao getter used by the {@link RepositoryImpl}.
      */
-    DefaultAccount getByUsername(String username);
+    @Override
+    public GenericDao<DefaultAccount, Integer> getDao() {
+        return this.defaultAccountDao;
+    }
 
     /**
-     * Return the persistent instance of {@link DefaultAccount} with the given unique property value ocusername,
-     * or null if there is no such persistent instance.
-     *
-     * @param ocUsername the unique value
-     * @return the corresponding {@link DefaultAccount} persistent instance or null
+     * {@inheritDoc}
      */
-    DefaultAccount getByOcUsername(String ocUsername);
+    @Override
+    public DefaultAccount getNew() {
+        return new DefaultAccount();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DefaultAccount getNewWithDefaults() {
+        DefaultAccount result = getNew();
+        result.initDefaultValues();
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public DefaultAccount get(DefaultAccount model) {
+        if (model == null) {
+            return null;
+        }
+
+        if (model.isIdSet()) {
+            return super.get(model);
+        }
+
+        if (!isNotEmpty(model.getUsername())) {
+            DefaultAccount result = getByUsername(model.getUsername());
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public DefaultAccount getByUsername(String username) {
+        DefaultAccount account = new DefaultAccount();
+        account.setUsername(username);
+        return findUniqueOrNone(account);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public DefaultAccount getByOcUsername(String ocUsername) {
+        DefaultAccount account = new DefaultAccount();
+        account.setOcUsername(ocUsername);
+        return findUniqueOrNone(account);
+    }
+
+    //endregion
 
 }

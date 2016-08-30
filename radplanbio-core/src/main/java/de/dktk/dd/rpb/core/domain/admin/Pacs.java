@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,8 @@ public class Pacs implements Identifiable<Integer>, Serializable {
     private Boolean isEnabled;
     private String version;
 
+    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
+
     //endregion
 
     //region Constructors
@@ -63,6 +65,7 @@ public class Pacs implements Identifiable<Integer>, Serializable {
         // NOOP
     }
 
+    @SuppressWarnings("unused")
     public Pacs(Integer primaryKey) {
         this.setId(primaryKey);
     }
@@ -154,12 +157,9 @@ public class Pacs implements Identifiable<Integer>, Serializable {
      * equals implementation using a business key.
      */
     @Override
-    public boolean equals(Object other)
-    {
+    public boolean equals(Object other) {
         return this == other || (other instanceof Pacs && hashCode() == other.hashCode());
     }
-
-    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
     @Override
     public int hashCode()

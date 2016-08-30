@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,14 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
+import de.dktk.dd.rpb.core.adapter.NoYesBooleanAdapter;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
@@ -71,7 +73,9 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
     @XmlAttribute(name="Type")
     private String type;
 
-    private boolean isRepeating;
+    @XmlAttribute(name="Repeating")
+    @XmlJavaTypeAdapter(NoYesBooleanAdapter.class)
+    private Boolean isRepeating;
 
     private String status;
     private int subjectAgeAtEvent;
@@ -214,13 +218,17 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
         }
     }
 
-    public boolean getIsRepeating() {
+    //region IsRepeating
+
+    public Boolean getIsRepeating() {
         return this.isRepeating;
     }
 
-    public void setIsRepeating(boolean value) {
+    public void setIsRepeating(Boolean value) {
         this.isRepeating = value;
     }
+
+    //endregion
 
     public List<FormDefinition> getFormDefs() {
         return this.formDefs;
@@ -278,17 +286,48 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
     //region Methods
 
     /**
+     * Find list of visible FromDefinitions
+     *
+     * @return List of visible FormDefinition entities
+     */
+    public List<FormDefinition> findVisibleFormDefinitions() {
+        List<FormDefinition> results = new ArrayList<>();
+
+        if (this.formDefs != null) {
+            for (FormDefinition formDefinition : this.formDefs) {
+
+                // For OpenClinica form check the vendor specific extension (visibility)
+                if (formDefinition.getFormDetails() != null) {
+                    if (formDefinition.getFormDetails().getPresentInEventDefinition() != null) {
+                        if (!formDefinition.getFormDetails().getPresentInEventDefinition().getHideCrf()) {
+                            results.add(formDefinition);
+                        }
+                    }
+                }
+                // Otherwise just add the form the the results
+                else {
+                    results.add(formDefinition);
+                }
+            }
+        }
+
+        return results;
+    }
+
+    /**
      * Find eCRF item definition in Event according to provided OID
      *
      * @param itemDefOid item definition OID
      * @return item definition object instance
      */
     public ItemDefinition findItemDef(String itemDefOid) {
-        for (FormDefinition formDef : this.formDefs) {
-            for (ItemGroupDefinition itemGroupDef: formDef.getItemGroupDefs()) {
-                for (ItemDefinition itemDef : itemGroupDef.getItemDefs()) {
-                    if (itemDef.getOid().equals(itemDefOid)) {
-                        return itemDef;
+        if (this.formDefs != null) {
+            for (FormDefinition formDef : this.formDefs) {
+                for (ItemGroupDefinition itemGroupDef : formDef.getItemGroupDefs()) {
+                    for (ItemDefinition itemDef : itemGroupDef.getItemDefs()) {
+                        if (itemDef.getOid().equals(itemDefOid)) {
+                            return itemDef;
+                        }
                     }
                 }
             }

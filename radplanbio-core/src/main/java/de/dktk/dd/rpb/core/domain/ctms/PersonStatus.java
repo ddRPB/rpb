@@ -95,7 +95,7 @@ public class PersonStatus implements Identifiable<Integer>, Named, Serializable 
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "NAME", nullable = false, unique = true, length = 255)
+    @Column(name = "NAME", nullable = false, unique = true)
     public String getName() {
         return this.name;
     }

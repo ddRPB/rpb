@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
+import com.google.common.base.Objects;
 import org.apache.log4j.Logger;
 
 import javax.xml.bind.annotation.*;
@@ -213,6 +214,22 @@ public class MetaDataVersion implements Serializable {
     //endregion
 
     //endregion
+
+    //endregion
+
+    //region Overrides
+
+    /**
+     * Construct a readable string representation for this entity instance.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("oid", this.oid)
+                .add("name", this.name)
+                .toString();
+    }
 
     //endregion
 

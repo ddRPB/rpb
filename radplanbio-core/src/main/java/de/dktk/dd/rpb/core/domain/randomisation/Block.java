@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ package de.dktk.dd.rpb.core.domain.randomisation;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 
+import de.dktk.dd.rpb.core.util.MathUtil;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -57,8 +58,7 @@ public class Block implements Identifiable<Integer>, Serializable {
     //region Members
 
     private Integer id; // pk, auto increment, serial
-
-    private String mapkey;
+    private String mapkey; // block identificator string (strata included)
 
     // Many to one
     private BlockRandomisationData blockData;
@@ -93,7 +93,7 @@ public class Block implements Identifiable<Integer>, Serializable {
         // Calculate greatest common divisor from all treatment arm planned subjects counts
         int divisor = sizes[0];
         for (i = 1; i < sizes.length; i++) {
-            divisor = gcd(divisor, sizes[i]);
+            divisor = MathUtil.gcd(divisor, sizes[i]);
         }
 
         // Now I have a divisor which can divide planned count for every treatment arm
@@ -107,21 +107,6 @@ public class Block implements Identifiable<Integer>, Serializable {
 
         // It is guaranteed that in new block there will be at least one occurrence of each treatment arm
         return newBlock;
-    }
-
-    /**
-     * Calculated greatest common divisor
-     *
-     * @param a number
-     * @param b number
-     * @return greatest common divisor
-     */
-    public static int gcd(int a, int b) {
-        if(a == 0) { return b; }
-        if(b == 0) { return a; }
-        if(a > b) { return gcd(b, a % b); }
-
-        return gcd(a, b % a);
     }
 
     //endregion

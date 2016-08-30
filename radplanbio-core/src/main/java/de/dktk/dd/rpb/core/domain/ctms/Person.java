@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,12 @@ package de.dktk.dd.rpb.core.domain.ctms;
 
 import com.google.common.base.Objects;
 
-import com.google.common.primitives.Booleans;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -34,9 +34,13 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.openclinica.ws.beans.SubjectType;
 
 import javax.persistence.*;
+import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -81,7 +85,7 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     // is sure attribute declares the sureness of new patient registration
     // it forces PID generator to generate a new PID in case of possible match
-    boolean isSure;
+    private boolean isSure;
 
     // Many-to-One
     private PersonStatus status;
@@ -110,8 +114,8 @@ public class Person implements Identifiable<Integer>, Serializable {
 
         this.isSure = false;
 
-        this.studySubjects = new ArrayList<StudySubject>();
-        this.dicomStudies = new ArrayList<DicomStudy>();
+        this.studySubjects = new ArrayList<>();
+        this.dicomStudies = new ArrayList<>();
     }
 
     public Person(Integer primaryKey) {
@@ -163,7 +167,7 @@ public class Person implements Identifiable<Integer>, Serializable {
     //region Titles before the first name
 
     @Size(max = 255)
-    @Column(name = "TITLESBEFORE", length = 255)
+    @Column(name = "TITLESBEFORE")
     public String getTitlesBefore() {
         return this.titlesBefore;
     }
@@ -178,7 +182,7 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "FIRSTNAME", nullable = false, length = 255)
+    @Column(name = "FIRSTNAME", nullable = false)
     public String getFirstname() {
         return this.firstname;
     }
@@ -193,7 +197,7 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "SURNAME", nullable = false, length = 255)
+    @Column(name = "SURNAME", nullable = false)
     public String getSurname() {
         return this.surname;
     }
@@ -207,7 +211,7 @@ public class Person implements Identifiable<Integer>, Serializable {
     //region Titles after the surname
 
     @Size(max = 255)
-    @Column(name = "TITLESAFTER", length = 255)
+    @Column(name = "TITLESAFTER")
     public String getTitlesAfter() {
         return this.titlesAfter;
     }
@@ -240,6 +244,7 @@ public class Person implements Identifiable<Integer>, Serializable {
     //region Birth date
 
     @Transient
+    @Past
     public Date getBirthdate() {
         return this.birthdate;
     }
@@ -248,12 +253,24 @@ public class Person implements Identifiable<Integer>, Serializable {
         this.birthdate = value;
     }
 
+    @Transient
+    public String getBirthdateString() {
+        if (this.birthdate != null) {
+            DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+            return format.format(
+                    this.getBirthdate()
+            );
+        }
+
+        return null;
+    }
+
     //endregion
 
     //region Birth name
 
     @Size(max = 255)
-    @Column(name = "BIRTHNAME", length = 255)
+    @Column(name = "BIRTHNAME")
     public String getBirthname() {
         return this.birthname;
     }
@@ -360,7 +377,7 @@ public class Person implements Identifiable<Integer>, Serializable {
             return this.curriculumVitaeItems.add(cvItem);
         }
 
-        return false;
+        return Boolean.FALSE;
     }
 
     public Boolean removeCurriculumVitaeItem(CurriculumVitaeItem cvItem) {
@@ -372,13 +389,46 @@ public class Person implements Identifiable<Integer>, Serializable {
     //region ParticipatingInStudies
 
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "person")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "person")
     public List<StudyPerson> getStudyPersonnel() {
         return this.participatingInStudies;
     }
 
     public void setStudyPersonnel(List<StudyPerson> studyPersonnel) {
         this.participatingInStudies = studyPersonnel;
+    }
+
+    public Boolean modifyStudyPersonnel(List<StudyPerson> studyPersonnelToModify, StudyPerson modifiedStudyPerson) {
+        // Preconditions
+        if (this.participatingInStudies != null && studyPersonnelToModify != null && modifiedStudyPerson != null) {
+
+            for (StudyPerson spToModify : studyPersonnelToModify) {
+                for (StudyPerson sp : this.participatingInStudies) {
+
+                    // Id match
+                    if (sp.getId().equals(spToModify.getId())) {
+
+                        // Apply new start date if specified
+                        if (modifiedStudyPerson.getStartDate() != null) {
+                            sp.setStartDate(modifiedStudyPerson.getStartDate());
+                        }
+                        // Apply new end date if specified
+                        if (modifiedStudyPerson.getEndDate() != null) {
+                            sp.setEndDate((modifiedStudyPerson.getEndDate()));
+                        }
+
+                        // Modified so move to next one in a list for modification
+                        break;
+                    }
+                }
+            }
+
+            // True mean that what was possible to match was modified
+            return Boolean.TRUE;
+        }
+        else {
+            return Boolean.FALSE;
+        }
     }
 
     //endregion
@@ -408,11 +458,8 @@ public class Person implements Identifiable<Integer>, Serializable {
     }
 
     public boolean addDicomStudy(DicomStudy ds) {
-        if (!this.dicomStudies.contains(ds)) {
-            return this.dicomStudies.add(ds);
-        }
+        return !this.dicomStudies.contains(ds) && this.dicomStudies.add(ds);
 
-        return false;
     }
 
     public boolean removeDicomStudy(DicomStudy ds) {
@@ -438,6 +485,12 @@ public class Person implements Identifiable<Integer>, Serializable {
         this.zipcode = "";
         this.birthdate = null;
     }
+
+    //endregion
+
+    //region Patient Methods
+
+    //region DICOM
 
     public boolean hasDicomStudyWithUid(String studyInstanceUid) {
         if (this.dicomStudies != null) {
@@ -465,6 +518,78 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region Equals
+
+    /**
+     * Return true when patient IDAT matches
+     * @param otherPatient patient to compare to
+     * @return true if patient IDAT matches
+     */
+    public boolean patientIdatEquals(Person otherPatient) {
+        // Check the full name without cases
+        if (this.surname.equalsIgnoreCase(otherPatient.getSurname()) &&
+            this.firstname.equalsIgnoreCase(otherPatient.getFirstname())) {
+
+            // If both have birth name set than check also birth name (when one does not have consider as a match, because this data is optional)
+            boolean birthNamePresent = !"".equalsIgnoreCase(this.birthname) && !"".equalsIgnoreCase(otherPatient.getBirthname());
+            boolean birthNameMatch = !birthNamePresent;
+            if (birthNamePresent) {
+                birthNameMatch = this.birthname.equalsIgnoreCase(otherPatient.getBirthname());
+            }
+
+            // If date of birth information is missing IDAT could not be compared and patient cannot be the same
+            boolean birthDateMatch = false;
+            if (this.birthdate != null && otherPatient.birthdate != null) {
+                Calendar thisCal = Calendar.getInstance();
+                thisCal.setTime(this.birthdate);
+
+                Calendar otherCal = Calendar.getInstance();
+                otherCal.setTime(otherPatient.getBirthdate());
+
+                // Check if birth date is the same
+                birthDateMatch = (
+                        thisCal.get(Calendar.YEAR) == otherCal.get(Calendar.YEAR) &&
+                        thisCal.get(Calendar.MONTH) == otherCal.get(Calendar.MONTH) &&
+                        thisCal.get(Calendar.DAY_OF_MONTH) == otherCal.get(Calendar.DAY_OF_MONTH)
+                );
+            }
+
+            // If both have city of residence set check also city (when one does not have consider as a match, because this data is optional)
+            boolean cityPresent = !"".equalsIgnoreCase(this.city) && !"".equalsIgnoreCase(otherPatient.getCity());
+            boolean cityMatch = !cityPresent;
+            if (cityPresent) {
+                cityMatch = this.city.equalsIgnoreCase(otherPatient.getCity());
+            }
+
+            //If both have zipcode set check also zipcode (when one does not have consider as a match, because this data is optional)
+            boolean zipcodePresent = !"".equalsIgnoreCase(this.zipcode) && !"".equalsIgnoreCase(otherPatient.getZipcode());
+            boolean zipcodeMatch = !zipcodePresent;
+            if (zipcodePresent) {
+                zipcodeMatch = this.zipcode.equalsIgnoreCase(otherPatient.getZipcode());
+            }
+
+            return birthNameMatch && birthDateMatch && cityMatch && zipcodeMatch;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Return true when patient PID matches (automatically substract partner site identifier if present)
+     * @param otherPatient patient to compare to
+     * @param partnerSiteIdentifier RPB partner site identifier
+     * @return true if patient PID matches
+     */
+    public boolean patientPidEquals(Person otherPatient, String partnerSiteIdentifier) {
+        return this.pid.equalsIgnoreCase(otherPatient.getPid()) ||
+                this.pid.equalsIgnoreCase(otherPatient.getPid().replace(partnerSiteIdentifier + "-", ""));
+    }
+
+    //endregion
+
+    //endregion
+
     //region Overrides
 
     /**
@@ -486,10 +611,13 @@ public class Person implements Identifiable<Integer>, Serializable {
      */
     @Override
     public String toString() {
-        return Objects.toStringHelper(this) //
-                .add("pid", this.getPid()) //
-                .add("name", this.getFirstname())
-                .add("surname", this.getSurname()) //
+        return Objects.toStringHelper(this)
+                .add("pid", this.pid)
+                .add("name", this.firstname)
+                .add("surname", this.surname)
+                .add("birthDate", birthdate != null ? this.birthdate.toString() : null)
+                .add("city", this.city)
+                .add("zipcode", this.zipcode)
                 .toString();
     }
 

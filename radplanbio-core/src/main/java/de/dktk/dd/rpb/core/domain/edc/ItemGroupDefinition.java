@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,13 @@ public class ItemGroupDefinition implements Identifiable<Integer>, Serializable 
     private List<ItemDefinition> itemRefs;
 
     private List<ItemDefinition> itemDefs;
+
+    //region RadPlanBio
+
+    @XmlTransient
+    private FormDefinition formDefinition;
+
+    //endregion
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
@@ -198,6 +205,30 @@ public class ItemGroupDefinition implements Identifiable<Integer>, Serializable 
 
     public void setItemDefs(List<ItemDefinition> list) {
         this.itemDefs = list;
+    }
+
+    public boolean addItemDef(ItemDefinition itemDefinition) {
+        if (!this.itemDefs.contains(itemDefinition)) {
+            return this.itemDefs.add(itemDefinition);
+        }
+
+        return false;
+    }
+
+    public boolean removeItemDef(ItemDefinition itemDefinition) {
+        return this.itemDefs.contains(itemDefinition) && this.itemDefs.remove(itemDefinition);
+    }
+
+    //endregion
+
+    //region RadPlanBio
+
+    public FormDefinition getFormDefinition() {
+        return this.formDefinition;
+    }
+
+    public void setFormDefinition(FormDefinition formDefinition) {
+        this.formDefinition = formDefinition;
     }
 
     //endregion

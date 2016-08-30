@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,7 +114,7 @@ public abstract  class AbstractCriterion<T extends Serializable, C extends Abstr
     //region Name
 
     @Size(max = 255)
-    @Column(name = "NAME", length = 255)
+    @Column(name = "NAME")
     public String getName() {
         return this.name;
     }
@@ -128,7 +128,7 @@ public abstract  class AbstractCriterion<T extends Serializable, C extends Abstr
     //region Description
 
     @Size(max = 255)
-    @Column(name = "DESCRIPTION", length = 255)
+    @Column(name = "DESCRIPTION")
     public String getDescription() {
         return this.description;
     }
@@ -201,13 +201,14 @@ public abstract  class AbstractCriterion<T extends Serializable, C extends Abstr
     public C stratify(T value) throws Exception {
         this.isValueCorrect(value);
 
-        if(strata==null || strata.isEmpty()) {
+        if (strata == null || strata.isEmpty()) {
             return null;
         }
 
-        for(C stratum : strata){
-            if(stratum.checkValue(value))
+        for (C stratum : strata) {
+            if (stratum.checkValue(value)) {
                 return stratum;
+            }
         }
 
         return null;

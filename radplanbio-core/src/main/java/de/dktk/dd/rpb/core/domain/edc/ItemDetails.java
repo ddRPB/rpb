@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ public class ItemDetails implements Serializable {
     @XmlAttribute(name="ItemOID")
     private String itemOid;
 
+    //TODO: this should be list
     @XmlElement(name="ItemPresentInForm", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private ItemPresentInForm itemPresentInForm;
 

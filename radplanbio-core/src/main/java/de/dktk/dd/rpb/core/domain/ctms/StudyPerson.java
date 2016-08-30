@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,13 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -109,6 +112,13 @@ public class StudyPerson implements Identifiable<Integer>, Serializable {
         this.startDate = startDate;
     }
 
+    @Transient
+    public String getStartDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getStartDate();
+        return date != null ? format.format(date) : null;
+    }
+
     //endregion
 
     //region EndDate
@@ -121,6 +131,14 @@ public class StudyPerson implements Identifiable<Integer>, Serializable {
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
+
+    @Transient
+    public String getEndDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getEndDate();
+        return date != null ? format.format(date) : null;
+    }
+
 
     //endregion
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,18 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -50,7 +55,7 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
 
     //region Members
 
-    private Integer id; // unused for Transient entity
+    private Integer id; // unused for this Transient entity
 
     private String studyInstanceUID;
     private String studyDescription;
@@ -73,7 +78,7 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     //region Constructors
 
     public DicomStudy() {
-       // NOOP
+        // NOOP
     }
 
     //endregion
@@ -98,6 +103,8 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region StudyInstanceUID
+
     public String getStudyInstanceUID() {
         return this.studyInstanceUID;
     }
@@ -107,6 +114,10 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
             this.studyInstanceUID = value;
         }
     }
+
+    //endregion
+
+    //region StudyDescription
 
     public String getStudyDescription() {
         return this.studyDescription;
@@ -118,15 +129,40 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
         }
     }
 
+    //endregion
+
+    //region StudyDate
+
     public String getStudyDate() {
         return this.studyDate;
     }
 
     public void setStudyDate(String value) {
-        if (this.studyDate != value) {
-            this.studyDate = value;
-        }
+        this.studyDate = value;
     }
+
+    public Date getDateStudy() {
+        if (this.studyDate != null && !this.studyDate.equals("")) {
+            DateFormat format = new SimpleDateFormat(Constants.DICOM_DATEFORMAT);
+            try {
+                return format.parse(this.studyDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public String getDateStudyString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getDateStudy();
+        return date != null ? format.format(date) : null;
+    }
+
+    //endregion
+
+    //region StudySeries
 
     public List<DicomSerie> getStudySeries() {
         return this.studySeries;
@@ -135,6 +171,8 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     public void setStudySeries(List<DicomSerie> values) {
         this.studySeries = values;
     }
+
+    //endregion
 
     public ItemDefinition getCrfItemDefinition() {
         return this.crfItemDefinition;
@@ -195,9 +233,9 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
      */
     @Override
     public String toString() {
-        return Objects.toStringHelper(this) //
-                .add("studyInstanceUid", this.studyInstanceUID) //
-                .add("studyDescription", this.studyDescription) //
+        return Objects.toStringHelper(this)
+                .add("studyInstanceUid", this.studyInstanceUID)
+                .add("studyDescription", this.studyDescription)
                 .toString();
     }
 
@@ -250,7 +288,7 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     }
 
     public List<DicomSerie> getSeriesByModality(String modality) {
-        List<DicomSerie> results = new ArrayList<DicomSerie>();
+        List<DicomSerie> results = new ArrayList<>();
 
         if (this.studySeries != null) {
             for (DicomSerie ds : this.studySeries) {

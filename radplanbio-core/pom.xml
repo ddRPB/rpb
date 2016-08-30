@@ -112,6 +112,15 @@
 			<version>1.9.2</version>
 		</dependency>
 
+		<!-- ~~~~~ -->
+		<!-- CACHE -->
+		<!-- ~~~~~ -->
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+
 		<!-- ~~~~~~~~~~ -->
 		<!-- VALIDATION -->
 		<!-- ~~~~~~~~~~ -->
@@ -128,7 +137,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
-			<version>4.2.0.Final</version>
+			<version>4.3.2.Final</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency> <!-- validation html -->
@@ -137,9 +146,9 @@
 			<version>1.7.2</version>
 		</dependency>
 
-        <!-- ~~~~~~ -->
+        <!-- ~~~~~~~~~ -->
         <!-- Exporting -->
-        <!-- ~~~~~~ -->
+        <!-- ~~~~~~~~~ -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
@@ -355,11 +364,9 @@
             <version>${spring-security.version}</version>
         </dependency>
 
-
-        <!-- ~~~ -->
-        <!-- ~~~ -->
-        <!-- SOAP WEB SERVICES - exclude spring framework and javax.servlet api because it was already added-->
-        <!-- ~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
+		<!-- SOAP WEB SERVICES - exclude spring framework and javax.servlet api because it was already added-->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
         <dependency>
             <groupId>org.jvnet.jax-ws-commons.spring</groupId>
             <artifactId>jaxws-spring</artifactId>
@@ -391,10 +398,9 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- ~~~ -->
-        <!-- ~~~ -->
-        <!-- REST WEB SERVICES -->
-        <!-- ~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
+		<!-- REST WEB SERVICES -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
 		<dependency>
 			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
@@ -426,17 +432,15 @@
 			<version>1.19</version>
 		</dependency>
 
-        <!-- ~~~ -->
-        <!-- ~~~ -->
-        <!-- OAuth -->
-        <!-- ~~~ -->
+		<!-- ~~~~~ -->
+		<!-- OAuth -->
+		<!-- ~~~~~ -->
         <dependency>
             <groupId>org.scribe</groupId>
             <artifactId>scribe-up</artifactId>
             <version>1.3.1</version>
         </dependency>
 
-        <!-- ~~~ -->
 		<!-- ~~~ -->
 		<!-- WEB -->
 		<!-- ~~~ -->
@@ -474,20 +478,10 @@
             <artifactId>super-csv</artifactId>
             <version>2.3.1</version>
         </dependency>
-		<dependency>
-			<groupId>org.dcm4che</groupId>
-			<artifactId>dcm4che-core</artifactId>
-			<version>3.3.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.dcm4che</groupId>
-			<artifactId>dcm4che-core</artifactId>
-			<version>3.3.4</version>
-		</dependency>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~ -->
 		<!-- DICOM -->
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~ -->
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-core</artifactId>

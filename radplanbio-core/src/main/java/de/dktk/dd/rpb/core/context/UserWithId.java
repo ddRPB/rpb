@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,11 +69,14 @@ public class UserWithId extends User
         return this.id;
     }
 
+    public void setId(Serializable value) {
+        this.id = value;
+    }
+
     public String getClearPassword() {
         return this.clearPassword;
     }
 
-    @SuppressWarnings("unused")
     public void setClearPassword(String value) {
         this.clearPassword = value;
     }

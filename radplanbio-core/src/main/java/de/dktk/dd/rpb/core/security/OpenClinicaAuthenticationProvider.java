@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ public class OpenClinicaAuthenticationProvider implements AuthenticationProvider
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(OpenClinicaUserDetailsServiceImpl.class);
+    private static final Logger log = Logger.getLogger(OpenClinicaAuthenticationProvider.class);
 
     //endregion
 

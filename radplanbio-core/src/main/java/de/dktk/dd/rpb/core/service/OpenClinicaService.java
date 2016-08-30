@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,12 @@ import com.sun.jersey.api.client.*;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import de.dktk.dd.rpb.core.context.UserContext;
-import de.dktk.dd.rpb.core.domain.edc.ClinicalData;
-import de.dktk.dd.rpb.core.domain.edc.EventData;
-import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
-import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.*;
 
+import de.dktk.dd.rpb.core.util.Constants;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,6 +42,7 @@ import org.json.JSONObject;
 
 import org.openclinica.ws.data.v1.ImportResponse;
 import org.openclinica.ws.event.v1.ScheduleResponse;
+import org.openclinica.ws.studysubject.v1.IsStudySubjectResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Named;
@@ -53,7 +55,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.net.MalformedURLException;
-
 import de.dktk.dd.rpb.core.ocsoap.connect.ConnectInfo;
 import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
 import de.dktk.dd.rpb.core.ocsoap.connect.OCWebServices;
@@ -72,7 +73,10 @@ import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.studysubject.v1.CreateResponse;
 
 /**
- * OpenClinica service helps to access SOAP and REST based web-service provided by EDC system
+ * OpenClinica service implements client calls to SOAP and REST based web-service endpoints provided by the EDC system
+ *
+ * It provides the possibility to cache the ws responses for situation where the amount of data that is within a response
+ * causes big delays from usability perspective (e.g. study-0 subject list)
  *
  * @author tomas@skripcak.net
  * @since 05 Jun 2013
@@ -128,32 +132,45 @@ public class OpenClinicaService implements IOpenClinicaService {
 
     private static final Logger log = Logger.getLogger(OpenClinicaService.class);
 
-    final static String success = "Success";
-    final static String loginMethod = "j_spring_security_check";
-    final static String uname = "j_username";
-    final static String passwd = "j_password";
-
     //endregion
 
     //region Members
 
-    private OCWebServices ocws;
+
+    private String ocUsername;
+    private String ocPassword;
     private String restBaseUrl;
+
+    private OCWebServices ocws;
+
+    private Boolean cacheIsEnabled;
+    private Cache cache;
 
     //endregion
 
     //region Constructors
 
     public OpenClinicaService() {
-        // NOOP
+
+        // Get cache manager and open cache used for web service responses to client
+        CacheManager cm = CacheManager.create();
+        this.cache = cm.getCache("wsClientCache");
     }
 
     //endregion
 
     //region Properties
 
-    public boolean isConnected() {
+    public Boolean isConnected() {
         return this.ocws != null;
+    }
+
+    public Boolean getCacheIsEnabled() {
+        return this.cacheIsEnabled;
+    }
+
+    public void setCacheIsEnabled(Boolean value) {
+        this.cacheIsEnabled = value;
     }
 
     //endregion
@@ -168,8 +185,12 @@ public class OpenClinicaService implements IOpenClinicaService {
     @Override
     public void connect(String username, String password, String wsBaseUrl, String restBaseUrl) {
         try {
-            ConnectInfo ci = new ConnectInfo(wsBaseUrl, username);
-            ci.setPassword(password);
+            this.cacheIsEnabled = Boolean.FALSE;
+            this.ocUsername = username;
+            this.ocPassword = password;
+
+            ConnectInfo ci = new ConnectInfo(wsBaseUrl, this.ocUsername);
+            ci.setPassword(this.ocPassword);
             this.ocws = OCWebServices.getInstance(
                     ci,
                     false, // logging
@@ -177,14 +198,8 @@ public class OpenClinicaService implements IOpenClinicaService {
             );
             this.restBaseUrl = restBaseUrl;
         }
-        catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        }
-        catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
+        catch (MalformedURLException | ParserConfigurationException | DatatypeConfigurationException err) {
+            log.error(err);
         }
     }
 
@@ -194,7 +209,10 @@ public class OpenClinicaService implements IOpenClinicaService {
     @Override
     public void connectWithHash(String username, String passwordHash, String wsBaseUrl, String restBaseUrl) {
         try {
-            ConnectInfo ci = new ConnectInfo(wsBaseUrl, username, passwordHash);
+            this.cacheIsEnabled = Boolean.FALSE;
+            this.ocUsername = username;
+
+            ConnectInfo ci = new ConnectInfo(wsBaseUrl, this.ocUsername, passwordHash);
             this.ocws = OCWebServices.getInstance(
                     ci,
                     false, // logging
@@ -202,14 +220,8 @@ public class OpenClinicaService implements IOpenClinicaService {
             );
             this.restBaseUrl = restBaseUrl;
         }
-        catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        }
-        catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
+        catch (MalformedURLException | ParserConfigurationException | DatatypeConfigurationException err) {
+            log.error(err);
         }
     }
 
@@ -230,8 +242,9 @@ public class OpenClinicaService implements IOpenClinicaService {
             if (this.isConnected()) {
                 metadata = this.ocws.fetchStudyMetadata(study);
             }
-        } catch (OCConnectorException e) {
-            e.printStackTrace();
+        }
+        catch (OCConnectorException err) {
+            log.error(err);
         }
 
         return metadata;
@@ -248,8 +261,9 @@ public class OpenClinicaService implements IOpenClinicaService {
             if (this.isConnected()) {
                 metadata = this.ocws.fetchMetadataByIdentifier(identifier);
             }
-        } catch (OCConnectorException e) {
-            e.printStackTrace();
+        }
+        catch (OCConnectorException err) {
+            log.error(err);
         }
 
         return metadata;
@@ -271,8 +285,9 @@ public class OpenClinicaService implements IOpenClinicaService {
             if (this.isConnected()) {
                 allStudies = this.ocws.listAllStudies();
             }
-        } catch (OCConnectorException e) {
-            e.printStackTrace();
+        }
+        catch (OCConnectorException err) {
+            log.error(err);
         }
 
         return allStudies != null ? allStudies.getStudies().getStudy() : null;
@@ -286,21 +301,19 @@ public class OpenClinicaService implements IOpenClinicaService {
      * {@inheritDoc}
      */
     @Override
-    public boolean createNewStudySubject(StudySubject studySubject) {
-        CreateResponse response;
-        boolean result = false;
+    public Boolean createNewStudySubject(StudySubject studySubject) {
+        Boolean result = Boolean.FALSE;
 
         try {
             if (this.isConnected()) {
-                response = this.ocws.createStudySubject(studySubject);
-                if (response.getResult().equals(success)) {
-                    result = true;
+                CreateResponse response = this.ocws.createStudySubject(studySubject);
+                if (response != null) {
+                    result = response.getResult().equals(Constants.OC_SUCCESS);
                 }
             }
-        } catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
-        } catch (OCConnectorException e) {
-            e.printStackTrace();
+        }
+        catch (DatatypeConfigurationException | OCConnectorException err) {
+            log.error(err);
         }
 
         return result;
@@ -310,20 +323,63 @@ public class OpenClinicaService implements IOpenClinicaService {
      * {@inheritDoc}
      */
     @Override
-    public List<StudySubjectWithEventsType> listAllStudySubjectsByStudy(Study study)  throws OCConnectorException {
+    public Boolean studySubjectExistsInStudy(StudySubject studySubject, Study study) {
+        Boolean result = Boolean.FALSE;
 
-        // List all subject according to study/site
-        ListAllByStudyResponse allStudySubjecs = this.ocws.listAllByStudy(study);
-        log.info(allStudySubjecs.getResult());
+        if (studySubject.getStudy() == null || !studySubject.getStudy().equals(study)) {
+            studySubject.setStudy(study);
+        }
 
-        return allStudySubjecs.getStudySubjects().getStudySubject();
+        try {
+            // False because I am not going to provide enrolment date
+            IsStudySubjectResponse response = this.ocws.isStudySubject(studySubject, Boolean.FALSE);
+            if (response != null) {
+                result = response.getResult().equals(Constants.OC_SUCCESS);
+            }
+        }
+        catch (OCConnectorException err) {
+            log.error(err);
+        }
+
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<StudySubjectWithEventsType> listAllStudySubjectsByStudy(Study study) throws OCConnectorException {
+
+        ListAllByStudyResponse studySubjectsResponse;
+
+        // For study-0 look whether there is cached response available
+        if (this.cacheIsEnabled &&
+                study.getStudyIdentifier().equals(Constants.study0Identifier)) {
+
+            String key = this.ocws.getBaseURL() + "studies/" + Constants.study0Identifier + "/studysubjects";
+            Element element = this.cache.get(key);
+            if (element != null) {
+                studySubjectsResponse = (ListAllByStudyResponse) element.getObjectValue();
+            }
+            else {
+                studySubjectsResponse = this.ocws.listAllByStudy(study);
+                this.cache.put(new Element(key, studySubjectsResponse));
+            }
+        }
+        // Otherwise load from EDC server
+        else {
+            studySubjectsResponse = this.ocws.listAllByStudy(study);
+        }
+
+        log.info("EDC: listAllStudySubject: " + studySubjectsResponse.getResult());
+
+        return studySubjectsResponse.getStudySubjects().getStudySubject();
     }
 
     @Override
-    public List<StudySubject> getSubjectsByStudy(de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy)
-            throws OCConnectorException {
+    public List<StudySubject> getSubjectsByStudy(de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy) throws OCConnectorException {
 
-        List<StudySubject> subjectList = new ArrayList<StudySubject>();
+        List<StudySubject> subjectList = new ArrayList<>();
 
         Study ocStudy = this.convertRpbStudyToOcStudy(rpbStudy);
 
@@ -332,20 +388,22 @@ public class OpenClinicaService implements IOpenClinicaService {
 
             try {
                 ss = new StudySubject(ocStudy, sswe);
-            } catch (DatatypeConfigurationException e) {
-                e.printStackTrace();
+            }
+            catch (DatatypeConfigurationException err) {
+                log.error(err);
             }
 
             // Assign events
-            ArrayList<ScheduledEvent> scheduledEvents = new ArrayList<ScheduledEvent>();
+            ArrayList<ScheduledEvent> scheduledEvents = new ArrayList<>();
             if (sswe.getEvents() != null) {
                 for (EventType eventType : sswe.getEvents().getEvent()) {
 
                     ScheduledEvent newEvent = null;
                     try {
                         newEvent = new ScheduledEvent(eventType);
-                    } catch (DatatypeConfigurationException e) {
-                        e.printStackTrace();
+                    }
+                    catch (DatatypeConfigurationException err) {
+                        log.error(err);
                     }
 
                     scheduledEvents.add(newEvent);
@@ -377,10 +435,9 @@ public class OpenClinicaService implements IOpenClinicaService {
             if (this.isConnected()) {
                 events = this.ocws.fetchEventDefinitions(study);
             }
-        } catch (OCConnectorException e) {
-            e.printStackTrace();
-        } catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
+        }
+        catch (OCConnectorException | DatatypeConfigurationException err) {
+            log.error(err);
         }
 
         return events;
@@ -415,6 +472,143 @@ public class OpenClinicaService implements IOpenClinicaService {
 
     //region REST
 
+    //region EDC User Account
+
+    public UserAccount loginUserAccount(String username, String password) {
+        UserAccount account = null;
+
+        String method = "pages/accounts/login";
+
+        if (!this.restBaseUrl.endsWith("/")) {
+            this.restBaseUrl += "/";
+        }
+
+        Client client = Client.create();
+        WebResource webResource = client.resource(this.restBaseUrl + method);
+
+        String body = "{ \"username\": \"" + username + "\", \"password\": \"" + password + "\" }";
+
+        ClientResponse response = webResource
+                .accept(MediaType.APPLICATION_JSON)
+                .type(MediaType.APPLICATION_JSON)
+                .post(ClientResponse.class, body);
+
+        int status = response.getStatus();
+        if (status == 200) {
+            String output = response.getEntity(String.class);
+
+            try {
+                JSONObject jsonObject = new JSONObject(output);
+
+                account = new UserAccount();
+                account.setUserName(jsonObject.getString("username"));
+                account.setFirstName(jsonObject.getString("firstName"));
+                account.setLastName(jsonObject.getString("lastName"));
+                account.setPassword(jsonObject.getString("password"));
+                account.setApiKey(jsonObject.optString("apiKey", ""));
+
+                // TODO: implement parsing later when roles are needed
+//                JSONArray rolesArray = jsonObject.getJSONArray("roles");
+//                for (int i = 0; i < rolesArray.length(); i++) {
+//                    JSONObject role = rolesArray.getJSONObject(i);
+//
+//
+//
+//                }
+
+            }
+            catch (JSONException err) {
+                log.error(err);
+            }
+        }
+        // 401 Bad Credentials
+        else if (status == 401) {
+            log.info("Bed credentials.");
+        }
+
+        return account;
+    }
+
+    public UserAccount createUserAccount() {
+        UserAccount createdAccount = null;
+
+        // TODO: to be implemented
+
+        return createdAccount;
+    }
+
+    public UserAccount loadUserAccount() {
+        UserAccount resultAccount = null;
+
+        // TODO: to be implemented
+
+        return resultAccount;
+    }
+
+    public UserAccount loadParticipantUserAccount() {
+        UserAccount resultAccount = null;
+
+        // TODO: to be implemented
+
+        return resultAccount;
+    }
+
+    public UserAccount loadParticipantUserAccountByAccessCode() {
+        UserAccount resultAccount = null;
+
+        // TODO: to be implemented
+
+        return resultAccount;
+    }
+
+    //endregion
+
+    //region ODM
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Odm getStudyCasebookOdm(CasebookFormat format, CasebookMethod method, String queryOdmXmlPath) {
+        Odm odm = null;
+
+        if (!this.restBaseUrl.endsWith("/")) {
+            this.restBaseUrl += "/";
+        }
+
+        ClientResponse response = this.getOcRestfulUrl(
+                this.ocUsername,
+                this.ocPassword,
+                format.value,
+                queryOdmXmlPath
+        );
+
+        // Success
+        if (response.getStatus() == 200) {
+            String output = response.getEntity(String.class);
+
+            try {
+                // Unmarshall XML
+                if (format == CasebookFormat.XML) {
+                    JAXBContext context = JAXBContext.newInstance(Odm.class);
+                    Unmarshaller un = context.createUnmarshaller();
+                    StringReader reader = new StringReader(output);
+                    odm = (Odm) un.unmarshal(reader);
+                }
+                else if (format == CasebookFormat.JSON) {
+                    // TODO: how to fast unmarshall JSON
+                }
+            }
+            catch (Exception err) {
+                log.error(err);
+            }
+        }
+
+        return odm;
+    }
+
+    //endregion
+
     //region Study Subject
 
     /**
@@ -422,7 +616,7 @@ public class OpenClinicaService implements IOpenClinicaService {
      */
     @Override
     public List<StudySubject> getStudyCasebookSubjects(String studyOid) {
-        List<StudySubject> results = new ArrayList<StudySubject>();
+        List<StudySubject> results = new ArrayList<>();
 
         String method = studyOid + "/*/*/*";
         String format = "json";
@@ -431,7 +625,12 @@ public class OpenClinicaService implements IOpenClinicaService {
             this.restBaseUrl += "/";
         }
 
-        ClientResponse response = this.getOcRestfulUrl(format, method);
+        ClientResponse response = this.getOcRestfulUrl(
+                this.ocUsername,
+                this.ocPassword,
+                format,
+                method
+        );
 
         // Success
         if (response.getStatus() == 200) {
@@ -467,8 +666,8 @@ public class OpenClinicaService implements IOpenClinicaService {
                     results.add(subject);
                 }
             }
-            catch (JSONException e) {
-                e.printStackTrace();
+            catch (JSONException err) {
+                log.error(err);
             }
         }
 
@@ -489,7 +688,12 @@ public class OpenClinicaService implements IOpenClinicaService {
             this.restBaseUrl += "/";
         }
 
-        ClientResponse response = this.getOcRestfulUrl(format, method);
+        ClientResponse response = this.getOcRestfulUrl(
+                this.ocUsername,
+                this.ocPassword,
+                format,
+                method
+        );
 
         // Success
         if (response.getStatus() == 200) {
@@ -508,8 +712,8 @@ public class OpenClinicaService implements IOpenClinicaService {
 
                 result = subject;
             }
-            catch (JSONException e) {
-                e.printStackTrace();
+            catch (JSONException err) {
+                log.error(err);
             }
         }
 
@@ -522,13 +726,18 @@ public class OpenClinicaService implements IOpenClinicaService {
     @Override
     public List<de.dktk.dd.rpb.core.domain.edc.StudySubject> getStudyCasebookSubjects(CasebookFormat format, CasebookMethod method, String queryOdmXmlPath) {
 
-        List<de.dktk.dd.rpb.core.domain.edc.StudySubject> results = new ArrayList<de.dktk.dd.rpb.core.domain.edc.StudySubject>();
+        List<de.dktk.dd.rpb.core.domain.edc.StudySubject> results = new ArrayList<>();
 
         if (!this.restBaseUrl.endsWith("/")) {
             this.restBaseUrl += "/";
         }
 
-        ClientResponse response = this.getOcRestfulUrl(format.value, queryOdmXmlPath);
+        ClientResponse response = this.getOcRestfulUrl(
+                this.ocUsername,
+                this.ocPassword,
+                format.value,
+                queryOdmXmlPath
+        );
 
         // Success
         if (response.getStatus() == 200) {
@@ -560,7 +769,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 }
             }
             catch (Exception err) {
-                err.printStackTrace();
+                log.error(err);
             }
         }
 
@@ -576,7 +785,7 @@ public class OpenClinicaService implements IOpenClinicaService {
      */
     @Override
     public List<EventDefinition> getStudyCasebookEvents(String studyOid, String studySubjectIdentifier) {
-        List<EventDefinition> results = new ArrayList<EventDefinition>();
+        List<EventDefinition> results = new ArrayList<>();
 
         // Depending on OC version studySubjectIdentifier can be StudySubjectID instead of subject OID
         String method = studyOid + "/" + studySubjectIdentifier + "/*/*";
@@ -586,7 +795,12 @@ public class OpenClinicaService implements IOpenClinicaService {
             this.restBaseUrl += "/";
         }
 
-        ClientResponse response = this.getOcRestfulUrl(format, method);
+        ClientResponse response = this.getOcRestfulUrl(
+                this.ocUsername,
+                this.ocPassword,
+                format,
+                method
+        );
 
         // Success
         if (response.getStatus() == 200) {
@@ -629,8 +843,8 @@ public class OpenClinicaService implements IOpenClinicaService {
                     results.add(event);
                 }
             }
-            catch (JSONException e) {
-                e.printStackTrace();
+            catch (JSONException err) {
+                log.error(err);
             }
         }
 
@@ -642,7 +856,7 @@ public class OpenClinicaService implements IOpenClinicaService {
     //region ePRO
 
     public List<EventData> loadParticipateEvents(String studyOid, String studySubjectOid) {
-        List<EventData> results = new ArrayList<EventData>();
+        List<EventData> results = new ArrayList<>();
 
         String method = "pages/odmk/study/" + studyOid + "/studysubject/" + studySubjectOid + "/events";
 
@@ -650,13 +864,23 @@ public class OpenClinicaService implements IOpenClinicaService {
             this.restBaseUrl += "/";
         }
 
-        ClientResponse response = this.restOcGet(method);
+        Client client = Client.create();
+        WebResource webResource = client.resource(this.restBaseUrl + method);
+
+        ClientResponse response = webResource
+                .accept(MediaType.APPLICATION_XML_TYPE)
+                .get(ClientResponse.class);
 
         // Success
         if (response.getStatus() == 200) {
             String output = response.getEntity(String.class);
 
-            // Clean away the non standard namespaces (cannot unmarshal these)
+            // TODO: this is ugly, it need to be fixed in OC or I have to find better way how to specify namespaces for unmarshalling
+            // Change the namespaces to make unmarshalling to our ODM domain model possible
+            // http://www.openclinica.org/ns/odm_ext_v130/v3.1-api -> http://www.openclinica.org/ns/odm_ext_v130/v3.1
+            output = output.replace("ns6:", "ns2:");
+            // Change the namespaces to make unmarshalling to our ODM domain model possible
+            // http://www.cdisc.org/ns/odm/v1.3-api -> http://www.cdisc.org/ns/odm/v1.3
             output = output.replace("ns5:", "");
 
             InputStream xmlStream = new ByteArrayInputStream(output.getBytes());
@@ -668,7 +892,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 odm = (Odm) un.unmarshal(xmlStream);
             }
             catch (Exception err) {
-                err.printStackTrace();
+                log.error(err);
             }
 
             // Extract results
@@ -686,6 +910,59 @@ public class OpenClinicaService implements IOpenClinicaService {
         return results;
     }
 
+    public String loadEditableUrl(String ocUrl, String returnUrl) {
+        String result = "";
+
+        //TODO: this is stupid check to fix the production, try to find better solution
+        // If the editable is actually new Enketo form (data entry was started in EDC)
+        if (ocUrl.indexOf(":9005/::") == -1) {
+
+            Client client = Client.create();
+            WebResource webResource = client.resource(ocUrl);
+
+            ClientResponse response = webResource
+                    .get(ClientResponse.class);
+
+            // Accepted
+            if (response.getStatus() == 202) {
+                result = response.getEntity(String.class);
+                result = result.replace("\"", "");
+
+                // Adapt return URL to be URL of my participate
+                // &returnUrl=http%3A%2F%2Fstudy1.mystudy.me%3A8080%2F%23%2Fevent%2FSS_SUB001%2Fdashboard&ecid=
+                int startIndex = result.indexOf("&returnUrl");
+                startIndex = startIndex + 11;
+                int endIndex = result.indexOf("&ecid");
+                String oldReturnUrlParameter = result.substring(startIndex, endIndex);
+                result = result.replace(oldReturnUrlParameter, returnUrl);
+            }
+        }
+        else {
+            result = ocUrl;
+        }
+
+        return result;
+    }
+
+    public boolean completeParticipantEvent(String studySubjectIdentifier, String studyEventDefinitionOid, String eventRepeatKey, String apiKey) {
+        String method = "pages/auth/api/v1/studyevent/studysubject/" + studySubjectIdentifier + "/studyevent/" + studyEventDefinitionOid + "/ordinal/" + eventRepeatKey + "/complete";
+
+        if (!this.restBaseUrl.endsWith("/")) {
+            this.restBaseUrl += "/";
+        }
+
+        Client client = Client.create();
+        WebResource webResource = client.resource(this.restBaseUrl + method);
+
+        ClientResponse response = webResource
+                .header("api_key", apiKey)
+                .put(ClientResponse.class);
+
+        int status = response.getStatus();
+
+        return status == 200 || status == 401;
+    }
+
     //endregion
 
     //endregion
@@ -701,7 +978,7 @@ public class OpenClinicaService implements IOpenClinicaService {
         List<StudyType> ocStudies = this.listAllStudies();
 
         // Extract collection of study sites from the complete list for each study
-        List<de.dktk.dd.rpb.core.ocsoap.types.Study> studySites = new ArrayList<de.dktk.dd.rpb.core.ocsoap.types.Study>();
+        List<de.dktk.dd.rpb.core.ocsoap.types.Study> studySites = new ArrayList<>();
 
         for (StudyType ocStudy : ocStudies) {
             studySites.clear();
@@ -740,15 +1017,25 @@ public class OpenClinicaService implements IOpenClinicaService {
     }
 
     @SuppressWarnings("unchecked")
-    private ClientResponse getOcRestfulUrl(String format, String method) {
+    private ClientResponse getOcRestfulUrl(String ocUsername, String ocClearPassword, String format, String method) {
         Client client = Client.create();
         client.setFollowRedirects(true);
 
         MultivaluedMap loginFormData = new MultivaluedMapImpl();
-        loginFormData.add(uname, UserContext.getUsername());
-        loginFormData.add(passwd, UserContext.getClearPassword());
+        if (ocUsername != null && !ocUsername.equals("")) {
+            loginFormData.add(Constants.OC_UNAMEPARAM, ocUsername);
+        }
+        else {
+            loginFormData.add(Constants.OC_UNAMEPARAM, UserContext.getUsername());
+        }
+        if (ocClearPassword != null && !ocClearPassword.equals("")) {
+            loginFormData.add(Constants.OC_PASSWDPARAM, ocClearPassword);
+        }
+        else {
+            loginFormData.add(Constants.OC_PASSWDPARAM, UserContext.getClearPassword());
+        }
 
-        WebResource webResource = client.resource(this.restBaseUrl + loginMethod);
+        WebResource webResource = client.resource(this.restBaseUrl + Constants.OC_LOGINMETHOD);
         ClientResponse response = webResource
                 .type(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.MULTIPART_FORM_DATA_TYPE)
@@ -773,15 +1060,6 @@ public class OpenClinicaService implements IOpenClinicaService {
         }
 
         return response;
-    }
-
-    private ClientResponse restOcGet(String method) {
-        Client client = Client.create();
-        // TODO: use restBaseUrl in production
-        WebResource webResource = client.resource("http://g40rpbtrials2.med.tu-dresden.de:8080/OpenClinica/" + method);
-        return webResource
-                .accept(MediaType.APPLICATION_XML_TYPE)
-                .get(ClientResponse.class);
     }
 
     //endregion

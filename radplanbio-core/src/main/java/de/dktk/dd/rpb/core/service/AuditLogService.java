@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,9 @@ import de.dktk.dd.rpb.core.domain.admin.AuditLog;
 /**
  * AuditLogService
  *
+ * It is implemented as singleton and this also means that there is just one instance of this service which is used in portal
+ * as well as wepApi (new webApi is part of portal)
+ *
  * @author tomas@skripcak.net
  * @since 27 January 2015
  */
@@ -67,8 +70,17 @@ public class AuditLogService {
 
     //region Members
 
-    protected BlockingQueue<AuditLog> queue = new LinkedBlockingQueue<AuditLog>(1000);
+    protected BlockingQueue<AuditLog> queue = new LinkedBlockingQueue<>(1000);
     protected int batchInsertSize = DEFAULT_BATCH_INSERT_SIZE;
+    protected String username;
+
+    //endregion
+
+    //region Properties
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     //endregion
 
@@ -125,7 +137,12 @@ public class AuditLogService {
         // For this events I put the username into string1 because UserContext is not created yet
         if (auditEvent.equals(AuditEvent.LoginSuccessful) || auditEvent.equals(AuditEvent.LogoutSuccessful)) {
             auditLog.setUsername(string1);
+            this.username = string1;
             string1 = null;
+        }
+        // For those events force to use anonymous user
+        else if (auditEvent.equals(AuditEvent.LoginFailed) || auditEvent.equals(AuditEvent.ApplicationStartup) || auditEvent.equals(AuditEvent.ApplicationShutdown)) {
+            this.username = UserContext.ANONYMOUS_USER;
         }
         else {
             auditLog.setUsername(UserContext.getUsername());
@@ -155,9 +172,16 @@ public class AuditLogService {
      * @param auditLog auditLog
      */
     private void setupDefaults(AuditLog auditLog) {
+        // Username was not set within event method
         if (auditLog.getUsername() == null) {
             auditLog.setUsername(UserContext.getUsername());
         }
+        // There is not user in the UserContext (e.g. when SpringSecurity context does not exist, webApi is using audit log service)
+        // And username was provided in property (within webApi method)
+        if (UserContext.isAnonymous() && this.username != null && !this.username.equals("")) {
+            auditLog.setUsername(this.username);
+        }
+        // Date was not set within event method
         if (auditLog.getEventDate() == null) {
             auditLog.setEventDate(new Date());
         }

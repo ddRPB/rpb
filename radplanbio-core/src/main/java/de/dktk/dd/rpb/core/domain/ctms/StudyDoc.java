@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "FILENAME", nullable = false, unique = true, length = 255)
+    @Column(name = "FILENAME", nullable = false, unique = true)
     public String getFilename()  {
         return this.filename;
     }
@@ -110,7 +110,7 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
     //region Displayname
 
     @Size(max = 255)
-    @Column(name = "DISPLAYNAME", length = 255)
+    @Column(name = "DISPLAYNAME")
     public String getDisplayname()  {
         return this.displayname;
     }
@@ -124,7 +124,7 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
     //region Description
 
     @Size(max = 255)
-    @Column(name = "DESCRIPTION", length = 255)
+    @Column(name = "DESCRIPTION")
     public String getDescription()  {
         return this.description;
     }

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,11 @@
 
 package de.dktk.dd.rpb.core.domain.edc.mapping;
 
+import com.google.common.base.Objects;
+import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
+import de.dktk.dd.rpb.core.domain.edc.FormDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemGroupDefinition;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Column;
@@ -48,10 +53,8 @@ public class MappedOdmItem extends AbstractMappedItem {
     //region Members
 
     private String studyEventOid;
-    private String studyEventRepeatKey;
     private String formOid;
     private String itemGroupOid;
-    private String itemGroupRepeatKey;
     private String itemOid;
 
     //endregion
@@ -62,12 +65,29 @@ public class MappedOdmItem extends AbstractMappedItem {
         // NOOP
     }
 
+    public MappedOdmItem(String itemOid) {
+        this.itemOid = itemOid;
+
+        // Label is used as row key
+        this.label = itemOid;
+    }
+
+    public MappedOdmItem(EventDefinition eventDefinition, FormDefinition formDefinition, ItemGroupDefinition itemGroupDefinition, ItemDefinition itemDefinition) {
+        this.studyEventOid = eventDefinition.getOid();
+        this.formOid = formDefinition.getOid();
+        this.itemGroupOid = itemGroupDefinition.getOid();
+        this.itemOid = itemDefinition.getOid();
+
+        // Label is used as row key
+        this.label = itemDefinition.getOid();
+    }
+
     //endregion
 
     //region Properties
 
     @Size(max = 255)
-    @Column(name = "STUDYEVENTOID", length = 255)
+    @Column(name = "STUDYEVENTOID")
     public String getStudyEventOid() {
         return this.studyEventOid;
     }
@@ -77,17 +97,7 @@ public class MappedOdmItem extends AbstractMappedItem {
     }
 
     @Size(max = 255)
-    @Column(name = "SEREPEATKEY", length = 255)
-    public String getStudyEventRepeatKey() {
-        return this.studyEventRepeatKey;
-    }
-
-    public void setStudyEventRepeatKey(String repeatKey) {
-        this.studyEventRepeatKey = repeatKey;
-    }
-
-    @Size(max = 255)
-    @Column(name = "FORMOID", length = 255)
+    @Column(name = "FORMOID")
     public String getFormOid() {
         return this.formOid;
     }
@@ -97,7 +107,7 @@ public class MappedOdmItem extends AbstractMappedItem {
     }
 
     @Size(max = 255)
-    @Column(name = "ITEMGROUPOID", length = 255)
+    @Column(name = "ITEMGROUPOID")
     public String getItemGroupOid() {
         return this.itemGroupOid;
     }
@@ -107,17 +117,7 @@ public class MappedOdmItem extends AbstractMappedItem {
     }
 
     @Size(max = 255)
-    @Column(name = "IGREPEATKEY", length = 255)
-    public String getItemGroupRepeatKey() {
-        return this.itemGroupRepeatKey;
-    }
-
-    public void setItemGroupRepeatKey(String repeatKey) {
-        this.itemGroupRepeatKey = repeatKey;
-    }
-
-    @Size(max = 255)
-    @Column(name = "ITEMOID", length = 255)
+    @Column(name = "ITEMOID")
     public String getItemOid() {
         return this.itemOid;
     }
@@ -125,6 +125,27 @@ public class MappedOdmItem extends AbstractMappedItem {
     public void setItemOid(String oid) {
         this.itemOid = oid;
         this.label = oid;
+    }
+
+    //endregion
+
+    //region Overrides
+
+    /**
+     * Construct a readable string representation for this entity instance.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("id", this.id)
+                .add("label", this.label)
+                .add("type", "ODM")
+                .add("event", this.studyEventOid)
+                .add("form", this.formOid)
+                .add("itemGroup", this.itemGroupOid)
+                .add("item", this.itemOid)
+                .toString();
     }
 
     //endregion

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,15 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
+import com.google.common.base.Objects;
+import de.dktk.dd.rpb.core.domain.Identifiable;
+import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import org.apache.log4j.Logger;
 
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,22 +38,24 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name="ItemGroupData")
-public class ItemGroupData implements Serializable {
+public class ItemGroupData implements Identifiable<Integer>, Serializable {
 
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    @SuppressWarnings("unused")
     private static final Logger log = Logger.getLogger(ItemGroupData.class);
 
     //endregion
 
     //region Members
 
+    @XmlTransient
+    private Integer id;
+
     @XmlAttribute(name="ItemGroupOID")
     private String itemGroupOid;
 
-    @XmlAttribute(name="ItemGropupRepeatKey")
+    @XmlAttribute(name="ItemGroupRepeatKey")
     private String itemGroupRepeatKey;
 
     @XmlAttribute(name="TransactionType")
@@ -56,6 +63,12 @@ public class ItemGroupData implements Serializable {
 
     @XmlElement(name="ItemData")
     private List<ItemData> itemDataList;
+
+    @XmlTransient
+    private ItemGroupDefinition itemGroupDefinition;
+
+    @XmlTransient
+    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder(); // Object hash
 
     //endregion
 
@@ -66,19 +79,39 @@ public class ItemGroupData implements Serializable {
     }
 
     public ItemGroupData(String itemGroupOid) {
+        this();
+
         this.itemGroupOid = itemGroupOid;
-        this.transactionType = "Insert";
     }
 
     public ItemGroupData(String itemGroupOid, String itemGroupRepeatKey) {
-        this.itemGroupOid = itemGroupOid;
+        this(itemGroupOid);
+
         this.itemGroupRepeatKey = itemGroupRepeatKey;
-        this.transactionType = "Insert";
     }
 
     //endregion
 
     //region Properties
+
+    //region Id
+
+    public Integer getId() {
+        return this.id;
+    }
+
+    public void setId(Integer value) {
+        this.id = value;
+    }
+
+    @Transient
+    public boolean isIdSet() {
+        return this.id != null;
+    }
+
+    //endregion
+
+    //region ItemGroupOID
 
     public String getItemGroupOid() {
         return this.itemGroupOid;
@@ -88,6 +121,10 @@ public class ItemGroupData implements Serializable {
         this.itemGroupOid = value;
     }
 
+    //endregion
+
+    //region ItemGroupRepeatKey
+
     public String getItemGroupRepeatKey() {
         return this.itemGroupRepeatKey;
     }
@@ -96,6 +133,10 @@ public class ItemGroupData implements Serializable {
         this.itemGroupRepeatKey = value;
     }
 
+    //endregion
+
+    //region TransactionType
+
     public String getTransactionType() {
         return this.transactionType;
     }
@@ -103,6 +144,8 @@ public class ItemGroupData implements Serializable {
     public void setTransactionType(String value) {
         this.transactionType = value;
     }
+
+    //endregion
 
     //region ItemDataList
 
@@ -114,12 +157,137 @@ public class ItemGroupData implements Serializable {
         this.itemDataList = list;
     }
 
-    public List<ItemData> addItemData(ItemData itemData) {
-        if (!this.itemDataList.contains(itemData)) {
-            this.itemDataList.add(itemData);
+    /**
+     * Helper method to add the passed {@link ItemData} to the itemDataList list
+     */
+    public boolean addItemData(ItemData itemData) {
+        if (!this.containsItemData(itemData)) {
+            if (this.itemDataList == null) {
+                this.itemDataList = new ArrayList<>();
+            }
+            return this.itemDataList.add(itemData);
         }
 
-        return this.itemDataList;
+        return false;
+    }
+
+    /**
+     * Helper method to remove the passed {@link ItemData} from the itemDataList list
+     */
+    public boolean removeItemData(ItemData itemData) {
+        return this.containsItemData(itemData) && this.itemDataList.remove(itemData);
+    }
+
+    /**
+     * Helper method to determine if the passed {@link ItemData} is present in the itemDataList list
+     */
+    public boolean containsItemData(ItemData itemData) {
+        return this.itemDataList != null && this.itemDataList.contains(itemData);
+    }
+
+    /**
+     * Helper method to determine whether passed item OID is present in the itemDataList list
+     * @param itemDataOid itemOid to lookup for
+     * @return true if the ItemData with specified form OID exists within group
+     */
+    public boolean containsItemData(String itemDataOid) {
+        if (this.itemDataList != null) {
+            for (ItemData itemData : this.itemDataList) {
+                if (itemData.getItemOid().equals(itemDataOid)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Helper method to get itemData according to item OID
+     * @param itemDataOid formOid to lookup for
+     * @return itemData if exists
+     */
+    public ItemData findItemGroupData(String itemDataOid) {
+        if (this.itemDataList != null) {
+            for (ItemData itemData : this.itemDataList) {
+                if (itemData.getItemOid().equals(itemDataOid)) {
+                    return itemData;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    //endregion
+
+    //region ItemGroupDefinition
+
+    public ItemGroupDefinition getItemGroupDefinition() {
+        return this.itemGroupDefinition;
+    }
+
+    public void setItemGroupDefinition(ItemGroupDefinition itemGroupDefinition) {
+        this.itemGroupDefinition = itemGroupDefinition;
+    }
+
+    //endregion
+
+    //endregion
+
+    //region Overrides
+
+    /**
+     * Equals implementation using a business key.
+     */
+    @Override
+    public boolean equals(Object other) {
+        return this == other || (other instanceof ItemGroupData && hashCode() == other.hashCode());
+    }
+
+    /**
+     * Generate entity hash code
+     * @return hash
+     */
+    @Override
+    public int hashCode() {
+        return identifiableHashBuilder.hash(log, this, this.itemGroupOid);
+    }
+
+    /**
+     * Construct a readable string representation for this RtStructType instance.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("itemGroupOid", this.itemGroupOid)
+                .add("itemGroupRepeatKey", this.itemGroupRepeatKey)
+                .toString();
+    }
+
+    //endregion
+
+    //region Methods
+
+    //region Metadata
+
+    public void linkOdmDefinitions(Odm odm) {
+        if (odm != null) {
+
+            // ItemGroupDefinition linking
+            ItemGroupDefinition itemGroupDefinition = odm.findUniqueItemGroupDefinitionOrNone(this.itemGroupOid);
+            if (itemGroupDefinition != null) {
+                this.setItemGroupDefinition(itemGroupDefinition);
+            }
+
+            // Link next level in hierarchy (Item)
+            if (this.itemDataList != null) {
+                for (ItemData itemData : this.itemDataList) {
+                    itemData.linkOdmDefinitions(odm);
+                }
+            }
+        }
     }
 
     //endregion

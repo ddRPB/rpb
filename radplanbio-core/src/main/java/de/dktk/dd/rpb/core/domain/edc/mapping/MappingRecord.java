@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -61,12 +63,16 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     private String dateFormatString;
     private Integer priority;
 
+    // Repeating keys (specific for CDISC ODM mapping)
+    private String studyEventRepeatKey;
+    private String itemGroupRepeatKey;
+
     // Theoretically multiple source values can be processed into one target (too complex for now)
     private AbstractMappedItem source;  // one to one
     // Theoretically one source value can be processed into multiple targets (too complex for now)
     private AbstractMappedItem target; // one to one
 
-    private Map<String, String> mapping = new HashMap<String, String>(); // collection
+    private Map<String, String> mapping = new HashMap<>(); // mapping options
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
@@ -76,7 +82,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     //region Constructors
 
     public MappingRecord() {
-        // NOOP
+        this.priority = 1;
     }
 
     @SuppressWarnings("unused")
@@ -123,7 +129,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     //region DefaultValue
 
     @Size(max = 255)
-    @Column(name = "DEFAULTVALUE", length = 255)
+    @Column(name = "DEFAULTVALUE")
     public String getDefaultValue() {
         return this.defaultValue;
     }
@@ -151,13 +157,13 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     //region DateFormatString
 
     @Size(max = 255)
-    @Column(name = "DATEFORMATSTRING", length = 255)
+    @Column(name = "DATEFORMATSTRING")
     public String getDateFormatString() {
         return this.dateFormatString;
     }
 
-    public void setDateFormatString(String format) {
-        this.dateFormatString = format;
+    public void setDateFormatString(String value) {
+        this.dateFormatString = value;
     }
 
     //endregion
@@ -171,6 +177,34 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
 
     public void setPriority(Integer value) {
         this.priority = value;
+    }
+
+    //endregion
+
+    //region StudyEventRepeatKey
+
+    @Size(max = 255)
+    @Column(name = "SEREPEATKEY")
+    public String getStudyEventRepeatKey() {
+        return this.studyEventRepeatKey;
+    }
+
+    public void setStudyEventRepeatKey(String value) {
+        this.studyEventRepeatKey = value;
+    }
+
+    //endregion
+
+    //region ItemGroupRepeatKey
+
+    @Size(max = 255)
+    @Column(name = "IGREPEATKEY")
+    public String getItemGroupRepeatKey() {
+        return this.itemGroupRepeatKey;
+    }
+
+    public void setItemGroupRepeatKey(String value) {
+        this.itemGroupRepeatKey = value;
     }
 
     //endregion
@@ -207,7 +241,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
 
     @ElementCollection(fetch = FetchType.EAGER) // this is a collection of primitives
     @MapKeyColumn(name="SOURCEVALUE") // column name for map "key"
-    @Column(name="TARGETVALUE", length = 255) // column name for map "value"
+    @Column(name="TARGETVALUE") // column name for map "value"
     @CollectionTable(name="CODEMAP", joinColumns=@JoinColumn(name="recordid"))
     public Map<String, String> getMapping() {
         return this.mapping;
@@ -231,49 +265,64 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
 
     //region Methods
 
-    // I think I need odm metadata to know what is the type of target, or validation rules for target
     public String process(String sourceValue, ItemDefinition itemMetaData) {
         String result = this.defaultValue;
 
         // Nothing special use the data types in metadata to decide how to transform source value
         if (itemMetaData.getCodeListDef() == null && itemMetaData.getMultiSelectListDef() == null) {
-            if (itemMetaData.getDataType().equals("integer")) {
-                try {
-                    result = Integer.valueOf(sourceValue).toString();
-                }
-                catch (NumberFormatException err) {
-                    err.printStackTrace();
-                }
-            }
-            else if (itemMetaData.getDataType().equals("float")) {
-                try {
-                    Double number = Double.valueOf(sourceValue);
-                    // Force . floating point separator
-                    result = String.format(Locale.ENGLISH, "%f", number);
-                }
-                catch (NumberFormatException err) {
-                    err.printStackTrace();
-                }
-            }
-            else if (itemMetaData.getDataType().equals("text")) {
-                //itemMetaData.getLength();
-                result = sourceValue;
-            }
-            else if (itemMetaData.getDataType().equals("date")) {
-                SimpleDateFormat sourceFormat = new SimpleDateFormat(this.dateFormatString);
-                SimpleDateFormat ocFormat = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    result = ocFormat.format(sourceFormat.parse(sourceValue));
-                } catch (ParseException e) {
-                    result = this.parseDate(sourceValue);
-                }
-            }
-            else if (itemMetaData.getDataType().equals("pdate")) {
-                // format the proper partial import date for OC
-                log.info("Processing PDATE type: skipping");
-            }
-            else if (itemMetaData.getDataType().equals("file")) {
-                log.info("Processing FILE type: skipping");
+
+            // Setup OC date format
+            SimpleDateFormat ocFormat = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+
+            switch (itemMetaData.getDataType()) {
+                case Constants.OC_INTEGER:
+                    try {
+                        result = Integer.valueOf(sourceValue).toString();
+                    }
+                    catch (NumberFormatException err) {
+                        err.printStackTrace();
+                    }
+                    break;
+                case Constants.OC_DECIMAL:
+                    try {
+                        BigDecimal number = new BigDecimal(sourceValue);
+                        result = number.stripTrailingZeros().toPlainString();
+                    }
+                    catch (NumberFormatException err) {
+                        err.printStackTrace();
+                    }
+                    break;
+                case Constants.OC_STRING:
+                    result = sourceValue;
+                    break;
+                case Constants.OC_DATE:
+                    try {
+                        result = ocFormat.format(
+                                new SimpleDateFormat(this.dateFormatString).parse(
+                                        sourceValue
+                                )
+                        );
+                    }
+                    catch (ParseException e) {
+                        result = this.parseDate(sourceValue);
+                    }
+                    break;
+                case Constants.OC_PDATE:
+                    // Even if the format is PDATE the data for import can be complete so try to parse it
+                    try {
+                        result = ocFormat.format(
+                                new SimpleDateFormat(this.dateFormatString).parse(
+                                        sourceValue
+                                )
+                        );
+                    }
+                    catch (ParseException e) {
+                        log.info("Processing unknown PDATE type format: skipping");
+                    }
+                    break;
+                case "file":
+                    log.info("Processing FILE type: skipping");
+                    break;
             }
         }
         else {
@@ -282,7 +331,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
                 if (itemMetaData.getCodeListDef() != null) {
                     String oneResult = this.mapping.get(sourceValue.trim());
                     if (itemMetaData.isCodeValid(oneResult)) {
-                         result = oneResult;
+                        result = oneResult;
                     }
                 }
                 else if (itemMetaData.getMultiSelectListDef() != null) {
@@ -293,7 +342,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
                                 result = oneResult;
                             }
                             else {
-                                result += "," + oneResult; // OC uses comma for separation of selected values
+                                result += Constants.OC_MULTIVALSEP + oneResult;
                             }
                         }
                     }
@@ -315,17 +364,17 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
         List<Map.Entry<String, String>>  result = null;
 
         if (this.mapping != null) {
-            result = new ArrayList<Map.Entry<String, String>>(this.mapping.entrySet());
+            result = new ArrayList<>(this.mapping.entrySet());
         }
 
         return result;
     }
 
     // This is useful for GUI,to verify whether user already specified new code for certen coded value in target code list
-    public Boolean recodeForTargetExists(String targedCodedValue) {
-        if (targedCodedValue != null) {
+    public Boolean recodeForTargetExists(String targetCodedValue) {
+        if (targetCodedValue != null) {
             for (Map.Entry<String, String> codeEntry : this.mappingAsList()) {
-                if (codeEntry.getValue().equals(targedCodedValue)) {
+                if (codeEntry.getValue().equals(targetCodedValue)) {
                     return Boolean.TRUE;
                 }
             }
@@ -369,7 +418,8 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     private Boolean canPerformMapping(Map<String, String> mapping) {
         if(mapping == null) {
             throw new NullPointerException("mapping should not be null");
-        } else if(mapping.isEmpty()) {
+        }
+        else if(mapping.isEmpty()) {
             throw new IllegalArgumentException("mapping should not be empty");
         }
 

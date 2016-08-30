@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,21 @@ package de.dktk.dd.rpb.core.domain.pacs;
 import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
- * RPB DICOM Study Serie domain object to encapsulate data coming from PACS
+ * RPB DICOM Study Series domain object to encapsulate data coming from PACS
  *
  * @author tomas@skripcak.net
  * @since 07 August 2013
@@ -95,9 +99,7 @@ public class DicomSerie implements Identifiable<Integer>, Serializable {
     }
 
     public void setSeriesInstanceUID(String value) {
-        if (this.seriesInstanceUID != value) {
-            this.seriesInstanceUID = value;
-        }
+        this.seriesInstanceUID = value;
     }
 
     public String getSeriesDescription() {
@@ -105,9 +107,7 @@ public class DicomSerie implements Identifiable<Integer>, Serializable {
     }
 
     public void setSeriesDescription(String value) {
-        if (this.seriesDescription != value) {
-            this.seriesDescription = value;
-        }
+        this.seriesDescription = value;
     }
 
     public String getSeriesModality() {
@@ -115,20 +115,39 @@ public class DicomSerie implements Identifiable<Integer>, Serializable {
     }
 
     public void setSeriesModality(String value) {
-        if (this.seriesModality != value) {
-            this.seriesModality = value;
-        }
+        this.seriesModality = value;
     }
+
+    //region SeriesTime
 
     public String getSeriesTime() {
         return this.seriesTime;
     }
 
     public void setSeriesTime(String value) {
-        if (this.seriesTime != value) {
-            this.seriesTime = value;
-        }
+        this.seriesTime = value;
     }
+
+    public Date getTimeSeries() {
+        if (this.seriesTime != null && !this.seriesTime.equals("")) {
+            DateFormat format = new SimpleDateFormat(Constants.DICOM_TIMEFORMAT);
+            try {
+                return format.parse(this.seriesTime);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public String getTimeSeriesString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_TIMEFORMAT);
+        Date date = this.getTimeSeries();
+        return date != null ? format.format(date) : null;
+    }
+
+    //endregion
 
     public List<DicomImage> getSerieImages() {
         return this.serieImages;

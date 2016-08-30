@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ public class UserContext {
         if (auth != null) {
             Object principal = auth.getPrincipal();
             if (principal instanceof LdapUserDetails) {
-                 result = DigestUtils.shaHex(auth.getCredentials().toString());
+                result = DigestUtils.shaHex(auth.getCredentials().toString());
             }
             else if (principal instanceof UserDetails) {
                 result = ((UserDetails) principal).getPassword();
@@ -141,7 +141,6 @@ public class UserContext {
     /**
      * Retrieve the current UserDetails bound to the current thread by Spring Security, if any.
      */
-    @SuppressWarnings("unused")
     public static UserDetails getUserDetails() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -166,7 +165,15 @@ public class UserContext {
     }
 
     /**
-     * Tell whether the passed role is set?
+     * Determine whether user as anonymous user name
+     * @return true if anonymous user otherwise false
+     */
+    public static boolean isAnonymous() {
+        return getUsername().equals(ANONYMOUS_USER);
+    }
+
+    /**
+     * Determine whether the passed role is assigned
      *
      * @return true if the passed role is present, false otherwise.
      */
@@ -180,6 +187,11 @@ public class UserContext {
         return false;
     }
 
+    /**
+     * Return the string list of provided authorities
+     * @param grantedAuthorities granted authorities
+     * @return authorities as list of string
+     */
     public static List<String> toStringList(Iterable<? extends GrantedAuthority> grantedAuthorities) {
         List<String> result = newArrayList();
 

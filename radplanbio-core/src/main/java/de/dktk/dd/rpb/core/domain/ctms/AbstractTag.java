@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ public abstract class AbstractTag implements Identifiable<Integer>, Serializable
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "VALUE", nullable = false, length = 255)
+    @Column(name = "VALUE", nullable = false)
     public String getValue() {
         return this.value;
     }

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 package de.dktk.dd.rpb.core.domain.edc.mapping;
 
+import com.google.common.base.Objects;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Column;
@@ -66,7 +67,7 @@ public class MappedCsvItem extends AbstractMappedItem {
     //region Properties
 
     @Size(max = 255)
-    @Column(name = "HEADER", length = 255)
+    @Column(name = "HEADER")
     public String getHeader() {
         return this.header;
     }
@@ -74,6 +75,24 @@ public class MappedCsvItem extends AbstractMappedItem {
     public void setHeader(String value) {
         this.header = value;
         this.label = header;
+    }
+
+    //endregion
+
+    //region Overrides
+
+    /**
+     * Construct a readable string representation for this entity instance.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("id", this.id)
+                .add("label", this.label)
+                .add("type", "CSV")
+                .add("header", this.header)
+                .toString();
     }
 
     //endregion

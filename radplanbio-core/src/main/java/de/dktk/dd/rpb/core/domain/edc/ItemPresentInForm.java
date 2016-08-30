@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,9 @@ public class ItemPresentInForm implements Serializable {
     @XmlAttribute(name="ColumnNumber")
     private Integer columnNumber;
 
+    @XmlAttribute(name="DefaultValue")
+    private String defaultValue;
+
     @XmlAttribute(name="PHI")
     private String phi;
 
@@ -89,6 +92,14 @@ public class ItemPresentInForm implements Serializable {
 
     public void setColumnNumber(Integer number) {
         this.columnNumber = number;
+    }
+
+    public String getDefaultValue() {
+        return this.defaultValue;
+    }
+
+    public void setDefaultValue(String value) {
+        this.defaultValue = value;
     }
 
     public String getPhi() {

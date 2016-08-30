@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ public class Edc implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "EDCBASEURL", nullable = false, length = 255)
+    @Column(name = "EDCBASEURL", nullable = false)
     public String getEdcBaseUrl()  {
         return this.edcBaseUrl;
     }
@@ -112,7 +112,7 @@ public class Edc implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "SOAPBASEURL", nullable = false, length = 255)
+    @Column(name = "SOAPBASEURL", nullable = false)
     public String getSoapBaseUrl()  {
         return this.soapBaseUrl;
     }

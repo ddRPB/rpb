@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ public abstract class PartnerSite_ {
     // Raw attributes
     public static volatile SingularAttribute<PartnerSite, Integer> id;
     public static volatile SingularAttribute<PartnerSite, String> identifier;
-    public static volatile SingularAttribute<PartnerSite, String> siteName;
+    public static volatile SingularAttribute<PartnerSite, String> name;
     public static volatile SingularAttribute<PartnerSite, String> description;
     public static volatile SingularAttribute<PartnerSite, Float> latitude;
     public static volatile SingularAttribute<PartnerSite, Float> longitude;

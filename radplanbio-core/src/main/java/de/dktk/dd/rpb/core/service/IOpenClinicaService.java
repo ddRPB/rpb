@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@ import java.util.List;
 import de.dktk.dd.rpb.core.domain.edc.EventData;
 import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
 
+import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.UserAccount;
 import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
 import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
 import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
@@ -36,12 +38,22 @@ import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.ocsoap.types.Event;
 
 /**
- * OpenClinica service helps to access SOAP and REST based web-service provided by EDC system
+ * OpenClinica service helps to access SOAP and REST based web-services provided by EDC system
  *
  * @author tomas@skripcak.net
  * @since 05 Jun 2013
  */
 public interface IOpenClinicaService {
+
+    //region Properties
+
+    Boolean isConnected();
+
+    Boolean getCacheIsEnabled();
+
+    void setCacheIsEnabled(Boolean value);
+
+    //endregion
 
     //region Setup
 
@@ -82,7 +94,7 @@ public interface IOpenClinicaService {
     MetadataODM getStudyMetadata(String identifier);
 
     /**
-     * Get list of all OC studies
+     * Get list of all studies available for user form OpenClinica EDC
      *
      * @return List - StudyType list
      */
@@ -112,7 +124,9 @@ public interface IOpenClinicaService {
      * @param studySubject - Study subject entity
      * @return successful
      */
-    boolean createNewStudySubject(StudySubject studySubject);
+    Boolean createNewStudySubject(StudySubject studySubject);
+
+    Boolean studySubjectExistsInStudy(StudySubject studySubject, Study study);
 
     List<StudySubject> getSubjectsByStudy(de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy) throws OCConnectorException;
 
@@ -122,11 +136,52 @@ public interface IOpenClinicaService {
 
     //region REST
 
+    //region EDC User Account
+
+    UserAccount loginUserAccount(String username, String password);
+
+    UserAccount createUserAccount();
+
+    UserAccount loadUserAccount();
+
+    UserAccount loadParticipantUserAccount();
+
+    UserAccount loadParticipantUserAccountByAccessCode();
+
+    //endregion
+
+    //region ODM
+
+    /**
+     * Load ODM entity as resource based on provided query string
+     * @param format
+     * @param method
+     * @param queryOdmXmlPath
+     * @return ODM entity
+     */
+    Odm getStudyCasebookOdm(OpenClinicaService.CasebookFormat format, OpenClinicaService.CasebookMethod method, String queryOdmXmlPath);
+
+    //endregion
+
+    //region Study
+
+    //endregion
+
+    //region Site
+
+    //endregion
+
+    //region Study Subject
+
     List<StudySubject> getStudyCasebookSubjects(String studyOid);
 
     StudySubject getStudyCasebookSubject(String studyOid, String studySubjectIdentifier);
 
     List<de.dktk.dd.rpb.core.domain.edc.StudySubject> getStudyCasebookSubjects(OpenClinicaService.CasebookFormat format, OpenClinicaService.CasebookMethod method, String queryOdmXmlPath);
+
+    //endregion
+
+    //region Study Event
 
     List<EventDefinition> getStudyCasebookEvents(String studyOid, String subjectOid);
 
@@ -135,6 +190,12 @@ public interface IOpenClinicaService {
     //region ePRO
 
     List<EventData> loadParticipateEvents(String studyOid, String studySubjectOid);
+
+    String loadEditableUrl(String ocUrl, String returnUrl);
+
+    boolean completeParticipantEvent(String studySubjectIdentifier, String studyEventDefinitionOid, String eventRepeatKey, String apiKey);
+
+    //endregion
 
     //endregion
 

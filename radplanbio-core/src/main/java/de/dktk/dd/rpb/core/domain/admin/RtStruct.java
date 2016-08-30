@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ public class RtStruct implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "Identifier", nullable = false, length = 255)
+    @Column(name = "Identifier", nullable = false)
     public String getIdentifier() {
         return this.identifier;
     }
@@ -121,7 +121,7 @@ public class RtStruct implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "NAME", nullable = false, length = 255)
+    @Column(name = "NAME", nullable = false)
     public String getName() {
         return this.name;
     }
@@ -135,7 +135,7 @@ public class RtStruct implements Identifiable<Integer>, Serializable {
     //region Description
 
     @Size(max = 255)
-    @Column(name = "DESCRIPTION", length = 255)
+    @Column(name = "DESCRIPTION")
     public String getDescription() {
         return this.description;
     }

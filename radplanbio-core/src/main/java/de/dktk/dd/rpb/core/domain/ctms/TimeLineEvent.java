@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ public class TimeLineEvent implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "NAME", nullable = false, length = 255)
+    @Column(name = "NAME", nullable = false)
     public String getName() {
         return this.name;
     }
@@ -186,7 +186,7 @@ public class TimeLineEvent implements Identifiable<Integer>, Serializable {
     //region Organisation
 
     @ManyToOne(fetch=FetchType.EAGER)
-    @JoinColumn(name="ORGANISATIONID", nullable = true)
+    @JoinColumn(name="ORGANISATIONID")
     public Organisation getOrganisation() {
         return this.organisation;
     }

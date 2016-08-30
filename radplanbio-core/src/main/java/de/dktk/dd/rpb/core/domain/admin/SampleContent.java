@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +24,15 @@ import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 
 import com.google.common.base.Objects;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -100,7 +103,7 @@ public class SampleContent implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "TITLE", nullable = false, length = 255)
+    @Column(name = "TITLE", nullable = false)
     public String getTitle() {
         return this.title;
     }
@@ -164,6 +167,13 @@ public class SampleContent implements Identifiable<Integer>, Serializable {
         this.createdDate = value;
     }
 
+    @Transient
+    public String getCreatedDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getCreatedDate();
+        return date != null ? format.format(date) : null;
+    }
+
     //endregion
 
     //region Author
@@ -187,7 +197,7 @@ public class SampleContent implements Identifiable<Integer>, Serializable {
      * Set the default values.
      */
     public void initDefaultValues() {
-       this.content = "Placeholder"; // It is not null, but currently not implemented in UI
+        this.content = "Placeholder"; // It is not null, but currently not implemented in UI
     }
 
     //endregion

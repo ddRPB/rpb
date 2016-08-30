@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@ import javax.persistence.metamodel.StaticMetamodel;
  */
 @SuppressWarnings("unused")
 @StaticMetamodel(Role.class)
-public abstract class Role_
-{
+public abstract class Role_ {
+
     // Raw attributes
     public static volatile SingularAttribute<Role, Integer> id;
     public static volatile SingularAttribute<Role, String> name;

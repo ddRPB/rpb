@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,7 +110,7 @@ public class Portal implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "PORTALBASEURL", nullable = false, length = 255)
+    @Column(name = "PORTALBASEURL", nullable = false)
     public String getPortalBaseUrl()  {
         return this.portalBaseUrl;
     }
@@ -124,7 +124,7 @@ public class Portal implements Identifiable<Integer>, Serializable {
     //region PublicUrl
 
     @Size(max = 255)
-    @Column(name = "PUBLICURL", length = 255)
+    @Column(name = "PUBLICURL")
     public String getPublicUrl()  {
         return this.publicUrl;
     }

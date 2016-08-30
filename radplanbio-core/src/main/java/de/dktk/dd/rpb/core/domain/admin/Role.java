@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
+import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
 import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -52,6 +53,9 @@ public class Role implements Identifiable<Integer>, Named, Serializable {
     private Integer id; // pk
     private String roleName; // unique (not null)
     private String description;
+
+    // Object hash
+    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
     //endregion
 
@@ -90,11 +94,11 @@ public class Role implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
-    // region RoleName
+    //region Name
 
-    @Size(max = 255)
     @NotEmpty
-    @Column(name = "ROLENAME", nullable = false, unique = true, length = 255)
+    @Size(max = 255)
+    @Column(name = "ROLENAME", nullable = false, unique = true)
     public String getName() {
         return this.roleName;
     }
@@ -142,19 +146,9 @@ public class Role implements Identifiable<Integer>, Named, Serializable {
         return this == other || (other instanceof Role && hashCode() == other.hashCode());
     }
 
-    private volatile int previousHashCode = 0;
-
     @Override
     public int hashCode() {
-        int hashCode = Objects.hashCode(this.roleName);
-        if (previousHashCode != 0 && previousHashCode != hashCode) {
-            log.warn("DEVELOPER: hashCode has changed!." //
-                    + "If you encounter this message you should take the time to carefuly review equals/hashCode for: " //
-                    + getClass().getCanonicalName());
-        }
-
-        previousHashCode = hashCode;
-        return hashCode;
+        return identifiableHashBuilder.hash(log, this);
     }
 
     /**
@@ -164,7 +158,7 @@ public class Role implements Identifiable<Integer>, Named, Serializable {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", this.getId())
+                .add("id", this.id)
                 .add("roleName", this.roleName)
                 .add("description", this.description)
                 .toString();

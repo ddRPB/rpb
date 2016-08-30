@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import com.google.common.base.Objects;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.domain.Named;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 
 import org.apache.log4j.Logger;
@@ -43,7 +44,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "DATAMAPPING")
-public class Mapping implements Identifiable<Integer>, Serializable {
+public class Mapping implements Identifiable<Integer>, Named, Serializable {
 
     //region Finals
 
@@ -93,13 +94,13 @@ public class Mapping implements Identifiable<Integer>, Serializable {
         this.targetType = anotherMapping.getTargetType();
         this.study = anotherMapping.getStudy();
 
-        for (AbstractMappedItem ami : anotherMapping.getSourceItemDefinitions()) {
-            // TODO: need to implement
-        }
+        //for (AbstractMappedItem ami : anotherMapping.getSourceItemDefinitions()) {
+        // TODO: need to implement cloning
+        //}
 
-        for (AbstractMappedItem ami : anotherMapping.getTargetItemDefinitions()) {
-            // TODO: need to implement
-        }
+        //for (AbstractMappedItem ami : anotherMapping.getTargetItemDefinitions()) {
+        // TODO: need to implement cloning
+        //}
 
         for (MappingRecord mr : anotherMapping.getMappingRecords()) {
             MappingRecord newMappingRecord = new MappingRecord(mr);
@@ -134,8 +135,8 @@ public class Mapping implements Identifiable<Integer>, Serializable {
 
     //region Name
 
-    @Column(name = "NAME", length = 255)
     @Size(max = 255)
+    @Column(name = "NAME")
     public String getName() {
         return this.name;
     }
@@ -163,7 +164,7 @@ public class Mapping implements Identifiable<Integer>, Serializable {
     //region Type
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TYPE", length = 255)
+    @Column(name = "TYPE")
     public MappingTypeEnum getType() {
         return this.type;
     }
@@ -177,7 +178,7 @@ public class Mapping implements Identifiable<Integer>, Serializable {
     //region SourceType
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "SOURCETYPE", length = 255)
+    @Column(name = "SOURCETYPE")
     public MappingItemTypeEnum getSourceType() {
         return this.sourceType;
     }
@@ -191,7 +192,7 @@ public class Mapping implements Identifiable<Integer>, Serializable {
     //region TargetType
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "TARGETTYPE", length = 255)
+    @Column(name = "TARGETTYPE")
     public MappingItemTypeEnum getTargetType() {
         return this.targetType;
     }
@@ -218,6 +219,7 @@ public class Mapping implements Identifiable<Integer>, Serializable {
 
     //region MappingRecords - One Mapping consists of many MappingRecords
 
+    //TODO: Lazy load TRUE
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name="MAPPINGID", referencedColumnName="ID")
@@ -241,6 +243,7 @@ public class Mapping implements Identifiable<Integer>, Serializable {
 
     //region SourceItemDefinitions
 
+    //TODO: Lazy load TRUE
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name="MAPPINGID", referencedColumnName="ID")
@@ -256,6 +259,7 @@ public class Mapping implements Identifiable<Integer>, Serializable {
 
     //region TargetItemDefinitions
 
+    //TODO: Lazy load TRUE
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name="TARGETMAPPINGID", referencedColumnName="ID")

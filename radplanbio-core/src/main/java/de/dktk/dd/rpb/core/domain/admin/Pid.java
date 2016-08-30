@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,11 @@ public class Pid implements Identifiable<Integer>, Serializable {
     private Boolean isEnabled; // default true
     private String version;
 
+    //TODO: setup for use with apiVersion parameter 2.1 from DB
+    private String apiVersion = "2.1";
+
+    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
+
     //endregion
 
     //region Constructors
@@ -71,6 +76,7 @@ public class Pid implements Identifiable<Integer>, Serializable {
         // NOOP
     }
 
+    @SuppressWarnings("unused")
     public Pid(Integer primaryKey) {
         this.setId(primaryKey);
     }
@@ -119,7 +125,7 @@ public class Pid implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "APIKEY", nullable = false, length = 255)
+    @Column(name = "APIKEY", nullable = false)
     public String getApiKey()  {
         return this.apiKey;
     }
@@ -187,6 +193,20 @@ public class Pid implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region ApiVersion
+
+    //TODO: setup for use with apiVersion parameter 2.1 from DB
+    @Transient
+    public String getApiVersion() {
+        return this.apiVersion;
+    }
+
+    public void setApiVersion(String value) {
+        this.apiVersion = value;
+    }
+
+    //endregion
+
     //endregion
 
     //region Methods
@@ -206,12 +226,9 @@ public class Pid implements Identifiable<Integer>, Serializable {
      * equals implementation using a business key.
      */
     @Override
-    public boolean equals(Object other)
-    {
+    public boolean equals(Object other) {
         return this == other || (other instanceof Pid && hashCode() == other.hashCode());
     }
-
-    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
     @Override
     public int hashCode()

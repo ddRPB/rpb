@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,7 +114,7 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "EVENTDEFINITIONOID", nullable = false, length = 255)
+    @Column(name = "EVENTDEFINITIONOID", nullable = false)
     public String getEventDefinitionOid()  {
         return this.eventDefinitionOid;
     }
@@ -129,7 +129,7 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "FORMOID", nullable = false, length = 255)
+    @Column(name = "FORMOID", nullable = false)
     public String getFormOid()  {
         return this.formOid;
     }
@@ -144,7 +144,7 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "GROUPOID", nullable = false, length = 255)
+    @Column(name = "GROUPOID", nullable = false)
     public String getGroupOid()  {
         return this.groupOid;
     }
@@ -159,7 +159,7 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "CRFITEMOID", nullable = false, length = 255)
+    @Column(name = "CRFITEMOID", nullable = false)
     public String getCrfItemOid()  {
         return this.crfItemOid;
     }
@@ -176,7 +176,7 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
 
     //region AnnotationType
 
-    @ManyToOne(fetch= FetchType.LAZY)
+    @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="TYPEID")
     public AnnotationType getAnnotationType() {
         return this.annotationType;
@@ -237,13 +237,11 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", this.getId())
-                .add("studyoid", this.getStudy().getOcStudyIdentifier())
-                .add("eventDefinitionOid", this.getEventDefinitionOid())
-                .add("formOid", this.getFormOid())
-                .add("groupOid", this.getGroupOid())
-                .add("crfItemOid", this.getCrfItemOid())
-                .add("type", this.getAnnotationType().getName())
+                .add("id", this.id)
+                .add("eventDefinitionOid", this.eventDefinitionOid)
+                .add("formOid", this.formOid)
+                .add("groupOid", this.groupOid)
+                .add("crfItemOid", this.crfItemOid)
                 .toString();
     }
 

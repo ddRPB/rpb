@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@ import javax.persistence.metamodel.StaticMetamodel;
  */
 @SuppressWarnings("unused")
 @StaticMetamodel(Pacs.class)
-public class Pacs_
-{
+public class Pacs_ {
+
     // Raw attributes
     public static volatile SingularAttribute<Pacs, Integer> id;
     public static volatile SingularAttribute<Pacs, String> pacsBaseUrl;

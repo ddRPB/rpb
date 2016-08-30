@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,5 +31,18 @@ package de.dktk.dd.rpb.core.domain.edc.mapping;
  * @since 04 Mar 2015
  */
 public enum MappingItemTypeEnum {
-    CSV, ODM
+
+    CSV("csv"),
+    ODM("odm");
+
+    private String label;
+
+    MappingItemTypeEnum(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
 import de.dktk.dd.rpb.core.domain.edc.Study;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Type;
@@ -57,7 +58,6 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     private static final long serialVersionUID = 1L;
     private static final Logger log = Logger.getLogger(DefaultAccount.class);
-    private static final String LDAP = "LDAP";
 
     //endregion
 
@@ -85,11 +85,11 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     // Many to one
     private PartnerSite partnerSite;
-    private Study activeStudy; // transient
 
     // Transient
-    private String passwordCopy; // not persisted
-    private String oldPassword; // not persisted
+    private Study activeStudy;
+    private String passwordCopy;
+    private String oldPassword;
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
@@ -122,6 +122,11 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    @Transient
+    public boolean isIdSet() {
+        return this.id != null;
     }
 
     //endregion
@@ -201,10 +206,12 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     @Column(name = "LASTVISIT")
     @Type(type="org.jadira.usertype.dateandtime.joda.PersistentInstantAsTimestamp")
+    @SuppressWarnings("unused")
     public Instant getLastVisit() {
         return this.lastVisit;
     }
 
+    @SuppressWarnings("unused")
     public void setLastVisit(Instant lastVisit) {
         this.lastVisit = lastVisit;
     }
@@ -214,10 +221,12 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
     //region NonLocked
 
     @Column(name = "NONLOCKED")
+    @SuppressWarnings("unused")
     public Boolean getNonLocked() {
         return this.nonLocked;
     }
 
+    @SuppressWarnings("unused")
     public void setNonLocked(Boolean nonLocked) {
         this.nonLocked = nonLocked;
     }
@@ -227,10 +236,12 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
     //region LockCounter
 
     @Column(name = "LOCKCOUNTER")
+    @SuppressWarnings("unused")
     public Integer getLockCounter() {
         return this.lockCounter;
     }
 
+    @SuppressWarnings("unused")
     public void setLockCounter(Integer lockCounter) {
         this.lockCounter = lockCounter;
 
@@ -269,18 +280,10 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     //region Transient Properties
 
-    //region IsIdSet
-
-    @Transient
-    public boolean isIdSet() {
-        return this.id != null;
-    }
-
-    //endregion
-
     //region PasswordCopy
 
     @Transient
+    @XmlTransient
     public String getPasswordCopy() {
         return passwordCopy;
     }
@@ -294,6 +297,7 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
     //region OldPassword
 
     @Transient
+    @XmlTransient
     public String getOldPassword() {
         return oldPassword;
     }
@@ -304,32 +308,15 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    //region RoleNames
+    //region IsLdapUser
 
     /**
-     * Returns the granted authorities for this user. You may override
-     * this method to provide your own custom authorities.
+     * Determine whether the user is LDAP user
+     * @return true for LDAP user
      */
     @Transient
-    @XmlTransient
-    public List<String> getRoleNames() {
-        List<String> roleNames = new ArrayList<String>();
-
-        for (Role role : getRoles()) {
-            roleNames.add(role.getName());
-        }
-
-        return roleNames;
-    }
-
-    //endregion
-
-    //region NumberOfPrivileges
-
-    @Transient
-    @XmlTransient
-    public Integer getPrivilegesCount() {
-        return this.roles != null ? this.roles.size() : 0;
+    public boolean isLdapUser() {
+        return Constants.RPB_LDAPPASSHASH.equals(this.password);
     }
 
     //endregion
@@ -384,7 +371,7 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
     //region Many to Many
 
     /**
-     * Returns the roles list.
+     * Get list of granted authorities {@link Role} for this user
      */
     @JoinTable(name = "ACCOUNT_ROLE", joinColumns = @JoinColumn(name = "ACCOUNTID"), inverseJoinColumns = @JoinColumn(name = "ROLEID"))
     @ManyToMany(fetch= FetchType.EAGER, cascade = { PERSIST, MERGE })
@@ -394,8 +381,8 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
     }
 
     /**
-     * Set the roles list.
-     * <p>
+     * Set the list of granted authorities.
+     *
      * It is recommended to use the helper method {@link #addRole(Role)} / {@link #removeRole(Role)}
      * if you want to preserve referential integrity at the object level.
      *
@@ -419,6 +406,11 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
         return Boolean.FALSE;
     }
 
+    /**
+     * Helper method to add passed {@link Role} entity list to assigned roles
+     * @param roles list of roles to assign
+     * @return true if successful
+     */
     public Boolean addRoles(List<Role> roles) {
         for (Role r : roles) {
             if (!this.addRole(r)) {
@@ -433,7 +425,7 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
      * Helper method to remove the passed {@link Role} from the roles list.
      */
     public boolean removeRole(Role role) {
-        return getRoles().remove(role);
+        return this.containsRole(role) && this.roles.remove(role);
     }
 
     /**
@@ -441,6 +433,51 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
      */
     public boolean containsRole(Role role) {
         return this.roles != null && this.roles.contains(role);
+    }
+
+    /**
+     * Determine whether user have assigned authority with given role name
+     * @param role role to compare
+     * @return true when user have assigner authorithe with given role name
+     */
+    public Boolean hasRole(Role role) {
+        if (role != null && this.roles != null) {
+            for (Role r : this.roles) {
+                if (r.getName().equals(role.getName())) {
+                    return Boolean.TRUE;
+                }
+            }
+        }
+
+        return Boolean.FALSE;
+    }
+
+    /**
+     * Returns the granted authorities name list for this user
+     * @return list of role names
+     */
+    @Transient
+    @XmlTransient
+    public List<String> getRoleNames() {
+        List<String> roleNames = new ArrayList<>();
+
+        if (this.roles != null) {
+            for (Role role : this.roles) {
+                roleNames.add(role.getName());
+            }
+        }
+
+        return roleNames;
+    }
+
+    /**
+     * Returns the number of granted authorities for this user
+     * @return number of assigned roles
+     */
+    @Transient
+    @XmlTransient
+    public Integer getPrivilegesCount() {
+        return this.roles != null ? this.roles.size() : 0;
     }
 
     // endregion
@@ -459,17 +496,8 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     //region Methods
 
-    /**
-     * Determine whether the user is LDAP user
-     * @return true for LDAP user
-     */
-    @Transient
-    public Boolean isLdapUser() {
-        return LDAP.equals(this.password);
-    }
-
     public void createLdapPassword() {
-        this.password = LDAP;
+        this.password = Constants.RPB_LDAPPASSHASH;
     }
 
     public void createSecurePasswordHash() {
@@ -486,18 +514,6 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     public Boolean hasOpenClinicaAccount() {
         return this.ocUsername != null && !this.ocUsername.equals("");
-    }
-
-    public Boolean hasRole(Role role) {
-        if (role != null && this.roles != null) {
-            for (Role r : this.roles) {
-                if (r.getName().equals(role.getName())) {
-                    return Boolean.TRUE;
-                }
-            }
-        }
-
-        return Boolean.FALSE;
     }
 
     //endregion

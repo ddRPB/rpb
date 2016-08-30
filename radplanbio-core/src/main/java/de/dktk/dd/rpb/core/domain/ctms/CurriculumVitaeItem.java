@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,15 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -107,7 +110,7 @@ public class CurriculumVitaeItem implements Identifiable<Integer>, Named, Serial
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "NAME", nullable = false, length = 255)
+    @Column(name = "NAME", nullable = false)
     public String getName() {
         return this.name;
     }
@@ -129,6 +132,13 @@ public class CurriculumVitaeItem implements Identifiable<Integer>, Named, Serial
         this.startDate = startDate;
     }
 
+    @Transient
+    public String getStartDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getStartDate();
+        return date != null ? format.format(date) : null;
+    }
+
     //endregion
 
     //region EndDate
@@ -140,6 +150,13 @@ public class CurriculumVitaeItem implements Identifiable<Integer>, Named, Serial
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    @Transient
+    public String getEndDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getEndDate();
+        return date != null ? format.format(date) : null;
     }
 
     //endregion

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
@@ -65,6 +66,9 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
     @XmlElement(name="Question")
     private Question question;
 
+    @XmlElement(name="RangeCheck")
+    private RangeCheck rangeCheck;
+
     private String label; // left text
     private String rightText; // right additional text
 
@@ -102,6 +106,13 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
 
     @XmlElement(name="ItemDetails", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private ItemDetails itemDetails;
+
+    //endregion
+
+    //region RadPlanBio
+
+    @XmlTransient
+    private ItemGroupDefinition itemGroupDefinition;
 
     //endregion
 
@@ -207,6 +218,18 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
 
     public void setQuestion(Question valueObject) {
         this.question = valueObject;
+    }
+
+    //endregion
+
+    //region RangeCheck
+
+    public RangeCheck getRangeCheck() {
+        return this.rangeCheck;
+    }
+
+    public void setRangeCheck(RangeCheck rangeCheck) {
+        this.rangeCheck = rangeCheck;
     }
 
     //endregion
@@ -340,7 +363,14 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
     //region isPhi
 
     public Boolean getIsPhi() {
-        return this.isPhi;
+        if (this.isPhi != null) {
+            return this.isPhi;
+        }
+        else if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
+            return this.itemDetails.getItemPresentInForm().getPhi().equals(Constants.OC_YES);
+        }
+
+        return null;
     }
 
     public void setIsPhi(Boolean value) {
@@ -352,11 +382,27 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
     //region isRequired
 
     public Boolean getIsRequired() {
-        return this.isRequired;
+        if (this.isPhi != null) {
+            return this.isRequired;
+        }
+
+        return null;
     }
 
     public void setIsRequired(Boolean value) {
         this.isRequired = value;
+    }
+
+    //endregion
+
+    //region isShown
+
+    public Boolean getIsShown() {
+        if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
+            this.itemDetails.getItemPresentInForm().getShowItem().equals(Constants.OC_YES);
+        }
+
+        return null;
     }
 
     //endregion
@@ -421,6 +467,18 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region RadPlanBio
+
+    public ItemGroupDefinition getItemGroupDefinition() {
+        return this.itemGroupDefinition;
+    }
+
+    public void setItemGroupDefinition(ItemGroupDefinition itemGroupDefinition) {
+        this.itemGroupDefinition = itemGroupDefinition;
+    }
+
+    //endregion
+
     //endregion
 
     //region Overrides
@@ -481,9 +539,13 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
         return this.codeListDef != null || this.multiSelectListDef != null;
     }
 
+    public Boolean isMultiCoded() {
+        return this.multiSelectListDef != null;
+    }
+
     public Boolean isDate() {
         if (this.dataType != null) {
-            return this.dataType.equals("date") || this.dataType.equals("pdate");
+            return this.dataType.equals("date") || this.dataType.equals("partialDate") || this.dataType.equals("pdate");
         }
         else {
             return Boolean.FALSE;
@@ -529,6 +591,14 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
         }
 
         return result;
+    }
+
+    public Boolean isPresentInForm(String formOid) {
+        if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
+            return this.itemDetails.getItemPresentInForm().getFormOid().equals(formOid);
+        }
+
+        return Boolean.FALSE;
     }
 
     //endregion

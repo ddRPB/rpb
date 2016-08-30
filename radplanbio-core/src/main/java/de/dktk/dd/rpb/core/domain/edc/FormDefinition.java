@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,14 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import com.google.common.base.Objects;
+import de.dktk.dd.rpb.core.adapter.NoYesBooleanAdapter;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,12 +62,24 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
     @XmlAttribute(name="Name")
     private String name;
 
-    boolean isRepeating;
+    @XmlAttribute(name="Repeating")
+    @XmlJavaTypeAdapter(NoYesBooleanAdapter.class)
+    private Boolean isRepeating;
+
+    @XmlElement(name="FormDetails", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    private FormDetails formDetails;
 
     @XmlElement(name="ItemGroupRef")
     private List<ItemGroupDefinition> itemGroupRefs;
 
     private List<ItemGroupDefinition> itemGroupDefs;
+
+    //region RadPlanBio
+
+    @XmlTransient
+    private EventDefinition eventDefinition;
+
+    //endregion
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
@@ -75,8 +89,8 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
     //region Constructors
 
     public FormDefinition() {
-        this.itemGroupRefs = new ArrayList<ItemGroupDefinition>();
-        this.itemGroupDefs = new ArrayList<ItemGroupDefinition>();
+        this.itemGroupRefs = new ArrayList<>();
+        this.itemGroupDefs = new ArrayList<>();
     }
 
     //endregion
@@ -138,12 +152,24 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
 
     //region IsRepeating
 
-    public boolean getIsRepeating() {
+    public Boolean getIsRepeating() {
         return this.getIsRepeating();
     }
 
-    public void setIsRepeating(boolean value) {
+    public void setIsRepeating(Boolean value) {
         this.isRepeating = value;
+    }
+
+    //endregion
+
+    //region FormDetails
+
+    public FormDetails getFormDetails() {
+        return formDetails;
+    }
+
+    public void setFormDetails(FormDetails formDetails) {
+        this.formDetails = formDetails;
     }
 
     //endregion
@@ -168,6 +194,18 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
 
     public void setItemGroupDefs(List<ItemGroupDefinition> list) {
         this.itemGroupDefs = list;
+    }
+
+    //endregion
+
+    //region RadPlanBio
+
+    public EventDefinition getEventDefinition() {
+        return this.eventDefinition;
+    }
+
+    public void setEventDefinition(EventDefinition eventDefinition) {
+        this.eventDefinition = eventDefinition;
     }
 
     //endregion
@@ -208,7 +246,6 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", this.id)
                 .add("oid", this.oid)
                 .add("name", this.name)
                 .toString();

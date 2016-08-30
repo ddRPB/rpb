@@ -54,7 +54,7 @@ public class OpenClinicaUserDetailsServiceImpl implements UserDetailsService {
 
     // region Finals
 
-    private static final Logger log = Logger.getLogger(DefaultUserDetailsServiceImpl.class);
+    private static final Logger log = Logger.getLogger(OpenClinicaUserDetailsServiceImpl.class);
 
     //endregion
 

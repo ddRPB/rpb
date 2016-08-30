@@ -189,7 +189,7 @@ public class TrialSubject implements Identifiable<Integer>, Serializable {
      */
     @Transient
     public String getStrata() {
-        List<String> stratum = new ArrayList<String>();
+        List<String> stratum = new ArrayList<>();
 
         if (this.prognosticVariables != null) {
             for (PrognosticVariable pv : this.prognosticVariables) {

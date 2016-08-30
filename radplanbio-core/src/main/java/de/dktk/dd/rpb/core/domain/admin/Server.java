@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,8 @@ public class Server implements Identifiable<Integer>, Serializable {
     private Boolean isEnabled; // default true
     private String version;
 
+    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
+
     //endregion
 
     //region Constructors
@@ -102,7 +104,7 @@ public class Server implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "IPADDRESS", nullable = false, length = 255)
+    @Column(name = "IPADDRESS", nullable = false)
     public String getIpAddress()  {
         return this.ipAddress;
     }
@@ -129,7 +131,7 @@ public class Server implements Identifiable<Integer>, Serializable {
     //region PublicURL
 
     @Size(max = 255)
-    @Column(name = "PUBLICURL", length = 255)
+    @Column(name = "PUBLICURL")
     public String getPublicUrl()  {
         return this.publicUrl;
     }
@@ -186,12 +188,9 @@ public class Server implements Identifiable<Integer>, Serializable {
      * equals implementation using a business key.
      */
     @Override
-    public boolean equals(Object other)
-    {
+    public boolean equals(Object other) {
         return this == other || (other instanceof Server && hashCode() == other.hashCode());
     }
-
-    private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
     @Override
     public int hashCode()

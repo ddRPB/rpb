@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package de.dktk.dd.rpb.core.service;
 
 import de.dktk.dd.rpb.core.domain.edc.*;
 import de.dktk.dd.rpb.core.domain.edc.mapping.*;
+import de.dktk.dd.rpb.core.util.Constants;
 import de.dktk.dd.rpb.core.util.FileUtil;
 
 import org.apache.log4j.Logger;
@@ -56,33 +57,20 @@ public class DataTransformationService {
 
     //endregion
 
-    //region Injects
-
-    //region Files
-
-    @Inject
-    @SuppressWarnings("unused")
-    protected FileUtil fileUtil;
-
-    //endregion
-
-    //endregion
-
     //region Members
 
+    protected FileUtil fileUtil;
     private ICsvListReader reader;
 
     //endregion
 
     //region Constructors
 
-    public DataTransformationService() {
-        try {
-            this.reader = null;
-        }
-        catch (Exception err) {
-            log.error(err);
-        }
+    @Inject
+    public DataTransformationService(FileUtil fileUtil) {
+
+        this.fileUtil = fileUtil;
+        this.reader = null;
     }
 
     //endregion
@@ -100,6 +88,8 @@ public class DataTransformationService {
         else if (extension.toLowerCase().equals(".csv")) {
             result = this.transformCsvToOdm(metadata, input, map.getMappingRecords());
         }
+
+        result.sortItemGroupDataRepeatingLast();
 
         return result;
     }
@@ -139,7 +129,7 @@ public class DataTransformationService {
     }
 
     public List<AbstractMappedItem> extractMappedDataItemDefinitions(InputStream input, String filename) {
-        List<AbstractMappedItem> result = new ArrayList<AbstractMappedItem>();
+        List<AbstractMappedItem> result = new ArrayList<>();
 
         // Depending on the file extension I have to decide how to process it
         String extension = this.fileUtil.getExtension(filename);
@@ -180,7 +170,7 @@ public class DataTransformationService {
 
         try {
             odmResult = new Odm(metadata);
-            List<StudySubject> subjects = new ArrayList<StudySubject>();
+            List<StudySubject> subjects = new ArrayList<>();
 
             // Depending on header
             reader = new CsvListReader(new InputStreamReader(input), CsvPreference.STANDARD_PREFERENCE);
@@ -193,7 +183,7 @@ public class DataTransformationService {
                 for (String item : sourceHeader) {
 
                     // Find appropriate mapping record for each header item element
-                    List<MappingRecord> applicableMappings = new ArrayList<MappingRecord>();
+                    List<MappingRecord> applicableMappings = new ArrayList<>();
                     for (MappingRecord mr : mappingRecords) {
                         if (((MappedCsvItem)mr.getSource()).getHeader().equals(item) && resultList.get(i) != null) {
                             applicableMappings.add(mr);
@@ -209,28 +199,28 @@ public class DataTransformationService {
                         });
                     }
 
-                    // Apply mappings, break when mapping applied
+                    // Apply mappings, continue to next applicable mapping when this one was mapping applied
                     for (MappingRecord mr : applicableMappings) {
                         // Mapped target
                         MappedOdmItem odmTarget = (MappedOdmItem)mr.getTarget();
 
                         // Subject specific attributes
-                        if (odmTarget.getItemOid().equals("SS_PERSONID")) {
+                        if (odmTarget.getItemOid().equals(Constants.SS_PERSONID)) {
                             subject.setPid(resultList.get(i));
                             if (subject.getPerson() != null) {
                                 subject.getPerson().setPid(resultList.get(i));
-                                break;
+                                continue;
                             }
                         }
-                        else if (odmTarget.getItemOid().equals("SS_STUDYSUBJECTID")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_STUDYSUBJECTID)) {
                             subject.setStudySubjectId(resultList.get(i));
-                            break;
+                            continue;
                         }
-                        else if (odmTarget.getItemOid().equals("SS_SECONDARYID")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_SECONDARYID)) {
                             subject.setSecondaryId(resultList.get(i));
-                            break;
+                            continue;
                         }
-                        else if (odmTarget.getItemOid().equals("SS_GENDER")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_GENDER)) {
                             String sourceValue = resultList.get(i);
                             String result;
                             if (mr.getMapping() != null) {
@@ -241,12 +231,12 @@ public class DataTransformationService {
                                 result = sourceValue.trim();
                             }
                             subject.setSex(result);
-                            break;
+                            continue;
                         }
-                        else if (odmTarget.getItemOid().equals("SS_DATEOFBIRTH")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_DATEOFBIRTH)) {
                             String sourceValue = resultList.get(i);
                             SimpleDateFormat sourceFormat = new SimpleDateFormat(mr.getDateFormatString());
-                            SimpleDateFormat ocFormat = new SimpleDateFormat("yyyy-MM-dd");
+                            SimpleDateFormat ocFormat = new SimpleDateFormat(Constants.OC_DATEFORMAT);
                             String result = "";
                             try {
                                 result = ocFormat.format(sourceFormat.parse(sourceValue));
@@ -260,43 +250,43 @@ public class DataTransformationService {
                             if (subject.getPerson() != null) {
                                 if (!result.equals("")) {
                                     subject.getPerson().setBirthdate(ocFormat.parse(result));
-                                    break;
+                                    continue;
                                 }
                             }
                         }
-                        else if (odmTarget.getItemOid().equals("SS_YEAROFBIRTH")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_YEAROFBIRTH)) {
                             subject.setYearOfBirth(Integer.parseInt(resultList.get(i)));
-                            break;
+                            continue;
                         }
                         // In case we are automating PID generation these can come handy
-                        else if (odmTarget.getItemOid().equals("SS_FIRSTNAME")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_FIRSTNAME)) {
                             if (subject.getPerson() != null) {
                                 subject.getPerson().setFirstname(resultList.get(i));
-                                break;
+                                continue;
                             }
                         }
-                        else if (odmTarget.getItemOid().equals("SS_LASTNAME")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_LASTNAME)) {
                             if (subject.getPerson() != null) {
                                 subject.getPerson().setSurname(resultList.get(i));
-                                break;
+                                continue;
                             }
                         }
-                        else if (odmTarget.getItemOid().equals("SS_BIRTHNAME")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_BIRTHNAME)) {
                             if (subject.getPerson() != null) {
                                 subject.getPerson().setBirthname(resultList.get(i));
-                                break;
+                                continue;
                             }
                         }
-                        else if (odmTarget.getItemOid().equals("SS_CITY")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_CITY)) {
                             if (subject.getPerson() != null) {
                                 subject.getPerson().setCity(resultList.get(i));
-                                break;
+                                continue;
                             }
                         }
-                        else if (odmTarget.getItemOid().equals("SS_ZIP")) {
+                        else if (odmTarget.getItemOid().equals(Constants.SS_ZIP)) {
                             if (subject.getPerson() != null) {
                                 subject.getPerson().setZipcode(resultList.get(i));
-                                break;
+                                continue;
                             }
                         }
                         // The other study items (data fields)
@@ -306,12 +296,12 @@ public class DataTransformationService {
 
                             // Target value is empty string and this is not the default value
                             if (targetValue.equals("") && !targetValue.equals(mr.getDefaultValue())) {
-                                log.info("Mapping not applied, going to next mapping record based on priority");
+                                log.info("Mapping not be applied, going to next mapping record based on priority");
                             }
                             // According to target mapping result create the appropriate structure in ODM
                             else {
-                                subject.populateDataField(mr.getTarget(), targetValue);
-                                break;
+                                subject.populateDataField(mr, targetValue);
+                                continue;
                             }
                         }
                     }
@@ -342,17 +332,17 @@ public class DataTransformationService {
     }
 
     private List<AbstractMappedItem> extractMappedDataItemDefinitionsFromCsv(InputStream input) {
-        List<AbstractMappedItem> result = new ArrayList<AbstractMappedItem>();
+        List<AbstractMappedItem> result = new ArrayList<>();
 
         try {
             // Depending on header
             reader = new CsvListReader(new InputStreamReader(input), CsvPreference.STANDARD_PREFERENCE);
             String[] sourceHeader = this.reader.getHeader(true); // Ignore the header (first line)
 
-           for (String sh : sourceHeader) {
-               AbstractMappedItem mdi = new MappedCsvItem(sh);
-               result.add(mdi);
-           }
+            for (String sh : sourceHeader) {
+                AbstractMappedItem mdi = new MappedCsvItem(sh);
+                result.add(mdi);
+            }
         }
         catch (Exception err) {
             err.printStackTrace();
@@ -371,18 +361,13 @@ public class DataTransformationService {
     }
 
     private List<AbstractMappedItem> extractMappedDataItemDefinitionsFromOdm(Odm metadata) {
-        List<AbstractMappedItem> result = new ArrayList<AbstractMappedItem>();
+        List<AbstractMappedItem> result = new ArrayList<>();
 
         for (EventDefinition ed : metadata.getStudies().get(0).getMetaDataVersion().getStudyEventDefinitions()) {
             for (FormDefinition fd : ed.getFormDefs()) {
                 for (ItemGroupDefinition igd : fd.getItemGroupDefs()) {
                     for (ItemDefinition id : igd.getItemDefs()) {
-                        MappedOdmItem moi = new MappedOdmItem();
-                        moi.setStudyEventOid(ed.getOid());
-                        moi.setFormOid(fd.getOid());
-                        moi.setItemGroupOid(igd.getOid());
-                        moi.setItemOid(id.getOid());
-
+                        MappedOdmItem moi = new MappedOdmItem(ed, fd, igd, id);
                         result.add(moi);
                     }
                 }

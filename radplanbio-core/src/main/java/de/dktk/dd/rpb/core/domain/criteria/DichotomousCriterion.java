@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ public class DichotomousCriterion extends AbstractCriterion<String, DichotomousC
     //region Properties
 
     @Size(max = 255)
-    @Column(name = "OPTION1", length = 255)
+    @Column(name = "OPTION1")
     public String getOption1() {
         return this.option1;
     }
@@ -71,7 +71,7 @@ public class DichotomousCriterion extends AbstractCriterion<String, DichotomousC
     }
 
     @Size(max = 255)
-    @Column(name = "OPTION2", length = 255)
+    @Column(name = "OPTION2")
     public String getOption2() {
         return this.option2;
     }

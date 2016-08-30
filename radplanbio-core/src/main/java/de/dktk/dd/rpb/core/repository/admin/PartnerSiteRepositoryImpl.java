@@ -153,8 +153,8 @@ public class PartnerSiteRepositoryImpl extends RepositoryImpl<PartnerSite, Integ
             return super.get(model);
         }
 
-        if (!isNotEmpty(model.getSiteName())) {
-            PartnerSite result = getBySiteName(model.getSiteName());
+        if (!isNotEmpty(model.getName())) {
+            PartnerSite result = getBySiteName(model.getName());
             if (result != null) {
                 return result;
             }
@@ -170,7 +170,7 @@ public class PartnerSiteRepositoryImpl extends RepositoryImpl<PartnerSite, Integ
     @Transactional(readOnly = true)
     public PartnerSite getBySiteName(String _siteName) {
         PartnerSite site = new PartnerSite();
-        site.setSiteName(_siteName);
+        site.setName(_siteName);
         return findUniqueOrNone(site);
     }
 

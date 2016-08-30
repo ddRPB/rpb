@@ -56,8 +56,7 @@
 		<spring.version>4.1.6.RELEASE</spring.version>
 		<spring-security.version>3.2.7.RELEASE</spring-security.version>
 		<jsf-api.version>2.1.24</jsf-api.version>
-		<primefaces.version>5.3</primefaces.version>
-		<primefaces-themes.version>1.0.10</primefaces-themes.version>
+		<primefaces.version>6.0</primefaces.version>
 		<omnifaces.version>1.8.1</omnifaces.version>
 		<slf4j.version>1.5.10</slf4j.version>
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -251,7 +250,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>radplanbio-core</artifactId>
-			<version>1.0.0.8</version>
+			<version>MAINLINE-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -626,13 +625,12 @@
 			<artifactId>ehcache-web</artifactId>
 			<version>2.0.4</version>
 		</dependency>
-		<dependency><!-- optional theme (see also web.xml to enable it) -->
-			<groupId>org.primefaces.themes</groupId>
-			<artifactId>bootstrap</artifactId>
-			<version>${primefaces-themes.version}</version>
-		</dependency>
+		<!--<dependency>&lt;!&ndash; optional theme (see also web.xml to enable it) &ndash;&gt;-->
+			<!--<groupId>org.primefaces.themes</groupId>-->
+			<!--<artifactId>bootstrap</artifactId>-->
+			<!--<version>${primefaces-themes.version}</version>-->
+		<!--</dependency>-->
 
-		<!-- ~~~ -->
 		<!-- ~~~ -->
 		<!-- SOAP WEB SERVICES - exclude spring framework and javax.servlet api because it was already added-->
 		<!-- ~~~ -->
@@ -672,7 +670,6 @@
 			<version>1.0</version>
 		</dependency>
 
-		<!-- ~~~ -->
 		<!-- ~~~ -->
 		<!-- REST WEB SERVICES -->
 		<!-- ~~~ -->
@@ -735,7 +732,6 @@
 		</dependency>
 
 		<!-- ~~~ -->
-		<!-- ~~~ -->
 		<!-- WEB -->
 		<!-- ~~~ -->
 		<dependency>
@@ -792,9 +788,9 @@
 			<version>2.3.1</version>
 		</dependency>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~ -->
 		<!-- DICOM -->
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~ -->
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-core</artifactId>
@@ -811,13 +807,6 @@
 			<version>3.3.4</version>
 		</dependency>
 
-		<!-- Postgres JDBC driver -->
-		<dependency>
-			<groupId>postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>8.2-504.jdbc3</version>
-			<scope>runtime</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-site-plugin</artifactId>
@@ -825,11 +814,11 @@
 		</dependency>
 
 		<!-- Prime faces theme -->
-		<dependency>
-            <groupId>de.dktk.dd.rpb.spark</groupId>
-            <artifactId>primefaces-spark</artifactId>
-           	<version>2.0</version>
-        </dependency>
+		<!--<dependency>-->
+            <!--<groupId>de.dktk.dd.rpb.spark</groupId>-->
+            <!--<artifactId>primefaces-spark</artifactId>-->
+           	<!--<version>2.0</version>-->
+        <!--</dependency>-->
 	</dependencies>
 
 	<!-- ~~~~~~~~~~~~ -->

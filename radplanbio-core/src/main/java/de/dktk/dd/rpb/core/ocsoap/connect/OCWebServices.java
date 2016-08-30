@@ -32,6 +32,7 @@ import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
 import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.openclinica.ws.beans.EventType;
 import org.openclinica.ws.beans.GenderType;
 import org.openclinica.ws.beans.ListStudySubjectsInStudyType;
@@ -59,7 +60,7 @@ import org.openclinica.ws.studysubject.v1.IsStudySubjectResponse;
 import org.openclinica.ws.studysubject.v1.ListAllByStudyResponse;
 
 /**
- * Contains basic OpenClinica operations.
+ * Contains basic OpenClinica operations
  *
  * @author Arjan van der Velde (a.vandervelde (at) xs4all.nl) - original
  * @author tomas@skripcak.net - enhanced
@@ -70,84 +71,89 @@ public class OCWebServices extends OCConnector {
     //region Singleton instance
 
     /**
-	 * static OCWebServices instance is a singleton.
-	 */
-	private static OCWebServices instance;
+     * Static OCWebServices instance is a singleton
+     */
+    private static OCWebServices instance;
 
     //endregion
 
     //region Constructors - protected, because OCWebServices is a Singleton
 
     /**
-	 * Disables public access to default constructor.
-	 * @throws DatatypeConfigurationException
-	 */
+     * Disables public access to default constructor
+     *
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
     @SuppressWarnings("unused")
-	protected OCWebServices() throws DatatypeConfigurationException {
-		super();
-	}
+    protected OCWebServices() throws DatatypeConfigurationException {
+        super();
+    }
 
-	/**
-	 * Setup a OCWebServices instance.
-	 * @param connectInfo credentials
-	 * @param logging logging yes or no
-	 * @throws MalformedURLException
-	 * @throws ParserConfigurationException
-	 * @throws DatatypeConfigurationException
-	 */
-	protected OCWebServices(ConnectInfo connectInfo, boolean logging) throws MalformedURLException,
-			ParserConfigurationException, DatatypeConfigurationException {
-		super(connectInfo, logging);
-	}
+    /**
+     * Setup a OCWebServices instance
+     *
+     * @param connectInfo credentials
+     * @param logging logging yes or no
+     * @throws MalformedURLException MalformedURLException
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
+    protected OCWebServices(ConnectInfo connectInfo, boolean logging) throws MalformedURLException,
+            ParserConfigurationException, DatatypeConfigurationException {
+        super(connectInfo, logging);
+    }
 
     //endregion
 
     //region getInstance method - this is the proper way how to get and instance of OCWebServices
 
     /**
-	 * Get a OCWebServices instance.
-	 * @param connectInfo credentials
-	 * @return OCWebServices instance
-	 * @throws MalformedURLException
-	 * @throws ParserConfigurationException
-	 * @throws DatatypeConfigurationException
-	 */
-	public static OCWebServices getInstance(ConnectInfo connectInfo) throws MalformedURLException,
-			ParserConfigurationException, DatatypeConfigurationException {
-		return getInstance(connectInfo, false, false);
-	}
+     * Get a OCWebServices instance
+     *
+     * @param connectInfo credentials
+     * @return OCWebServices instance
+     * @throws MalformedURLException MalformedURLException
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
+    public static OCWebServices getInstance(ConnectInfo connectInfo) throws MalformedURLException,
+            ParserConfigurationException, DatatypeConfigurationException {
+        return getInstance(connectInfo, false, false);
+    }
 
-	/**
-	 * Get a OCWebServices instance.
-	 * @param connectInfo credentials
-	 * @param logging logging yes or no
-	 * @return OCWebServices instance
-	 * @throws MalformedURLException
-	 * @throws ParserConfigurationException
-	 * @throws DatatypeConfigurationException
-	 */
-	public static OCWebServices getInstance(ConnectInfo connectInfo, boolean logging) throws MalformedURLException,
-			ParserConfigurationException, DatatypeConfigurationException {
-		return getInstance(connectInfo, logging, false);
-	}
+    /**
+     * Get a OCWebServices instance
+     *
+     * @param connectInfo credentials
+     * @param logging logging yes or no
+     * @return OCWebServices instance
+     * @throws MalformedURLException MalformedURLException
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
+    public static OCWebServices getInstance(ConnectInfo connectInfo, boolean logging) throws MalformedURLException,
+            ParserConfigurationException, DatatypeConfigurationException {
+        return getInstance(connectInfo, logging, false);
+    }
 
-	/**
-	 * Get a OCWebServices instance.
-	 * @param connectInfo credentials
-	 * @param logging logging yes or no
-	 * @param forceInstantiation flag to force creation of a new instance
-	 * @return OCWebServices instance
-	 * @throws MalformedURLException
-	 * @throws ParserConfigurationException
-	 * @throws DatatypeConfigurationException
-	 */
-	public static OCWebServices getInstance(ConnectInfo connectInfo, boolean logging, boolean forceInstantiation)
-			throws MalformedURLException, ParserConfigurationException, DatatypeConfigurationException {
-		if (forceInstantiation || instance == null || instance.isLogging() != logging) {
-			instance = new OCWebServices(connectInfo, logging);
-		}
-		return instance;
-	}
+    /**
+     * Get a OCWebServices instance
+     *
+     * @param connectInfo credentials
+     * @param logging logging yes or no
+     * @param forceInstantiation flag to force creation of a new instance
+     * @return OCWebServices instance
+     * @throws MalformedURLException MalformedURLException
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
+    public static OCWebServices getInstance(ConnectInfo connectInfo, boolean logging, boolean forceInstantiation)
+            throws MalformedURLException, ParserConfigurationException, DatatypeConfigurationException {
+        if (forceInstantiation || instance == null || instance.isLogging() != logging) {
+            instance = new OCWebServices(connectInfo, logging);
+        }
+        return instance;
+    }
     //endregion
 
     //region Methods - facade methods for OC web service functionality
@@ -192,9 +198,10 @@ public class OCWebServices extends OCConnector {
 
     /**
      * Retrieve the metadata ODM for given study unique identifier
+     *
      * @param identifier of the study to retrieve metadata for
      * @return ODM Metadata for the study
-     * @throws OCConnectorException
+     * @throws OCConnectorException OCConnectorException
      */
     public MetadataODM fetchMetadataByIdentifier(String identifier) throws OCConnectorException {
 
@@ -206,10 +213,9 @@ public class OCWebServices extends OCConnector {
         request.setStudyMetadata(siteRef);
 
         // Use study WS
-        GetMetadataResponse response;
         MetadataODM result;
         try {
-            response = studyBinding.getMetadata(request);
+            GetMetadataResponse response = studyBinding.getMetadata(request);
             checkResponseExceptions(response.getResult(), response.getError());
             result = new MetadataODM(response.getOdm());
         }
@@ -225,31 +231,35 @@ public class OCWebServices extends OCConnector {
     //region Studies
 
     /**
-	 * List all available open clinica studies
-	 *
-	 * @return all studies (org.openclinica.ws.study.v1.ListAllResponse)
-	 * @throws OCConnectorException 
-	 */
-	public ListAllResponse listAllStudies() throws OCConnectorException {
+     * List all available open clinica studies
+     *
+     * @return all studies (org.openclinica.ws.study.v1.ListAllResponse)
+     * @throws OCConnectorException OCConnectorException
+     */
+    public ListAllResponse listAllStudies() throws OCConnectorException {
+
         ListAllResponse response;
         try {
             response = studyBinding.listAll(null);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new OCConnectorException("Exception while calling OpenClinica web service." + e.getMessage(), e);
         }
+
         checkResponseExceptions(response.getResult(), response.getError());
         return response;
-	}
+    }
 
     /**
      * Find a study based on either a OID or a study name by calling the OpenClinica
      * listAllStudies() method. (so, this method performs a WS call. Used the overloaded
-     * findStudy() to use an existing ListAllResponse object to search in.
+     * findStudy() to use an existing ListAllResponse object to search in
+     *
      * @param studyIdentifier the string to look for
      * @param byOID set to true if studyIdentifier is an OID
      * @return a Study object containing the information returned by listAllStudies()
      * for the given study.
-     * @throws OCConnectorException
+     * @throws OCConnectorException OCConnectorException
      */
     public Study findStudy(String studyIdentifier, boolean byOID) throws OCConnectorException {
         ListAllResponse allStudies = listAllStudies();
@@ -260,13 +270,13 @@ public class OCWebServices extends OCConnector {
      * Find a study based on either a OID or a study name by in a ListAllResponse object.
      * (so, this method does NOT performs a WS call. Used the overloaded findStudy() to
      * call the listAllStudies() OpenClinica method instead of using an existing
-     * ListAllResponse object to search in.
+     * ListAllResponse object to search in
+     *
      * @param allStudies A ListAllResponse to search in.
      * @param studyIdentifier the string to look for
      * @param byOID set to true if studyIdentifier is an OID
-     * @return a Study object containing the information returned by listAllStudies()
-     * for the given study.
-     * @throws OCConnectorException
+     * @return a Study object containing the information returned by listAllStudies() for the given study.
+     * @throws OCConnectorException OCConnectorException
      */
     public Study findStudy(ListAllResponse allStudies, String studyIdentifier, boolean byOID)
             throws OCConnectorException {
@@ -318,10 +328,11 @@ public class OCWebServices extends OCConnector {
      * Retrieve a study's related information such as study subjects, events and scheduled events
      * for subjects. The Study object will be augmented with information fetched from OpenClinica
      * web service. All subjects in the given study will be cleared and reloaded from OpenClinica and
-     * OIDs are NOT updated. (see overloaded populateStudy()).
-     * @param study The study to be populated.
-     * @throws OCConnectorException
-     * @throws DatatypeConfigurationException
+     * OIDs are NOT updated. (see overloaded populateStudy())
+     *
+     * @param study The study to be populated
+     * @throws OCConnectorException OCConnectorException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
      */
     public void populateStudy(Study study) throws OCConnectorException, DatatypeConfigurationException {
         populateStudy(study, false, false);
@@ -330,18 +341,19 @@ public class OCWebServices extends OCConnector {
     /**
      * Retrieve a study's related information such as study subjects, events and scheduled events
      * for subjects. The Study object will be augmented with information fetched from OpenClinica
-     * web service.
+     * web service
+     *
      * @param study The study to be populated
      * @param fetchOIDs Fetch OIDs for all subjects in the study
      * @param updateExistingSubjects update existing subjects yes or no. If set to false, all subjects
      * will be removed and retrieved from OpenClinica. If set to true, an attempt will be made to load
      * only subjects not in the study object yet. OIDs will be updated for all if fetchOID is set to true.
-     * @throws OCConnectorException
-     * @throws DatatypeConfigurationException
+     * @throws OCConnectorException OCConnectorException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
      */
     public void populateStudy(Study study, boolean fetchOIDs, boolean updateExistingSubjects)
             throws OCConnectorException, DatatypeConfigurationException {
-        HashMap<String, StudySubject> subjectLabels = new HashMap<String, StudySubject>();
+        HashMap<String, StudySubject> subjectLabels = new HashMap<>();
         study.setEvents(null);
         if (!updateExistingSubjects) {
             study.setStudySubjects(null);
@@ -388,11 +400,11 @@ public class OCWebServices extends OCConnector {
     }
 
     /**
-     * Call the isStudySubject() OpenClinica method in order to fetch and update the OID
-     * of a given StudySubject.
+     * Call the isStudySubject() OpenClinica method in order to fetch and update the OID of a given StudySubject
+     *
      * @param subject The study subject to be updated
-     * @throws DatatypeConfigurationException
-     * @throws OCConnectorException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     * @throws OCConnectorException OCConnectorException
      */
     public void updateOID(StudySubject subject) throws DatatypeConfigurationException, OCConnectorException   {
         IsStudySubjectResponse response = isStudySubject(subject);
@@ -403,93 +415,105 @@ public class OCWebServices extends OCConnector {
 
     //region Study Subjects
 
-	/**
-	 * List all study subjects for a given study.
-	 *
-	 * @param study OpenClinica study
-	 * @return list of study subjects
-	 *         (org.openclinica.ws.studysubject.v1.ListAllByStudyResponse)
-	 * @throws OCConnectorException 
-	 */
-	public ListAllByStudyResponse listAllByStudy(Study study) throws OCConnectorException {
-		// TODO: copy this type of error handling to all ws calling methods...
-		ListStudySubjectsInStudyType request = new ListStudySubjectsInStudyType();
-		StudyRefType studyRef = new StudyRefType();
-		studyRef.setIdentifier(study.getStudyIdentifier());
-		request.setStudyRef(studyRef);
-        // Check if it is multicentric or monocentric
-		if (study.isMulticentric()) {
-			SiteRefType siteref = new SiteRefType();
-			siteref.setIdentifier(study.getSiteName());
-			studyRef.setSiteRef(siteref);
-		}
-		ListAllByStudyResponse response;
-		try {
-			response = studySubjectBinding.listAllByStudy(request);
-		} catch (Exception e) {
-			throw new OCConnectorException("Exception while calling OpenClinica web service\n", e);
-		}
-		checkResponseExceptions(response.getResult(), response.getError());
-		return response;
-	}
+    /**
+     * List all study subjects in a given study
+     *
+     * @param study OpenClinica study
+     * @return list of study subjects (org.openclinica.ws.studysubject.v1.ListAllByStudyResponse)
+     * @throws OCConnectorException OCConnectorException
+     */
+    public ListAllByStudyResponse listAllByStudy(Study study) throws OCConnectorException {
 
-	/**
-	 * Call isStudySubject() OC method.
-	 * @param studySubject study subject
-	 * @param submitDate control whether registration date is passed or not
-	 * @return IsStudySubjectResponse object (possibly containing OID)
-	 * @throws DatatypeConfigurationException
-	 * @throws OCConnectorException
-	 */
-	public IsStudySubjectResponse isStudySubject(StudySubject studySubject, boolean submitDate)
-			throws DatatypeConfigurationException, OCConnectorException {
-		// TODO: catch errors (see listAllByStudy)
-		Study study = studySubject.getStudy();
-		IsStudySubjectRequest request = new IsStudySubjectRequest();
-		StudyRefType studyRef = new StudyRefType();
-		StudySubjectType ocSubject = new StudySubjectType();
-		studyRef.setIdentifier(study.getStudyName());
-		ocSubject.setLabel(studySubject.getStudySubjectLabel());
-		ocSubject.setStudyRef(studyRef);
-		if (submitDate) {
-			ocSubject.setEnrollmentDate(studySubject.getDateOfRegistration());
-		}
+        ListStudySubjectsInStudyType request = new ListStudySubjectsInStudyType();
 
-        // Check if it is multicentric or monocentric
+        StudyRefType studyRef = new StudyRefType();
+        studyRef.setIdentifier(study.getStudyIdentifier());
+        request.setStudyRef(studyRef);
+
+        // Check if it is multi-centre or mono-centre
         if (study.isMulticentric()) {
-			SiteRefType siteref = new SiteRefType();
-			siteref.setIdentifier(study.getSiteName());
-			studyRef.setSiteRef(siteref);
-		}
-		request.setStudySubject(ocSubject);
-		IsStudySubjectResponse response = studySubjectBinding.isStudySubject(request);
-		checkResponseExceptions(response.getResult(), response.getError());
-		return response;
-	}
+            SiteRefType siteRef = new SiteRefType();
+            siteRef.setIdentifier(study.getSiteName());
+            studyRef.setSiteRef(siteRef);
+        }
 
-	/**
-	 * Call isStudySubject() OpenClinica method (passed registration date)
-	 * @param studySubject study subject
-	 * @return IsStudySubjectResponse object (possibly containing OID)
-	 * @throws DatatypeConfigurationException
-	 * @throws OCConnectorException
-	 */
-	public IsStudySubjectResponse isStudySubject(StudySubject studySubject) throws DatatypeConfigurationException,
-			OCConnectorException {
-		return isStudySubject(studySubject, true);
-	}
+        ListAllByStudyResponse response;
+        try {
+            response = studySubjectBinding.listAllByStudy(request);
+        }
+        catch (Exception err) {
+            throw new OCConnectorException("Exception while calling OpenClinica web service\n", err);
+        }
+
+        checkResponseExceptions(response.getResult(), response.getError());
+        return response;
+    }
 
     /**
-     * Create subject, update subject label if generated by OpenClinica.
+     * Call isStudySubject() OpenClinica SOAP method
+     *
+     * @param studySubject study subject
+     * @param submitDate control whether registration date is passed or not
+     * @return IsStudySubjectResponse object (possibly containing OID)
+     * @throws OCConnectorException OCConnectorException
+     */
+    public IsStudySubjectResponse isStudySubject(StudySubject studySubject, boolean submitDate) throws OCConnectorException {
+
+        IsStudySubjectRequest request = new IsStudySubjectRequest();
+
+        StudyRefType studyRef = new StudyRefType();
+        studyRef.setIdentifier(studySubject.getStudy().getStudyIdentifier());
+
+        StudySubjectType ocSubject = new StudySubjectType();
+        ocSubject.setLabel(studySubject.getStudySubjectLabel());
+        ocSubject.setStudyRef(studyRef);
+
+        if (submitDate) {
+            ocSubject.setEnrollmentDate(studySubject.getDateOfRegistration());
+        }
+
+        // Check if it is multi-centre or mono-centre
+        if (studySubject.getStudy().isMulticentric()) {
+            SiteRefType siteRef = new SiteRefType();
+            siteRef.setIdentifier(studySubject.getStudy().getSiteName());
+            studyRef.setSiteRef(siteRef);
+        }
+        request.setStudySubject(ocSubject);
+
+        IsStudySubjectResponse response;
+        try {
+            response = studySubjectBinding.isStudySubject(request);
+        }
+        catch (Exception err) {
+            throw new OCConnectorException("Exception while calling OpenClinica web service\n", err);
+        }
+
+        checkResponseExceptions(response.getResult(), response.getError());
+        return response;
+    }
+
+    /**
+     * Call isStudySubject() OpenClinica SOAP method (passed registration date)
+     *
+     * @param studySubject study subject
+     * @return IsStudySubjectResponse object (possibly containing OID)
+     * @throws OCConnectorException OCConnectorException
+     */
+    public IsStudySubjectResponse isStudySubject(StudySubject studySubject) throws OCConnectorException {
+        return isStudySubject(studySubject, true);
+    }
+
+    /**
+     * Create subject, update subject label if generated by OpenClinica
+     *
      * @param studySubject the study subject to create
      * @return CreateResponse response from OpenClinica
-     * @throws DatatypeConfigurationException
-     * @throws OCConnectorException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     * @throws OCConnectorException OCConnectorException
      */
-    public CreateResponse createStudySubject(StudySubject studySubject) throws DatatypeConfigurationException,
-            OCConnectorException {
-        // TODO: catch errors (see listAllByStudy)
+    public CreateResponse createStudySubject(StudySubject studySubject) throws DatatypeConfigurationException, OCConnectorException {
 
+        // TODO: catch errors (see listAllByStudy)
         Study study = studySubject.getStudy();
 
         // Subject
@@ -506,9 +530,9 @@ public class OCWebServices extends OCConnector {
 
         // Check if it is multi-centre or mono-centre
         if (study.isMulticentric()) {
-            SiteRefType siteref = new SiteRefType();
-            siteref.setIdentifier(study.getSiteName());
-            studyRef.setSiteRef(siteref);
+            SiteRefType siteRef = new SiteRefType();
+            siteRef.setIdentifier(study.getSiteName());
+            studyRef.setSiteRef(siteRef);
         }
 
         // Combine to create StudySubject
@@ -541,14 +565,15 @@ public class OCWebServices extends OCConnector {
     }
 
     /**
-     * Check whether a specific event has been scheduled for a given study subject based on the event's OID.
+     * Check whether a specific event has been scheduled for a given study subject based on the event's OID
+     *
      * @param studySubject the study subject to check for. an exception is raised in case the subject does not exist.
      * @param queryEvent the event to check for (only the event OID will be used in the comparison).
      * @return true is the query event is scheduled for the study subject
-     * @throws OCConnectorException
+     * @throws OCConnectorException OCConnectorException
      */
-    public boolean studySubjectHasEvent(StudySubject studySubject, Event queryEvent)
-            throws OCConnectorException {
+    public boolean studySubjectHasEvent(StudySubject studySubject, Event queryEvent) throws OCConnectorException {
+
         // TODO: catch errors (see listAllByStudy)
         Study study = studySubject.getStudy();
         ListAllByStudyResponse subjects = listAllByStudy(study);
@@ -581,11 +606,11 @@ public class OCWebServices extends OCConnector {
     //region Data Import
 
     /**
-     * Call the data import OpenClinica method dataImport() submitting ODM as a string.
+     * Call the data import OpenClinica SOAP method dataImport() submitting ODM as a string.
      *
-     * @param odm The ODM to be loaded. NB: OpenClinica has limited support for direct data loading.
-     * @return ImportResponse response.
-     * @throws OCConnectorException
+     * @param odm The ODM to be loaded
+     * @return ImportResponse response
+     * @throws OCConnectorException OCConnectorException
      */
     public ImportResponse importODM(String odm) throws OCConnectorException {
         // TODO: See OC manual on limitations which are the main motivation for this code in the first place
@@ -607,84 +632,114 @@ public class OCWebServices extends OCConnector {
 
     //region Events
 
-	/**
-	 * Schedule an event for a study subject
-	 * @param studySubject the study subject to schedule the event for
-	 * @param scheduledEvent event to be scheduled
-	 * @return ScheduleResponse containing success or fail
-	 * @throws OCConnectorException
-	 */
-	public ScheduleResponse scheduleEvent(StudySubject studySubject, ScheduledEvent scheduledEvent)
-			throws OCConnectorException {
-		// TODO: catch errors (see listAllByStudy)
-		// set event date
-		Study study = studySubject.getStudy();
-		StudyRefType studyRef = new StudyRefType();
-		studyRef.setIdentifier(study.getStudyIdentifier());
-		StudySubjectRefType studySubjectRef = new StudySubjectRefType();
-		studySubjectRef.setLabel(studySubject.getStudySubjectLabel());
-		EventType event = new EventType();
-		event.setStartDate(scheduledEvent.getStartDate());
-		event.setStudyRef(studyRef);
-		event.setStudySubjectRef(studySubjectRef);
-		event.setEventDefinitionOID(scheduledEvent.getEventOID());
-		event.setLocation("N/A"); // hmm, why is this required? the UI does not enforce it.
-		ScheduleRequest scheduleRequest = new ScheduleRequest();
-		scheduleRequest.getEvent().add(event);
+    /**
+     * Schedule a new event occurrence for specified study subject
+     *
+     * @param studySubject the study subject to schedule the event for
+     * @param scheduledEvent event to be scheduled
+     * @return ScheduleResponse containing success or fail
+     * @throws OCConnectorException OCConnectorException
+     */
+    public ScheduleResponse scheduleEvent(StudySubject studySubject, ScheduledEvent scheduledEvent) throws OCConnectorException {
 
-        // Check if it is multicentric or monocentric
+        ScheduleRequest scheduleRequest = new ScheduleRequest();
+
+        // Study
+        Study study = studySubject.getStudy();
+        StudyRefType studyRef = new StudyRefType();
+        studyRef.setIdentifier(study.getStudyIdentifier());
+
+        // Check if it is multi centre or mono centre
         if (study.isMulticentric()) {
-			SiteRefType siteref = new SiteRefType();
-			siteref.setIdentifier(study.getSiteName());
-			studyRef.setSiteRef(siteref);
-		}
-		ScheduleResponse scheduleResponse = eventBinding.schedule(scheduleRequest);
-		checkResponseExceptions(scheduleResponse.getResult(), scheduleResponse.getError());
-		return scheduleResponse;
-	}
+            SiteRefType siteRef = new SiteRefType();
+            siteRef.setIdentifier(study.getSiteName());
+            studyRef.setSiteRef(siteRef);
+        }
 
-	/**
-	 * Retrieve event definitions for a given study.
-	 * @param study the study to query for.
-	 * @return a list of Event objects based on the study provided.
-	 * @throws OCConnectorException
-	 * @throws DatatypeConfigurationException
-	 */
-	public ArrayList<Event> fetchEventDefinitions(Study study) throws OCConnectorException,
-			DatatypeConfigurationException {
-		// TODO: catch errors (see listAllByStudy)
-		ArrayList<Event> result = new ArrayList<Event>();
-		StudyEventDefinitionListAllType studyEventDefinitionListAllType = new StudyEventDefinitionListAllType();
-		StudyRefType studyRef = new StudyRefType();
-		studyRef.setIdentifier(study.getStudyIdentifier());
-		studyEventDefinitionListAllType.setStudyRef(studyRef);
-		ListAllRequest listAllRequest = new ListAllRequest();
-		listAllRequest.setStudyEventDefinitionListAll(studyEventDefinitionListAllType);
-		org.openclinica.ws.studyeventdefinition.v1.ListAllResponse listAllResponse = studyEventDefinitionBinding
-				.listAll(listAllRequest);
-		checkResponseExceptions(listAllResponse.getResult(), listAllResponse.getError());
-		if (listAllResponse.getStudyEventDefinitions().getStudyEventDefinition() == null) {
-			throw new OCConnectorException("Cannot retreive event data or no events defined.");
-		}
+        // StudySubject
+        StudySubjectRefType studySubjectRef = new StudySubjectRefType();
+        studySubjectRef.setLabel(studySubject.getStudySubjectLabel());
+
+        // Event
+        EventType event = new EventType();
+        if (scheduledEvent.getStartDate() != null) {
+            event.setStartDate(scheduledEvent.getStartDate());
+        }
+
+//        if (scheduledEvent.getStartTime() != null) {
+//            event.setStartTime(scheduledEvent.getStartTime());
+//        }
+//        if (scheduledEvent.getEndDate() != null) {
+//            event.setEndDate(scheduledEvent.getEndDate());
+//        }
+//        if (scheduledEvent.getEndTime() != null) {
+//            event.setEndTime(scheduledEvent.getEndTime());
+//        }
+
+        event.setStudyRef(studyRef);
+        event.setStudySubjectRef(studySubjectRef);
+        event.setEventDefinitionOID(scheduledEvent.getEventOID());
+
+        // TODO: whether event location depends on parameter from study metadata
+        event.setLocation(Constants.OC_NA);
+
+        scheduleRequest.getEvent().add(event);
+
+        ScheduleResponse response;
+        try {
+            response = eventBinding.schedule(scheduleRequest);
+        }
+        catch (Exception err) {
+            throw new OCConnectorException("Exception while calling schedule event OpenClinica web service\n", err);
+        }
+
+        checkResponseExceptions(response.getResult(), response.getError());
+        return response;
+    }
+
+    /**
+     * Retrieve event definitions for a given study
+     *
+     * @param study the study to query for.
+     * @return a list of Event objects based on the study provided.
+     * @throws OCConnectorException OCConnectorException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
+    public ArrayList<Event> fetchEventDefinitions(Study study) throws OCConnectorException, DatatypeConfigurationException {
+
+        // TODO: catch errors (see listAllByStudy)
+        ArrayList<Event> result = new ArrayList<>();
+        StudyEventDefinitionListAllType studyEventDefinitionListAllType = new StudyEventDefinitionListAllType();
+        StudyRefType studyRef = new StudyRefType();
+        studyRef.setIdentifier(study.getStudyIdentifier());
+        studyEventDefinitionListAllType.setStudyRef(studyRef);
+        ListAllRequest listAllRequest = new ListAllRequest();
+        listAllRequest.setStudyEventDefinitionListAll(studyEventDefinitionListAllType);
+        org.openclinica.ws.studyeventdefinition.v1.ListAllResponse listAllResponse = studyEventDefinitionBinding
+                .listAll(listAllRequest);
+        checkResponseExceptions(listAllResponse.getResult(), listAllResponse.getError());
+        if (listAllResponse.getStudyEventDefinitions().getStudyEventDefinition() == null) {
+            throw new OCConnectorException("Cannot retreive event data or no events defined.");
+        }
 
         // Create resulting event definition collection with CRF assigned
-		for (StudyEventDefinitionType d : listAllResponse.getStudyEventDefinitions().getStudyEventDefinition()) {
-			Event newEvent = new Event();
+        for (StudyEventDefinitionType d : listAllResponse.getStudyEventDefinitions().getStudyEventDefinition()) {
+            Event newEvent = new Event();
 
             newEvent.setEventOID(d.getOid());
-			newEvent.setEventName(d.getName());
+            newEvent.setEventName(d.getName());
 
-            if (d.getEventDefinitionCrfs() != null) {
-                // it is returning null for crf I really do not know why (In python I parse it and it works)
-                if (d.getEventDefinitionCrfs().getCrf() != null) {
+//            if (d.getEventDefinitionCrfs() != null) {
+//                // it is returning null for crf I really do not know why (In python I parse it and it works)
+//                if (d.getEventDefinitionCrfs().getCrf() != null) {
+//
+//                }
+//            }
 
-                }
-            }
-
-			result.add(newEvent);
-		}
-		return result;
-	}
+            result.add(newEvent);
+        }
+        return result;
+    }
 
     //endregion
 
