@@ -148,7 +148,7 @@ public class Role implements Identifiable<Integer>, Named, Serializable {
 
     @Override
     public int hashCode() {
-        return identifiableHashBuilder.hash(log, this);
+        return identifiableHashBuilder.hash(log, this, this.roleName);
     }
 
     /**
