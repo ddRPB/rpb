@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,14 @@
 
 package de.dktk.dd.rpb.core.domain.pacs;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Created by root on 12/1/15.
+ * DICOM-RT Structure
+ *
+ * @author tomas@skripcak.net
+ * @since 12 Jan 2015
  */
 public class DicomRtStructure {
 
@@ -32,6 +38,18 @@ public class DicomRtStructure {
     //private int observationNumber;
     private String rtRoiInterpretedType;
     //private String roiObservationLabel
+
+    private List<DicomRtStructurePlane> planes;
+
+    //thickness
+
+    //endregion
+
+    //region Constructors
+
+    public DicomRtStructure() {
+        this.planes = new ArrayList<>();
+    }
 
     //endregion
 
@@ -60,6 +78,19 @@ public class DicomRtStructure {
     public void setRtRoiInterpretedType(String roiInterpretedType) {
         this.rtRoiInterpretedType = roiInterpretedType;
     }
+
+    public List<DicomRtStructurePlane> getPlanes() {
+        return planes;
+    }
+
+    public void setPlanes(List<DicomRtStructurePlane> planes) {
+        this.planes = planes;
+    }
+
+    //endregion
+
+    //region Methods
+
 
     //endregion
 

@@ -28,6 +28,8 @@ public class Constants {
     public static final String study0Identifier = "study-0";
     // StudySubject prefix for study that aggregates data from all patients
     public static final String HISprefix = "HIS-";
+    // PartnerSite identifier for virtual DELETED site
+    public static final String DELETED_IDENTIFIER = "DELETED";
 
     //region EDC
 
@@ -93,6 +95,9 @@ public class Constants {
 
     // RPB specific password hash for LDAP users
     public static final String RPB_LDAPPASSHASH = "LDAP";
+
+    // RPB specific separator for identifier prefixes
+    public static final String RPB_IDENTIFIERSEP = "-";
 
     private Constants() {
         // NOOP

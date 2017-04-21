@@ -20,7 +20,10 @@
 package de.dktk.dd.rpb.core.domain.pacs;
 
 /**
- * Created by root on 12/1/15.
+ * DICOM RTPlan domain object
+ *
+ * @author tomas@skripcak.net
+ * @since 12 Jan 2015
  */
 public class DicomRtPlan {
 
@@ -28,9 +31,11 @@ public class DicomRtPlan {
 
     private String label;
     private String name;
+    private String description;
+
     // date
     // time
-    // geometry
+    private String geometry;
     private float rxDose;
 
     //endregion
@@ -59,6 +64,22 @@ public class DicomRtPlan {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getGeometry() {
+        return geometry;
+    }
+
+    public void setGeometry(String geometry) {
+        this.geometry = geometry;
     }
 
     public float getRxDose() {

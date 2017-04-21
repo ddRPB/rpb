@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,19 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemData;
 import de.dktk.dd.rpb.core.domain.pacs.*;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
+import org.apache.commons.lang.StringUtils;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Sequence;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.io.DicomInputStream;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -129,7 +131,7 @@ public class ConquestService implements IConquestService {
 
                     if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSerieImages() != null && dicomSeriesWithImages.getSerieImages().size() > 0) {
 
-                        List<DicomRtStructureSet> structureSets = new ArrayList<DicomRtStructureSet>();
+                        List<DicomRtStructureSet> structureSets = new ArrayList<>();
                         for (DicomImage instance : dicomSeriesWithImages.getSerieImages()) {
                             structureSets.add(
                                     this.loadDicomRtStructureSet(
@@ -156,13 +158,13 @@ public class ConquestService implements IConquestService {
 
                 if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSerieImages() != null) {
 
-                    List<DicomRtPlan> plans = new ArrayList<DicomRtPlan>();
+                    List<DicomRtPlan> plans = new ArrayList<>();
                     for (DicomImage instance : dicomSeriesWithImages.getSerieImages()) {
                         plans.add(
-                            this.loadDicomRtPlan(
-                                    dicomStudy.getStudyInstanceUID(),
-                                    planSerie.getSeriesInstanceUID(),
-                                    instance.getSopInstanceUID()
+                                this.loadDicomRtPlan(
+                                        dicomStudy.getStudyInstanceUID(),
+                                        planSerie.getSeriesInstanceUID(),
+                                        instance.getSopInstanceUID()
                                 )
                         );
                     }
@@ -182,7 +184,7 @@ public class ConquestService implements IConquestService {
 
                 if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSerieImages() != null) {
 
-                    List<DicomRtDose> doses = new ArrayList<DicomRtDose>();
+                    List<DicomRtDose> doses = new ArrayList<>();
                     for (DicomImage instance : dicomSeriesWithImages.getSerieImages()) {
                         doses.add(
                                 this.loadDicomRtDose(
@@ -271,7 +273,7 @@ public class ConquestService implements IConquestService {
      * {@inheritDoc}
      */
     public List<DicomStudy> loadPatientStudies(String dicomPatientId) {
-        List<DicomStudy> resultStudies = new ArrayList<DicomStudy>();
+        List<DicomStudy> resultStudies = new ArrayList<>();
 
         try {
             String compositeQueryUrl = this.baseUrl + mode + ConquestMode.JSON_STUDIES.value;
@@ -324,67 +326,83 @@ public class ConquestService implements IConquestService {
     /**
      * {@inheritDoc}
      */
-    public List<DicomStudy> loadPatientStudies(String dicomPatientId, List<ItemDefinition> dicomStudyUidList) {
-        List<DicomStudy> resultStudies = new ArrayList<DicomStudy>();
+    public List<DicomStudy> loadPatientStudies(String dicomPatientId, List<ItemData> dicomStudyUidList) {
+        List<DicomStudy> resultStudies = new ArrayList<>();
 
-        try {
-            // I have to think if PACS connection should depend on RPB study partner site or RPB user account partner site
-            String compositeQueryUrl = this.baseUrl + mode + ConquestMode.JSON_STUDIES.value + "&patientidmatch=" + dicomPatientId;
-
-            // If there is just one study in dicomStudyUidList load only this one (otherwise query all studies)
-            if (dicomStudyUidList.size() == 1) {
-                compositeQueryUrl += "&studyUID=" + dicomStudyUidList.get(0).getValue();
-            }
-
-            Client client = Client.create();
-            WebResource webResource = client.resource(compositeQueryUrl);
-            ClientResponse response = webResource.get(ClientResponse.class);
-
-            if (response.getStatus() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-            }
-
-            if (response.hasEntity()) {
-                String jsonstring = response.getEntity(String.class);
-                jsonstring = jsonstring.replaceAll("(\\r|\\n)", ""); // Get rid of carriage returns and new rows that will mess up string to JSON conversion
-
-                if (!jsonstring.equals("")) {
-                    JSONObject json = new JSONObject(jsonstring);
-                    JSONArray jsonStudies = json.getJSONArray("Studies");
-
-                    for (int i = 0; i < jsonStudies.length(); i++) {
-
-                        JSONObject jsonStudy = jsonStudies.getJSONObject(i);
-                        DicomStudy study = new DicomStudy();
-
-                        study.setStudyInstanceUID(jsonStudy.getString("StudyInstanceUID"));
-
-                        // Filter to return only studies listed in parameter
-                        Boolean studyFound = false;
-                        for (ItemDefinition itemDef : dicomStudyUidList) {
-                            if (itemDef.getValue() != null && itemDef.getValue().equals(study.getStudyInstanceUID())) {
-                                studyFound = true;
-                                break;
-                            }
-                        }
-                        if (!studyFound) { continue; }
-
-                        study.setStudyDate(jsonStudy.optString("StudyDate"));
-                        study.setStudyDescription(jsonStudy.optString("StudyDescription"));
-
-                        JSONArray jsonSeries = jsonStudy.getJSONArray("Series");
-                        study.setStudySeries(
-                                this.unmarshallDicomSeries(jsonSeries)
-                        );
-
-                        resultStudies.add(study);
-                    }
+        // Check if there are DICOM StudyInstanceUIDs stored in CRF items
+        boolean dicomStudyIsReferenced = false;
+        if (dicomStudyUidList != null) {
+            for (ItemData itemData : dicomStudyUidList) {
+                if (StringUtils.isNotEmpty(itemData.getValue())) {
+                    dicomStudyIsReferenced = true;
+                    break;
                 }
             }
         }
-        catch (Exception err) {
-            String message= "Loading the DICOM series failed!\nThere appears to be a problem with the server connection.";
-            log.error(message, err);
+
+        // If there is a patient to query and DICOM data is referenced
+        if (StringUtils.isNotEmpty(dicomPatientId) && dicomStudyIsReferenced) {
+            try {
+                // I have to think if PACS connection should depend on RPB study partner site or RPB user account partner site
+                String compositeQueryUrl = this.baseUrl + mode + ConquestMode.JSON_STUDIES.value + "&patientidmatch=" + dicomPatientId;
+
+                // If there is just one study in dicomStudyUidList load only this one (otherwise query all studies)
+                if (dicomStudyUidList.size() == 1) {
+                    compositeQueryUrl += "&studyUID=" + dicomStudyUidList.get(0).getValue();
+                }
+
+                Client client = Client.create();
+                WebResource webResource = client.resource(compositeQueryUrl);
+                ClientResponse response = webResource.get(ClientResponse.class);
+
+                if (response.getStatus() != 200) {
+                    throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+                }
+
+                if (response.hasEntity()) {
+                    String jsonstring = response.getEntity(String.class);
+                    jsonstring = jsonstring.replaceAll("(\\r|\\n)", ""); // Get rid of carriage returns and new rows that will mess up string to JSON conversion
+
+                    if (!"".equals(jsonstring)) {
+                        JSONObject json = new JSONObject(jsonstring);
+                        JSONArray jsonStudies = json.getJSONArray("Studies");
+
+                        for (int i = 0; i < jsonStudies.length(); i++) {
+
+                            JSONObject jsonStudy = jsonStudies.getJSONObject(i);
+                            DicomStudy study = new DicomStudy();
+
+                            study.setStudyInstanceUID(jsonStudy.getString("StudyInstanceUID"));
+
+                            // filter to return only studies listed in parameter
+                            Boolean studyFound = false;
+                            for (ItemData itemData : dicomStudyUidList) {
+                                if (itemData.getValue() != null && itemData.getValue().equals(study.getStudyInstanceUID())) {
+                                    studyFound = true;
+                                    break;
+                                }
+                            }
+                            if (!studyFound) {
+                                continue;
+                            }
+
+                            study.setStudyDate(jsonStudy.optString("StudyDate"));
+                            study.setStudyDescription(jsonStudy.optString("StudyDescription"));
+
+                            JSONArray jsonSeries = jsonStudy.getJSONArray("Series");
+                            study.setStudySeries(
+                                    this.unmarshallDicomSeries(jsonSeries)
+                            );
+
+                            resultStudies.add(study);
+                        }
+                    }
+                }
+            }
+            catch (Exception err) {
+                String message = "Loading the DICOM series failed!\nThere appears to be a problem with the server connection.";
+                log.error(message, err);
+            }
         }
 
         return resultStudies;
@@ -463,19 +481,20 @@ public class ConquestService implements IConquestService {
 
         // Construct StructureSet object
         structureSet.setLabel(
-            dcmAttributes.getString(Tag.StructureSetLabel)
+                dcmAttributes.getString(Tag.StructureSetLabel)
         );
 
         // Construct list of structures
         Sequence ssRoiSeq = dcmAttributes.getSequence(Tag.StructureSetROISequence);
-        List<DicomRtStructure> structures = new ArrayList<DicomRtStructure>();
+        List<DicomRtStructure> structures = new ArrayList<>();
+
         for (Attributes ssRoiAttributes : ssRoiSeq) {
             DicomRtStructure rtStructure = new DicomRtStructure();
             rtStructure.setRoiName(
-                ssRoiAttributes.getString(Tag.ROIName)
+                    ssRoiAttributes.getString(Tag.ROIName)
             );
             rtStructure.setRoiNumber(
-                ssRoiAttributes.getInt(Tag.ROINumber, 0)
+                    ssRoiAttributes.getInt(Tag.ROINumber, 0)
             );
 
             structures.add(rtStructure);
@@ -486,15 +505,56 @@ public class ConquestService implements IConquestService {
                 structures
         );
 
+        // Determine the observation type of each structure (PTV, organ, external, etc)
         Sequence rtRoiObservationSeq = dcmAttributes.getSequence(Tag.RTROIObservationsSequence);
         for (Attributes rtRoiObservationAttributes : rtRoiObservationSeq) {
             DicomRtStructure rtStructure = structureSet.getRtStructureByRoiNumber(
-                rtRoiObservationAttributes.getInt(Tag.ReferencedROINumber, 0)
+                    rtRoiObservationAttributes.getInt(Tag.ReferencedROINumber, 0)
             );
 
             rtStructure.setRtRoiInterpretedType(
-                rtRoiObservationAttributes.getString(Tag.RTROIInterpretedType)
+                    rtRoiObservationAttributes.getString(Tag.RTROIInterpretedType)
             );
+        }
+
+        // Coordinate data for each ROI
+        Sequence roiContourSeq = dcmAttributes.getSequence(Tag.ROIContourSequence);
+        for (Attributes roiContourSeqAttributes : roiContourSeq) {
+
+            int number = roiContourSeqAttributes.getInt(Tag.ReferencedROINumber, 0);
+            DicomRtStructure rtStructure = structureSet.getRtStructureByRoiNumber(number);
+
+            //TODO: Forget about colour of contour for now, implement this later
+
+            // Plane for each slice for each ROI
+            Sequence contourSeq = roiContourSeqAttributes.getSequence(Tag.ContourSequence);
+            for (Attributes contourAttributes : contourSeq) {
+
+                DicomRtStructurePlane plane =  new DicomRtStructurePlane();
+
+                plane.setGeometricType(contourAttributes.getString(Tag.ContourGeometricType));
+                plane.setNumberOfContourPoints(contourAttributes.getInt(Tag.NumberOfContourPoints, 0));
+
+                // UID of referenced imaging scan (CT)
+                if (contourAttributes.contains(Tag.ContourImageSequence)) {
+                    plane.setReferencedSOPInstanceUID(
+                            contourAttributes.getSequence(Tag.ContourImageSequence).get(0).getString(Tag.ReferencedSOPInstanceUID)
+                    );
+                }
+
+                // TODO:
+                // contourData (array of coordinates, x,y,z,x,y,z,x,y,z....) need to be parsed
+                float[] contourData = contourAttributes.getFloats(Tag.ContourData);
+                // z coordinate should be the same for whole plane
+                // we could add sorting of planes in rtStructure according to z
+                // or retrieving plane for specific z etc.
+
+                rtStructure.getPlanes().add(plane);
+            }
+
+            // TODO: rtStructure.thickness - calculate
+            // compare z of each two next to each other planes in order to find the minimal shift in z
+            // the minimal shift in z coordinate will be thickness
         }
 
         return structureSet;
@@ -515,25 +575,25 @@ public class ConquestService implements IConquestService {
         );
 
         rtDose.setSopInstanceUid(
-            dcmAttributes.getString(Tag.SOPInstanceUID)
+                dcmAttributes.getString(Tag.SOPInstanceUID)
         );
         rtDose.setDoseUnit(
-            dcmAttributes.getString(Tag.DoseUnits)
+                dcmAttributes.getString(Tag.DoseUnits)
         );
         rtDose.setDoseType(
-            dcmAttributes.getString(Tag.DoseType)
+                dcmAttributes.getString(Tag.DoseType)
         );
         rtDose.setDoseSummationType(
-            dcmAttributes.getString(Tag.DoseSummationType)
+                dcmAttributes.getString(Tag.DoseSummationType)
         );
         rtDose.setDoseGridScaling(
-            dcmAttributes.getDouble(Tag.DoseGridScaling, 0.0)
+                dcmAttributes.getDouble(Tag.DoseGridScaling, 0.0)
         );
 
         // Check whether DVH is included
         Sequence dvhSeq = dcmAttributes.getSequence(Tag.DVHSequence);
         if (dvhSeq != null) {
-            List<DicomRtDvh> dvhs = new ArrayList<DicomRtDvh>();
+            List<DicomRtDvh> dvhs = new ArrayList<>();
             for (Attributes dvhAttributes : dvhSeq) {
 
                 // Need to refer to delineated contour
@@ -546,49 +606,50 @@ public class ConquestService implements IConquestService {
                     rtDvh = new DicomRtDvh();
                     Attributes dvhRefRoiAttributes = dvhRefRoiSeq.get(0);
                     rtDvh.setReferencedRoiNumber(
-                        dvhRefRoiAttributes.getInt(Tag.ReferencedROINumber, -1)
+                            dvhRefRoiAttributes.getInt(Tag.ReferencedROINumber, -1)
                     );
                 }
 
                 if (rtDvh != null) {
                     // Convert Differential DVH to Cumulative
                     if (dvhSeq.get(0).getString(Tag.DVHType).equals("DIFFERENTIAL")) {
-
+                        // NOOP
+                        log.info("Not supported: converting differential DVH to cumulative");
                     }
                     // Cumulative
                     else {
                         rtDvh.setDvhData(
-                            dvhAttributes.getDoubles(Tag.DVHData)
+                                dvhAttributes.getDoubles(Tag.DVHData)
                         );
                         rtDvh.setDvhNumberOfBins(
-                            dvhAttributes.getInt(Tag.DVHNumberOfBins, 0)
+                                dvhAttributes.getInt(Tag.DVHNumberOfBins, 0)
                         );
                     }
 
                     rtDvh.setType(
-                        dvhAttributes.getString(Tag.DVHType)
+                            dvhAttributes.getString(Tag.DVHType)
                     );
                     rtDvh.setDoseUnit(
-                        dvhAttributes.getString(Tag.DoseUnits)
+                            dvhAttributes.getString(Tag.DoseUnits)
                     );
                     rtDvh.setDoseType(
-                        dvhAttributes.getString(Tag.DoseType)
+                            dvhAttributes.getString(Tag.DoseType)
                     );
                     rtDvh.setDvhDoseScaling(
-                        dvhAttributes.getDouble(Tag.DVHDoseScaling, 1.0)
+                            dvhAttributes.getDouble(Tag.DVHDoseScaling, 1.0)
                     );
                     rtDvh.setDvhVolumeUnit(
-                        dvhAttributes.getString(Tag.DVHVolumeUnits)
+                            dvhAttributes.getString(Tag.DVHVolumeUnits)
                     );
                     // -1.0 means that it needs to be calculated later
                     rtDvh.setDvhMinimumDose(
-                        dvhAttributes.getDouble(Tag.DVHMinimumDose, -1.0)
+                            dvhAttributes.getDouble(Tag.DVHMinimumDose, -1.0)
                     );
                     rtDvh.setDvhMaximumDose(
-                        dvhAttributes.getDouble(Tag.DVHMaximumDose, -1.0)
+                            dvhAttributes.getDouble(Tag.DVHMaximumDose, -1.0)
                     );
                     rtDvh.setDvhMeanDose(
-                        dvhAttributes.getDouble(Tag.DVHMeanDose, -1.0)
+                            dvhAttributes.getDouble(Tag.DVHMeanDose, -1.0)
                     );
 
                     dvhs.add(rtDvh);
@@ -616,26 +677,50 @@ public class ConquestService implements IConquestService {
         );
 
         rtPlan.setLabel(
-            dcmAttributes.getString(Tag.RTPlanLabel)
+                dcmAttributes.getString(Tag.RTPlanLabel)
         );
         rtPlan.setName(
-            dcmAttributes.getString(Tag.RTPlanName)
+                dcmAttributes.getString(Tag.RTPlanName)
         );
-
+        rtPlan.setDescription(
+                dcmAttributes.getString(Tag.RTPlanDescription)
+        );
+        rtPlan.setGeometry(
+                dcmAttributes.getString(Tag.RTPlanGeometry)
+        );
 
         // When DoseRefSeq is defined - get prescribed dose from there (in cGy unit)
         Sequence doseRefSeq = dcmAttributes.getSequence(Tag.DoseReferenceSequence);
         if (doseRefSeq != null) {
             for (Attributes doseRefAttributes : doseRefSeq) {
-                if (doseRefAttributes.getString(Tag.DoseReferenceStructureType).equals("SITE")) {
-                    float rxDose = doseRefAttributes.getFloat(Tag.TargetPrescriptionDose, 0.0f) * 100;
-                    if (rxDose > rtPlan.getRxDose()) {
+
+                // POINT (dose reference point specified as ROI)
+                if (doseRefAttributes.getString(Tag.DoseReferenceStructureType).equals("POINT")) {
+                    // NOOP
+                    log.info("Not supported: dose reference point specified as ROI");
+                }
+                // VOLUME structure is associated with dose (dose reference volume specified as ROI)
+                else if (doseRefAttributes.getString(Tag.DoseReferenceStructureType).equals("VOLUME")) {
+
+                    if (doseRefAttributes.contains(Tag.TargetPrescriptionDose)) {
+                        float rxDose = doseRefAttributes.getFloat(Tag.TargetPrescriptionDose, 0.0f) * 100;
                         rtPlan.setRxDose(rxDose);
                     }
                 }
-                else if (doseRefAttributes.getString(Tag.DoseReferenceStructureType).equals("VOLUME")) {
-                    float rxDose = doseRefAttributes.getFloat(Tag.TargetPrescriptionDose, 0.0f) * 100;
-                    rtPlan.setRxDose(rxDose);
+                // COORDINATES (point specified by Dose Reference Point Coordinates (300A,0018))
+                else if (doseRefAttributes.getString(Tag.DoseReferenceStructureType).equals("COORDINATES")) {
+                    // NOOP
+                    log.info("Not supported: dose reference point specified by coordinates");
+                }
+                // SITE structure is associated with dose (dose reference clinical site)
+                else if (doseRefAttributes.getString(Tag.DoseReferenceStructureType).equals("SITE")) {
+
+                    if (doseRefAttributes.contains(Tag.TargetPrescriptionDose)) {
+                        float rxDose = doseRefAttributes.getFloat(Tag.TargetPrescriptionDose, 0.0f) * 100;
+                        if (rxDose > rtPlan.getRxDose()) {
+                            rtPlan.setRxDose(rxDose);
+                        }
+                    }
                 }
             }
         }
@@ -643,17 +728,20 @@ public class ConquestService implements IConquestService {
         // When fractionation group sequence is defined get prescribed dose from there (in cGy unit)
         Sequence fractionGroupSeq = dcmAttributes.getSequence(Tag.FractionGroupSequence);
         if (fractionGroupSeq != null && rtPlan.getRxDose() == 0) {
+
             Attributes fractionGroupAttributes = fractionGroupSeq.get(0);
 
-            Sequence referencedBeamSeq = fractionGroupAttributes.getSequence(Tag.ReferencedBeamSequence);
-            int numberOfFractionsPlanned = fractionGroupAttributes.getInt(Tag.NumberOfBeams, -1);
+            if (fractionGroupAttributes.contains(Tag.ReferencedBeamSequence) && fractionGroupAttributes.contains(Tag.NumberOfFractionsPlanned)) {
 
-            if (referencedBeamSeq != null && numberOfFractionsPlanned != -1) {
-                for (Attributes referencedBeam : referencedBeamSeq) {
-                    float beamDose = referencedBeam.getFloat(Tag.BeamDose, 0.0f);
-                    rtPlan.setRxDose(
-                            rtPlan.getRxDose() + beamDose * numberOfFractionsPlanned * 100
-                    );
+                int numberOfFractionsPlanned = fractionGroupAttributes.getInt(Tag.NumberOfFractionsPlanned, 0);
+                for (Attributes referencedBeam : fractionGroupAttributes.getSequence(Tag.ReferencedBeamSequence)) {
+
+                    if (referencedBeam.contains(Tag.BeamDose)) {
+                        float beamDose = referencedBeam.getFloat(Tag.BeamDose, 0.0f);
+                        rtPlan.setRxDose(
+                                rtPlan.getRxDose() + (beamDose * numberOfFractionsPlanned * 100)
+                        );
+                    }
                 }
             }
         }
@@ -687,7 +775,7 @@ public class ConquestService implements IConquestService {
                 DicomInputStream din = null;
                 try {
                     din = new DicomInputStream(
-                        response.getEntityInputStream()
+                            response.getEntityInputStream()
                     );
                     dcmAttributes = din.readDataset(-1, -1);
                 }
@@ -721,7 +809,7 @@ public class ConquestService implements IConquestService {
     //region Private methods
 
     private List<DicomSerie> unmarshallDicomSeries(JSONArray jsonDicomSeries) {
-        List<DicomSerie> series = new ArrayList<DicomSerie>();
+        List<DicomSerie> series = new ArrayList<>();
 
         try {
             for (int j = 0; j < jsonDicomSeries.length(); j++) {
@@ -745,7 +833,7 @@ public class ConquestService implements IConquestService {
     }
 
     private List<DicomImage> unmarshallDicomImages(JSONArray jsonDicomImages) {
-        List<DicomImage> images = new ArrayList<DicomImage>();
+        List<DicomImage> images = new ArrayList<>();
 
         try {
             for (int j = 0; j < jsonDicomImages.length(); j++) {

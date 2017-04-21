@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemData;
 import de.dktk.dd.rpb.core.domain.pacs.*;
 import org.dcm4che3.data.Attributes;
 
@@ -76,7 +76,7 @@ public interface IConquestService {
      * @param dicomStudyUidList List of DICOM StudyInstanceUid tags
      * @return list of DICOM studies
      */
-    List<DicomStudy> loadPatientStudies(String dicomPatientId,  List<ItemDefinition> dicomStudyUidList);
+    List<DicomStudy> loadPatientStudies(String dicomPatientId,  List<ItemData> dicomStudyUidList);
 
     //endregion
 
