@@ -82,14 +82,16 @@ public class DataTransformationService {
 
         // Depending on the file extension I have to decide how to process it
         String extension = this.fileUtil.getExtension(filename);
-        if (extension.toLowerCase().equals(".xml")) {
+        if (extension.equalsIgnoreCase(".xml")) {
             result = this.transformXmlToOdm(metadata, input);
         }
-        else if (extension.toLowerCase().equals(".csv")) {
+        else if (extension.equalsIgnoreCase(".csv")) {
             result = this.transformCsvToOdm(metadata, input, map.getMappingRecords());
         }
 
-        result.sortItemGroupDataRepeatingLast();
+        if (result != null) {
+            result.sortItemGroupDataRepeatingLast();
+        }
 
         return result;
     }
@@ -133,7 +135,7 @@ public class DataTransformationService {
 
         // Depending on the file extension I have to decide how to process it
         String extension = this.fileUtil.getExtension(filename);
-        if (extension.toLowerCase().equals(".csv")) {
+        if (extension.equalsIgnoreCase(".csv")) {
             result = this.extractMappedDataItemDefinitionsFromCsv(input);
         }
 

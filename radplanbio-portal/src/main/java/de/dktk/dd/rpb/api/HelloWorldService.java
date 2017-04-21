@@ -33,7 +33,7 @@ public class HelloWorldService {
     @GET
     @Path("/{param}")
     public Response getMsg(@PathParam("param") String msg) {
-        msg = msg.toLowerCase().equals("ping") ? "pong" : msg;
+        msg = msg.equalsIgnoreCase("ping") ? "pong" : msg;
         String output = "RPB Web-API says: " + msg;
         return Response.status(200).entity(output).build();
     }
