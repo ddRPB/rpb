@@ -56,9 +56,8 @@
 		<spring.version>4.1.6.RELEASE</spring.version>
 		<spring-security.version>3.2.7.RELEASE</spring-security.version>
 		<jsf-api.version>2.1.24</jsf-api.version>
-		<primefaces.version>5.3</primefaces.version>
-		<primefaces-themes.version>1.0.10</primefaces-themes.version>
-		<primefaces-extensions.version>3.2.0</primefaces-extensions.version>
+		<primefaces.version>6.1</primefaces.version>
+		<omnifaces.version>1.8.1</omnifaces.version>
 		<slf4j.version>1.5.10</slf4j.version>
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- Variables substituted in resources file at build time -->
@@ -426,7 +425,7 @@
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
-			<version>1.2.2</version>
+			<version>1.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
