@@ -217,26 +217,7 @@
 	<!-- ~~~~~~~~~ -->
 	<!-- REPORTING -->
 	<!-- ~~~~~~~~~ -->
-	<!--<reporting>-->
-		<!--<plugins>-->
-			<!--<plugin>-->
-				<!--&lt;!&ndash; http://mojo.codehaus.org/cobertura-maven-plugin/ &ndash;&gt;-->
-				<!--<groupId>org.codehaus.mojo</groupId>-->
-				<!--<artifactId>cobertura-maven-plugin</artifactId>-->
-				<!--<version>2.5.1</version>-->
-			<!--</plugin>-->
-			<!--<plugin>-->
-				<!--&lt;!&ndash; http://mojo.codehaus.org/findbugs-maven-plugin/ &ndash;&gt;-->
-				<!--<groupId>org.codehaus.mojo</groupId>-->
-				<!--<artifactId>findbugs-maven-plugin</artifactId>-->
-				<!--<version>2.4.0</version>-->
-				<!--<configuration>-->
-					<!--<findbugsXmlOutput>true</findbugsXmlOutput>-->
-					<!--<xmlOutput>true</xmlOutput>-->
-				<!--</configuration>-->
-			<!--</plugin>-->
-		<!--</plugins>-->
-	<!--</reporting>-->
+	<reporting />
 
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- DEPENDENCIES -->
@@ -771,7 +752,7 @@
 		<dependency>
 			<groupId>com.thoughtworks.xstream</groupId>
 			<artifactId>xstream</artifactId>
-			<version>1.4.2</version>
+			<version>1.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jrobin</groupId>
