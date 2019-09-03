@@ -30,8 +30,8 @@
 		<!-- Version dependencies when used in multiple dependencies -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<maven-celerio-plugin.outputDir>${project.basedir}</maven-celerio-plugin.outputDir>
-        <hibernate.version>4.3.10.Final</hibernate.version>
-		<spring.version>4.1.6.RELEASE</spring.version>
+        	<hibernate.version>4.3.10.Final</hibernate.version>
+		<spring.version>4.3.17.RELEASE</spring.version><!--old 4.1.6.RELEASE-->
 		<spring-security.version>3.2.7.RELEASE</spring-security.version>
 		<slf4j.version>1.5.10</slf4j.version>
 	</properties>

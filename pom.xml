@@ -21,7 +21,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<!-- Spring -->
-		<spring.version>4.1.6.RELEASE</spring.version>
+		<spring.version>4.3.17.RELEASE</spring.version><!--old 4.1.6.RELEASE-->
 		<spring-security.version>3.2.7.RELEASE</spring-security.version>
 
 	</properties>
