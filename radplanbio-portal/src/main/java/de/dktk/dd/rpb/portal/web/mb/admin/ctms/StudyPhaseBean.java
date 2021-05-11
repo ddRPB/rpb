@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,12 @@ package de.dktk.dd.rpb.portal.web.mb.admin.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.StudyPhase;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IStudyPhaseRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -52,29 +49,27 @@ public class StudyPhaseBean extends CrudEntityViewModel<StudyPhase, Integer> {
 
     //region Repository
 
-    @Inject
     private IStudyPhaseRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get StudyPhaseRepository
+     * @return StudyPhaseRepository
      */
-    @SuppressWarnings("unused")
     @Override
     public IStudyPhaseRepository getRepository() {
         return this.repository;
     }
 
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IStudyPhaseRepository repository) {
-        this.repository = repository;
-    }
+    //endregion
 
     //endregion
+
+    //region Constructors
+
+    @Inject
+    public StudyPhaseBean(IStudyPhaseRepository repository) {
+        this.repository = repository;
+    }
 
     //endregion
 
@@ -82,7 +77,7 @@ public class StudyPhaseBean extends CrudEntityViewModel<StudyPhase, Integer> {
 
     @PostConstruct
     public void init() {
-        this.columnVisibilityList = new ArrayList<Boolean>();
+        this.columnVisibilityList = new ArrayList<>();
         this.columnVisibilityList.add(Boolean.TRUE); // Name
         this.columnVisibilityList.add(Boolean.TRUE); // Description
 
@@ -104,24 +99,17 @@ public class StudyPhaseBean extends CrudEntityViewModel<StudyPhase, Integer> {
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colPhaseName", "colPhaseName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colPhaseName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colPhaseName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     //endregion

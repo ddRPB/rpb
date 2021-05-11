@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,7 +132,8 @@ public class TumourEntity implements Identifiable<Integer>, Named, Serializable 
 
     //region One-to-Many
 
-    @OneToMany(mappedBy = "parent")
+    //TODO: lazy load
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<TumourEntity> getChildren() {
         return this.children;
     }
@@ -145,7 +146,8 @@ public class TumourEntity implements Identifiable<Integer>, Named, Serializable 
 
     //region Many-to-One
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    //TODO: lazy load
+    @ManyToOne
     @JoinColumn(name="PARENTID")
     public TumourEntity getParent() {
         return  this.parent;
@@ -167,10 +169,6 @@ public class TumourEntity implements Identifiable<Integer>, Named, Serializable 
     public void initDefaultValues() {
         // NOOP
     }
-
-//    public int compareTo(TumourEntity entity) {
-//        return this.getName().compareTo(entity.getName());
-//    }
 
     //endregion
 

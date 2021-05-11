@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+    >
+
+    <!-- New structures -->
+    <changeSet id="insert-parotid_ipsilat-rtstruct" author="Tomas Skripcak">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(identifier) FROM rtstruct WHERE identifier = 'Parotid_ipsilat'</sqlCheck>
+        </preConditions>
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Parotid_ipsilat" />
+            <column name="name" value="Parotid ipsilateral" />
+            <column name="description" value="" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-parotid_contralat-rtstruct" author="Tomas Skripcak">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(identifier) FROM rtstruct WHERE identifier = 'Parotid_contralat'</sqlCheck>
+        </preConditions>
+        <insert tableName="RTSTRUCT">
+            <column name="id" valueSequenceNext="rtstruct_id_seq"/>
+            <column name="identifier" value="Parotid_contralat" />
+            <column name="name" value="Parotid contralateral" />
+            <column name="description" value="" />
+            <column name="typeid" value="2" />
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

@@ -22,7 +22,7 @@
 
     <!-- Definition of page content place holder -->
     <ui:define name="content">
-        <p:tabView id="tabView" activeIndex="#{mbStruct.tab.activeIndex}">
+        <p:tabView id="tabView" activeIndex="#{mbStructLazy.tab.activeIndex}">
 
             <!-- Tab -->
             <p:tab title="#{msg.rtStruct_plural}">
@@ -41,16 +41,10 @@
                                 immediate="true"
                                 update=":newEntityForm:newDisplay"
                                 process="@this"
-                                actionListener="#{mbStruct.prepareNewEntity}"
+                                actionListener="#{mbStructLazy.doPrepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbStruct.prepareNewEntity}"
-                                />
+
+                        <!-- Reload -->
                         <p:commandButton
                                 value="#{msg.menu_reload}"
                                 title="#{msg.rtStruct_reload}"
@@ -59,14 +53,7 @@
                                 immediate="true"
                                 process="@this"
                                 update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStruct.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStruct.load}"
+                                oncomplete="PF('entitiesTable').filter()"
                                 />
                     </p:toolbarGroup>
 
@@ -92,21 +79,18 @@
                 <p:dataTable
                         id="dtEntities"
                         var="entity"
-                        value="#{mbStruct.entityList}"
+                        value="#{mbStructLazy}"
                         widgetVar="entitiesTable"
-                        resizableColumns="false"
+                        resizableColumns="true"
                         draggableColumns="false"
                         paginator="true"
+                        paginatorAlwaysVisible="false"
                         rows="15"
-                        rowsPerPageTemplate="15,25,50"
+                        rowsPerPageTemplate="15,25,50,100"
                         emptyMessage="#{msg.search_empty}"
-                        rowKey="#{entity.id}"
-                        selection="#{mbStruct.selectedEntity}"
                         selectionMode="single"
                         rowIndexVar="rowIndex"
-                        filteredValue="#{mbStruct.filteredEntities}"
-                        sortMode="multiple"
-                        sortBy="#{mbStruct.preSortOrder}"
+                        lazy="true"
                         disabledTextSelection="false"
                         >
 
@@ -118,7 +102,7 @@
                                 trigger=":form:tabView:dtEntities:btnEntitiesToggler"
                                 style="width:450px"
                                 >
-                            <p:ajax event="toggle" listener="#{mbStruct.onEntityToggle}" />
+                            <p:ajax event="toggle" listener="#{mbStructLazy.onEntityToggle}" />
                         </p:columnToggler>
                     </f:facet>
 
@@ -134,7 +118,7 @@
                             sortBy="#{entity.identifier}"
                             filterBy="#{entity.identifier}"
                             filterMatchMode="contains"
-                            visible="#{mbStruct.columnVisibilityList[0]}"
+                            visible="#{mbStructLazy.columnVisibilityList[0]}"
                             style="width:20%"
                             >
                         <h:outputText value="#{entity.identifier}" style="float: left;" />
@@ -146,8 +130,8 @@
                             sortBy="#{entity.name}"
                             filterBy="#{entity.name}"
                             filterMatchMode="contains"
-                            visible="#{mbStruct.columnVisibilityList[1]}"
-                            style="width:40%"
+                            visible="#{mbStructLazy.columnVisibilityList[1]}"
+                            style="width:25%"
                             >
                         <h:outputText value="#{entity.name}" style="float: left;" />
                     </p:column>
@@ -158,48 +142,46 @@
                             sortBy="#{entity.description}"
                             filterBy="#{entity.description}"
                             filterMatchMode="contains"
-                            visible="#{mbStruct.columnVisibilityList[2]}"
-                            style="width:40%"
+                            visible="#{mbStructLazy.columnVisibilityList[2]}"
+                            style="width:35%"
                             >
                         <h:outputText value="#{entity.description}" style="float: left;" />
                     </p:column>
 
                     <!-- Type -->
                     <p:column
-                            headerText="#{msg.rtStruct_type}"
-                            sortBy="#{entity.type.name}"
-                            filterBy="#{entity.type.name}"
-                            filterMatchMode="in"
-                            visible="#{mbStruct.columnVisibilityList[3]}"
-                            style="width:20%"
-                            >
+                        headerText="#{msg.rtStruct_type}"
+                        sortBy="#{entity.type.name}"
+                        filterBy="#{entity.type}"
+                        filterMatchMode="exact"
+                        visible="#{mbStructLazy.columnVisibilityList[3]}"
+                        style="width:15%"
+                        >
                         <f:facet name="filter">
-                            <p:selectCheckboxMenu
-                                    label="#{msg.rtStructType_plural}"
-                                    onchange="PF('entitiesTable').filter()"
-                                    panelStyle="width:160px"
-                                    scrollHeight="90"
-                                    >
+                            <p:selectOneMenu
+                                label="#{msg.rtStructType_plural}"
+                                onchange="PF('entitiesTable').filter()"
+                                converter="omnifaces.SelectItemsConverter"
+                                >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                                 <f:selectItems
                                         value="#{mbStructType.entityList}"
                                         var="rtStructType"
                                         itemLabel="#{rtStructType.name}"
-                                        itemValue="#{rtStructType.name}"
-                                        itemDescription="#{rtStructType.description}"
                                         />
-                            </p:selectCheckboxMenu>
+                            </p:selectOneMenu>
                         </f:facet>
-                        <h:outputText value="#{entity.type.name}" />
+                        <h:outputText value="#{entity.type.name}" style="float: left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            toggleable="false"
-                            style="width:17%"
-                            >
-
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <!-- Edit -->
                         <p:commandButton
                                 title="#{msg.menu_edit}"
                                 icon="ui-icon-contact"
@@ -210,47 +192,32 @@
                                 >
                             <f:setPropertyActionListener
                                     value="#{entity}"
-                                    target="#{mbStruct.selectedEntity}"
+                                    target="#{mbStructLazy.selectedEntity}"
                                     />
                         </p:commandButton>
-
-                        <p:commandButton
-                                title="#{msg.menu_delete}"
-                                icon="ui-icon-trash"
-                                update=":viewEntityForm:deleteDisplay"
-                                oncomplete="PF('viewEntityDialog').show();"
-                                immediate="true"
-                                process="@this"
-                                >
-                            <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbStruct.selectedEntity}"
-                                    />
-                        </p:commandButton>
-
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStruct.entityList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStruct.entityList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStructLazy.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStructLazy.size == 1}" />
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbStruct.entityList.size() > 1}"
+                                rendered="#{mbStructLazy.size > 1}"
                                 >
-                            <f:param value="#{mbStruct.entityList.size()}" />
+                            <f:param value="#{mbStructLazy.size}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.rtStruct_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.rtStruct_plural}" />
                     </h:commandLink>
                 </p:panel>
@@ -262,14 +229,15 @@
     <ui:define name="dialogs">
 
         <!-- New -->
-        <p:dialog id="dlgNewEntity"
-                  header="#{msg.rtStruct_new}"
-                  widgetVar="newEntityDialog"
-                  resizable="false"
-                  ajax="true"
-                  appendToBody="true"
-                  modal="true"
-                  closeOnEscape="true"
+        <p:dialog
+                id="dlgNewEntity"
+                header="#{msg.rtStruct_new}"
+                widgetVar="newEntityDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
                 >
 
             <!-- Form -->
@@ -285,7 +253,7 @@
                     <h:outputLabel value="#{msg.rtStruct_identifier}: *" for="txtIdentifier" />
                     <h:inputText
                             id="txtIdentifier"
-                            value="#{mbStruct.newEntity.identifier}"
+                            value="#{mbStructLazy.newEntity.identifier}"
                             required="true"
                             requiredMessage="Please enter RT-Struct identifier, it is mandatory!"
                             maxlength="255"
@@ -295,7 +263,7 @@
                     <h:outputLabel value="#{msg.rtStruct_name}: *" for="txtName" />
                     <h:inputText
                             id="txtName"
-                            value="#{mbStruct.newEntity.name}"
+                            value="#{mbStructLazy.newEntity.name}"
                             required="true"
                             requiredMessage="Please enter RT-Struct name, it is mandatory!"
                             maxlength="255"
@@ -305,7 +273,7 @@
                     <h:outputLabel value="#{msg.rtStruct_description}: " for="txtDescription" />
                     <p:inputTextarea
                             id="txtDescription"
-                            value="#{mbStruct.newEntity.description}"
+                            value="#{mbStructLazy.newEntity.description}"
                             maxlength="255"
                             />
 
@@ -313,11 +281,11 @@
                     <h:outputLabel value="#{msg.rtStruct_type}: *" for="ddlType" />
                     <p:selectOneMenu
                             id="ddlType"
-                            value="#{mbStruct.newEntity.type}"
-                            converter="#{rtStructTypeConverter}"
+                            value="#{mbStructLazy.newEntity.type}"
+                            converter="omnifaces.SelectItemsConverter"
                             style="width:250px"
                             >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
                         <f:selectItems
                                 value="#{mbStructType.entityList}"
                                 var="type"
@@ -333,7 +301,7 @@
                                 value="#{msg.menu_save}"
                                 update=":form:tabView:dtEntities, :growl"
                                 icon="ui-icon-disk"
-                                actionListener="#{mbStruct.doCreateEntity}"
+                                actionListener="#{mbStructLazy.doCreateEntity}"
                                 oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
                                 process="@this newEntityForm"
                                 />
@@ -369,17 +337,17 @@
 
                     <!-- Identifier -->
                     <h:outputLabel value="#{msg.rtStruct_identifier}:" />
-                    <h:outputText value="#{mbStruct.selectedEntity.identifier}" />
+                    <h:outputText value="#{mbStructLazy.selectedEntity.identifier}" />
 
                     <!-- Name -->
                     <h:outputLabel value="#{msg.rtStruct_name}:" />
-                    <h:outputText value="#{mbStruct.selectedEntity.name}" />
+                    <h:outputText value="#{mbStructLazy.selectedEntity.name}" />
 
                     <!-- Description -->
                     <h:outputLabel value="#{msg.rtStruct_description}:" for="txtEditDescription" />
                     <p:inputTextarea
                             id="txtEditDescription"
-                            value="#{mbStruct.selectedEntity.description}"
+                            value="#{mbStructLazy.selectedEntity.description}"
                             maxlength="255"
                             />
 
@@ -387,11 +355,11 @@
                     <h:outputLabel value="#{msg.rtStruct_type}: *" for="ddlTypeEdit" />
                     <p:selectOneMenu
                             id="ddlTypeEdit"
-                            value="#{mbStruct.selectedEntity.type}"
-                            converter="#{rtStructTypeConverter}"
+                            value="#{mbStructLazy.selectedEntity.type}"
+                            converter="omnifaces.SelectItemsConverter"
                             style="width:250px"
                             >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
                         <f:selectItems
                                 value="#{mbStructType.entityList}"
                                 var="type"
@@ -408,59 +376,8 @@
                                 icon="ui-icon-disk"
                                 update=":form:tabView:dtEntities, :growl"
                                 oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
-                                actionListener="#{mbStruct.doUpdateEntity}"
+                                actionListener="#{mbStructLazy.doUpdateEntity}"
                                 process="@this entityDetailsForm"
-                                />
-                    </f:facet>
-                </p:panelGrid>
-            </h:form>
-        </p:dialog>
-
-        <!-- Delete -->
-        <p:dialog
-                id="dlgViewEntity"
-                header="#{msg.rtStruct_delete}"
-                widgetVar="viewEntityDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
-
-            <!-- Form -->
-            <h:form id="viewEntityForm">
-                <p:panelGrid
-                        id="deleteDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-
-                    <!-- Identifier -->
-                    <h:outputLabel value="#{msg.rtStruct_identifier}:" />
-                    <h:outputText value="#{mbStruct.selectedEntity.identifier}" />
-
-                    <!-- Name -->
-                    <h:outputLabel value="#{msg.rtStruct_name}:" />
-                    <h:outputText value="#{mbStruct.selectedEntity.name}" />
-
-                    <!-- Description -->
-                    <h:outputLabel value="#{msg.rtStruct_description}:" />
-                    <h:outputText value="#{mbStruct.selectedEntity.description}" />
-
-                    <!-- Description -->
-                    <h:outputLabel value="#{msg.rtStruct_type}:" />
-                    <h:outputText value="#{mbStruct.selectedEntity.type.name}" title="#{mbStruct.selectedEntity.type.description}" />
-
-                    <!-- Footer -->
-                    <f:facet name="footer">
-                        <p:commandButton
-                                value="#{msg.menu_delete}"
-                                icon="ui-icon-trash"
-                                update=":form:tabView:dtEntities, :growl"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewEntity','viewEntityForm');"
-                                actionListener="#{mbStruct.doDeleteEntity}"
-                                process="@this viewEntityForm"
                                 />
                     </f:facet>
                 </p:panelGrid>
@@ -473,11 +390,11 @@
                 dialog = jQuery('#'+dialogName);
                 if(args.validationFailed) {
                     dialog.effect("shake", { times:3 }, 100);
-                } else {
+                }
+                else {
                     clearForm(formName);
 
                     PF('newEntityDialog').hide();
-                    PF('viewEntityDialog').hide();
                     PF('editEntityDialog').hide();
                 }
             }

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
 
 package de.dktk.dd.rpb.core.security;
 
+import de.dktk.dd.rpb.core.service.AuditEvent;
+import de.dktk.dd.rpb.core.service.AuditLogService;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 
@@ -32,6 +35,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import javax.inject.Inject;
+
 /**
  *
  * Default authentication provider is using the RadPlanBio database
@@ -43,13 +48,23 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DefaultUserDetailsServiceImpl.class);
+    private static final Logger log = Logger.getLogger(DefaultAuthenticationProvider.class);
 
     //endregion
 
     //region Members
 
     private UserDetailsService userDetailsService;
+    private AuditLogService auditLogService;
+
+    //endregion
+
+    //region Constructors
+
+    @Inject
+    public DefaultAuthenticationProvider(AuditLogService auditLogService) {
+        this.auditLogService = auditLogService;
+    }
 
     //endregion
 
@@ -70,9 +85,11 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
         UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) authentication;
         String username = String.valueOf(auth.getPrincipal());
         String password = String.valueOf(auth.getCredentials());
+
         String passwordHash = DigestUtils.shaHex(password);
 
         // Log the default authentication request
@@ -81,14 +98,19 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider {
         // Use the username to load the data for the user, including authorities and password.
         UserDetails user = userDetailsService.loadUserByUsername(username);
 
-
         // Check if account is enabled
         if (!user.isEnabled()) {
+            this.auditLogService.event(AuditEvent.LoginFailed, username);
             throw new DisabledException("This user account is disabled");
         }
         // Check the passwords match.
-        if (!user.getPassword().equals(passwordHash)) {
+        else if (!user.getPassword().equals(passwordHash)) {
+            this.auditLogService.event(AuditEvent.LoginFailed, username);
             throw new BadCredentialsException("Bad Credentials");
+        }
+        // Successful authentication
+        else {
+            this.auditLogService.event(AuditEvent.LoginSuccessful, username);
         }
 
         // Return an authenticated token, containing user data and authorities

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,24 @@
 package de.dktk.dd.rpb.api.support;
 
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.repository.admin.DefaultAccountRepository;
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
+import de.dktk.dd.rpb.core.repository.edc.IOpenClinicaDataRepository;
+import de.dktk.dd.rpb.core.repository.rpb.IRadPlanBioDataRepository;
+import de.dktk.dd.rpb.core.service.*;
+import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
+import org.springframework.stereotype.Component;
+
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
+import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Base service
  */
+@Component
 public class BaseService {
 
     //region Finals
@@ -39,18 +48,36 @@ public class BaseService {
 
     //region Injects
 
+    //region Facade
+
+    @Inject
+    protected StudyIntegrationFacade studyIntegrationFacade;
+
+    @Inject
+    protected IRadPlanBioDataRepository radPlanBioDataRepository;
+
+    //endregion
+
     //region Repository
 
     @Inject
-    private DefaultAccountRepository userRepository;
+    protected IDefaultAccountRepository userRepository;
 
-    protected DefaultAccountRepository getUserRepository() {
-        return this.userRepository;
-    }
+    @Inject
+    protected IOpenClinicaDataRepository openClinicaDataRepository;
 
-    protected void setUserAccountRepository(DefaultAccountRepository value) {
-        this.userRepository = value;
-    }
+    //endregion
+
+    //region Services
+
+    @Inject
+    protected EngineService engineService;
+
+    @Inject
+    protected EmailService emailService;
+
+    @Inject
+    protected AuditLogService auditLogService;
 
     //endregion
 
@@ -58,19 +85,165 @@ public class BaseService {
 
     //region Methods
 
+    //region Authentication
+
     /**
-     * Find user that corresponds to that specific apiKey
-     * @param apiKey userAccount associated API-Key
+     * Find apiKey within the HttpServletRequest
+     * @param httpServletRequest HttpServletRequest containing apiKey header
+     * @return ApiKey
+     */
+    protected String extractApiKey(HttpServletRequest httpServletRequest) {
+        String apiKey = null;
+
+        // Basic Authentication
+        String authHeader = httpServletRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Basic")) {
+
+            String base64Credentials = authHeader.substring("Basic".length()).trim();
+            String credentials = new String(Base64.decodeBase64(base64Credentials), StandardCharsets.UTF_8);
+
+            // Username(ApiKey):Password
+            final String[] values = credentials.split(":",2);
+            apiKey = values[0];
+        }
+
+        return apiKey;
+    }
+
+    /**
+     * Find DefaultAccount that corresponds to the provided apiKey within the HttpServletRequest
+     * @param httpServletRequest HttpServletRequest containing apiKey header
+     * @return DefaultAccount entity
+     */
+    public DefaultAccount defaultAccountAuthentication(HttpServletRequest httpServletRequest) {
+        String apiKey = this.extractApiKey(httpServletRequest);
+        return  this.getAuthenticatedUser(apiKey);
+    }
+
+    /**
+     * Find DefaultAccount that corresponds to the provided apiKey
+     * @param apiKey API-Key associated with DefaultAccount
      * @return DefaultAccount entity
      */
     protected DefaultAccount getAuthenticatedUser(String apiKey) {
+        DefaultAccount userAccount = null;
 
-        DefaultAccount userAccount = new DefaultAccount();
-        userAccount.setApiKey(apiKey);
-        userAccount = this.userRepository.findUniqueOrNone(userAccount);
+        if (apiKey != null && !apiKey.isEmpty()) {
+            DefaultAccount example = this.userRepository.getNew();
+            example.setIsEnabled(true);
+            example.setApiKeyEnabled(true);
+            example.setNonLocked(true);
+            example.setApiKey(apiKey);
 
+            userAccount = this.userRepository.findUniqueOrNone(example);
+        }
+        
         return userAccount;
     }
+
+    protected String getOcHash(String username) {
+        return this.openClinicaDataRepository.getUserAccountHash(username);
+    }
+
+    //endregion
+
+    //region EDC
+
+    protected IOpenClinicaService createEdcConnection(DefaultAccount defaultAccount) {
+        IOpenClinicaService svcEdc = null;
+
+        // OpenClinica user account
+        if (defaultAccount != null &&
+                defaultAccount.hasOpenClinicaAccount() &&
+                defaultAccount.getPartnerSite().hasEnabledEdc()) {
+
+            String ocHash = this.getOcHash(defaultAccount.getOcUsername());
+
+            svcEdc = new OpenClinicaService();
+            svcEdc.connectWithHash(
+                    defaultAccount.getOcUsername(),
+                    ocHash,
+                    defaultAccount.getPartnerSite().getEdc().getSoapBaseUrl(),
+                    defaultAccount.getPartnerSite().getEdc().getEdcBaseUrl()
+            );
+        }
+
+        return svcEdc;
+    }
+
+    protected IOpenClinicaService createEdcConnection(DefaultAccount defaultAccount, String ocPassword) {
+        IOpenClinicaService svcEdc = null;
+
+        // OpenClinica user account
+        if (defaultAccount != null &&
+                defaultAccount.hasOpenClinicaAccount() &&
+                defaultAccount.getPartnerSite().hasEnabledEdc()) {
+            svcEdc = new OpenClinicaService();
+            svcEdc.connect(
+                    defaultAccount.getOcUsername(),
+                    ocPassword,
+                    defaultAccount.getPartnerSite().getEdc().getSoapBaseUrl(),
+                    defaultAccount.getPartnerSite().getEdc().getEdcBaseUrl()
+            );
+        }
+        return svcEdc;
+    }
+
+    protected IOpenClinicaService createEdcConnection(DefaultAccount defaultAccount, IRadPlanBioWebApiService svcRpb) {
+        IOpenClinicaService svcEdc = null;
+
+        // OpenClinica user account
+        if (defaultAccount != null &&
+                defaultAccount.hasOpenClinicaAccount() &&
+                defaultAccount.getPartnerSite().hasEnabledEdc() &&
+                svcRpb != null) {
+
+            // I need to get OC user hash to be able to use SOAP (the RPB and OC password can be different)
+            String ocHash = svcRpb.loadAccountPasswordHash(defaultAccount);
+
+            svcEdc = new OpenClinicaService();
+            svcEdc.connectWithHash(
+                    defaultAccount.getOcUsername(),
+                    ocHash,
+                    defaultAccount.getPartnerSite().getEdc().getSoapBaseUrl(),
+                    defaultAccount.getPartnerSite().getEdc().getEdcBaseUrl()
+            );
+        }
+
+        return svcEdc;
+    }
+
+    //endregion
+
+    //region PACS
+
+    public IConquestService createPacsConnection(DefaultAccount defaultAccount) {
+        IConquestService pacsService = null;
+        // Setup service to communicate with PACS server
+        if (defaultAccount != null &&
+                defaultAccount.getPartnerSite().hasEnabledPacs()) {
+
+            pacsService = new ConquestService();
+            pacsService.setupConnection(
+                    defaultAccount.getPartnerSite().getPacs().getPacsBaseUrl()
+            );
+        }
+
+        return pacsService;
+    }
+
+    protected IConquestService createPacsConnection(String apiKey) {
+        IConquestService pacsService = null;
+        String url = this.radPlanBioDataRepository.getPacsUrlByAccountApiKey(apiKey);
+        // Setup service to communicate with PACS server
+        if (url != null && !url.isEmpty()) {
+            pacsService = new ConquestService();
+            pacsService.setupConnection(url);
+        }
+        return pacsService;
+    }
+
+    //endregion
 
     //endregion
 

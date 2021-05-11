@@ -20,6 +20,7 @@ package de.dktk.dd.rpb.core.ocsoap.types;
 
 import java.util.ArrayList;
 
+import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
 
 /**
@@ -33,22 +34,25 @@ public class Study {
 
     //region Members
 
-    /** site name (unique protocol ident, study identifier) */
-	private String siteName;
-    /** real site name which has descriptive values for user */
-    private String realSiteName;
-
 	/** study name */
 	private String studyName;
 	/** study oid */
 	private String studyOID;
     /** study identifier*/
     private String studyIdentifier;
+
+	/** real site name which has descriptive values for user */
+	private String realSiteName;
+	/** study site oid */
+	private String siteOID;
+	/** unique protocol study site identifier */
+	private String siteIdentifier;
+
 	/** events defined for this study */
 	private ArrayList<Event> events;
 	/** subjects in this study */
 	private ArrayList<StudySubject> studySubjects;
-
+	
     //endregion
 
     //region Constructors
@@ -59,50 +63,31 @@ public class Study {
 	}
 
 	/**
-	 * Create a study from an OC StudyType object
-	 * @param ocStudy OC StudyType
+	 * Create a parent study from an OC StudyType object
+	 * @param parentStudyType OC StudyType
 	 */
-	public Study(StudyType ocStudy) {
-		this.studyName = ocStudy.getName();
-		this.studyOID = ocStudy.getOid();
-        this.studyIdentifier = ocStudy.getIdentifier();
+	public Study(StudyType parentStudyType) {
+		this.studyName = parentStudyType.getName();
+		this.studyOID = parentStudyType.getOid();
+        this.studyIdentifier = parentStudyType.getIdentifier();
+	}
+
+	/**
+	 * Create site study from and OC StudyType and OC SiteType objects
+	 * @param parentStudyType OC StudyType
+	 * @param siteType OC SiteType
+	 */
+	public Study(StudyType parentStudyType, SiteType siteType) {
+		this(parentStudyType);
+
+		this.realSiteName = siteType.getName();
+		this.siteOID = siteType.getIdentifier();
+		this.siteIdentifier = siteType.getIdentifier();
 	}
 
     //endregion
 
     //region Properties
-
-    /**
-	 * Get siteName
-	 * @return siteName
-	 */
-	public String getSiteName() {
-		return siteName;
-	}
-
-	/**
-	 * Set site name
-	 * @param siteName site name
-	 */
-	public void setSiteName(String siteName) {
-		this.siteName = siteName;
-	}
-
-    /**
-     * Get real siteName
-     * @return real siteName
-     */
-    public String getRealSiteName() {
-        return this.realSiteName;
-    }
-
-    /**
-     * Set real site name
-     * @param value real site name
-     */
-    public void setRealSiteName(String value) {
-        this.realSiteName = value;
-    }
 
 	/**
 	 * Get study name (unique identifier kind of name)
@@ -148,19 +133,50 @@ public class Study {
      * Set study Identifier
      * @param studyIdentifier studyIdentifier
      */
-	@SuppressWarnings("unused")
     public void setStudyIdentifier(String studyIdentifier) {
         this.studyIdentifier = studyIdentifier;
     }
 
-    /**
-     * Determine whether study is multi-centre
-     * @return True when study is multi-centre
-     */
-    public boolean isMulticentric() {
-        return this.hasSiteName() && !this.getSiteName().equals(this.getStudyIdentifier());
-    }
+	/**
+	 * Get real siteName
+	 * @return real siteName
+	 */
+	public String getRealSiteName() {
+		return this.realSiteName;
+	}
 
+	/**
+	 * Set real site name
+	 * @param value real site name
+	 */
+	public void setRealSiteName(String value) {
+		this.realSiteName = value;
+	}
+	
+	public String getSiteOID() {
+		return this.siteOID;
+	}
+
+	public void setSiteOID(String siteOID) {
+		this.siteOID = siteOID;
+	}
+
+	/**
+	 * Get site identifier
+	 * @return site identifier
+	 */
+	public String getSiteName() {
+		return siteIdentifier;
+	}
+
+	/**
+	 * Set site identifier
+	 * @param siteIdentifier site identifier
+	 */
+	public void setSiteName(String siteIdentifier) {
+		this.siteIdentifier = siteIdentifier;
+	}
+	
 	/**
 	 * Get events defined for this study
 	 * @return events defined for this study
@@ -199,21 +215,33 @@ public class Study {
 		this.studySubjects = studySubjects;
 	}
 
+    //endregion
+
+	//region Methods
+
 	/**
-	 * Check whether or not site name is defined
-	 * @return has sitename or not (bool)
+	 * Determine whether study is multi-centre
+	 * @return True when study is multi-centre
 	 */
-	public boolean hasSiteName() {
-		return !(siteName == null || siteName.equals(""));
+	public boolean isMulticentric() {
+		return this.hasSiteIdentifier() && !this.getSiteName().equals(this.getStudyIdentifier());
 	}
 
-    //endregion
+	/**
+	 * Check whether or not site identifier is defined
+	 * @return has site identifier or not (bool)
+	 */
+	private boolean hasSiteIdentifier() {
+		return this.siteIdentifier != null && !this.siteIdentifier.isEmpty();
+	}
+
+	//endregion
 
     //region Overrides
 
     @Override
 	public String toString() {
-		return "Study: studyName: " + studyName + ", siteName: " + siteName + ", studyOID: " + studyOID     + ", studyIdentifier: " + studyIdentifier
+		return "Study: studyName: " + studyName + ", siteIdentifier: " + siteIdentifier + ", studyOID: " + studyOID     + ", studyIdentifier: " + studyIdentifier
 				+ ", Defined events: " + events + ", Study Subjects: " + studySubjects;
 	}
 

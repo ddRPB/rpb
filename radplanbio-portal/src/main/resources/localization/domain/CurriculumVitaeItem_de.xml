@@ -4,13 +4,13 @@
 <properties>
     <comment>Domain resources for CurriculumVitaeItem</comment>
 
-    <entry key="curriculumVitaeItem">CV item</entry>
-    <entry key="curriculumVitaeItem_plural">CV items</entry>
-    <entry key="curriculumVitaeItem_reload">Neu laden vorhandenen CV items</entry>
-    <entry key="curriculumVitaeItem_print">Drucken Tabelle CV items</entry>
-    <entry key="curriculumVitaeItem_new">Definieren Sie eine neues CV item</entry>
-    <entry key="curriculumVitaeItem_edit">Bearbeiten Sie ausgewähltes CV item</entry>
-    <entry key="curriculumVitaeItem_delete">Löschen ausgewählten CV item</entry>
+    <entry key="curriculumVitaeItem">CV Artikel</entry>
+    <entry key="curriculumVitaeItem_plural">CV Artikel</entry>
+    <entry key="curriculumVitaeItem_reload">Vorhandenen CV Artikel neu laden</entry>
+    <entry key="curriculumVitaeItem_print">Tabelle CV Artikel drucken</entry>
+    <entry key="curriculumVitaeItem_new">Neues CV Artikel definieren</entry>
+    <entry key="curriculumVitaeItem_edit">Ausgewähltes CV Artikel bearbeiten</entry>
+    <entry key="curriculumVitaeItem_delete">Ausgewähltes CV Artikel löschen</entry>
 
     <!-- attributes -->
     <entry key="curriculumVitaeItem_id">Id</entry>

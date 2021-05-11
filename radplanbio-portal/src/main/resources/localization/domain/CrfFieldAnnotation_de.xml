@@ -6,11 +6,11 @@
 
     <entry key="crfFieldAnnotation">eCRF Feld Anmerkung</entry>
     <entry key="crfFieldAnnotation_plural">eCRF Feld Anmerkungen</entry>
-    <entry key="crfFieldAnnotation_reload">Neu laden vorhandenen eCRF Feld Anmerkungen</entry>
-    <entry key="crfFieldAnnotation_print">Drucken Tabelle eCRF Feld Anmerkungen</entry>
-    <entry key="crfFieldAnnotation_new">Definieren Sie eine neue eCRF Feld Anmerkung</entry>
-    <entry key="crfFieldAnnotation_edit">Bearbeiten ausgewählte eCRF Feld Anmerkung</entry>
-    <entry key="crfFieldAnnotation_delete">Löschen ausgewählte eCRF Feld Anmerkung</entry>
+    <entry key="crfFieldAnnotation_reload">Vorhandenen eCRF Feld Anmerkungen neu laden</entry>
+    <entry key="crfFieldAnnotation_print">Tabelle eCRF Feld Anmerkungen drucken</entry>
+    <entry key="crfFieldAnnotation_new">Neue eCRF Feld Anmerkung definieren</entry>
+    <entry key="crfFieldAnnotation_edit">Ausgewählte eCRF Feld Anmerkung bearbeiten</entry>
+    <entry key="crfFieldAnnotation_delete">Ausgewählte eCRF Feld Anmerkung löschen</entry>
 
     <!-- attributes -->
     <entry key="crfFieldAnnotation_id">Id</entry>

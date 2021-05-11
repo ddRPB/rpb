@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:f="http://java.sun.com/jsf/core"
-        xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Tumor Entity" title="Tumour Entity" url="/admin/ctms/tumourEntityCRUD.faces" />
+            <p:menuitem value="#{msg.tumourEntity_plural}" title="#{msg.tumourEntity_plural}" url="/admin/ctms/tumourEntityCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbTumourEntity.tab.activeIndex}">
 
             <!-- TumourEntities -->
-            <p:tab title="Tumour Entities" titletip="Study Tumour Entities">
+            <p:tab title="#{msg.tumourEntity_plural}">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -32,116 +32,116 @@
                     <!-- Left -->
                     <p:toolbarGroup align="left">
                         <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="Define a new Tumour Entity [ctrl+shift+n]"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newEntityDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbTumourEntity.prepareNewEntity}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbTumourEntity.prepareNewEntity}"
-                                rendered="#{mbTumourEntity.tab.activeIndex == 0}"
-                                />
+                            value="#{msg.menu_new}"
+                            title="#{msg.tumourEntity_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newEntityDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newEntityForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbTumourEntity.prepareNewEntity}"
+                            />
                         <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="Rolead Tumour Entities [ctrl+shift+r]"
-                                icon="ui-icon-refresh"
-                                style="float: left;"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbTumourEntity.loadTree}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbTumourEntity.loadTree}"
-                                rendered="#{mbTumourEntity.tab.activeIndex == 0}"
-                                />
+                            value="#{msg.menu_reload}"
+                            title="#{msg.tumourEntity_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbTumourEntity.load}"
+                            />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                                value="#{msg.menu_print}"
-                                title="Print Tumour Entities table"
-                                icon="ui-icon-print"
-                                >
+                            value="#{msg.menu_print}"
+                            title="#{msg.tumourEntity_print}"
+                            icon="ui-icon-print"
+                            >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
-                                icon="ui-icon-help"
-                                disabled="True"
-                                />
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
                     </p:toolbarGroup>
                 </p:toolbar>
 
                 <!-- Tree table -->
                 <p:treeTable
-                        id="dtEntities"
-                        var="entity"
-                        value="#{mbTumourEntity.root}"
-                        widgetVar="entitiesTable"
-                        resizableColumns="true"
-                        draggableColumns="false"
-                        emptyMessage="#{msg.search_empty}"
-                        selection="#{mbTumourEntity.selectedEntity}"
-                        sortBy="#{entity.name}"
-                        >
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbTumourEntity.root}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbTumourEntity.selectedEntity}"
+                    sortBy="#{entity.name}"
+                    >
 
                     <!-- Name -->
                     <p:column
-                            id="colTumourEntityName"
-                            style="width:30%"
-                            sortBy="#{entity.name}"
-                            >
+                        id="colTumourEntityName"
+                        sortBy="#{entity.name}"
+                        style="width:30%"
+                        >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.tumourEntity_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
 
                     <!-- Description -->
                     <p:column
-                            style="width:40%"
-                            >
+                        style="width:40%"
+                        >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.tumourEntity_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            style="width:17%"
-                            >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:11%"
+                        >
+                        <!-- Edit -->
                         <p:commandButton
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update=":entityDetailsForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editEntityDialog').show();"
-                                >
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbTumourEntity.selectedEntity}"
-                                    />
+                                value="#{entity}"
+                                target="#{mbTumourEntity.selectedEntity}"
+                                />
+                        </p:commandButton>
+                        
+                        <!-- Delete -->
+                        <p:commandButton
+                            icon="ui-icon-trash"
+                            title="#{msg.menu_delete}"
+                            update=":deleteEntityForm:deleteDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('deleteEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbTumourEntity.selectedEntity}"
+                                />
                         </p:commandButton>
                     </p:column>
 
@@ -150,9 +150,9 @@
                         <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbTumourEntity.entityList.size() == 0}" />
                         <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbTumourEntity.entityList.size() == 1}" />
                         <h:outputFormat
-                                value="#{msg.search_results_status_n}"
-                                rendered="#{mbTumourEntity.entityList.size() > 1}"
-                                >
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbTumourEntity.entityList.size() > 1}"
+                            >
                             <f:param value="#{mbTumourEntity.entityList.size()}" />
                         </h:outputFormat>
                     </f:facet>
@@ -165,48 +165,48 @@
     <!-- Definition of dialogs place holder -->
     <ui:define name="dialogs">
 
-        <!-- New StudyTagType -->
+        <!-- New Tumour Entity -->
         <p:dialog
-                id="dlgNewEntity"
-                header="New Tumour Entity"
-                widgetVar="newEntityDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgNewEntity"
+            header="#{msg.tumourEntity_new}"
+            widgetVar="newEntityDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="newEntityForm">
                 <p:panelGrid
-                        id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="newDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtTumourEntityNameNew" />
+                    <h:outputLabel value="#{msg.tumourEntity_name}: #{msg.label_required_suffix}" for="txtTumourEntityNameNew" />
                     <p:inputText
-                            id="txtTumourEntityNameNew"
-                            value="#{mbTumourEntity.newEntity.name}"
-                            required="true"
-                            requiredMessage="Tumour Entity name is mandatory!"
-                            maxlength="255"
-                            />
+                        id="txtTumourEntityNameNew"
+                        value="#{mbTumourEntity.newEntity.name}"
+                        required="true"
+                        requiredMessage="#{msg.tumourEntity_name} is mandatory!"
+                        maxlength="255"
+                        />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtTumourEntityDescriptionNew" />
+                    <h:outputLabel value="#{msg.tumourEntity_description}:" for="txtTumourEntityDescriptionNew" />
                     <p:inputTextarea
-                            id="txtTumourEntityDescriptionNew"
-                            value="#{mbTumourEntity.newEntity.description}"
-                            maxlength="4000"
-                            style="width:350px"
-                            />
+                        id="txtTumourEntityDescriptionNew"
+                        value="#{mbTumourEntity.newEntity.description}"
+                        maxlength="4000"
+                        style="width:350px"
+                        />
 
                     <!-- Parent -->
-                    <h:outputLabel value="Parent:" for="ddlTumourEntityParentNew" />
+                    <h:outputLabel value="#{msg.tumourEntity_parent}:" for="ddlTumourEntityParentNew" />
                     <p:selectOneMenu
                             id="ddlTumourEntityParentNew"
                             value="#{mbTumourEntity.newEntity.parent}"
@@ -239,25 +239,25 @@
                                 process="@this newEntityForm"
                                 />
                         <p:commandButton
-                                value="#{msg.menu_reset}"
-                                type="reset"
-                                icon="ui-icon-close"
-                                />
+                            value="#{msg.menu_reset}"
+                            type="reset"
+                            icon="ui-icon-close"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
         </p:dialog>
 
-        <!-- Edit StudyTagType -->
+        <!-- Edit Tumour Entity -->
         <p:dialog
-                id="dlgEntityDetails"
-                header="Edit Tumour Entity details"
-                widgetVar="editEntityDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgEntityDetails"
+            header="#{msg.tumourEntity_edit}"
+            widgetVar="editEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="entityDetailsForm">
@@ -269,17 +269,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtTumourEntityNameEdit" />
+                    <h:outputLabel value="#{msg.tumourEntity_name}: #{msg.label_required_suffix}" for="txtTumourEntityNameEdit" />
                     <p:inputText
                             id="txtTumourEntityNameEdit"
                             value="#{mbTumourEntity.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Tumour Entity name is mandatory!"
+                            requiredMessage="#{msg.tumourEntity_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtTumourEntityDescriptionEdit" />
+                    <h:outputLabel value="#{msg.tumourEntity_description}:" for="txtTumourEntityDescriptionEdit" />
                     <p:inputTextarea
                             id="txtTumourEntityDescriptionEdit"
                             value="#{mbTumourEntity.selectedEntity.description}"
@@ -288,7 +288,7 @@
                             />
 
                     <!-- Parent -->
-                    <h:outputLabel value="Parent:" for="ddlTumourEntityParentEdit" />
+                    <h:outputLabel value="#{msg.tumourEntity_parent}:" for="ddlTumourEntityParentEdit" />
                     <p:selectOneMenu
                             id="ddlTumourEntityParentEdit"
                             value="#{mbTumourEntity.selectedEntity.parent}"
@@ -325,6 +325,62 @@
                 </p:panelGrid>
             </h:form>
         </p:dialog>
+        
+        <!-- Delete Tumour Entity -->
+        <p:dialog
+            id="dlgDeleteEntity"
+            header="#{msg.tumourEntity_delete}"
+            widgetVar="deleteEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="deleteEntityForm">
+                <p:panelGrid
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.tumourEntity_name}: #{msg.label_required_suffix}" for="txtTumourEntityNameDelete" />
+                    <h:outputText id="txtTumourEntityNameDelete" value="#{mbTumourEntity.selectedEntity.name}" />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.tumourEntity_description}:" for="txtTumourEntityDescriptionDelete" />
+                    <p:inputTextarea
+                        id="txtTumourEntityDescriptionDelete"
+                        value="#{mbTumourEntity.selectedEntity.description}"
+                        style="width:350px"
+                        readonly="true"
+                        />
+
+                    <!-- Parent -->
+                    <h:outputLabel value="#{msg.tumourEntity_parent}:" for="txtTumourEntityParentDelete" />
+                    <h:outputText
+                        id="txtTumourEntityParentDelete"
+                        value="#{mbTumourEntity.selectedEntity.parent.name}"
+                        rendered="#{mbTumourEntity.selectedEntity.parent != null}"
+                        />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtEntities, :deleteEntityForm, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteEntity','deleteEntityForm');"
+                            actionListener="#{mbTumourEntity.doDeleteEntity}"
+                            process="@this deleteEntityForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
 
         <!-- Submit from dialog -->
         <script type="text/javascript">
@@ -336,6 +392,7 @@
                     clearForm(formName);
                     PF('newEntityDialog').hide();
                     PF('editEntityDialog').hide();
+                    PF('deleteEntityDialog').hide();
                 }
             }
             function clearForm(formName) {

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@
 
 package de.dktk.dd.rpb.portal.web.mb.admin;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -30,14 +28,14 @@ import javax.faces.context.FacesContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.admin.Role;
-import de.dktk.dd.rpb.core.repository.admin.DefaultAccountRepository;
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
+import de.dktk.dd.rpb.core.util.UuidUtil;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
@@ -57,26 +55,16 @@ public class UserAccountBean extends CrudEntityViewModel<DefaultAccount, Integer
     //region Repository
 
     @Inject
-    DefaultAccountRepository repository;
+    IDefaultAccountRepository repository;
 
     /**
-     * Get DefaultAccountRepository
-     * @return DefaultAccountRepository
+     * Get IDefaultAccountRepository
+     * @return IDefaultAccountRepository
      */
     @SuppressWarnings("unused")
     @Override
-    public DefaultAccountRepository getRepository() {
+    public IDefaultAccountRepository getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set UserAccountRepository
-     *
-     * @param value - UserAccountRepository
-     */
-    @SuppressWarnings("unused")
-    public void setUserAccountRepository(DefaultAccountRepository value) {
-        this.repository = value;
     }
 
     //endregion
@@ -194,7 +182,7 @@ public class UserAccountBean extends CrudEntityViewModel<DefaultAccount, Integer
 
     public void doGenerateApiKey(DefaultAccount account) {
         account.setApiKey(
-                this.getRandom32ChApiKey()
+                UuidUtil.getRandom32ChApiKey()
         );
     }
 
@@ -203,7 +191,7 @@ public class UserAccountBean extends CrudEntityViewModel<DefaultAccount, Integer
     //region DefaultAccount Roles
 
     public void prepareNewRoles() {
-        this.assignedRoles = new ArrayList<Role>();
+        this.assignedRoles = new ArrayList<>();
     }
 
     public void doAddRoles(List<Role> roles) {
@@ -229,7 +217,7 @@ public class UserAccountBean extends CrudEntityViewModel<DefaultAccount, Integer
     public void prepareNewEntity() {
         this.newEntity = this.repository.getNew();
         this.newEntity.setApiKey(
-                this.getRandom32ChApiKey()
+                UuidUtil.getRandom32ChApiKey()
         );
     }
 
@@ -238,19 +226,12 @@ public class UserAccountBean extends CrudEntityViewModel<DefaultAccount, Integer
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colUserName", "colUserName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colUserName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colUserName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     /**
@@ -258,25 +239,17 @@ public class UserAccountBean extends CrudEntityViewModel<DefaultAccount, Integer
      * @return List of Boolean values determining column visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> result = new ArrayList<Boolean>();
-        result.add(Boolean.TRUE); // Username
-        result.add(Boolean.TRUE); // Email
-        result.add(Boolean.TRUE); // PartnerSite
-        result.add(Boolean.TRUE); // IsEnabled
-        result.add(Boolean.FALSE); // LDAP
-        result.add(Boolean.FALSE); // API-key enabled
-        result.add(Boolean.TRUE); // PrivilegesCount
+        List<Boolean> results = new ArrayList<>();
+        results.add(Boolean.TRUE); // Username
+        results.add(Boolean.TRUE); // Email
+        results.add(Boolean.TRUE); // PartnerSite
+        results.add(Boolean.TRUE); // IsEnabled
+        results.add(Boolean.FALSE); // NonLocked
+        results.add(Boolean.FALSE); // LDAP
+        results.add(Boolean.FALSE); // API-key enabled
+        results.add(Boolean.TRUE); // PrivilegesCount
 
-        return result;
-    }
-
-    //endregion
-
-    //region Private Methods
-
-    private String getRandom32ChApiKey() {
-        String uuid = UUID.randomUUID().toString();
-        return uuid.replaceAll("-", "");
+        return results;
     }
 
     //endregion

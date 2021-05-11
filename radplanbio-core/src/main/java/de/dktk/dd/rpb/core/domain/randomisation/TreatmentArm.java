@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@ public class TreatmentArm implements Identifiable<Integer>, Named, Serializable 
     private String name; // Name of treatment arm
     private String description; // Detailed description of treatment arm
     private Integer plannedSubjectsCount; // How many patients are planned for this treatment arm
+    private Boolean isEnabled; // Assignment of patient to this arm is enabled
 
     // One to Many
     private List<TrialSubject> subjects = new ArrayList<>(); // Patient assigned to this treatment arm
@@ -130,7 +131,7 @@ public class TreatmentArm implements Identifiable<Integer>, Named, Serializable 
 
     //endregion
 
-    //region Planned Subjects Count
+    //region PlannedSubjectsCount
 
     @Column(name = "SUBJECTCOUNT")
     public Integer getPlannedSubjectsCount() {
@@ -139,6 +140,19 @@ public class TreatmentArm implements Identifiable<Integer>, Named, Serializable 
 
     public void setPlannedSubjectsCount(Integer value) {
         this.plannedSubjectsCount = value;
+    }
+
+    //endregion
+
+    //region IsEnabled
+
+    @Column(name = "ISENABLED")
+    public Boolean getIsEnabled() {
+        return this.isEnabled;
+    }
+
+    public void setIsEnabled(Boolean isEnabled) {
+        this.isEnabled = isEnabled;
     }
 
     //endregion
@@ -191,7 +205,7 @@ public class TreatmentArm implements Identifiable<Integer>, Named, Serializable 
     public void initDefaultValues() {
         // NOOP
     }
-
+    
     //endregion
 
     //region Overrides
@@ -225,6 +239,7 @@ public class TreatmentArm implements Identifiable<Integer>, Named, Serializable 
                 .add("name", this.name)
                 .add("description", this.description)
                 .add("plannedSubjectsCount", this.plannedSubjectsCount)
+                .add("isEnabled", this.isEnabled)
                 .toString();
     }
 

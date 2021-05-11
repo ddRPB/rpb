@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,29 +19,26 @@
 
 package de.dktk.dd.rpb.portal.web.mb.edc;
 
-import de.dktk.dd.rpb.core.domain.admin.*;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.edc.*;
 import de.dktk.dd.rpb.core.domain.edc.mapping.Mapping;
-import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.core.service.DataTransformationService;
-import de.dktk.dd.rpb.core.service.IMainzellisteService;
-import de.dktk.dd.rpb.core.service.MainzellisteService;
+import de.dktk.dd.rpb.core.service.OdmService;
+import de.dktk.dd.rpb.core.service.OpenClinicaService;
 import de.dktk.dd.rpb.core.util.FileUtil;
+import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
 
 import org.json.JSONObject;
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.event.FileUploadEvent;
+import org.primefaces.event.ToggleEvent;
 import org.primefaces.model.*;
 
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -58,7 +55,6 @@ import java.util.zip.ZipOutputStream;
  *
  * @author tomas@skripcak.net
  * @since 26 Jan 2015
- * @version 1.0.0
  */
 @Named("mbImportData")
 @Scope("view")
@@ -81,38 +77,12 @@ public class OCImportBean implements Serializable {
         return this.mainBean;
     }
 
-    /**
-     * Set MainBean
-     * @param bean MainBean
-     */
-    @SuppressWarnings("unused")
-    public void setMainBean(MainBean bean) {
-        this.mainBean = bean;
-    }
-
     //endregion
 
-    //region Study integration facade
+    //region StudyIntegrationFacade
 
     @Inject
     private StudyIntegrationFacade studyIntegrationFacade;
-
-    @SuppressWarnings("unused")
-    public void setStudyIntegrationFacade(StudyIntegrationFacade value) {
-        this.studyIntegrationFacade = value;
-    }
-
-    //endregion
-
-    //region Mainzelliste service
-
-    @Inject
-    private IMainzellisteService pidService;
-
-    @SuppressWarnings("unused")
-    public void setPidService(IMainzellisteService pidService) {
-        this.pidService = pidService;
-    }
 
     //endregion
 
@@ -130,6 +100,13 @@ public class OCImportBean implements Serializable {
 
     //endregion
 
+    //region OdmService
+
+    @Inject
+    protected OdmService svcOdmService;
+
+    //endregion
+
     //endregion
 
     //region  Members
@@ -140,14 +117,13 @@ public class OCImportBean implements Serializable {
 
     private Odm metadataOdm;
     private Odm importDataOdm;
-    private String selectedImportType;
     private UploadedFile uploadedFile;
-
-    private List<String> importTypes;
 
     private StudySubject selectedSubject;
     private List<StudySubject> subjectList;
     private List<StudySubject> filteredSubjects;
+
+    private OdmMatch selectedSubjectOdmMatch;
 
     private Mapping selectedMapping;
 
@@ -155,15 +131,34 @@ public class OCImportBean implements Serializable {
 
     private Integer subjectPerDataset;
 
+    private List<Boolean> subjectsColumnVisibilityList;
     private List<SortMeta> subjectsPreSortOrder;
 
     //endregion
 
     //region Properties
 
+    //region Study
+
     public Study getStudy() {
         return this.study;
     }
+
+    //endregion
+
+    //region MetadataODM
+
+    public Odm getMetadataOdm() {
+        return this.metadataOdm;
+    }
+
+    public void setMetadataOdm(Odm odm) {
+        this.metadataOdm = odm;
+    }
+
+    //endregion
+
+    //region ImportDataModel
 
     public Odm getImportDataOdm() {
         return this.importDataOdm;
@@ -173,6 +168,10 @@ public class OCImportBean implements Serializable {
         this.importDataOdm = odm;
     }
 
+    //endregion
+
+    //region SourceDataFile
+
     public UploadedFile getUploadedFile() {
         return this.uploadedFile;
     }
@@ -181,21 +180,7 @@ public class OCImportBean implements Serializable {
         this.uploadedFile = file;
     }
 
-    public String getSelectedImportType() {
-        return this.selectedImportType;
-    }
-
-    public void setSelectedImportType(String value) {
-        this.selectedImportType = value;
-    }
-
-    public List<String> getImportTypes() {
-        return this.importTypes;
-    }
-
-    public void setImportTypes(List<String> list) {
-        this.importTypes = list;
-    }
+    //endregion
 
     //region SelectedSubject
 
@@ -205,6 +190,8 @@ public class OCImportBean implements Serializable {
 
     public void setSelectedSubject(StudySubject subject) {
         this.selectedSubject = subject;
+        // Reset the match object on subject change
+        this.selectedSubjectOdmMatch = null;
     }
 
     public Boolean getIsSure() {
@@ -243,6 +230,18 @@ public class OCImportBean implements Serializable {
 
     //endregion
 
+    //region SelectedSubjectOdmMatch
+
+    public OdmMatch getSelectedSubjectOdmMatch() {
+        return selectedSubjectOdmMatch;
+    }
+
+    public void setSelectedSubjectOdmMatch(OdmMatch selectedSubjectOdmMatch) {
+        this.selectedSubjectOdmMatch = selectedSubjectOdmMatch;
+    }
+
+    //endregion
+
     //region SelectedMapping
 
     public Mapping getSelectedMapping() {
@@ -258,7 +257,7 @@ public class OCImportBean implements Serializable {
     //region Gender Values
 
     static {
-        genderValues = new LinkedHashMap<String,Object>();
+        genderValues = new LinkedHashMap<>();
         genderValues.put("Male", "m"); //label, value
         genderValues.put("Female", "f");
     }
@@ -301,32 +300,49 @@ public class OCImportBean implements Serializable {
 
     //endregion
 
+    //region ColumnVisibilityList
+
+    public List<Boolean> getSubjectsColumnVisibilityList() {
+        return subjectsColumnVisibilityList;
+    }
+
+    public void setSubjectsColumnVisibilityList(List<Boolean> columnVisibilityList) {
+        this.subjectsColumnVisibilityList = columnVisibilityList;
+    }
+
+    //endregion
+
     //endregion
 
     //region Init
 
     @PostConstruct
     public void init() {
-        // These are data import types which we want to support
-        this.importTypes = new ArrayList<String>();
-        this.importTypes.add("Complete study data");
-        this.importTypes.add("Quantitative image analysis");
-
-        // By default select the first type = Complete study data
-        this.selectedImportType = this.importTypes.get(0);
-
         // Default one subject per ODM XML file
         this.subjectPerDataset = 1;
 
+        this.setSubjectsColumnVisibilityList(
+                this.buildColumnVisibilityList()
+        );
         this.setSubjectsPreSortOrder(
-                this.buildSubjectsSortOrder()
+            this.buildSubjectsSortOrder()
         );
 
         // Load initial data
         this.load();
+    }
 
-        // Init service
-        this.initPidService();
+    //endregion
+
+    //region EventHandlers
+
+    public void onSubjectEntityToggle(ToggleEvent e) {
+        try {
+            this.subjectsColumnVisibilityList.set(((Integer) e.getData() - 1), e.getVisibility() == Visibility.VISIBLE);
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
     }
 
     //endregion
@@ -353,9 +369,8 @@ public class OCImportBean implements Serializable {
      */
     public void reloadSubjects() {
         try {
-            this.studyIntegrationFacade.init(this.mainBean);
             List<StudySubject> enrolledSubjects = this.studyIntegrationFacade.loadStudySubjects();
-            this.importDataOdm.updateSubjectKeys(enrolledSubjects);
+            this.importDataOdm.updateSubjectKeys(enrolledSubjects, this.metadataOdm.getStudyDetails().getStudyParameterConfiguration().getStudySubjectIdGeneration());
             this.subjectList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
             this.messageUtil.infoText("Enrolled study subject [" + this.subjectList.size() + "] details reloaded from EDC." );
         }
@@ -369,32 +384,26 @@ public class OCImportBean implements Serializable {
      */
     public void transformData() {
         try {
-            if (this.selectedImportType.equals("Complete study data")) {
+            // Almost correct import data (Subject key has to be loaded after study subject enrollment)
+            this.importDataOdm  = this.svcDataTransformation.transformToOdm(
+                    this.metadataOdm,
+                    this.selectedMapping,
+                    this.uploadedFile.getInputstream(),
+                    this.uploadedFile.getFileName()
+            );
 
-                // Almost correct import data (Subject key has to be loaded after study subject enrollment)
-                this.importDataOdm  = this.svcDataTransformation.transformToOdm(
-                        this.metadataOdm,
-                        this.selectedMapping,
-                        this.uploadedFile.getInputstream(),
-                        this.uploadedFile.getFileName()
-                );
+            // Load detected subjects
+            if (this.importDataOdm != null &&
+                this.importDataOdm.getClinicalDataList() != null &&
+                this.importDataOdm.getClinicalDataList().size() == 1) {
 
-                // Load detected subjects
-                if (this.importDataOdm != null &&
-                    this.importDataOdm.getClinicalDataList() != null &&
-                    this.importDataOdm.getClinicalDataList().size() == 1) {
-
-                    this.subjectList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
-                }
-                else {
-                    throw new Exception("Failed to create clinical data model.");
-                }
-
-                this.messageUtil.infoText("Import ODM data model created: " + this.importDataOdm.getDescription());
+                this.subjectList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
             }
-//            else if (this.selectedImportType.equals("Quantitative image analysis")) {
-//                // TODO: questionable when Robert leaves oncoray who knows whether we are going to do it
-//            }
+            else {
+                throw new Exception("Failed to create clinical data model.");
+            }
+
+            this.messageUtil.infoText("Import ODM data model created: " + this.importDataOdm.getDescription());
         }
         catch (Exception err) {
             this.messageUtil.error(err);
@@ -404,7 +413,6 @@ public class OCImportBean implements Serializable {
     /**
      * Generate PIDs for detected subjects
      */
-    @SuppressWarnings("unused")
     public void generatePseudonyms() {
         try {
             if (this.subjectList != null) {
@@ -413,14 +421,14 @@ public class OCImportBean implements Serializable {
                     // Only for patient without pseudonym
                     if (subject.getPid() == null || subject.getPid().equals("")) {
 
-                        JSONObject finalResult = this.pidService.newSession();
+                        JSONObject finalResult = this.mainBean.getSvcPid().newSession();
 
                         String sessionId = "";
                         if (finalResult != null) {
                             sessionId = finalResult.getString("sessionId");
                         }
 
-                        finalResult = this.pidService.newPatientToken(sessionId);
+                        finalResult = this.mainBean.getSvcPid().newPatientToken(sessionId);
 
                         String tokenId = "";
                         if (finalResult != null) {
@@ -428,42 +436,38 @@ public class OCImportBean implements Serializable {
                         }
 
                         if (subject.getPerson().getIsSure()) {
-                            finalResult = this.pidService.createSurePatienJson(tokenId, subject.getPerson());
-                        } else {
-                            finalResult = this.pidService.createPatientJson(tokenId, subject.getPerson());
+                            finalResult = this.mainBean.getSvcPid().createSurePatientJson(tokenId, subject.getPerson());
+                        }
+                        else {
+                            finalResult = this.mainBean.getSvcPid().getCreatePatientJsonResponse(tokenId, subject.getPerson());
                         }
 
                         String newId;
-                        Boolean tentative = false;
-                        Boolean unsure = false;
-
                         if (finalResult != null) {
                             newId = finalResult.optString("newId");
-                            subject.setPid(newId);
-                            subject.getPerson().setPid(newId);
+
+                            String rpbPid = this.mainBean.constructMySubjectFullPid(newId);
+
+                            subject.setPid(rpbPid);
+                            subject.getPerson().setPid(rpbPid);
                             generatedPids++;
                         }
 
-                        // Delete session if it exists (however session cleanup can be also automaticaly done by Mainzelliste)
-                        this.pidService.deleteSession(sessionId);
+                        // Delete session if it exists (however session cleanup can be also automatically done by Mainzelliste)
+                        this.mainBean.getSvcPid().deleteSession(sessionId);
                     }
                 }
 
-                this.messageUtil.info("PIDs for " + Integer.toString(generatedPids) + " subjects sucesfully generated.");
+                this.messageUtil.info("PIDs for " + Integer.toString(generatedPids) + " subjects successfully generated.");
             }
         }
         catch (Exception err) {
             this.messageUtil.error("PID generation failed: ", err.getMessage());
-
-            // Unsure patient
-            if (err.getMessage().contains("Failed : HTTP error code: 409")) {
-                this.messageUtil.error("Failed because of unsure patient identity.");
-            }
         }
     }
 
     /**
-     * Enroll subjects into study in OC EDC
+     * Enroll subjects into study in OC EDC study
      */
     public void enrolSubjects() {
         //TODO: before enrollment check if subject comply the study configuration PID, SS ID, Gender, Date of Birth... etc.
@@ -518,7 +522,29 @@ public class OCImportBean implements Serializable {
                     this.subjectPerDataset
             );
 
-            this.messageUtil.info("Import sucessfuly finished.");
+            this.messageUtil.info("Import successfully finished.");
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    /**
+     * Import subject source data from import model to target system
+     * @param studySubject StudySubject
+     */
+    public void importSubjectData(StudySubject studySubject) {
+        try {
+            if (this.importDataOdm != null && studySubject != null) {
+
+                // Find ODM resource for selected study subject from source data
+                Odm sourceSubjectOdm = this.importDataOdm.findUniqueOdmOrNoneForSubject(
+                        studySubject.getSubjectKey()
+                );
+
+                this.studyIntegrationFacade.importData(sourceSubjectOdm, 1);
+                this.messageUtil.info("Import successfully finished.");
+            }
         }
         catch (Exception err) {
             this.messageUtil.error(err);
@@ -569,6 +595,56 @@ public class OCImportBean implements Serializable {
     }
 
     /**
+     * Compare source data import model with extract from target system for all subjects
+     */
+    public void compareData() {
+        boolean allEqual = true;
+        for (StudySubject studySubject : this.subjectList) {
+            this.compareSubjectData(studySubject);
+            if (!this.selectedSubjectOdmMatch.getMatch()) {
+                allEqual = false;
+                break;
+            }
+        }
+
+        if (allEqual) {
+            this.messageUtil.info("Source data after mapping equals target data.");
+        }
+        else {
+            this.messageUtil.warning("Non equality found for subject: " + this.selectedSubjectOdmMatch.getClinicalDataMatchList().get(0).getSubjectDataMatchList().get(0).getSubjectKey());
+        }
+    }
+
+    /**
+     * Compare source data import model with extract from target system
+     * @param studySubject StudySubject
+     */
+    public void compareSubjectData(StudySubject studySubject) {
+        try {
+            if (this.importDataOdm != null && studySubject != null) {
+
+                // Find ODM resource for selected study subject from source data
+                Odm sourceSubjectOdm = this.importDataOdm.findUniqueOdmOrNoneForSubject(
+                        studySubject.getSubjectKey()
+                );
+
+                // Load ODM resource for selected study subject from target data
+                String queryOdmXmlPath = this.mainBean.getActiveStudy().getOcoid() + "/" + studySubject.getSubjectKey() + "/*/*";
+                Odm targetSubjectOdm = this.mainBean.getOpenClinicaService().getStudyCasebookOdm(
+                        OpenClinicaService.CasebookFormat.XML,
+                        OpenClinicaService.CasebookMethod.VIEW,
+                        queryOdmXmlPath
+                );
+
+                this.selectedSubjectOdmMatch = this.svcOdmService.compareOdm(sourceSubjectOdm, targetSubjectOdm);
+            }
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    /**
      * Update selected subject
      */
     public void doUpdateSubject() {
@@ -606,44 +682,40 @@ public class OCImportBean implements Serializable {
     //region Private methods
 
     /**
-     * Construct PID service for communication with Mainzelliste server associated to logged user partner site
+     * Need to build an initial sort order for data table multi sort
+     * @return List of SortMeta objects
      */
-    private void initPidService() {
-        try {
-            DefaultAccount myAccount = this.mainBean.getMyAccount();
-
-            String adminUsername = myAccount.getPartnerSite().getPid().getAdminUsername();
-            String adminPassword = myAccount.getPartnerSite().getPid().getAdminPassword();
-
-            String apiKey = myAccount.getPartnerSite().getPid().getApiKey();
-            String genratorBaseUrl = myAccount.getPartnerSite().getPid().getGeneratorBaseUrl();
-            String callback = myAccount.getPartnerSite().getPortal().getPortalBaseUrl();
-
-            this.pidService = new MainzellisteService();
-            this.pidService.setupConnectionInfo(genratorBaseUrl, apiKey, callback);
-            this.pidService.setupAdminConnectionInfo(adminUsername, adminPassword);
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
     private List<SortMeta> buildSubjectsSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results =  DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colStudySubjectId");
+        if (results != null) {
+            return results;
+        }
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStudySubjectId");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
+    /**
+     * Create column visibility list
+     * @return List of Boolean values determining column visibility
+     */
+    protected List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> result = new ArrayList<>();
+
+        result.add(Boolean.TRUE); // IsEnabled
+        result.add(Boolean.TRUE); // StudySubjectID
+        result.add(Boolean.TRUE); // PID
+        result.add(Boolean.FALSE); // SubjectKey
+        result.add(Boolean.TRUE); // Gender
+        result.add(Boolean.TRUE); // Firstname
+        result.add(Boolean.TRUE); // Surname
+        result.add(Boolean.TRUE); // Birthdate
+        result.add(Boolean.FALSE); // Birthname
+        result.add(Boolean.FALSE); // City of residence
+        result.add(Boolean.FALSE); // ZIP
+
+        return result;
+    }
 
     //endregion
 

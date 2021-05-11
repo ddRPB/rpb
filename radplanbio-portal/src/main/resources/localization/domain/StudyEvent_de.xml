@@ -6,11 +6,11 @@
 
     <entry key="studyEvent">Ereignis</entry>
     <entry key="studyEvent_plural">Ereignisse</entry>
-    <entry key="studyEvent_reload">Neu laden vorhandenen Ereignisse</entry>
-    <entry key="studyEvent_print">Drucken Tabelle Ereignisse</entry>
-    <entry key="studyEvent_new">Definieren Sie eine neue Ereignis</entry>
-    <entry key="studyEvent_edit">Bearbeiten ausgewählte Ereignis</entry>
-    <entry key="studyEvent_delete">Löschen ausgewählte Ereignis</entry>
+    <entry key="studyEvent_reload">Vorhandenen Ereignisse neu laden</entry>
+    <entry key="studyEvent_print">Tabelle Ereignisse drucken</entry>
+    <entry key="studyEvent_new">Neue Ereignis definieren</entry>
+    <entry key="studyEvent_edit">Ausgewählte Ereignis bearbeiten</entry>
+    <entry key="studyEvent_delete">Ausgewählte Ereignis löschen</entry>
 
     <!-- attributes -->
     <entry key="studyEvent_oid">OID</entry>

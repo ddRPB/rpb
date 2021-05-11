@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ public class UserContextUtil {
         return switchToLocale(Locale.GERMAN);
     }
 
-    public String switchToFrech() {
+    public String switchToFrench() {
         return switchToLocale(Locale.FRANCE);
     }
 
@@ -96,6 +96,10 @@ public class UserContextUtil {
 
     public String getUsername() {
         return UserContext.getUsername();
+    }
+
+    public String getEmail() {
+        return UserContext.getEmail();
     }
 
     public String getPassword() {

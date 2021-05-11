@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,20 +21,26 @@ package de.dktk.dd.rpb.core.dao.edc;
 
 import java.lang.Object;
 import java.lang.String;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.List;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import de.dktk.dd.rpb.core.domain.ctms.Person;
 import de.dktk.dd.rpb.core.domain.edc.*;
 import de.dktk.dd.rpb.core.util.Constants;
+
+import org.openclinica.ws.beans.SiteType;
+import org.openclinica.ws.beans.StudyType;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 /**
- * OpenClinica Database Dao - data layer abstraction
- * Should be deprecated in the future (use only web services)
+ * JPA 2 Data Access Object for OpenClinica direct database queries
  *
  * @author tomas@skripcak.net
  * @since 14 Jun 2013
@@ -72,9 +78,37 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
         return result;
     }
 
+    public String getUserId(String username) {
+
+        String result = "";
+
+        String sql = "SELECT ua.user_id as ID from user_account ua where ua.user_name = ?";
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, username);
+
+        if (rows.size() > 0) {
+            result = rows.get(0).get("ID").toString();
+        }
+
+        return result;
+    }
+
+    public String getUserName(int id) {
+
+        String result = "";
+
+        String sql = "SELECT ua.user_name as UserName from user_account ua where ua.user_id = ?";
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, id);
+
+        if (rows.size() > 0) {
+            result = rows.get(0).get("UserName").toString();
+        }
+
+        return result;
+    }
+
     //endregion
 
-    //region Studies
+    //region Study
 
     /**
      * Get Study according to unique identifier
@@ -94,7 +128,7 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
                 "LEFT JOIN STATUS st on st.status_id = s.status_id\n" +
                 "WHERE s.unique_identifier = ?";
 
-        List<Study> studies = new ArrayList<Study>();
+        List<Study> studies = new ArrayList<>();
         List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, identifier);
 
         for (Map<String, Object> row : rows) {
@@ -181,15 +215,16 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
     }
 
     /**
-     * Update open clinica active study for specified user account
+     * Update OC active study for specified user account
      * @param username user account
      * @param newActiveStudy new active study
+     * @return true if rows updated
      */
     public boolean changeUserActiveStudy(String username, Study newActiveStudy) {
 
         String sql = "UPDATE USER_ACCOUNT\n" +
-                "SET active_study = ?\n" +
-                "WHERE user_name = ?";
+            "SET active_study = ?\n" +
+            "WHERE user_name = ?";
 
         Object[] params = { newActiveStudy.getId(), username };
         int rowsUpdated = getJdbcTemplate().update(sql, params);
@@ -199,7 +234,186 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
 
     //endregion
 
-    //region CRF item values
+    //region StudySubject
+    
+    public List<StudySubject> findStudySubjectsByPseudonym(String pid, List<StudyType> studyTypeList) {
+        List<StudySubject> results = new ArrayList<>();
+
+        String sql = "SELECT ss.study_subject_id AS studySubjectId,\n" +
+                "       ss.label AS studySubjectLabel,\n" +
+                "       ss.secondary_label AS studySubjectSecondaryId,\n" +
+                "       ss.oc_oid AS studySujectOid,\n" +
+                "       ss.enrollment_date AS studySubjectEnrollmentDate,\n" +
+                "       status.name AS studySubjectStatus,\n" +
+                "       s.gender AS subjectSex,\n" +
+                "       s.unique_identifier AS subjectPid,\n" +
+                "       study.unique_identifier AS studyIdentifier,\n" +
+                "       parent.unique_identifier AS parentStudyIdentifier\n" +
+                "  FROM study_subject ss\n" +
+                "  LEFT JOIN subject s ON ss.subject_id = s.subject_id\n" +
+                "  LEFT JOIN study study ON ss.study_id = study.study_id\n" +
+                "  LEFT JOIN study parent ON study.parent_study_id = parent.study_id\n" +
+                "  LEFT JOIN status status ON ss.status_id = status.status_id\n" +
+                "  WHERE s.unique_identifier = ?";
+
+        Object[] params = {pid};
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, params);
+
+        for (Map<String, Object> row : rows) {
+            StudySubject studySubject = new StudySubject();
+
+            studySubject.setId((Integer) row.get("studySubjectId"));
+            studySubject.setStudySubjectId((String) row.get("studySubjectLabel"));
+            studySubject.setSecondaryId((String) row.get("studySubjectSecondaryId"));
+            studySubject.setSubjectKey((String) row.get("studySubjectOid"));
+            studySubject.setStatus((String) row.get("studySubjectStatus"));
+
+            java.sql.Date sqlStartDate = (java.sql.Date) row.get("studySubjectEnrollmentDate");
+            Date startDate = new Date(sqlStartDate.getTime());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            studySubject.setEnrollmentDate(sdf.format(startDate));
+
+            studySubject.setSex((String) row.get("subjectSex"));
+            studySubject.setPid((String) row.get("subjectPid"));
+
+            // Setup also person (may be needed)
+            Person person = new Person();
+            person.setPid(studySubject.getPid());
+            studySubject.setPerson(person);
+
+            String studyIdentifier = (String) row.get("studyIdentifier");
+            String parentStudyIdentifier = (String) row.get("parentStudyIdentifier");
+
+            // Associate only with studies accessible for requesting user (passed as argument)
+            if (studyTypeList != null) {
+                for (StudyType st : studyTypeList) {
+
+                    boolean isStudySiteSubject = false;
+
+                    if (studyIdentifier != null && !studyIdentifier.isEmpty() &&
+                        parentStudyIdentifier != null && !parentStudyIdentifier.isEmpty()) {
+
+                        isStudySiteSubject = true;
+                    }
+
+                    // Processing multi centre study
+                    if (st.getSites() != null &&
+                        st.getSites().getSite() != null &&
+                        st.getSites().getSite().size() > 0) {
+
+                        // Retrieved studySubject is enrolled to study site
+                        if (isStudySiteSubject) {
+                            if (parentStudyIdentifier.equalsIgnoreCase(st.getIdentifier())) {
+
+                                for (SiteType site : st.getSites().getSite()) {
+
+                                    if (studyIdentifier.equalsIgnoreCase(site.getIdentifier())) {
+                                        Study siteStudy = new Study();
+
+                                        siteStudy.setOid(site.getOid());
+                                        siteStudy.setName(site.getName());
+                                        siteStudy.setUniqueIdentifier(site.getIdentifier());
+
+                                        // Assign site to parent study
+                                        siteStudy.setParentStudy(new Study(st));
+
+                                        // Assign site study to studySubject
+                                        studySubject.setStudy(siteStudy);
+
+                                        // Study Subject can be displayed
+                                        results.add(studySubject);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Processing mono centre study
+                    else {
+                        if (studyIdentifier.equalsIgnoreCase(st.getIdentifier())) {
+
+                            // Assign study to studySubject
+                            studySubject.setStudy(new Study(st));
+
+                            // Study Subject can be displayed
+                            results.add(studySubject);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return results;
+    }
+
+    //endregion
+
+    //region EventData
+
+    /**
+     * Get list of StudySubject EventData occurrences for specified EventDefinition
+     * @param studySubject specified StudySubject - OC OID
+     * @param eventDefinition specified EventDefinition - OC OID
+     * @return List of StudySubject EventData occurrences
+     */
+    public List<EventData> getEventData(StudySubject studySubject, EventDefinition eventDefinition) {
+        List<EventData> results = new ArrayList<>();
+
+        String sql = "SELECT se.study_event_id AS id, sed.name AS eventName, se.sample_ordinal AS repeatKey, " +
+                "se.date_start AS dateStart\n" +
+                "FROM STUDY_EVENT se\n" +
+                "JOIN STUDY_EVENT_DEFINITION sed\n" +
+                "ON se.study_event_definition_id = sed.study_event_definition_id\n" +
+                "JOIN STUDY_SUBJECT ss\n" +
+                "ON se.study_subject_id = ss.study_subject_id\n" +
+                "WHERE ss.oc_oid = ? AND sed.oc_oid = ?";
+
+        Object[] params = { studySubject.getSubjectKey(), eventDefinition.getOid() };
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, params);
+
+        for (Map<String, Object> row : rows) {
+            EventData event = new EventData();
+
+            event.setStudyEventOid(eventDefinition.getOid());
+            event.setId((Integer) row.get("id"));
+            event.setEventName((String) row.get("eventName"));
+
+            Timestamp timestamp = (Timestamp) row.get("dateStart");
+            Date startDate = new Date(timestamp.getTime());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss'.0'");
+            event.setStartDate(sdf.format(startDate));
+
+            int repeatKey = (Integer) row.get("repeatKey");
+            event.setStudyEventRepeatKey(String.valueOf(repeatKey));
+
+            results.add(event);
+        }
+
+        return results;
+    }
+
+    /**
+     * Update OC study event repeat key
+     * @param eventData study event data occurrence - OC ID
+     * @param sampleOrdinal new repeat key
+     * @return true if rows updated
+     */
+    public boolean changeStudyEventRepeatKey(EventData eventData, int sampleOrdinal) {
+
+        String sql = "UPDATE STUDY_EVENT\n" +
+            "SET sample_ordinal = ?\n" +
+            "WHERE study_event_id = ?";
+
+        Object[] params = { sampleOrdinal, eventData.getId() };
+        int rowsUpdated = getJdbcTemplate().update(sql, params);
+
+        return rowsUpdated > 0;
+    }
+
+    //endregion
+
+    //region ItemData
 
     /**
      * Query all data item in a study
@@ -394,43 +608,43 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
                 "ON ec.event_crf_id = id.event_crf_id\n" +
                 "AND i.item_id = id.item_id\n" +
                 "LEFT JOIN\n" + // Associate with decoded value for specific ItemTypes -> responseSetType (3, 5, 6, 7)
-                "(\n" +
-                "\tSELECT\n" + // Make union of ResponseSets (for decoding)
-                "\t  version_id as crf_version_id\n" +
-                "\t, response_set_id as set_id\n" +
-                "\t, label\n" +
-                "\t, options_values as value\n" +
-                "\t, options_text as decode\n" +
-                "\tFROM RESPONSE_SET\n" +
-                "\tWHERE response_type_id = 3\n" + // check box (select one from many options)
-                "\t UNION\n" +
-                "\tSELECT\n" +
-                "\t  version_id as crf_version_id\n" +
-                "\t, response_set_id as set_id\n" +
-                "\t, label\n" +
-                "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
-                "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
-                "\tFROM RESPONSE_SET\n" +
-                "\tWHERE response_type_id = 5\n" + // radio (select one from many options)
-                "\t UNION\n" +
-                "\tSELECT\n" +
-                "\t  version_id as crf_version_id\n" +
-                "\t, response_set_id as set_id\n" +
-                "\t, label\n" +
-                "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
-                "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
-                "\tFROM RESPONSE_SET\n" +
-                "\tWHERE response_type_id = 6\n" + // drop down list (select one from many options)
-                "\t UNION\n" +
-                "\tSELECT\n" +
-                "\t  version_id as crf_version_id\n" +
-                "\t, response_set_id as set_id\n" +
-                "\t, label\n" +
-                "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
-                "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
-                "\tFROM RESPONSE_SET\n" +
-                "\tWHERE response_type_id = 7\n" + // list box (select one or more from many options)
-                "\t) cls\n" +
+                    "(\n" +
+                    "\tSELECT\n" + // Make union of ResponseSets (for decoding)
+                    "\t  version_id as crf_version_id\n" +
+                    "\t, response_set_id as set_id\n" +
+                    "\t, label\n" +
+                    "\t, options_values as value\n" +
+                    "\t, options_text as decode\n" +
+                    "\tFROM RESPONSE_SET\n" +
+                    "\tWHERE response_type_id = 3\n" + // check box (select one from many options)
+                    "\t UNION\n" +
+                    "\tSELECT\n" +
+                    "\t  version_id as crf_version_id\n" +
+                    "\t, response_set_id as set_id\n" +
+                    "\t, label\n" +
+                    "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
+                    "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
+                    "\tFROM RESPONSE_SET\n" +
+                    "\tWHERE response_type_id = 5\n" + // radio (select one from many options)
+                    "\t UNION\n" +
+                    "\tSELECT\n" +
+                    "\t  version_id as crf_version_id\n" +
+                    "\t, response_set_id as set_id\n" +
+                    "\t, label\n" +
+                    "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
+                    "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
+                    "\tFROM RESPONSE_SET\n" +
+                    "\tWHERE response_type_id = 6\n" + // drop down list (select one from many options)
+                    "\t UNION\n" +
+                    "\tSELECT\n" +
+                    "\t  version_id as crf_version_id\n" +
+                    "\t, response_set_id as set_id\n" +
+                    "\t, label\n" +
+                    "\t, trim (both from regexp_split_to_table(options_values, E',')) as value\n" +
+                    "\t, trim (both from regexp_split_to_table(options_text, E',')) as decode\n" +
+                    "\tFROM RESPONSE_SET\n" +
+                    "\tWHERE response_type_id = 7\n" + // list box (select one or more from many options)
+                    "\t) cls\n" +
                 "ON ifm.response_set_id = cls.set_id\n" +
                 "AND ifm.crf_version_id = cls.crf_version_id\n" +
                 "AND id.value = cls.value\n" +

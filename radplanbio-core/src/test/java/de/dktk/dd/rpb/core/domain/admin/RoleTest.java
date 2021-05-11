@@ -1,15 +1,31 @@
 package de.dktk.dd.rpb.core.domain.admin;
 
-import static org.junit.Assert.*;
-
 import de.dktk.dd.rpb.core.util.ValueGenerator;
+import org.apache.log4j.Logger;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 /**
  * Basic tests for Role
  */
 @SuppressWarnings("unused")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({RoleTest.class, Logger.class})
 public class RoleTest {
+
+    @Before
+    public void executedBeforeEach() {
+        mockStatic(Logger.class);
+        Logger logger = mock(Logger.class);
+        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+    }
 
     // test unique primary key
     @Test
@@ -41,9 +57,9 @@ public class RoleTest {
         String roleName = ValueGenerator.getUniqueString(100);
         model1.setName(roleName);
         model2.setName(roleName);
-        assertTrue(model1.equals(model2));
-        assertTrue(model2.equals(model1));
-        assertTrue(model1.hashCode() == model2.hashCode());
+        assertEquals(model1, model2);
+        assertEquals(model2, model1);
+        assertEquals(model1.hashCode(), model2.hashCode());
     }
 
 }

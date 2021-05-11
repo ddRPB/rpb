@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ public abstract class AbstractConstraint<T> implements Identifiable<Integer>, Se
     private Integer id; // pk, auto increment, serial
 
     // Many to One
-    AbstractCriterion<? extends Serializable, ? extends AbstractConstraint<? extends Serializable>> criterion;
+    private AbstractCriterion<? extends Serializable, ? extends AbstractConstraint<? extends Serializable>> criterion;
 
     //endregion
 

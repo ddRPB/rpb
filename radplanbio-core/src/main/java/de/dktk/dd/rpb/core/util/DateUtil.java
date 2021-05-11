@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package de.dktk.dd.rpb.core.util;
 
 import java.util.Date;
 
-@SuppressWarnings("unused")
 public class DateUtil {
 
     /**
@@ -29,7 +28,7 @@ public class DateUtil {
      * Useful for JPA equality concern when comparing Date from Java world (with millisec precision) with date
      * retrieved from Oracle (second precision only).
      */
-    public boolean secondPrecisionDateEquality(Date date1, Date date2) {
+    public static boolean secondPrecisionDateEquality(Date date1, Date date2) {
         return secondPrecisionDate(date1).equals(secondPrecisionDate(date2));
     }
 

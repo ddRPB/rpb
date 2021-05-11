@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,26 +20,17 @@
 package de.dktk.dd.rpb.portal.web.mb.admin;
 
 import de.dktk.dd.rpb.core.domain.edc.*;
-import de.dktk.dd.rpb.core.domain.ctms.Study;
-import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
 import de.dktk.dd.rpb.core.repository.edc.ICrfFieldAnnotationRepository;
 
-import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 
-import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
-
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.model.DualListModel;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
@@ -59,68 +50,9 @@ import java.util.List;
 @Scope("view")
 public class CrfAnnotationBean extends CrudEntityViewModel<CrfFieldAnnotation, Integer> {
 
-    //region Injects
-
-    //region Main bean
-
-    @Inject
-    private MainBean mainBean;
-
-    /**
-     * Set MainBean
-     *
-     * @param bean MainBean
-     */
-    @SuppressWarnings("unused")
-    public void setMainBean(MainBean bean) {
-        this.mainBean = bean;
-    }
-
-    //endregion
-
-    //region Study repository
-
-    @Inject
-    private IStudyRepository studyRepository;
-
-    @SuppressWarnings("unused")
-    public void setStudyRepository(IStudyRepository value) {
-        this.studyRepository = value;
-    }
-
-    //endregion
-
-    //region Repository
-
-    @Inject
-    private ICrfFieldAnnotationRepository repository;
-
-    /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    @Override
-    public ICrfFieldAnnotationRepository getRepository() {
-        return this.repository;
-    }
-
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(ICrfFieldAnnotationRepository repository) {
-        this.repository = repository;
-    }
-
-    //endregion
-
-    //endregion
-
     //region Members
 
-    private de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy;
+    private ICrfFieldAnnotationRepository repository;
 
     private List<EventDefinition> eventDefinitionList;
     private EventDefinition selectedEventDefinition;
@@ -131,16 +63,26 @@ public class CrfAnnotationBean extends CrudEntityViewModel<CrfFieldAnnotation, I
 
     //endregion
 
-    //region Properties
+    //region Constructors
 
-    //region RadPlanBio Study
-
-    public Study getRpbStudy() {
-        return this.rpbStudy;
+    @Inject
+    public CrfAnnotationBean(ICrfFieldAnnotationRepository repository) {
+        this.repository = repository;
     }
 
-    public void setRpbStudy(Study value) {
-        this.rpbStudy = value;
+    //endregion
+
+    //region Properties
+
+    //region Repository
+
+    /**
+     * Get StructTypeRepository
+     * @return StructTypeRepository
+     */
+    @Override
+    public ICrfFieldAnnotationRepository getRepository() {
+        return this.repository;
     }
 
     //endregion
@@ -211,12 +153,12 @@ public class CrfAnnotationBean extends CrudEntityViewModel<CrfFieldAnnotation, I
 
     @PostConstruct
     public void init() {
+        this.setColumnVisibilityList(
+                this.buildColumnVisibilityList()
+        );
         this.setPreSortOrder(
                 this.buildSortOrder()
         );
-        // Load data
-        this.loadCrfFieldAnnotations();
-        this.loadStudyMetadata();
     }
 
     //endregion
@@ -283,144 +225,7 @@ public class CrfAnnotationBean extends CrudEntityViewModel<CrfFieldAnnotation, I
     public void reloadItems() {
 
         // Prepare model for PickList
-        this.itemDefinitions = new DualListModel<ItemDefinition>(this.selectedItemGroupDefinition.getItemDefs(), new ArrayList<ItemDefinition>());
-    }
-
-    //endregion
-
-    //region  Reload
-
-    /**
-     * Reload eCRF annotation data for active study for
-     */
-    public void loadCrfFieldAnnotations() {
-        try {
-            // Reload eCRF annotations and their possible types form DB
-            if (this.mainBean.getActiveStudy().getParentStudy() != null) {
-                this.rpbStudy = this.studyRepository.getByOcStudyIdentifier((this.mainBean.getActiveStudy().getParentStudy().getUniqueIdentifier()));
-            }
-            else {
-                this.rpbStudy = this.studyRepository.getByOcStudyIdentifier(this.mainBean.getActiveStudy().getUniqueIdentifier());
-            }
-            if (this.rpbStudy == null) {
-                throw new Exception("There is no RadPlanBio study associated to your current active OpenClinica study!");
-            }
-
-            // Reset selected
-            this.selectedEventDefinition = null;
-            this.selectedFormDefinition = null;
-            this.selectedItemGroupDefinition = null;
-            this.itemDefinitions = null;
-
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     * Reload study metadata from EDC OpenClinica
-     */
-    public void loadStudyMetadata() {
-        try {
-            // Get ODM metadata for user's active study
-            MetadataODM metadata =  this.mainBean.getOpenClinicaService()
-                    .getStudyMetadata(
-                            this.mainBean.getActiveStudy().getUniqueIdentifier()
-                    );
-
-            // XML to DomainObjects
-            Odm odm = metadata.unmarshallOdm();
-            odm.updateHierarchy();
-            this.eventDefinitionList = odm.getStudyByOid(this.mainBean.getActiveStudy().getOcoid())
-                    .getMetaDataVersion()
-                    .getStudyEventDefinitions();
-        }
-        catch (Exception err) {
-            messageUtil.error(err);
-        }
-    }
-
-    //endregion
-
-    //region eCRF annotation CRUD
-
-    /**
-     * Create a new eCRF field annotation for a study
-     */
-    public void doCreateAnnotation() {
-        try {
-
-            // Collect selection
-            for (ItemDefinition selectedItem : this.itemDefinitions.getTarget()) {
-                this.newEntity = new CrfFieldAnnotation(this.newEntity);
-                this.newEntity.setStudy(this.rpbStudy);
-                this.newEntity.setCrfItemOid(selectedItem.getOid());
-                this.rpbStudy.addCrfFieldAnnotation(this.newEntity);
-            }
-
-            // Commit
-            this.studyRepository.merge(this.rpbStudy);
-
-            // Info
-            this.messageUtil.infoText("Insert Successful: eCRF annotation(s): " +
-                    newEntity.getAnnotationType().getName() +
-                    " successfuly assigned to eCRF field: " +
-                    newEntity.getCrfItemOid() +
-                    " of " + this.rpbStudy.getOcStudyIdentifier() + " study.");
-
-            // Reload annotations form DB
-            this.loadCrfFieldAnnotations();
-
-            // Prepare new
-            this.setNewEntity(new CrfFieldAnnotation());
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     * Update existing eCRF field annotation
-     * @param actionEvent action event
-     */
-    @SuppressWarnings("unused")
-    public void doUpdateAnnotation(ActionEvent actionEvent){
-        try {
-            this.studyRepository.merge(this.rpbStudy);
-
-            this.messageUtil.infoText("Edit Successful: Annotation for eCRF field: " +
-                    this.selectedEntity.getCrfItemOid() +
-                    " successfuly updated.");
-
-            // Reload annotations form DB
-            this.loadCrfFieldAnnotations();
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     * Delete existing eCRF field annotation
-     * @param actionEvent action event
-     */
-    @SuppressWarnings("unused")
-    public void doDeleteAnnotation(ActionEvent actionEvent){
-        try {
-            this.rpbStudy.removeCrfFieldAnnotation(this.selectedEntity);
-            this.studyRepository.merge(this.rpbStudy);
-
-            this.messageUtil.infoText("Delete Successful: Annotation for eCRF field: " +
-                    this.selectedEntity.getCrfItemOid() +
-                    " successfuly deleted.");
-
-            // Reload annotations form DB
-            this.loadCrfFieldAnnotations();
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
+        this.itemDefinitions = new DualListModel<>(this.selectedItemGroupDefinition.getItemDefs(), new ArrayList<ItemDefinition>());
     }
 
     //endregion
@@ -437,34 +242,45 @@ public class CrfAnnotationBean extends CrudEntityViewModel<CrfFieldAnnotation, I
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    public void prepareNewEntity(List<EventDefinition> eventDefinitions) {
+        this.eventDefinitionList = eventDefinitions;
+        this.prepareNewEntity();
+    }
+
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colCrfAnnotationEventDefOid", "colCrfAnnotationEventDefOid", SortOrder.ASCENDING);
+        List<SortMeta> results1 = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colCrfAnnotationItemDefOid", "colCrfAnnotationItemDefOid", SortOrder.ASCENDING);
+        if (results1 != null) {
+            if (results != null) {
+                results.addAll(results1);
+                return results;
+            }
+            else {
+                return results1;
+            }
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
+        return new ArrayList<>();
+    }
 
-        UIComponent column1 = viewRoot.findComponent(":form:tabView:dtEntities:colCrfAnnotationEventDefOid");
+    /**
+     * Create column visibility list
+     * @return List of Boolean values determining column visibility
+     */
+    protected List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> result = new ArrayList<>();
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column1);
-        sm1.setSortField("colCrfAnnotationEventDefOid");
-        sm1.setSortOrder(SortOrder.ASCENDING);
+        result.add(Boolean.TRUE); // Event
+        result.add(Boolean.FALSE); // Form
+        result.add(Boolean.FALSE); // Group
+        result.add(Boolean.TRUE); //  Item
+        result.add(Boolean.TRUE); // Annotation Type
 
-        results.add(sm1);
-
-        UIComponent column2 = viewRoot.findComponent(":form:tabView:dtEntities:colCrfAnnotationItemDefOid");
-
-        SortMeta sm2 = new SortMeta();
-        sm2.setSortBy((UIColumn) column2);
-        sm2.setSortField("colCrfAnnotationItemDefOid");
-        sm2.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm2);
-
-        return results;
+        return result;
     }
 
     //endregion

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ package de.dktk.dd.rpb.portal.web.mb.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.ctms.StudyDoc;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyDocRepository;
+import de.dktk.dd.rpb.core.service.IFileStorageService;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
 import org.apache.commons.io.FilenameUtils;
@@ -35,14 +36,12 @@ import org.springframework.context.annotation.Scope;
 
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIViewRoot;
-import javax.faces.context.ExternalContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
 
 import javax.faces.context.FacesContext;
-import javax.servlet.ServletContext;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -92,17 +91,38 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
 
     //endregion
 
+    //region Services
+
+    @Inject
+    private IFileStorageService fileStorageService;
+
+    @SuppressWarnings("unused")
+    public void setFileStorageService(IFileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
+
+    //endregion
+
     //endregion
 
     //region Properties
 
     public StreamedContent getFile() {
-        ExternalContext extContext = FacesContext.getCurrentInstance().getExternalContext();
+        //ExternalContext extContext = FacesContext.getCurrentInstance().getExternalContext();
 
         String extension = FilenameUtils.getExtension(this.selectedEntity.getFilename());
-        InputStream stream = ((ServletContext)extContext.getContext()).getResourceAsStream(
-                "/WEB-INF/files/" + this.selectedEntity.getStudy().getId() + "/" + this.selectedEntity.getFilename()
-        );
+//        InputStream stream = ((ServletContext)extContext.getContext()).getResourceAsStream(
+//                "/WEB-INF/files/" + this.selectedEntity.getStudy().getId() + "/" + this.selectedEntity.getFilename()
+//        );
+
+        InputStream stream = null;
+        try {
+            File file = this.fileStorageService.getFile("files/" + this.selectedEntity.getStudy().getId() + "/" + this.selectedEntity.getFilename());
+            stream = new FileInputStream(file);
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
 
         return new DefaultStreamedContent(stream, "application/" + extension, this.selectedEntity.getFilename());
     }
@@ -169,13 +189,11 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
      * @param event event
      */
     public void handleDocUpload(FileUploadEvent event) {
-        ExternalContext extContext = FacesContext.getCurrentInstance().getExternalContext();
-
         Study study = (Study)(event.getComponent().getAttributes().get("study"));
 
         try {
             // Check folder structure
-            File studyFolder = new File(extContext.getRealPath("//WEB-INF//files//" + study.getId() + "//"));
+            File studyFolder = this.fileStorageService.getFile("files//" + study.getId() + "//");
             if (!studyFolder.exists()) {
                 if (!studyFolder.mkdir()) {
                     throw new IOException("Failed to create a folder for study docs.");
@@ -183,7 +201,7 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
             }
 
             // Check file if it exists
-            File result = new File(extContext.getRealPath("//WEB-INF//files//" + "//" + study.getId() + "//" + event.getFile().getFileName()));
+            File result = this.fileStorageService.getFile("files//" + study.getId() + "//" + event.getFile().getFileName());
             if (result.exists()) {
                 throw new IOException("Study doc with the same filename already exists for the study.");
             }
@@ -219,12 +237,6 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
     }
 
     //endregion
-
-    //endregion
-
-    //region Commands
-
-
 
     //endregion
 

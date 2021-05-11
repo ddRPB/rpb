@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ public class DataTransformationService {
     //endregion
 
     //region Methods
-
+    
     public Odm transformToOdm(Odm metadata, Mapping map, InputStream input, String filename) {
         Odm result = null;
 
@@ -90,7 +90,7 @@ public class DataTransformationService {
         }
 
         if (result != null) {
-            result.sortItemGroupDataRepeatingLast();
+            result.sortItemGroupData();
         }
 
         return result;
@@ -130,6 +130,21 @@ public class DataTransformationService {
         return odmFile;
     }
 
+    public Odm transformXmlToOdm(InputStream input) {
+        Odm result = null;
+
+        try {
+            JAXBContext context = JAXBContext.newInstance(Odm.class);
+            Unmarshaller un = context.createUnmarshaller();
+            result = (Odm) un.unmarshal(input);
+        }
+        catch (Exception err) {
+            err.printStackTrace();
+        }
+
+        return result;
+    }
+
     public List<AbstractMappedItem> extractMappedDataItemDefinitions(InputStream input, String filename) {
         List<AbstractMappedItem> result = new ArrayList<>();
 
@@ -165,7 +180,7 @@ public class DataTransformationService {
 
         return result;
     }
-
+    
     private Odm transformCsvToOdm(Odm metadata, InputStream input, List<MappingRecord> mappingRecords) {
         // The resulting odm has to be formed according to the metadata
         Odm odmResult = null;
@@ -180,9 +195,18 @@ public class DataTransformationService {
 
             List<String> resultList;
             while ((resultList = reader.read()) != null) {
-                StudySubject subject = new StudySubject();
+
+                // Prepare fresh new study subject (conforming the SSID generation strategy)
+                StudySubject subject = new StudySubject(
+                    metadata.getStudyDetails().getStudyParameterConfiguration().getStudySubjectIdGeneration()
+                );
+
+                String eventStartDate = null;
                 int i = 0;
                 for (String item : sourceHeader) {
+
+                    // Get rid of starting and trailing spaces from column name
+                    item = item.trim();
 
                     // Find appropriate mapping record for each header item element
                     List<MappingRecord> applicableMappings = new ArrayList<>();
@@ -291,18 +315,32 @@ public class DataTransformationService {
                                 continue;
                             }
                         }
+                        else if (odmTarget.getItemOid().startsWith(Constants.SE_STARTDATE + "_SE")) {
+                            String sourceValue = resultList.get(i);
+                            SimpleDateFormat sourceFormat = new SimpleDateFormat(mr.getDateFormatString());
+                            SimpleDateFormat ocFormat = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+                            String result = "";
+                            try {
+                                result = ocFormat.format(sourceFormat.parse(sourceValue));
+                            }
+                            catch (ParseException e) {
+                                //result = this.parseDate(sourceValue);
+                            }
+
+                            eventStartDate = result;
+                        }
                         // The other study items (data fields)
                         else {
                             String sourceValue = resultList.get(i);
                             String targetValue = mr.process(sourceValue, metadata.getItemDefinition((MappedOdmItem)mr.getTarget()));
 
                             // Target value is empty string and this is not the default value
-                            if (targetValue.equals("") && !targetValue.equals(mr.getDefaultValue())) {
+                            if ("".equals(targetValue) && !targetValue.equals(mr.getDefaultValue())) {
                                 log.info("Mapping not be applied, going to next mapping record based on priority");
                             }
                             // According to target mapping result create the appropriate structure in ODM
                             else {
-                                subject.populateDataField(mr, targetValue);
+                                subject.populateDataField(mr, targetValue, eventStartDate);
                                 continue;
                             }
                         }
@@ -341,10 +379,10 @@ public class DataTransformationService {
             reader = new CsvListReader(new InputStreamReader(input), CsvPreference.STANDARD_PREFERENCE);
             String[] sourceHeader = this.reader.getHeader(true); // Ignore the header (first line)
 
-            for (String sh : sourceHeader) {
-                AbstractMappedItem mdi = new MappedCsvItem(sh);
-                result.add(mdi);
-            }
+           for (String sh : sourceHeader) {
+               AbstractMappedItem mdi = new MappedCsvItem(sh);
+               result.add(mdi);
+           }
         }
         catch (Exception err) {
             err.printStackTrace();

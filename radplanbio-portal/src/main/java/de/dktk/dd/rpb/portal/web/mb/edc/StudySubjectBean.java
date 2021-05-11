@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,11 @@ import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.repository.edc.IStudySubjectRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
@@ -41,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Bean for StudySbuject
+ * Bean for StudySubject
  *
  * @author tomas@skripcak.net
  * @since 02 Nov 2015
@@ -105,7 +102,7 @@ public class StudySubjectBean extends CrudEntityViewModel<StudySubject, Integer>
     //region Gender Values
 
     static {
-        genderValues = new LinkedHashMap<String,Object>();
+        genderValues = new LinkedHashMap<>();
         genderValues.put("Male", "m"); //label, value
         genderValues.put("Female", "f");
     }
@@ -138,29 +135,24 @@ public class StudySubjectBean extends CrudEntityViewModel<StudySubject, Integer>
     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtStudySubjects:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtStudySubjects:colStudySubjectId");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStudySubjectId");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         // Initial visibility of columns
         results.add(Boolean.TRUE); // SSID
+        results.add(Boolean.FALSE); // SecondaryID
         results.add(Boolean.TRUE); // Gender
         results.add(Boolean.TRUE); // EnrollmentDate
         results.add(Boolean.TRUE); // StudyName
+        results.add(Boolean.TRUE); // SiteName
 
         return results;
     }

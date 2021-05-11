@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,9 @@ package de.dktk.dd.rpb.core.domain.edc;
 import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
+import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
 
 import javax.persistence.Transient;
@@ -74,6 +76,7 @@ public class Study implements Identifiable<Integer>, Serializable {
     private Status status;
 
     private Study parentStudy;
+    private List<Study> studySites;
 
     @XmlTransient
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder(); // Object hash
@@ -86,10 +89,32 @@ public class Study implements Identifiable<Integer>, Serializable {
         // NOOP
     }
 
-    public Study(StudyType st) {
-        this.oid = st.getOid();
-        this.name = st.getName();
-        this.uniqueIdentifier = st.getIdentifier();
+    public Study(StudyType studyType) {
+        this();
+
+        this.oid = studyType.getOid();
+        this.name = studyType.getName();
+        this.uniqueIdentifier = studyType.getIdentifier();
+    }
+
+    public Study(StudyType parentStudyType, SiteType siteType) {
+        this();
+
+        this.parentStudy = new Study(parentStudyType);
+
+        this.oid = siteType.getOid();
+        this.name = siteType.getName();
+        this.uniqueIdentifier = siteType.getIdentifier();
+    }
+
+    public Study(Study parentStudy, SiteType siteType) {
+        this();
+
+        this.parentStudy = parentStudy;
+
+        this.oid = siteType.getOid();
+        this.name = siteType.getName();
+        this.uniqueIdentifier = siteType.getIdentifier();
     }
 
     //endregion
@@ -233,6 +258,18 @@ public class Study implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region StudySites
+
+    public List<Study> getStudySites() {
+        return this.studySites;
+    }
+
+    public void setStudySites(List<Study> studySites) {
+        this.studySites = studySites;
+    }
+
+    //endregion
+
     //region OC Study UniqueIdentifier
 
     /**
@@ -253,6 +290,30 @@ public class Study implements Identifiable<Integer>, Serializable {
      */
     public String getOcStudyName() {
         return this.parentStudy != null ? this.parentStudy.getName() : this.name;
+    }
+
+    //endregion
+
+    //region OC Site UniqueIdentifier
+
+    /**
+     * Get site identifier for multi-centre study only
+     * @return OC site identifier
+     */
+    public String getOcSiteIdentifier() {
+        return this.parentStudy != null ? this.uniqueIdentifier : null;
+    }
+
+    //endregion
+
+    //region OC Site Name
+
+    /**
+     * Get site name for multi-centre study only
+     * @return OC site name
+     */
+    public String getOcSiteName() {
+        return this.parentStudy != null ? this.name : null;
     }
 
     //endregion
@@ -292,6 +353,87 @@ public class Study implements Identifiable<Integer>, Serializable {
     //endregion
 
     //region Methods
+
+    /**
+     * Determine whether study metadata indicates multi-centre parent study
+     * Study sites have to be populated for this to work
+     * 
+     * @return True if study metadata defines multiple sites
+     */
+    public boolean isMultiCentre() {
+        return (this.studySites != null && this.studySites.size() > 1);
+    }
+
+    /**
+     * Extract PartnerSite identifier from study metadata protocol id (RPB partner site identifier)
+     *
+     * @param parentStudyProtocolId ParentStudy protocol id
+     * @return PartnerSite identifier that correspond to StudySite metadata in multi-centre setup or empty string for mono-centre study
+     */
+    public String extractPartnerSiteIdentifier(String parentStudyProtocolId) {
+        // Default empty string indicates mono-centre study
+        String siteIdentifier = "";
+
+        // Extract only when parent study exists
+        if (parentStudyProtocolId != null && !parentStudyProtocolId.isEmpty()) {
+            if (this.globalVariables != null &&
+                this.globalVariables.getProtocolName() != null &&
+                !this.globalVariables.getProtocolName().isEmpty()) {
+
+                // OC specific
+                String ocSiteSeparator = " " + Constants.RPB_IDENTIFIERSEP + " ";
+
+                // Multi-centre
+                if (this.globalVariables.getProtocolName().contains(ocSiteSeparator)) {
+
+                    //TODO: use substring -> it is faster then replace
+                    // Extract site protocol id
+                    String siteProtocolId = this.globalVariables.getProtocolName().replace(
+                        parentStudyProtocolId + ocSiteSeparator, ""
+                    );
+
+                    // Extract partner site identifier
+                    if (!siteProtocolId.isEmpty()) {
+                        int index = siteProtocolId.indexOf(Constants.RPB_IDENTIFIERSEP);
+                        siteIdentifier = siteProtocolId.substring(0, index);
+                    }
+                }
+            }
+        }
+
+        return siteIdentifier;
+    }
+
+    /**
+     * Extract StudySite identifier from study metadata protocol id (OC site protocol id)
+     *
+     * @param parentStudyProtocolId ParentStudy protocol id
+     * @return StudySite identifier that correspond to StudySite metadata in multi-centre setup or empty string for mono-centre study
+     */
+    public String extractStudySiteIdentifier(String parentStudyProtocolId) {
+        // Default empty string indicates mono-centre study
+        String siteIdentifier = "";
+
+        // Extract only when parent study exists
+        if (parentStudyProtocolId != null && !parentStudyProtocolId.isEmpty()) {
+            if (this.globalVariables != null &&
+                this.globalVariables.getProtocolName() != null &&
+                !this.globalVariables.getProtocolName().isEmpty()) {
+
+                // OC specific
+                String ocSiteSeparator = " " + Constants.RPB_IDENTIFIERSEP + " ";
+
+                // Multi-centre
+                if (this.globalVariables.getProtocolName().contains(ocSiteSeparator)) {
+                    String controlString = parentStudyProtocolId + ocSiteSeparator;
+                    int index = this.globalVariables.getProtocolName().indexOf(controlString);
+                    siteIdentifier = this.globalVariables.getProtocolName().substring(index + controlString.length());
+                }
+            }
+        }
+
+        return siteIdentifier;
+    }
 
     /**
      * Get all ItemDefinitions withing in a Study (metadata for all items)

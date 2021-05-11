@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,11 @@ import de.dktk.dd.rpb.core.repository.ctms.ITimeLineEventRepository;
 
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -40,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for
+ * Bean for CTMS TimeLine Event
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015
@@ -57,22 +54,12 @@ public class TimeLineEventBean extends CrudEntityViewModel<TimeLineEvent, Intege
     private ITimeLineEventRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get TimeLineEventRepository
+     * @return TimeLineEventRepository
      */
-    @SuppressWarnings("unused")
     @Override
     public ITimeLineEventRepository getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(ITimeLineEventRepository repository) {
-        this.repository = repository;
     }
 
     //endregion
@@ -103,28 +90,32 @@ public class TimeLineEventBean extends CrudEntityViewModel<TimeLineEvent, Intege
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     * @return List of SortMeta elements
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtTimelineEntities:colEventStart", "colEventStart", SortOrder.ASCENDING);
+        if (results != null) {
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtTimelineEntities:colEventName");
+            List<SortMeta> nextResults = DataTableUtil.buildSortOrder(":form:tabView:dtTimelineEntities:colEventEnd", "colEventEnd", SortOrder.ASCENDING);
+            if (nextResults != null) {
+                results.addAll(nextResults);
+            }
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colEventName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
+            return results;
+        }
 
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
+    /**
+     * Need to build an initial column visibility list
+     * @return List of Boolean visibility elements
+     */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         // Initial visibility of columns
         results.add(Boolean.TRUE); // name

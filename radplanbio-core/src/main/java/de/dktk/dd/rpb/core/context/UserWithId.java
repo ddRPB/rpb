@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ public class UserWithId extends User
     //region Members
 
     private Serializable id;
+    private String email;
     private String clearPassword;
 
     //endregion
@@ -50,6 +51,7 @@ public class UserWithId extends User
     public UserWithId(String username,
                       String password,
                       String clearPassword,
+                      String email,
                       boolean enabled,
                       boolean accountNonExpired,
                       boolean credentialsNonExpired,
@@ -59,6 +61,7 @@ public class UserWithId extends User
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.id = id;
         this.clearPassword = clearPassword;
+        this.email = email;
     }
 
     //endregion
@@ -69,16 +72,20 @@ public class UserWithId extends User
         return this.id;
     }
 
-    public void setId(Serializable value) {
-        this.id = value;
-    }
-
     public String getClearPassword() {
         return this.clearPassword;
     }
 
     public void setClearPassword(String value) {
         this.clearPassword = value;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public void setEmail(String value) {
+        this.email = value;
     }
 
     //endregion

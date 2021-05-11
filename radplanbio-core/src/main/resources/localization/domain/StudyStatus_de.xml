@@ -5,12 +5,12 @@
     <comment>Domain resources for StudyStatus</comment>
 
     <entry key="studyStatus">Status</entry>
-    <entry key="studyStatus_plural">Statuses</entry>
-    <entry key="studyStatus_reload">Neu laden vorhandenen Statuses</entry>
-    <entry key="studyStatus_print">Drucken Tabelle Statuses</entry>
-    <entry key="studyStatus_new">Definieren Sie eine neue Status</entry>
-    <entry key="studyStatus_edit">Bearbeiten Sie ausgewählte Status</entry>
-    <entry key="studyStatus_delete">Löschen ausgewählten Status</entry>
+    <entry key="studyStatus_plural">Status</entry>
+    <entry key="studyStatus_reload">Vorhandene Status neu laden</entry>
+    <entry key="studyStatus_print">Tabelle Status drucken</entry>
+    <entry key="studyStatus_new">Neuen Status definieren</entry>
+    <entry key="studyStatus_edit">Ausgewählten Status bearbeiten</entry>
+    <entry key="studyStatus_delete">Ausgewählten Status löschen</entry>
 
     <!-- attributes -->
     <entry key="studyStatus_id">Id</entry>

@@ -14,7 +14,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Study Phases" title="Study Phases" url="/admin/ctms/studyPhaseCRUD.faces" />
+            <p:menuitem value="#{msg.study} #{msg.studyPhase_plural}" title="#{msg.study} #{msg.studyPhase_plural}" url="/admin/ctms/studyPhaseCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbStudyPhase.tab.activeIndex}">
 
             <!-- Studies -->
-            <p:tab title="Study Phases" titletip="Study Phases">
+            <p:tab title="#{msg.study} #{msg.studyPhase_plural}">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -33,7 +33,7 @@
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 value="#{msg.menu_new}"
-                                title="Define a new Study Phase [ctrl+shift+n]"
+                                title="#{msg.studyPhase_new}"
                                 icon="ui-icon-document"
                                 oncomplete="PF('newEntityDialog').show();"
                                 style="float: left;"
@@ -42,18 +42,9 @@
                                 process="@this"
                                 actionListener="#{mbStudyPhase.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbStudyPhase.prepareNewEntity}"
-                                rendered="#{mbStudyPhase.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
-                                title="Reload Study Phases [ctrl+shift+r]"
+                                title="#{msg.studyPhase_reload}"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 immediate="true"
@@ -61,28 +52,20 @@
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbStudyPhase.load}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStudyPhase.load}"
-                                rendered="#{mbStudyPhase.tab.activeIndex == 0}"
-                                />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print Study Phases table"
+                                title="#{msg.studyPhase_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -130,40 +113,40 @@
 
                     <!-- Name -->
                     <p:column
-                            id="colPhaseName"
-                            sortBy="#{entity.name}"
-                            filterBy="#{entity.name}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbStudyPhase.columnVisibilityList[0]}"
-                            >
+                        id="colPhaseName"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbStudyPhase.columnVisibilityList[0]}"
+                        style="width:20%"
+                        >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.studyPhase_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
 
                     <!-- Description -->
                     <p:column
-                            sortBy="#{entity.description}"
-                            filterBy="#{entity.description}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbStudyPhase.columnVisibilityList[1]}"
-                            >
+                        sortBy="#{entity.description}"
+                        filterBy="#{entity.description}"
+                        filterMatchMode="contains"
+                        style="width:60%"
+                        visible="#{mbStudyPhase.columnVisibilityList[1]}"
+                        >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.studyPhase_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            toggleable="false"
-                            style="width:17%"
-                            >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
                         <p:commandButton
                                 icon="ui-icon-contact"
                                 title="#{msg.menu_edit}"
@@ -193,14 +176,14 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtEntities" fileName="StudyPhases" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.study}#{msg.studyPhase_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtEntities" fileName="StudyPhases" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.study}#{msg.studyPhase_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -213,7 +196,7 @@
         <!-- New Study Phase -->
         <p:dialog
                 id="dlgNewEntity"
-                header="New Study Phase"
+                header="#{msg.studyPhase_new}"
                 widgetVar="newEntityDialog"
                 resizable="false"
                 ajax="true"
@@ -232,17 +215,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtStudyPhaseNameNew" />
+                    <h:outputLabel value="#{msg.studyPhase_name}: #{msg.label_required_suffix}" for="txtStudyPhaseNameNew" />
                     <p:inputText
                             id="txtStudyPhaseNameNew"
                             value="#{mbStudyPhase.newEntity.name}"
                             required="true"
-                            requiredMessage="Study Phase name is mandatory!"
+                            requiredMessage="#{msg.studyPhase_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtStudyPhaseDescriptionNew" />
+                    <h:outputLabel value="#{msg.studyPhase_description}:" for="txtStudyPhaseDescriptionNew" />
                     <p:inputTextarea
                             id="txtStudyPhaseDescriptionNew"
                             value="#{mbStudyPhase.newEntity.description}"
@@ -273,7 +256,7 @@
         <!-- Edit Study Phase -->
         <p:dialog
                 id="dlgEntityDetails"
-                header="Edit Study Phase details"
+                header="#{msg.studyPhase_edit}"
                 widgetVar="editEntityDialog"
                 resizable="false"
                 appendToBody="true"
@@ -291,17 +274,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtStudyPhaseNameEdit" />
+                    <h:outputLabel value="#{msg.studyPhase_name}: #{msg.label_required_suffix}" for="txtStudyPhaseNameEdit" />
                     <p:inputText
                             id="txtStudyPhaseNameEdit"
                             value="#{mbStudyPhase.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Study Phase name is mandatory!"
+                            requiredMessage="#{msg.studyPhase_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtStudyPhaseDescriptionEdit" />
+                    <h:outputLabel value="#{msg.studyPhase_description}:" for="txtStudyPhaseDescriptionEdit" />
                     <p:inputTextarea
                             id="txtStudyPhaseDescriptionEdit"
                             value="#{mbStudyPhase.selectedEntity.description}"

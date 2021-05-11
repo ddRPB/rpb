@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,12 +58,22 @@ public class ItemDataMatch implements Identifiable<Integer>, Serializable {
     public ItemDataMatch(ItemData sourceItemData, ItemData targetItemData) {
         this();
 
+        // OID match is mandatory
         if (sourceItemData.getItemOid().equals(targetItemData.getItemOid())) {
             this.itemOid = sourceItemData.getItemOid();
-            this.match = Boolean.FALSE;
 
-            if (sourceItemData.getValue() != null && sourceItemData.getValue() != null) {
-                this.match = sourceItemData.getValue().equals(targetItemData.getValue());
+            // If target requires value equality
+            if (targetItemData.getCheckValueEquality()) {
+                this.match = Boolean.FALSE;
+
+                // Values are provided
+                if (sourceItemData.getValue() != null && sourceItemData.getValue() != null) {
+                    this.match = sourceItemData.getValue().equals(targetItemData.getValue());
+                }
+            }
+            // Target considered equal to source data regardless the value
+            else {
+                this.match = Boolean.TRUE;
             }
         }
     }

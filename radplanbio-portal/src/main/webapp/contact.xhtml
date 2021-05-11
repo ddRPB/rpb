@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
@@ -21,9 +21,9 @@
         <p:panel header="#{msg.contact}">
             <p>
                 <p:outputPanel>
-                    <h3>Contact RadPlanBio Partner Site Administrator</h3>
+                    <h3>#{msg.contact} RPB #{msg.partnerSite} Administrator</h3>
                     <p>
-                        Please fill out the following form to contact your Administrator with questions about RadPlanBio.
+                        Please fill out the following form to contact your Administrator with questions about RPB.
                         <br />
                         All fields are required!
                     </p>
@@ -97,5 +97,3 @@
         </p:panel>
     </ui:define>
 </ui:composition>
-
-

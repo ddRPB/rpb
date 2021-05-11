@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,8 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import de.dktk.dd.rpb.core.context.UserContext;
 import de.dktk.dd.rpb.core.domain.edc.*;
 
+import de.dktk.dd.rpb.core.util.CacheUtil;
 import de.dktk.dd.rpb.core.util.Constants;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -136,7 +135,6 @@ public class OpenClinicaService implements IOpenClinicaService {
 
     //region Members
 
-
     private String ocUsername;
     private String ocPassword;
     private String restBaseUrl;
@@ -144,18 +142,8 @@ public class OpenClinicaService implements IOpenClinicaService {
     private OCWebServices ocws;
 
     private Boolean cacheIsEnabled;
-    private Cache cache;
 
-    //endregion
-
-    //region Constructors
-
-    public OpenClinicaService() {
-
-        // Get cache manager and open cache used for web service responses to client
-        CacheManager cm = CacheManager.create();
-        this.cache = cm.getCache("wsClientCache");
-    }
+    private CacheUtil cacheUtil;
 
     //endregion
 
@@ -171,6 +159,14 @@ public class OpenClinicaService implements IOpenClinicaService {
 
     public void setCacheIsEnabled(Boolean value) {
         this.cacheIsEnabled = value;
+    }
+
+    public CacheUtil getCacheUtil() {
+        if (this.cacheUtil == null) {
+            this.cacheUtil = CacheUtil.getInstance();
+        }
+
+        return this.cacheUtil;
     }
 
     //endregion
@@ -240,7 +236,27 @@ public class OpenClinicaService implements IOpenClinicaService {
 
         try {
             if (this.isConnected()) {
-                metadata = this.ocws.fetchStudyMetadata(study);
+
+                // Load study metadata from cache if available
+                if (this.cacheIsEnabled) {
+
+                    // Check if it is multi-centre or mono-centre study
+                    String identifier = study.isMulticentric() ? study.getSiteName() : study.getStudyIdentifier();
+
+                    String key = this.ocws.getBaseURL() + "studies/" + identifier + "/metadata";
+                    Element element = this.getCacheUtil().getMetadataCacheElement(key);
+                    if (element != null) {
+                        metadata = (MetadataODM) element.getObjectValue();
+                    }
+                    else {
+                        metadata = this.ocws.fetchStudyMetadata(study);
+                        this.getCacheUtil().setMetadataCacheElement(new Element(key, metadata));
+                    }
+                }
+                // Otherwise load from EDC server
+                else {
+                    metadata = this.ocws.fetchStudyMetadata(study);
+                }
             }
         }
         catch (OCConnectorException err) {
@@ -259,7 +275,24 @@ public class OpenClinicaService implements IOpenClinicaService {
 
         try {
             if (this.isConnected()) {
-                metadata = this.ocws.fetchMetadataByIdentifier(identifier);
+
+                // Load study metadata from cache if available
+                if (this.cacheIsEnabled) {
+
+                    String key = this.ocws.getBaseURL() + "studies/" + identifier + "/metadata";
+                    Element element = this.getCacheUtil().getMetadataCacheElement(key);
+                    if (element != null) {
+                        metadata = (MetadataODM) element.getObjectValue();
+                    }
+                    else {
+                        metadata = this.ocws.fetchMetadataByIdentifier(identifier);
+                        this.getCacheUtil().setMetadataCacheElement(new Element(key, metadata));
+                    }
+                }
+                // Otherwise load from EDC server
+                else {
+                    metadata = this.ocws.fetchMetadataByIdentifier(identifier);
+                }
             }
         }
         catch (OCConnectorException err) {
@@ -267,6 +300,29 @@ public class OpenClinicaService implements IOpenClinicaService {
         }
 
         return metadata;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void refreshStudyMetadataCache(String identifier) {
+        try {
+            if (this.isConnected()) {
+
+                // Refresh study metadata cache
+                if (this.cacheIsEnabled) {
+
+                    String key = this.ocws.getBaseURL() + "studies/" + identifier + "/metadata";
+                    
+                    MetadataODM metadata = this.ocws.fetchMetadataByIdentifier(identifier);
+                    this.getCacheUtil().setMetadataCacheElement(new Element(key, metadata));
+                }
+            }
+        }
+        catch (OCConnectorException err) {
+            log.error(err);
+        }
     }
 
     //endregion
@@ -301,14 +357,17 @@ public class OpenClinicaService implements IOpenClinicaService {
      * {@inheritDoc}
      */
     @Override
-    public Boolean createNewStudySubject(StudySubject studySubject) {
-        Boolean result = Boolean.FALSE;
+    public String createNewStudySubject(StudySubject studySubject) {
+        String result = null;
 
         try {
             if (this.isConnected()) {
                 CreateResponse response = this.ocws.createStudySubject(studySubject);
                 if (response != null) {
-                    result = response.getResult().equals(Constants.OC_SUCCESS);
+                    if (response.getResult().equals(Constants.OC_SUCCESS)) {
+                        if (response.getLabel() != null && !response.getLabel().equals(""))
+                        result = response.getLabel();
+                    }
                 }
             }
         }
@@ -338,7 +397,23 @@ public class OpenClinicaService implements IOpenClinicaService {
             }
         }
         catch (OCConnectorException err) {
-            log.error(err);
+            // For OC reported fail
+            if (err.getMessage().contains(Constants.OC_FAIL)) {
+                // For locked studies - OC returns wrong status
+                // Workaround: consider study subject as existing for locked study
+                if (err.getMessage().contains(Constants.OC_ERROR_WRONGSTATUS)) {
+                    result = Boolean.TRUE;
+                    log.info(err);
+                }
+                // Subject does not exists
+                else {
+                    log.warn(err);
+                }
+            }
+            // Other error with unrecognised code
+            else {
+                log.error(err);
+            }
         }
 
         return result;
@@ -354,16 +429,16 @@ public class OpenClinicaService implements IOpenClinicaService {
 
         // For study-0 look whether there is cached response available
         if (this.cacheIsEnabled &&
-                study.getStudyIdentifier().equals(Constants.study0Identifier)) {
+            study.getStudyIdentifier().equals(Constants.study0Identifier)) {
 
-            String key = this.ocws.getBaseURL() + "studies/" + Constants.study0Identifier + "/studysubjects";
-            Element element = this.cache.get(key);
+            String key = this.ocws.getBaseURL() + "studies/" + study.getStudyIdentifier() + "/studysubjects";
+            Element element = this.getCacheUtil().getSubjectsCacheElement(key);
             if (element != null) {
                 studySubjectsResponse = (ListAllByStudyResponse) element.getObjectValue();
             }
             else {
                 studySubjectsResponse = this.ocws.listAllByStudy(study);
-                this.cache.put(new Element(key, studySubjectsResponse));
+                this.getCacheUtil().setSubjectsCacheElement(new Element(key, studySubjectsResponse));
             }
         }
         // Otherwise load from EDC server
@@ -444,9 +519,11 @@ public class OpenClinicaService implements IOpenClinicaService {
     }
 
     @Override
-    public void scheduleStudyEvent(StudySubject subject, ScheduledEvent event) throws OCConnectorException {
+    public String scheduleStudyEvent(StudySubject subject, ScheduledEvent event) throws OCConnectorException {
         ScheduleResponse response = this.ocws.scheduleEvent(subject, event);
         log.info(response.getResult());
+
+        return response.getStudyEventOrdinal();
     }
 
     //endregion
@@ -457,11 +534,11 @@ public class OpenClinicaService implements IOpenClinicaService {
         if (this.isConnected()) {
 
             // When using OC SOAP ws the xml should start with ODM element as root
-            odmXmlData = odmXmlData.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
-            odmXmlData = odmXmlData.replace(" xmlns:ns2=\"http://www.openclinica.org/ns/odm_ext_v130/v3.1\" xmlns=\"http://www.cdisc.org/ns/odm/v1.3\"", "");
+            String cleanOdmXmlData = odmXmlData.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+            cleanOdmXmlData = cleanOdmXmlData.replace(" xmlns:ns2=\"http://www.openclinica.org/ns/odm_ext_v130/v3.1\" xmlns=\"http://www.cdisc.org/ns/odm/v1.3\"", "");
 
             // Import
-            ImportResponse response = this.ocws.importODM(odmXmlData);
+            ImportResponse response = this.ocws.importODM(cleanOdmXmlData);
             log.info(response.getResult());
         }
     }

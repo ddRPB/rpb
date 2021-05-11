@@ -6,11 +6,11 @@
 
     <entry key="studyDoc">Dokument</entry>
     <entry key="studyDoc_plural">Dokumente</entry>
-    <entry key="studyDoc_reload">Neu laden vorhandenen Dokumente</entry>
-    <entry key="studyDoc_print">Drucken Tabelle Dokumente</entry>
-    <entry key="studyDoc_new">Definieren Sie eines neues Dokument</entry>
-    <entry key="studyDoc_edit">Bearbeiten ausgewähltes Dokument</entry>
-    <entry key="studyDoc_delete">Löschen ausgewähltes Dokument</entry>
+    <entry key="studyDoc_reload">Vorhandenen Dokumente neu laden</entry>
+    <entry key="studyDoc_print">Tabelle Dokumente drucken</entry>
+    <entry key="studyDoc_new">Neues Dokument definieren</entry>
+    <entry key="studyDoc_edit">Ausgewähltes Dokument bearbeiten</entry>
+    <entry key="studyDoc_delete">Ausgewähltes Dokument löschen</entry>
 
     <!-- attributes -->
     <entry key="studyDoc_id">Id</entry>

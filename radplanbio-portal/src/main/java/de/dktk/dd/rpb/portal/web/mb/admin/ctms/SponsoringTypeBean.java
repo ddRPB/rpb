@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for user administration of CTMS study phases
+ * Bean for user administration of CTMS sponsoring types
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015

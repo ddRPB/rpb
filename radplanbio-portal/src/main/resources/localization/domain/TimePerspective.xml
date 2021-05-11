@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for TimePerspective</comment>
+
+    <entry key="timePerspective">Timing</entry>
+    <entry key="timePerspective_plural">Timing</entry>
+    <entry key="timePerspective_reload">Reload existing Time Perspectives</entry>
+    <entry key="timePerspective_print">Print Time Perspectives table</entry>
+    <entry key="timePerspective_new">Define a new Time Perspective</entry>
+    <entry key="timePerspective_edit">Edit selected Time Perspective</entry>
+    <entry key="timePerspective_delete">Delete selected Time Perspective</entry>
+
+    <!-- attributes -->
+    <entry key="timePerspective_id">Id</entry>
+    <entry key="timePerspective_name">Name</entry>
+    <entry key="timePerspective_description">Description</entry>
+</properties>

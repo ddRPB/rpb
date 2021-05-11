@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,15 @@
 
 package de.dktk.dd.rpb.core.domain.ctms;
 
-import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
+import de.dktk.dd.rpb.core.domain.admin.*;
+import de.dktk.dd.rpb.core.domain.bio.Bio;
 import de.dktk.dd.rpb.core.domain.edc.Edc;
-import de.dktk.dd.rpb.core.domain.admin.Pacs;
-import de.dktk.dd.rpb.core.domain.admin.Pid;
-import de.dktk.dd.rpb.core.domain.admin.Portal;
-import de.dktk.dd.rpb.core.domain.admin.Server;
+import de.dktk.dd.rpb.core.domain.edc.FormEngine;
+import de.dktk.dd.rpb.core.domain.lab.Lab;
+import de.dktk.dd.rpb.core.domain.pacs.Pacs;
+import de.dktk.dd.rpb.core.domain.pid.Pid;
+import de.dktk.dd.rpb.core.domain.rpb.Portal;
+import de.dktk.dd.rpb.core.domain.rpb.Server;
 
 import javax.persistence.metamodel.ListAttribute;
 import javax.persistence.metamodel.SingularAttribute;
@@ -48,6 +51,7 @@ public abstract class PartnerSite_ {
     public static volatile SingularAttribute<PartnerSite, String> description;
     public static volatile SingularAttribute<PartnerSite, Float> latitude;
     public static volatile SingularAttribute<PartnerSite, Float> longitude;
+    public static volatile SingularAttribute<PartnerSite, String> ipRange;
     public static volatile SingularAttribute<PartnerSite, Boolean> isEnabled;
 
     // Technical attribute for query
@@ -56,13 +60,17 @@ public abstract class PartnerSite_ {
     public static volatile SingularAttribute<PartnerSite, Integer> portalId;
     public static volatile SingularAttribute<PartnerSite, Integer> pidId;
     public static volatile SingularAttribute<PartnerSite, Integer> serverId;
+    public static volatile SingularAttribute<PartnerSite, Integer> bioId;
 
     // One to one
     public static volatile SingularAttribute<PartnerSite, Pacs> pacs;
     public static volatile SingularAttribute<PartnerSite, Edc> edc;
+    public static volatile SingularAttribute<PartnerSite, FormEngine> formEngine;
     public static volatile SingularAttribute<PartnerSite, Portal> portal;
     public static volatile SingularAttribute<PartnerSite, Pid> pid;
     public static volatile SingularAttribute<PartnerSite, Server> server;
+    public static volatile SingularAttribute<PartnerSite, Bio> bio;
+    public static volatile SingularAttribute<PartnerSite, Lab> lab;
 
     // One to many
     public static volatile ListAttribute<PartnerSite, DefaultAccount> defaultAccounts;

@@ -43,15 +43,6 @@
                                 process="@this"
                                 actionListener="#{mbOrganisation.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbOrganisation.prepareNewEntity}"
-                                rendered="#{mbOrganisation.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
                                 title="#{msg.organisation_reload}"
@@ -61,14 +52,6 @@
                                 process="@this"
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbOrganisation.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbOrganisation.load}"
-                                rendered="#{mbOrganisation.tab.activeIndex == 0}"
                                 />
                     </p:toolbarGroup>
 
@@ -83,7 +66,7 @@
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -92,23 +75,23 @@
 
                 <!-- Tree Table-->
                 <p:treeTable
-                        id="dtEntities"
-                        var="entity"
-                        value="#{mbOrganisation.root}"
-                        widgetVar="entitiesTable"
-                        resizableColumns="true"
-                        draggableColumns="false"
-                        emptyMessage="#{msg.search_empty}"
-                        selection="#{mbOrganisation.selectedEntity}"
-                        sortBy="#{entity.name}"
-                        >
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbOrganisation.root}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbOrganisation.selectedEntity}"
+                    sortBy="#{entity.name}"
+                    >
 
                     <!-- Name -->
                     <p:column
-                            id="colOrganisationName"
-                            style="width:83%"
-                            sortBy="#{entity.name}"
-                            >
+                        id="colOrganisationName"
+                        sortBy="#{entity.name}"
+                        style="width:89%"
+                        >
                         <f:facet name="header">
                             <h:outputText value="#{msg.organisation_name}" />
                         </f:facet>
@@ -117,37 +100,40 @@
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            toggleable="false"
-                            style="width:17%"
-                            >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:11%"
+                        >
+
+                        <!-- Edit -->
                         <p:commandButton
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update=":entityDetailsForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editEntityDialog').show();"
-                                >
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbOrganisation.selectedEntity}"
-                                    />
+                                value="#{entity}"
+                                target="#{mbOrganisation.selectedEntity}"
+                                />
                         </p:commandButton>
 
+                        <!-- Delete -->
                         <p:commandButton
-                                icon="ui-icon-trash"
-                                title="#{msg.menu_delete}"
-                                update=":deleteEntityForm:deleteDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('deleteEntityDialog').show();"
-                                >
+                            icon="ui-icon-trash"
+                            title="#{msg.menu_delete}"
+                            update=":deleteEntityForm:deleteDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('deleteEntityDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbOrganisation.selectedEntity}"
-                                    />
+                                value="#{entity}"
+                                target="#{mbOrganisation.selectedEntity}"
+                                />
                         </p:commandButton>
                     </p:column>
 
@@ -156,9 +142,9 @@
                         <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbOrganisation.entityList.size() == 0}" />
                         <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbOrganisation.entityList.size() == 1}" />
                         <h:outputFormat
-                                value="#{msg.search_results_status_n}"
-                                rendered="#{mbOrganisation.entityList.size() > 1}"
-                                >
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbOrganisation.entityList.size() > 1}"
+                            >
                             <f:param value="#{mbOrganisation.entityList.size()}" />
                         </h:outputFormat>
                     </f:facet>
@@ -172,15 +158,15 @@
 
         <!-- New Organisation -->
         <p:dialog
-                id="dlgNewEntity"
-                header="#{msg.organisation_new}"
-                widgetVar="newEntityDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgNewEntity"
+            header="#{msg.organisation_new}"
+            widgetVar="newEntityDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="newEntityForm">

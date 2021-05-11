@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,20 +19,20 @@
 
 package de.dktk.dd.rpb.portal.web.mb.admin;
 
-import de.dktk.dd.rpb.core.domain.admin.Software;
-import de.dktk.dd.rpb.core.domain.admin.Portal;
+import de.dktk.dd.rpb.core.domain.rpb.Software;
+import de.dktk.dd.rpb.core.domain.rpb.Portal;
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-import de.dktk.dd.rpb.core.repository.admin.ISoftwareRepository;
-import de.dktk.dd.rpb.core.repository.admin.PartnerSiteRepository;
-import de.dktk.dd.rpb.core.repository.admin.PortalRepository;
+import de.dktk.dd.rpb.core.repository.admin.IPartnerSiteRepository;
+import de.dktk.dd.rpb.core.repository.rpb.ISoftwareRepository;
+import de.dktk.dd.rpb.core.repository.rpb.IPortalRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
+
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
+
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -40,7 +40,6 @@ import javax.annotation.PostConstruct;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,42 +56,11 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
 
     //region Injects
 
-    //region Portal repository
-
-    @Inject
-    private PortalRepository portalRepository;
-
-    /**
-     * Set Portal repository
-     * @param repository PortalRepository
-     */
-    @SuppressWarnings("unused")
-    public void setPortalRepository(PortalRepository repository) {
-        this.portalRepository = repository;
-    }
-
-    //endregion
-
-    //region Partner site repository
-
-    @Inject
-    private PartnerSiteRepository partnerSiteRepository;
-
-    /**
-     * Set Partner site repository
-     * @param repository PartnerSiteRepository
-     */
-    @SuppressWarnings("unused")
-    public void setPartnerSiteRepository(PartnerSiteRepository repository) {
-        this.partnerSiteRepository = repository;
-    }
-
-    //endregion
-
     //region Repository
 
-    @Inject
     private ISoftwareRepository repository;
+    private IPortalRepository portalRepository;
+    private IPartnerSiteRepository partnerSiteRepository;
 
     /**
      * Get StructTypeRepository
@@ -104,16 +72,18 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
         return this.repository;
     }
 
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(ISoftwareRepository repository) {
-        this.repository = repository;
-    }
+    //endregion
 
     //endregion
+
+    //region Constructors
+
+    @Inject
+    public SoftwareBean(ISoftwareRepository repository, IPartnerSiteRepository partnerSiteRepository, IPortalRepository portalRepository) {
+        this.repository = repository;
+        this.partnerSiteRepository = partnerSiteRepository;
+        this.portalRepository = portalRepository;
+    }
 
     //endregion
 
@@ -133,7 +103,7 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
     //region Commands
 
     /**
-     * Load all software associated to admin partner site portal
+     * Load all software associated with admin partner site portal
      */
     public void loadSoftware() {
         FacesContext context = FacesContext.getCurrentInstance();
@@ -163,7 +133,7 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
             Portal portal = this.partnerSiteRepository.findUnique(partnerSite).getPortal();
             portal.addSoftware(this.newEntity);
             this.portalRepository.merge(portal);
-            context.addMessage(null, new FacesMessage("Insert Successful", "Software: " + this.newEntity.getName() + " successfuly saved."));
+            context.addMessage(null, new FacesMessage("Insert Successful", "Software: " + this.newEntity.getName() + " successfully saved."));
 
             this.newEntity = null;
             this.selectedEntity = null;
@@ -179,10 +149,8 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
 
     /**
      * Update selected software in repository
-     * @param actionEvent action event
      */
-    @SuppressWarnings("unused")
-    public void doUpdateSoftware(ActionEvent actionEvent){
+    public void doUpdateSoftware(){
         FacesContext context = FacesContext.getCurrentInstance();
 
         try {
@@ -193,7 +161,7 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
             portal.removeSoftware(this.selectedEntity);
             portal.addSoftware(this.selectedEntity);
             this.portalRepository.merge(portal);
-            context.addMessage(null, new FacesMessage("Edit Successful", "Software: " + this.selectedEntity.getName() + " successfuly saved."));
+            context.addMessage(null, new FacesMessage("Edit Successful", "Software: " + this.selectedEntity.getName() + " successfully saved."));
 
             // Reload actual
             this.loadSoftware();
@@ -205,10 +173,8 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
 
     /**
      * Delete selected software from repository
-     * @param actionEvent action event
      */
-    @SuppressWarnings("unused")
-    public void doDeleteSoftware(ActionEvent actionEvent){
+    public void doDeleteSoftware(){
         FacesContext context = FacesContext.getCurrentInstance();
 
         try {
@@ -219,7 +185,7 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
             portal.removeSoftware(this.selectedEntity);
             this.portalRepository.merge(portal);
 
-            context.addMessage(null, new FacesMessage("Delete Successful", "Software: " + this.selectedEntity.getName() + " successfuly deleted."));
+            context.addMessage(null, new FacesMessage("Delete Successful", "Software: " + this.selectedEntity.getName() + " successfully deleted."));
 
             this.selectedEntity = null;
 
@@ -248,19 +214,12 @@ public class SoftwareBean extends CrudEntityViewModel<Software, Integer> {
     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colSoftwareName", "colSoftwareName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colSoftwareName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colSoftwareName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     //endregion

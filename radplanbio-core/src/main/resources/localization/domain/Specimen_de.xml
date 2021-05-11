@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Specimen</comment>
+
+    <entry key="specimen">Specimen</entry>
+    <entry key="specimen_plural">Specimens</entry>
+    <entry key="specimen_reload">Reload existing Specimens</entry>
+    <entry key="specimen_print">Print Specimens table</entry>
+    <entry key="specimen_new">Define a new Specimen</entry>
+    <entry key="specimen_edit">Edit selected Specimen</entry>
+    <entry key="specimen_delete">Delete selected Specimen</entry>
+
+    <!-- attributes -->
+    <entry key="specimen_id">ID</entry>
+    <entry key="specimen_sampleId">Sample ID</entry>
+    <entry key="specimen_secondaryId">Secondary ID</entry>
+    <entry key="specimen_primaryContainer">Primary Container</entry>
+    <entry key="specimen_type">Type</entry>
+    <entry key="specimen_kind">Kind</entry>
+    <entry key="specimen_location">Location</entry>
+    <entry key="specimen_xPosition">X</entry>
+    <entry key="specimen_yPosition">Y</entry>
+
+    <!--samplingDate-->
+    <!--repositionDate-->
+    <!--amountInitial-->
+    <!--amountInitialUnit-->
+    <!--amountRest-->
+    <!--amountRestUnit-->
+
+    <entry key="specimen_comment">Comment</entry>
+
+    <!-- many-to-one -->
+    <entry key="specimen_study">Study</entry>
+    <entry key="specimen_partnerSite">Site</entry>
+    <entry key="specimen_patient">Patient</entry>
+
+</properties>

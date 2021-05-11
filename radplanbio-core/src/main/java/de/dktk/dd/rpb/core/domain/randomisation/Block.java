@@ -187,7 +187,7 @@ public class Block implements Identifiable<Integer>, Serializable {
      */
     public void push(TreatmentArm arm) {
         if (this.content == null) {
-            this.content = new ArrayList<TreatmentArm>();
+            this.content = new ArrayList<>();
         }
         this.content.add(arm);
     }

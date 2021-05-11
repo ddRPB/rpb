@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,16 @@
 
 package de.dktk.dd.rpb.core.domain.pacs;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Created by root on 12/1/15.
+ * RtTreatmentCase is a collection of linked DICOM-RT entities
+ *
+ * @author tomas@skripcak.net
+ * @since 12 Jan 2015
  */
 public class RtTreatmentCase {
 
@@ -31,6 +37,8 @@ public class RtTreatmentCase {
     private List<DicomRtStructureSet> rtStructureSets;
     private List<DicomRtPlan> rtPlans;
     private List<DicomRtDose> rtDoses;
+
+    private Map<String, ArrayList<DicomRtContour>> contourMap = new HashMap<>();
 
     //endregion
 
@@ -59,6 +67,20 @@ public class RtTreatmentCase {
     public void setRtDoses(List<DicomRtDose> rtDoses) {
         this.rtDoses = rtDoses;
     }
+
+    public Map<String, ArrayList<DicomRtContour>> getContourMap() {
+        return this.contourMap;
+    }
+
+    public void setContourMap(Map<String, ArrayList<DicomRtContour>> map) {
+        this.contourMap = map;
+    }
+
+    //endregion
+
+    //region Methods
+
+    //TODO: sum DVH across multiple rtDoses
 
     //endregion
 

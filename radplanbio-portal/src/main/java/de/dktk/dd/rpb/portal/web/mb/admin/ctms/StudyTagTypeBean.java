@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import de.dktk.dd.rpb.core.domain.ctms.StudyTagType;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IStudyTagTypeRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.component.api.UIColumn;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
@@ -39,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for user administration of CTMS study phases
+ * Bean for user administration of CTMS study tag types
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015
@@ -56,8 +57,8 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
     private IStudyTagTypeRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get StudyTagTypeRepository
+     * @return StudyTagTypeRepository
      */
     @SuppressWarnings("unused")
     @Override
@@ -66,8 +67,8 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
     }
 
     /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
+     * Set StudyTagTypeRepository
+     * @param repository StudyTagTypeRepository
      */
     @SuppressWarnings("unused")
     public void setRepository(IStudyTagTypeRepository repository) {
@@ -78,7 +79,7 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
 
     //endregion
 
-    //region members
+    //region Members
 
     private List<StudyTagType> requiredStudyTagTypes;
     private List<Boolean> tagTypeVisibilityList;
@@ -102,14 +103,9 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
     @PostConstruct
     public void init() {
 
-        this.columnVisibilityList = new ArrayList<Boolean>();
-        this.columnVisibilityList.add(Boolean.TRUE); // Name
-        this.columnVisibilityList.add(Boolean.FALSE); // Description
-        this.columnVisibilityList.add(Boolean.TRUE); // isRequired
-        this.columnVisibilityList.add(Boolean.TRUE); // isBoolean
-        this.columnVisibilityList.add(Boolean.FALSE); // regEx
-        this.columnVisibilityList.add(Boolean.FALSE); // max occurence
-
+        this.setColumnVisibilityList(
+                this.buildColumnVisibilityList()
+        );
         this.setPreSortOrder(
                 this.buildSortOrder()
         );
@@ -117,7 +113,7 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
         this.load();
 
         // Show All TagTypes
-        this.tagTypeVisibilityList = new ArrayList<Boolean>(); // All tag types should be hidden in studies list (in columns)
+        this.tagTypeVisibilityList = new ArrayList<>(); // All tag types should be hidden in studies list (in columns)
         for (int i = 0; i < this.entityList.size(); i++) {
             this.tagTypeVisibilityList.add(Boolean.FALSE);
         }
@@ -139,24 +135,34 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colTagTypeName", "colTagTypeName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colTagTypeName");
+        return new ArrayList<>();
+    }
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colTagTypeName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
+    /**
+     * Create column visibility list
+     * @return List of Boolean values determining column visibility
+     */
+    protected List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> result = new ArrayList<>();
 
-        results.add(sm1);
-
-        return results;
+        result.add(Boolean.TRUE); // Name
+        result.add(Boolean.FALSE); // Description
+        result.add(Boolean.TRUE); // isRequired
+        result.add(Boolean.TRUE); // isBoolean
+        result.add(Boolean.FALSE); // regEx
+        result.add(Boolean.FALSE); // max occurrence
+        
+        return result;
     }
 
     //endregion

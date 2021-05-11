@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 /**
  * Get Spring security context to access user data security information
@@ -108,6 +109,32 @@ public class UserContext {
             }
             else if (principal instanceof UserDetails) {
                 result = ((UserWithId) principal).getClearPassword();
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Get the current user email/ LDAP username. Not to work the authentication provider has to set this up.
+     * (necessary for some external systems as login name)
+     *
+     * @return the current user's email address or LDAP username for LDAP users or emtpy string
+     */
+    public static String getEmail() {
+        String result = "";
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            // For LDAP users return the LDAP username
+            if (principal instanceof LdapUserDetails) {
+                result= ((LdapUserDetailsImpl) principal).getUsername();
+            }
+            // Otherwise for RPB local accounts return the email
+            else if (principal instanceof UserDetails) {
+                result = ((UserWithId) principal).getEmail();
             }
         }
 

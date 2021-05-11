@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="Data" title="Data" url="#" />
+            <p:menuitem value="#{msg.study} Data Migrate" title=" #{msg.study} Data Migrate" url="/edc/studyDataMigrate.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <p:tabView id="tabView">
+
+            <p:tab title="#{msg.study} Data Migrate">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                        />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Form -->
+                <p:panelGrid
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;"
+                    >
+
+                    <!-- Show user the active study (source of data) -->
+                    <h:outputLabel value="Source-#{msg.study}:" for="txtStudyIdentifier" />
+                    <h:outputText id="txtStudyIdentifier" value="#{mbQueryData.mainBean.activeStudy.uniqueIdentifier}" />
+
+                    <!-- Event -->
+
+                    <!-- Ocurrence -->
+
+                    <!-- Form -->
+
+                    <!-- Target Study -->
+                    <h:outputLabel value="Target-#{msg.study}:#{msg.label_required_suffix}" for="ddlStudies" />
+                    <p:selectOneMenu
+                        id="ddlStudies"
+                        value="#{mbQueryData.selectedStudy}"
+                        converter="omnifaces.SelectItemsConverter"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="studyIter"
+                        required="true"
+                        panelStyle="width:150px"
+                        style="width:300px"
+                        >
+                        <p:ajax update=":form:tabView:ddlSites" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                            value="#{mbQueryData.studies}"
+                            itemLabel="#{study.name}"
+                            itemValue="#{study}"
+                            var="study"
+                            />
+                        <p:column>
+                            <h:outputText value="#{studyIter.name}" title="#{studyIter.title}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Target Study Sites -->
+                    <h:outputLabel value="Target-Site:" for="ddlSites" />
+                    <p:selectOneMenu
+                        id="ddlSites"
+                        value="#{mbQueryData.selectedStudySite}"
+                        converter="omnifaces.SelectItemsConverter"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="siteIter"
+                        panelStyle="width:150px"
+                        style="width:300px"
+                        disabled="#{not mbQueryData.selectedStudy.isEdcStudyMultiCentre}"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                            value="#{mbQueryData.selectedStudy.edcStudy.studySites}"
+                            var="site"
+                            itemLabel="#{site.name}"
+                            itemValue="#{site}"
+                            />
+                        <p:column>
+                            <h:outputText value="#{siteIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+                </p:panelGrid>
+            </p:tab>
+
+            <p:tab title="#{msg.studySubject_plural}">
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <!--<p:commandButton-->
+                            <!--value="#{msg.menu_print}"-->
+                            <!--title="#{msg.studySubject_print}"-->
+                            <!--icon="ui-icon-print"-->
+                            <!--&gt;-->
+                            <!--<p:printer target="dtEntities" />-->
+                        <!--</p:commandButton>-->
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs" />
+</ui:composition>

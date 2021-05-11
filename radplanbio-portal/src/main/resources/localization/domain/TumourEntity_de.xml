@@ -6,11 +6,11 @@
 
     <entry key="tumourEntity">Tumor Entität</entry>
     <entry key="tumourEntity_plural">Tumor Entitäten</entry>
-    <entry key="tumourEntity_reload">Neu laden vorhandenen Tumor Entitäten</entry>
-    <entry key="tumourEntity_print">Drucken Tabelle Tumor Entitäten</entry>
-    <entry key="tumourEntity_new">Definieren Sie eine neue Tumor Entität</entry>
-    <entry key="tumourEntity_edit">Bearbeiten Sie ausgewählte Tumor Entität</entry>
-    <entry key="tumourEntity_delete">Löschen ausgewählten Tumor Entität</entry>
+    <entry key="tumourEntity_reload">Vorhandenen Tumor Entitäten neu laden</entry>
+    <entry key="tumourEntity_print">Tabelle Tumor Entitäten drucken</entry>
+    <entry key="tumourEntity_new">Neue Tumor Entität definieren</entry>
+    <entry key="tumourEntity_edit">Ausgewählte Tumor Entität bearbeiten</entry>
+    <entry key="tumourEntity_delete">Ausgewählten Tumor Entität löschen</entry>
 
     <!-- attributes -->
     <entry key="tumourEntity_id">Id</entry>
@@ -18,9 +18,9 @@
     <entry key="tumourEntity_description">Beschreibung</entry>
 
     <!-- many-to-one -->
-    <entry key="tumourEntity_parent">Parent</entry>
+    <entry key="tumourEntity_parent">Vorfahr</entry>
 
     <!-- one-to-many -->
-    <entry key="tumourEntity_children">Children</entry>
+    <entry key="tumourEntity_children">Nachkommenschaft</entry>
 
 </properties>

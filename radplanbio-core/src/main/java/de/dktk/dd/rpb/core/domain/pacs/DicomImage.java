@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ public class DicomImage implements Identifiable<Integer>, Serializable {
     private Integer id; // unused for Transient entity
 
     private String sopInstanceUID;
+    private Integer size;
 
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
@@ -91,6 +92,18 @@ public class DicomImage implements Identifiable<Integer>, Serializable {
 
     public void setSopInstanceUID(String sopInstanceUid) {
         this.sopInstanceUID = sopInstanceUid;
+    }
+
+    //endregion
+
+    //region Size
+
+    public Integer getSize() {
+        return this.size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
     }
 
     //endregion

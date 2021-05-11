@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,8 @@ package de.dktk.dd.rpb.core.repository.edc;
 
 import java.util.List;
 
-import de.dktk.dd.rpb.core.domain.edc.DataQueryResult;
-import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
-import de.dktk.dd.rpb.core.domain.edc.Study;
+import de.dktk.dd.rpb.core.domain.edc.*;
+import org.openclinica.ws.beans.StudyType;
 
 /**
  * OpenClinica Database Repository - operation layer abstraction
@@ -39,6 +38,10 @@ public interface IOpenClinicaDataRepository {
 
     String getUserAccountHash(String username);
 
+    String getUserId(String username);
+
+    String getUserName(int id);
+
     //endregion
 
     //region Study
@@ -51,7 +54,19 @@ public interface IOpenClinicaDataRepository {
 
     //endregion
 
-    //region CRF item values
+    //region StudySubject
+
+    List<StudySubject> findStudySubjectsByPseudonym(String pid, List<StudyType> studyTypeList);
+
+    //endregion
+
+    //region EventData
+
+    boolean swapEventDataOrder(StudySubject studySubject, EventData eventData1, int originalEventRepeatKey);
+
+    //endregion
+
+    //region ItemData
 
     List<ItemDefinition> getData(String uniqueIdentifier);
 

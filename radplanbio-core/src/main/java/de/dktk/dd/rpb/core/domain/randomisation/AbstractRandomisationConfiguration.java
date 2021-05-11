@@ -74,7 +74,7 @@ public abstract class AbstractRandomisationConfiguration implements Identifiable
 
     //endregion
 
-    // region Properties
+    //region Properties
 
     //region Id
 
@@ -133,7 +133,7 @@ public abstract class AbstractRandomisationConfiguration implements Identifiable
 
     //endregion
 
-    //region Randomisation scheme interface
+    //region Randomisation scheme (strategy)
 
     @Transient
     public final IRandomisationStrategy getScheme() {

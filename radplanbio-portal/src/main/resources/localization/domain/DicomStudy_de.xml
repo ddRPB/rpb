@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for DicomStudy</comment>
+
+    <entry key="dicomStudy">DICOM Studie</entry>
+    <entry key="dicomStudy_plural">DICOM Studien</entry>
+    <entry key="dicomStudy_reload">Vorhandenen DICOM Studien neu laden</entry>
+    <entry key="dicomStudy_print">Tabelle DICOM Studien drucken</entry>
+    <entry key="dicomStudy_new">Neue DICOM Studie definieren</entry>
+    <entry key="dicomStudy_edit">Ausgewählte DICOM Studie bearbeiten</entry>
+    <entry key="dicomStudy_delete">Ausgewählte DICOM Studie löschen</entry>
+
+    <!-- attributes -->
+    <entry key="dicomStudy_id">Id</entry>
+    <entry key="dicomStudy_studyInstanceUID">UID</entry>
+    <entry key="dicomStudy_studyDescription">Beschreibung</entry>
+    <entry key="dicomStudy_modalities">Typ</entry>
+    <entry key="dicomStudy_studyDate">Datum</entry>
+
+    <entry key="dicomStudy_studySeries">DICOM Serien</entry>
+
+</properties>

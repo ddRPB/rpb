@@ -10,7 +10,7 @@
 	</appender>
 
 	<appender name="File" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="/usr/local/tomcat/logs/@project.name@-@project.version@.log" />
+		<param name="File" value="/usr/local/tomcat/logs/radplanbio-portal-@project.version@.log" />
 		<param name="MaxFileSize" value="1000KB" />
 		<param name="MaxBackupIndex" value="20" />
 		<layout class="org.apache.log4j.PatternLayout">

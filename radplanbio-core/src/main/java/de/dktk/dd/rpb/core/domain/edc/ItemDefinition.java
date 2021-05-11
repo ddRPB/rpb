@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,7 +194,12 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
     //region eCRF label
 
     public String getLabel() {
-        if (this.question != null) {
+        // If OC extensions item details are available
+        if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
+            return this.itemDetails.getItemPresentInForm().getLeftItemText();
+        }
+        // Otherwise go for standard ODM question text
+        else if (this.question != null) {
             return this.question.getTranslatedText();
         }
         return this.label;
@@ -205,6 +210,10 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
 
         if (this.question != null) {
             this.question.setTranslatedText(value);
+        }
+
+        if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
+            this.itemDetails.getItemPresentInForm().setLeftItemText(value);
         }
     }
 
@@ -546,6 +555,15 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
     public Boolean isDate() {
         if (this.dataType != null) {
             return this.dataType.equals("date") || this.dataType.equals("partialDate") || this.dataType.equals("pdate");
+        }
+        else {
+            return Boolean.FALSE;
+        }
+    }
+
+    public Boolean isNumber() {
+        if (this.dataType != null) {
+            return this.dataType.equals("integer") || this.dataType.equals("float");
         }
         else {
             return Boolean.FALSE;

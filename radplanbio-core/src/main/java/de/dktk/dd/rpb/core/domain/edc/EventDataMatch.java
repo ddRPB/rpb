@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,17 +67,21 @@ public class EventDataMatch implements Serializable {
                     this.studyEventRepeatKey = sourceEventData.getStudyEventRepeatKey();
                 }
             }
-            this.formDataMatchList = new ArrayList<>();
-            this.match = Boolean.TRUE;
 
+            // Initial matching status is true e.g. if none of them have form data
+            this.match = Boolean.TRUE;
+            this.formDataMatchList = new ArrayList<>();
+
+            // When both have forms, dive in to match from data
             if (sourceEventData.getFormDataList() != null && targetEventData.getFormDataList() != null) {
+
                 for (FormData sfd : sourceEventData.getFormDataList()) {
                     for (FormData tfd : targetEventData.getFormDataList()) {
                         if (sfd.getFormOid().equals(tfd.getFormOid())) {
 
                             // Create a match object for form data - propagate the creation of rest down
                             this.getFormDataMatchList().add(
-                                    new FormDataMatch(sfd, tfd)
+                                new FormDataMatch(sfd, tfd)
                             );
 
                             // Check if the last added form data matches
@@ -87,6 +91,13 @@ public class EventDataMatch implements Serializable {
                         }
                     }
                 }
+            }
+            // They do not match if one has forms and the other one does not
+            else if (sourceEventData.getFormDataList() == null && targetEventData.getFormDataList() != null) {
+                this.match = Boolean.FALSE;
+            }
+            else if (sourceEventData.getFormDataList() != null && targetEventData.getFormDataList() == null) {
+                this.match = Boolean.FALSE;
             }
         }
     }

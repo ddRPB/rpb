@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
  *
  * @author tomas@skripcak.net
  * @since 27 January 2014
+ * @version 1.0.0
  */
 public class OpenClinicaUsernamePasswordAuthenticationToken extends UsernamePasswordAuthenticationToken {
 

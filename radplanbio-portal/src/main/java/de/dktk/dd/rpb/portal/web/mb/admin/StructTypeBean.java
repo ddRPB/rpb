@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,11 @@ import de.dktk.dd.rpb.core.domain.admin.RtStructType;
 import de.dktk.dd.rpb.core.repository.admin.RtStructTypeRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -39,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for administration of RtStructTypes
+ * Bean for administration of RadPlanBio RtStructTypes
  *
  * @author tomas@skripcak.net
  * @since 27 Nov 2014
@@ -63,15 +60,6 @@ public class StructTypeBean extends CrudEntityViewModel<RtStructType, Integer> {
     @Override
     public RtStructTypeRepository getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(RtStructTypeRepository repository) {
-        this.repository = repository;
     }
 
     //endregion
@@ -100,24 +88,17 @@ public class StructTypeBean extends CrudEntityViewModel<RtStructType, Integer> {
         this.newEntity = new RtStructType();
     }
 
-    /*
-   * Need to build an initial sort order for data table multi sort
-   */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStructTypeName", "colStructTypeName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colStructTypeName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStructTypeName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<SortMeta>();
     }
 
     //endregion

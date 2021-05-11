@@ -6,11 +6,11 @@
 
     <entry key="account">Benutzer Konto</entry>
     <entry key="account_plural">Benutzer Konten</entry>
-    <entry key="account_reload">Neu laden vorhandenen Benutzer Konten</entry>
-    <entry key="account_print">Drucken Tabelle Benutzer Konten</entry>
-    <entry key="account_new">Definieren Sie ein neues Benutzerkonto</entry>
-    <entry key="account_edit">Bearbeiten ausgewählte Benutzerkonto</entry>
-    <entry key="account_delete">Löschen ausgewählte Benutzerkonto</entry>
+    <entry key="account_reload">Vorhandenen Benutzer Konten neu laden</entry>
+    <entry key="account_print">Tabelle Benutzer Konten drucken</entry>
+    <entry key="account_new">Neues Benutzerkonto definieren</entry>
+    <entry key="account_edit">Ausgewähltes Benutzerkonto bearbeiten</entry>
+    <entry key="account_delete">Ausgewähltes Benutzerkonto löschen</entry>
 
     <!-- attributes -->
     <entry key="account_id">Id</entry>
@@ -18,7 +18,10 @@
     <entry key="account_password">Passwort</entry>
     <entry key="account_email">E-mail</entry>
     <entry key="account_isEnabled">Aktiviert</entry>
+    <entry key="account_nonLocked">Entspert</entry>
     <entry key="account_privilegesCount">Berechtigungen</entry>
+    <entry key="account_apiKey">API-key</entry>
+    <entry key="account_apiKeyEnabled">API-key aktiviert</entry>
 
     <!-- many-to-one -->
     <entry key="account_partnerSite">Standort</entry>

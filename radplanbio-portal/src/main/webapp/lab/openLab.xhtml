@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<html>
+ <body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  
+  <form id="labLoginForm">
+    <input id="server" type="hidden" value="#{mbMain.myAccount.partnerSite.lab.publicUrl}" />
+    <input id="email" type="hidden" value="#{userContext.email}" />
+    <input id="password" type="hidden" value="#{userContext.clearPassword}" />
+  </form>
+
+  <!-- Sending ajax post to login API of LabKey -->
+  <script type="text/javascript">
+
+    var serverVal = document.getElementById('server').value + "login-loginApi.api";
+    var emailVal = document.getElementById('email').value;
+    var passwordVal = document.getElementById('password').value;
+    authenticateUser(serverVal, emailVal, passwordVal);
+
+    function authenticateUser(serverVal, emailVal, passwordVal) {
+        $.ajax({
+            url: serverVal,
+            type: 'POST',
+            xhrFields: {
+                withCredentials: false
+            },
+            crossDomain: true,
+            dataType: 'json',
+            data: {
+                email: emailVal,
+                password: passwordVal
+            },
+            success: function(response) {
+                window.location = response.returnUrl;
+            },
+            error: function(e) {
+                // NOOP
+            }
+        });
+    }
+  </script>
+ </body>
+</html>

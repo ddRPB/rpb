@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,9 +41,9 @@ public interface RtStructTypeRepository extends Repository<RtStructType, Integer
      * Return the persistent instance of {@link RtStructType} with the given unique property value siteName,
      * or null if there is no such persistent instance.
      *
-     * @param siteName the unique value
+     * @param name the unique value
      * @return the corresponding {@link RtStructType} persistent instance or null
      */
-    RtStructType getByName(String siteName);
+    RtStructType getByName(String name);
 
 }

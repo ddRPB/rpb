@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<html>
+    <!-- TODO: for should be conditional depending whether LDAP user or not -->
+    <form id="participateLoginForm" action="#{mbMain.myAccount.partnerSite.portal.publicUrl.concat('participate/login.faces')}" method="POST">
+        <input type="hidden" name="loginForm:j_username" value="#{userContext.username}" />
+        <input type="hidden" name="loginForm:j_password" value="#{userContext.clearPassword}" />
+    </form>
+
+    <!-- Sending post to login to Participate -->
+    <script type="text/javascript">
+        var frm = document.getElementById('participateLoginForm');
+        if (frm) {
+            frm.submit();
+        }
+    </script>
+</html>

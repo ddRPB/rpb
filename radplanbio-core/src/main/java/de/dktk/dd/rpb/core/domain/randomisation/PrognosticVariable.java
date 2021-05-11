@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.annotations.Target;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * Prognostic variable of trial subject is used to construct strata for stratified randomisation
@@ -40,6 +40,7 @@ import java.io.Serializable;
  *
  * Inspired by RANDI2 http://dschrimpf.github.io/randi3/
  */
+//TODO: need to find a way to persist value that contains serialised assigned stratification criterion value
 @Entity
 @Table(name = "PROGNOSTICVAR")
 public class PrognosticVariable<T extends Serializable> implements Identifiable<Integer>, Serializable {
@@ -56,10 +57,14 @@ public class PrognosticVariable<T extends Serializable> implements Identifiable<
 
     private Integer id; // pk, auto-increment, serial
 
+    //TODO: annotation on member variable does not seem to trigger JPA persistence
     @Target(value=Serializable.class)
     @Lob
     @Column(name = "VALUE")
     private T value; // any kind of value can be the prognostic variable (keep it generic)
+
+    //TODO: this was just a try to force JPA to persist serialized data, does not seem to work
+    //private byte[] binValue;
 
     // Many to One
     private TrialSubject subject;
@@ -69,6 +74,7 @@ public class PrognosticVariable<T extends Serializable> implements Identifiable<
 
     //region Constructors
 
+    @SuppressWarnings("unused")
     public PrognosticVariable() {
         // NOOP
     }
@@ -109,16 +115,72 @@ public class PrognosticVariable<T extends Serializable> implements Identifiable<
 
     //region Value
 
+    // T needs to implement Serializable if JPA should persist it
+    //TODO: direct JPA persistence annotations does not seem to help
+    //@Target(value=Serializable.class)
+    //@Lob
+    //@Column(name = "VALUE")
     @Transient
     public T getValue() {
         return this.value;
     }
 
     public void setValue(T value) throws Exception {
-        criterion.isValueCorrect(value);
+        if (this.criterion != null) {
+            this.criterion.isValueCorrect(value);
+        }
         this.value = value;
     }
 
+
+    //TODO: this was just a try to force JPA to persist serialized data, does not seem to work
+//    @Transient
+//    public Object getValue() {
+//        try {
+//            if (this.value != null) {
+//                return this.value;
+//            }
+//            else {
+//                if (this.binValue != null) {
+//                    this.value = convertInstanceOfObject(new ObjectInputStream(new ByteArrayInputStream(this.binValue)).readObject());
+//                }
+//                return this.value;
+//            }
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    public void setValue(Object o) throws Exception  {
+//        if (this.criterion != null) {
+//            this.criterion.isValueCorrect(value);
+//        }
+//
+//        this.value = convertInstanceOfObject(o);
+//
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        try {
+//            final ObjectOutputStream oos = new ObjectOutputStream(baos);
+//            oos.writeObject(o);
+//            oos.close();
+//            this.binValue = baos.toByteArray();
+//        }
+//        catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    @Lob
+//    @Column(name = "VALUE", columnDefinition = "BLOB")
+//    public byte[] getBinValue() {
+//        return this.binValue;
+//    }
+//
+//    public void setBinValue(byte[] binValue) {
+//        this.binValue = binValue;
+//    }
+    
     //endregion
 
     //region Subject
@@ -173,6 +235,19 @@ public class PrognosticVariable<T extends Serializable> implements Identifiable<
     }
 
     //endregion
+
+    //endregion
+
+    //region Static
+
+    //TODO: just testing this approach for generic persistence
+//    public static <T> T convertInstanceOfObject(Object o) {
+//        try {
+//            return (T) o;
+//        } catch (ClassCastException e) {
+//            return null;
+//        }
+//    }
 
     //endregion
 

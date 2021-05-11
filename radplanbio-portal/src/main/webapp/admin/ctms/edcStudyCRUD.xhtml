@@ -1,0 +1,2886 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:o="http://omnifaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="#{msg.study_plural}" title="#{msg.study_plural}" url="/admin/studyManagement.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- Enums -->
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.mapping.MappingTypeEnum" />
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.mapping.MappingItemTypeEnum" />
+
+        <p:tabView id="tabView" activeIndex="#{mbStudyManagement.tab.activeIndex}">
+
+            <!-- Studies -->
+            <p:tab title="#{msg.study_plural}">
+
+                <!-- Studies toolbar -->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                                id="btnStudyReload"
+                                value="#{msg.menu_reload}"
+                                title="#{msg.study_reload}"
+                                icon="ui-icon-refresh"
+                                immediate="true"
+                                process="@this"
+                                update=":form:tabView:dtStudies, :growl"
+                                actionListener="#{mbStudyManagement.reload}"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                                />
+                    </p:toolbarGroup>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.study_print}"
+                                icon="ui-icon-print"
+                                type="button"
+                                >
+                            <p:printer target="dtStudies" />
+                        </p:commandButton>
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                                />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Studies table -->
+                <p:dataTable
+                    id="dtStudies"
+                    var="study"
+                    value="#{mbStudyManagement.entityList}"
+                    widgetVar="studiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbStudyManagement.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{study.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbStudyManagement.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbStudyManagement.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!--AJAX onclick on datatable row -->
+                    <p:ajax
+                        event="rowSelect"
+                        listener="#{mbStudyManagement.loadStudyMetadata}"
+                        update=":form:tabView:dtEntities, :form:tabView:dtRecords, :form:tabView:dtCrfFieldAnnotations"
+                        onstart="PF('buiTab').show()"
+                        oncomplete="PF('buiTab').hide()"
+                        />
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler datasource="dtStudies" trigger=":form:tabView:dtStudies:btnEntitiesToggler">
+                            <p:ajax event="toggle" listener="#{mbStudyManagement.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" style="width:5%" exportable="false" toggleable="false">
+                        <h:outputLabel value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- EDC Study identifier -->
+                    <p:column
+                        id="colStudyOcIdentifier"
+                        headerText="#{msg.study_edcIdentifier}"
+                        sortBy="#{study.ocStudyIdentifier}"
+                        filterBy="#{study.ocStudyIdentifier}"
+                        visible="#{mbStudyManagement.columnVisibilityList[0]}"
+                        filterMatchMode="contains"
+                        style="width:30%"
+                        >
+                        <h:outputText value="#{study.ocStudyIdentifier}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Short label -->
+                    <p:column
+                        id="colStudyName"
+                        headerText="#{msg.study_name}"
+                        sortBy="#{study.name}"
+                        filterBy="#{study.name}"
+                        visible="#{mbStudyManagement.columnVisibilityList[1]}"
+                        filterMatchMode="contains"
+                        style="width:80%"
+                        >
+                        <h:outputText value="#{study.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Principal study site -->
+                    <p:column
+                        headerText="Principal #{msg.partnerSite}"
+                        sortBy="#{study.partnerSite.name}"
+                        visible="#{mbStudyManagement.columnVisibilityList[2]}"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{study.partnerSite.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Stratify according to study site -->
+                    <p:column
+                        headerText="Stratify #{msg.partnerSite}"
+                        filterBy="#{study.isStratifyTrialSite}"
+                        visible="#{mbStudyManagement.columnVisibilityList[3]}"
+                        filterMatchMode="equals"
+                        style="width:8%"
+                        >
+                        <f:facet name="filter">
+                            <p:selectOneButton onchange="PF('studiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneButton>
+                        </f:facet>
+                        <p:selectBooleanButton
+                            value="#{study.isStratifyTrialSite}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:10%"
+                        >
+                        <!-- Edit -->
+                        <p:commandButton
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":editStudyForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editStudyDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{study}"
+                                target="#{mbStudyManagement.selectedEntity}"
+                                />
+                        </p:commandButton>
+                        
+                        <!-- Refresh Cache -->
+                        <p:commandButton
+                            icon="ui-icon-refresh"
+                            title="Metadata #{msg.menu_reload}"
+                            immediate="true"
+                            process="@this"
+                            update=":growl"
+                            actionListener="#{mbStudyManagement.refreshStudyMetadata(study)}"
+                            onstart="PF('buiTab').show()"
+                            oncomplete="PF('buiTab').hide()"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{study}"
+                                target="#{mbStudyManagement.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudyManagement.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudyManagement.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbStudyManagement.entityList.size() > 1}"
+                                >
+                            <f:param value="#{mbStudyManagement.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtStudies" fileName="EDC-#{msg.study_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtStudies" fileName="EDC-#{msg.study_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Data mapping definitions -->
+            <p:tab title="#{msg.mapping_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <!-- New -->
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.mapping_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newMappingDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newMappingForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbDataMapping.prepareNewEntity}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.mapping_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- RadPlanBio data mappings definitions table -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbStudyManagement.selectedEntity.dataMappings}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbDataMapping.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{entity.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbDataMapping.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbDataMapping.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!--AJAX onclick on datatable row-->
+                    <p:ajax event="rowSelect" update=":form:tabView:dtRecords" />
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <h:outputText value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" style="float:left" />
+                        <p:commandButton id="btnMappingEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnMappingEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbDataMapping.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Mapping definition name -->
+                    <p:column
+                        id="colMappingDefName"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        visible="#{mbDataMapping.columnVisibilityList[0]}"
+                        filterMatchMode="contains"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mapping_name}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.name}" style="float:left" />
+                    </p:column>
+
+                    <!-- Mapping type -->
+                    <p:column
+                        sortBy="#{entity.type.toString()}"
+                        filterBy="#{entity.type.toString()}"
+                        visible="#{mbDataMapping.columnVisibilityList[1]}"
+                        filterMatchMode="in"
+                        style="width:15%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mapping_type}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                label="#{msg.mapping_type}"
+                                onchange="PF('entitiesTable').filter()"
+                                >
+                                <f:selectItems value="#{MappingTypeEnum}"
+                                   var="mappingTypeEnum"
+                                   itemValue="#{mappingTypeEnum}"
+                                   itemLabel="#{mappingTypeEnum.label}"
+                                   />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.type.label}" />
+                    </p:column>
+
+                    <!-- Mapping from -->
+                    <p:column
+                        sortBy="#{entity.sourceType.toString()}"
+                        filterBy="#{entity.sourceType.toString()}"
+                        filterMatchMode="in"
+                        style="width:10%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mapping_sourceType}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                label="#{msg.mapping_sourceType}"
+                                onchange="PF('entitiesTable').filter()"
+                                >
+                                <f:selectItems
+                                    value="#{MappingItemTypeEnum}"
+                                    var="mappingItemTypeEnum"
+                                    itemValue="#{mappingItemTypeEnum}"
+                                    itemLabel="#{mappingItemTypeEnum.label}"
+                                    />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.sourceType.label}" />
+                    </p:column>
+
+                    <!-- Mapping to -->
+                    <p:column
+                        sortBy="#{entity.targetType.toString()}"
+                        filterBy="#{entity.targetType.toString()}"
+                        visible="#{mbDataMapping.columnVisibilityList[2]}"
+                        filterMatchMode="in"
+                        style="width:10%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mapping_targetType}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                label="#{msg.mapping_targetType}"
+                                onchange="PF('entitiesTable').filter()"
+                                >
+                                <f:selectItems
+                                    value="#{MappingItemTypeEnum}"
+                                    var="mappingItemTypeEnum"
+                                    itemValue="#{mappingItemTypeEnum}"
+                                    itemLabel="#{mappingItemTypeEnum.label}"
+                                    />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.targetType.label}" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <!-- Clone -->
+                        <p:commandButton
+                            title="Clone"
+                            icon="ui-icon-copy"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbDataMapping.doCloneEntity}"
+                            disabled="true"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbDataMapping.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Edit -->
+                        <p:commandButton
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            update=":editMappingForm:editMappingDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editMappingDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbDataMapping.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Delete -->
+                        <p:commandButton
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":deleteMappingForm:deleteDisplay"
+                            oncomplete="PF('deleteMappingDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbDataMapping.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudyManagement.selectedEntity.dataMappings.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudyManagement.selectedEntity.dataMappings.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbStudyManagement.selectedEntity.dataMappings.size() > 1}"
+                                >
+                            <f:param value="#{mbStudyManagement.selectedEntity.dataMappings.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.mapping_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.mapping_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Mapping records of selected definitions -->
+            <p:tab title="#{msg.mappingRecord_plural}">
+
+                <!-- Data mapping records toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.mappingRecord_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtRecords" />
+                        </p:commandButton>
+
+                        <p:commandButton
+                                id="btnMappingRecordsHelp"
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                        />
+                    </p:toolbarGroup>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- New -->
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.mappingRecord_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newRecordDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newRecordForm:newRecordDisplay"
+                            process="@this"
+                            actionListener="#{mbMappingRecord.prepareNewEntity}"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- RadPlanBio data mappings records table -->
+                <p:dataTable
+                    id="dtRecords"
+                    var="record"
+                    value="#{mbDataMapping.selectedEntity.mappingRecords}"
+                    widgetVar="recordsTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbMappingRecord.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{record.id}"
+                    rowIndexVar="recordRowIndex"
+                    filteredValue="#{mbMappingRecord.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbMappingRecord.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <h:outputText value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier} / #{mbDataMapping.selectedEntity.name}" style="float:left" />
+                        <p:commandButton id="btnRecordEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtRecords"
+                            trigger=":form:tabView:dtRecords:btnRecordEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbMappingRecord.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{recordRowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Mapping record source -->
+                    <p:column
+                        id="colSourceLabel"
+                        sortBy="#{record.source.label}"
+                        filterBy="#{record.source.label}"
+                        visible="#{mbMappingRecord.columnVisibilityList[0]}"
+                        filterMatchMode="contains"
+                        style="width:30%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mappingRecord_source}" />
+                        </f:facet>
+                        <h:outputText value="#{record.source.label}" style="float:left" />
+                    </p:column>
+
+                    <!-- Mapping record target -->
+                    <p:column
+                        id="colTargetLabel"
+                        sortBy="#{record.target.label}"
+                        filterBy="#{record.target.label}"
+                        visible="#{mbMappingRecord.columnVisibilityList[1]}"
+                        filterMatchMode="contains"
+                        style="width:30%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mappingRecord_target}" />
+                        </f:facet>
+                        <h:outputText value="#{record.target.label}" style="float:left" />
+                    </p:column>
+
+                    <!-- Mapping record priority -->
+                    <p:column
+                        id="colRecordPriority"
+                        sortBy="#{record.priority}"
+                        visible="#{mbMappingRecord.columnVisibilityList[2]}"
+                        style="width:10%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mappingRecord_priority}" />
+                        </f:facet>
+                        <h:outputText value="#{record.priority}" />
+                    </p:column>
+
+                    <!-- DefaultValue -->
+                    <p:column
+                        sortBy="#{record.defaultValue}"
+                        visible="#{mbMappingRecord.columnVisibilityList[3]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mappingRecord_defaultValue}" />
+                        </f:facet>
+                        <h:outputText value="#{record.defaultValue}" />
+                    </p:column>
+
+                    <!-- MultiValueSeparator -->
+                    <p:column
+                        visible="#{mbMappingRecord.columnVisibilityList[4]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mappingRecord_multiValueSeparator}" />
+                        </f:facet>
+                        <h:outputText value="#{record.multiValueSeparator}" />
+                    </p:column>
+
+                    <!-- DateFormatString -->
+                    <p:column
+                        visible="#{mbMappingRecord.columnVisibilityList[5]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.mappingRecord_dateFormatString}" />
+                        </f:facet>
+                        <h:outputText value="#{record.dateFormatString}" />
+                    </p:column>
+
+                    <!-- StudyEventRepeatKey-->
+                    <p:column
+                        sortBy="#{record.studyEventRepeatKey}"
+                        visible="#{mbMappingRecord.columnVisibilityList[6]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="SE key" />
+                        </f:facet>
+                        <h:outputText value="#{record.studyEventRepeatKey}" />
+                    </p:column>
+
+                    <!-- ItemGroupRepeatKey-->
+                    <p:column
+                        sortBy="#{record.itemGroupRepeatKey}"
+                        visible="#{mbMappingRecord.columnVisibilityList[7]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="IG key" />
+                        </f:facet>
+                        <h:outputText value="#{record.itemGroupRepeatKey}" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <!-- Edit -->
+                        <p:commandButton
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            update=":editRecordForm:editRecordDisplay"
+                            oncomplete="PF('editRecordDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{record}"
+                                target="#{mbMappingRecord.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Delete -->
+                        <p:commandButton
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":deleteRecordForm:deleteRecordDisplay"
+                            oncomplete="PF('deleteRecordDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{record}"
+                                target="#{mbMappingRecord.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDataMapping.selectedEntity.mappingRecords.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDataMapping.selectedEntity.mappingRecords.size() == 1}" />
+                        <h:outputFormat
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbDataMapping.selectedEntity.mappingRecords.size() > 1}"
+                            >
+                            <f:param value="#{mbDataMapping.selectedEntity.mappingRecords.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtRecords" fileName="#{msg.mappingRecord_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtRecords" fileName="#{msg.mappingRecord_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- eCRFs annotations -->
+            <p:tab title="#{msg.crfFieldAnnotation_plural}">
+
+                <!-- Annotations toolbar -->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <!-- New -->
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.crfFieldAnnotation_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newAnnotationDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newAnnotationForm:newAnnotationDisplay"
+                            process="@this"
+                            actionListener="#{mbCrfAnnotation.prepareNewEntity(mbStudyManagement.odm.findEventDefinitions())}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.crfFieldAnnotation_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- RadPlanBio eCRFs annotations table -->
+                <p:dataTable
+                    id="dtCrfFieldAnnotations"
+                    var="annotation"
+                    value="#{mbStudyManagement.selectedEntity.crfFieldAnnotations}"
+                    widgetVar="annotationsTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbCrfAnnotation.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{annotation.id}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbCrfAnnotation.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbCrfAnnotation.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <h:outputText value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" style="float:left" />
+                        <p:commandButton id="btnCrfFieldAnnotationsToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler datasource="dtCrfFieldAnnotations" trigger=":form:tabView:dtCrfFieldAnnotations:btnCrfFieldAnnotationsToggler">
+                            <p:ajax event="toggle" listener="#{mbCrfAnnotation.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- EventDefinition OID -->
+                    <p:column
+                        id="colCrfAnnotationEventDefOid"
+                        headerText="#{msg.crfFieldAnnotation_eventDefinitionOid}"
+                        sortBy="#{annotation.eventDefinitionOid}"
+                        filterBy="#{annotation.eventDefinitionOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[0]}"
+                        >
+                        <h:outputText value="#{annotation.eventDefinitionOid}" style="float: left;" />
+                    </p:column>
+
+                    <!-- FormDefinition OID -->
+                    <p:column
+                        headerText="#{msg.crfFieldAnnotation_formOid}"
+                        sortBy="#{annotation.formOid}"
+                        filterBy="#{annotation.formOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[1]}"
+                        >
+                        <h:outputText value="#{annotation.formOid}" style="float: left;" />
+                    </p:column>
+
+                    <!-- ItemGroup OID -->
+                    <p:column
+                        headerText="#{msg.crfFieldAnnotation_groupOid}"
+                        sortBy="#{annotation.groupOid}"
+                        filterBy="#{annotation.groupOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[2]}"
+                        >
+                        <h:outputText value="#{annotation.groupOid}" style="float: left;" />
+                    </p:column>
+
+                    <!-- ItemDefinition OID -->
+                    <p:column
+                        id="colCrfAnnotationItemDefOid"
+                        headerText="#{msg.crfFieldAnnotation_crfItemOid}"
+                        sortBy="#{annotation.crfItemOid}"
+                        filterBy="#{annotation.crfItemOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[3]}"
+                        >
+                        <h:outputText value="#{annotation.crfItemOid}" style="float: left;" />
+                    </p:column>
+
+                    <!-- eCRF annotation type -->
+                    <p:column
+                        headerText="#{msg.crfFieldAnnotation_annotationType}"
+                        sortBy="#{annotation.annotationType.name}"
+                        filterBy="#{annotation.annotationType.name}"
+                        filterMatchMode="in"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[4]}"
+                        >
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                label="#{msg.crfFieldAnnotation_annotationType}"
+                                onchange="PF('annotationsTable').filter()"
+                                panelStyle="width:120px"
+                                scrollHeight="80"
+                                >
+                                <f:selectItems
+                                    value="#{mbAnnotationType.entityList}"
+                                    var="annotationType"
+                                    itemLabel="#{annotationType.name}"
+                                    itemValue="#{annotationType.name}"
+                                    itemDescription="#{annotationType.description}"
+                                    />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{annotation.annotationType.name}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:13%"
+                        >
+                        <!-- Edit -->
+                        <p:commandButton
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            immediate="true"
+                            process="@this"
+                            update=":editAnnotationForm:editAnnotationDisplay"
+                            oncomplete="PF('editAnnotationDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{annotation}"
+                                target="#{mbCrfAnnotation.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Delete -->
+                        <p:commandButton
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            immediate="true"
+                            process="@this"
+                            update=":deleteAnnotationForm:deleteAnnotationDisplay"
+                            oncomplete="PF('deleteAnnotationDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{annotation}"
+                                target="#{mbCrfAnnotation.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudyManagement.selectedEntity.crfFieldAnnotations.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudyManagement.selectedEntity.crfFieldAnnotations.size() == 1}" />
+                        <h:outputFormat
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbStudyManagement.selectedEntity.crfFieldAnnotations.size() > 1}"
+                            >
+                            <f:param value="#{mbStudyManagement.selectedEntity.crfFieldAnnotations.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtCrfFieldAnnotations" fileName="#{msg.crfFieldAnnotation_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtCrfFieldAnnotations" fileName="#{msg.crfFieldAnnotation_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+        </p:tabView>
+
+        <!-- Block UI for whole TabView -->
+        <p:blockUI block="tabView" widgetVar="buiTab">
+            Processing<br /><p:graphicImage name="icons/ajaxloading.gif" />
+        </p:blockUI>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- Edit Study -->
+        <p:dialog
+            id="dlgStudyEdit"
+            header="#{msg.study_edit}"
+            widgetVar="editStudyDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <h:form id="editStudyForm">
+                <p:panelGrid
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Study Name -->
+                    <h:outputLabel value="#{msg.study_name}:" for="txtStudyLabelEdit" />
+                    <p:inputText id="txtStudyLabelEdit" value="#{mbStudyManagement.selectedEntity.name}" />
+
+                    <!-- Study Title -->
+                    <h:outputLabel value="#{msg.study}:" for="txtStudyTitleEdit" />
+                    <p:inputTextarea id="txtStudyTitleEdit" value="#{mbStudyManagement.selectedEntity.title}" style="width:350px" />
+
+                    <!-- Connection to EDC study -->
+                    <h:outputText value="#{msg.study_edcIdentifier}: #{msg.label_required_suffix}" for="ddlOcStudyIdentifierEdit" />
+                    <p:selectOneMenu
+                        id="ddlOcStudyIdentifierEdit"
+                        value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}"
+                        filter="true"
+                        filterMatchMode="contains"
+                        panelStyle="width: 150px"
+                        var="ocStudyEditIter"
+                        style="width:400px"
+                        rendered="#{mbStudyManagement.selectedEntity.ocStudyIdentifier == null}"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="" noSelectionOption="true" />
+                        <f:selectItems
+                            value="#{mbStudyManagement.studyTypeList}"
+                            var="studyType"
+                            itemLabel="#{studyType.identifier}"
+                            itemValue="#{studyType.identifier}"
+                            />
+                        <p:column>
+                            <h:outputText value="#{ocStudyEditIter.identifier}" />
+                        </p:column>
+                    </p:selectOneMenu>
+                    <h:outputText value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" rendered="#{mbStudyManagement.selectedEntity.ocStudyIdentifier != null}" />
+
+                    <!-- Principal partner site -->
+                    <h:outputLabel value="Principal #{msg.partnerSite}: #{msg.label_required_suffix}" for="cmbPartnerSitesEdit" />
+                    <p:selectOneMenu
+                        id="cmbPartnerSitesEdit"
+                        value="#{mbStudyManagement.selectedEntity.partnerSite}"
+                        converter="omnifaces.SelectItemsConverter"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="partnerSiteEditIter"
+                        style="width:250px"
+                        required="true"
+                        requiredMessage="Principal #{msg.partnerSite} is mandatory!"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                            value="#{mbPartnerSite.entityList}"
+                            var="site"
+                            itemLabel="#{site.name}"
+                            itemValue="#{site}"
+                            itemDescription="#{site.description}"
+                            />
+                        <p:column>
+                            <h:outputText value="#{partnerSiteEditIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Stratification -->
+                    <h:outputLabel value="Stratify #{msg.partnerSite}: " for="chkStratifySiteEdit" />
+                    <p:selectBooleanCheckbox id="chkStratifySiteEdit" value="#{mbStudyManagement.selectedEntity.isStratifyTrialSite}" rendered="#{mbStudyManagement.selectedEntity != null}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_update}"
+                            update=":form:tabView:dtStudies, :editStudyForm, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgStudyEdit','editStudyForm');"
+                            actionListener="#{mbStudyManagement.doUpdateEntity}"
+                            process="@this editStudyForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- New Mapping -->
+        <p:dialog
+            id="dlgNewMapping"
+            header="#{msg.mapping_new}"
+            widgetVar="newMappingDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="newMappingForm">
+                <p:messages id="messagesMappingNew" showDetail="true" autoUpdate="true" />
+
+                <!-- Wizard -->
+                <p:wizard widgetVar="newMappingWiz">
+
+                    <!-- Mapping -->
+                    <p:tab title="#{msg.mapping}">
+                        <p:panelGrid
+                            id="newDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+
+                            <!-- Selected EDC study identifer -->
+                            <h:outputLabel value="#{msg.mapping_study} #{msg.study_edcIdentifier}: #{msg.label_required_suffix}" for="txtStudyNew" />
+                            <h:outputText id="txtStudyNew" value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" />
+
+                            <!-- Name -->
+                            <h:outputLabel value="#{msg.mapping_name}: #{msg.label_required_suffix}" for="txtMappingName" />
+                            <p:inputText
+                                id="txtMappingName"
+                                value="#{mbDataMapping.newEntity.name}"
+                                required="true"
+                                maxlength="255"
+                                style="width:330px"
+                                requiredMessage="#{msg.mapping_name} is mandatory!"
+                                />
+
+                            <!-- Description -->
+                            <h:outputLabel value="#{msg.mapping_description}:" for="txtMappingDescription" />
+                            <p:inputTextarea id="txtMappingDescription" value="#{mbDataMapping.newEntity.description}" maxlength="512" style="width:330px" />
+
+                            <!-- Mapping Type -->
+                            <h:outputLabel value="#{msg.mapping_type}: #{msg.label_required_suffix}" for="cmbMappingType" />
+                            <p:selectOneMenu
+                                id="cmbMappingType"
+                                value="#{mbDataMapping.newEntity.type}"
+                                required="true"
+                                requiredMessage="#{msg.mapping_type} is mandatory!"
+                                style="width:330px"
+                                rendered="#{mbDataMapping.newEntity != null}"
+                                >
+                                <!-- AJAX update on selection changed -->
+                                <p:ajax listener="#{mbDataMapping.selectedMappingTypeChanged}" update=":newMappingForm:cmbMappingSourceType, :newMappingForm:cmbMappingTargetType" />
+
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{MappingTypeEnum}" />
+                            </p:selectOneMenu>
+
+                            <!-- Source Type for EXPORT (from) -->
+                            <h:outputLabel value="#{msg.mapping_sourceType}: #{msg.label_required_suffix}" for="cmbMappingSourceType" />
+                            <p:selectOneMenu
+                                id="cmbMappingSourceType"
+                                value="#{mbDataMapping.newEntity.sourceType}"
+                                required="true"
+                                requiredMessage="#{msg.mapping_sourceType} is mandatory!"
+                                style="width:330px"
+                                disabled="#{mbDataMapping.newEntity.type == 'EXPORT'}"
+                                rendered="#{mbDataMapping.newEntity != null}"
+                                >
+                                <f:selectItems value="#{MappingItemTypeEnum}" />
+                            </p:selectOneMenu>
+
+                            <!-- Target Type for IMPORT (to) -->
+                            <h:outputLabel value="#{msg.mapping_targetType}: #{msg.label_required_suffix}" for="cmbMappingTargetType" />
+                            <p:selectOneMenu
+                                id="cmbMappingTargetType"
+                                value="#{mbDataMapping.newEntity.targetType}"
+                                required="true"
+                                requiredMessage="#{msg.mapping_targetType} is mandatory!"
+                                style="width:330px"
+                                disabled="#{mbDataMapping.newEntity.type == 'IMPORT'}"
+                                rendered="#{mbDataMapping.newEntity != null}"
+                                >
+                                <f:selectItems value="#{MappingItemTypeEnum}" />
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Source items definitions -->
+                    <p:tab title="#{msg.mapping_sourceItemDefinitions}">
+                        <p:panelGrid
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto; max-height:750px"
+                            >
+
+                            <!-- Uploaded source file name-->
+                            <h:outputLabel for="txtFileName" value="File name: #{msg.label_required_suffix}" />
+                            <p:inputText
+                                id="txtFileName"
+                                value="#{mbDataMapping.uploadedFile.fileName}"
+                                style="width:500px"
+                                disabled="true"
+                                required="true"
+                                requiredMessage="You have upload data file before continuing!"
+                                />
+
+                            <!-- Upload data definition file -->
+                            <h:outputLabel for="uploadImportFile" rendered="#{mbDataMapping.uploadedFile == null}" />
+                            <p:fileUpload
+                                id="uploadImportFile"
+                                fileUploadListener="#{mbDataMapping.handleUpload}"
+                                rendered="#{mbDataMapping.uploadedFile == null}"
+                                mode="advanced"
+                                update=":growl, :newMappingForm:txtFileName, :newMappingForm:btnLoadMappedItems"
+                                label="Choose a file or drag and drop it here:"
+                                sizeLimit="10048576"
+                                auto="false"
+                                allowTypes="/(\.|\/)(xml|csv)$/"
+                                invalidSizeMessage="The maximum file size allowed is 10 Megabyte!"
+                                invalidFileMessage="You are allowed to upload only (xml, csv files)!"
+                                dragDropSupport="true"
+                                fileLimit="1"
+                                />
+
+                            <!-- Data transformation process -->
+                            <p:commandButton
+                                id="btnLoadMappedItems"
+                                value="Load"
+                                title="Load mapped data items"
+                                icon="ui-icon-play"
+                                disabled="#{mbDataMapping.uploadedFile == null}"
+                                actionListener="#{mbDataMapping.loadSourceMappedItems()}"
+                                update=":growl, :newMappingForm:dtSourceDefs"
+                                process="@this newMappingForm"
+                                />
+                            <h:outputText value="" />
+
+                            <!-- Source data definitions -->
+                            <h:outputLabel for="dtSourceDefs" value="#{msg.mapping_sourceItemDefinitions}: #{msg.label_required_suffix}" />
+                            <p:dataTable
+                                id="dtSourceDefs"
+                                value="#{mbDataMapping.newEntity.sourceItemDefinitions}"
+                                widgetVar="sourceItemDefTableNew"
+                                var="itemDef"
+                                type="ordered"
+                                itemType="none"
+                                paginator="true"
+                                rows="10"
+                                styleClass="paginated"
+                                emptyMessage="#{msg.search_empty}"
+                                filteredValue="#{mbDataMapping.filteredSourceItemDefs}"
+                                selection="#{mbDataMapping.selectedSourceItemDef}"
+                                selectionMode="single"
+                                rowKey="#{itemDef.label}"
+                                rowIndexVar="sidRowIndex"
+                                style="width:450px"
+                                disabled="#{mbDataMapping.uploadedFile == null}">
+
+                                <!-- Row -->
+                                <p:column style="width:5%" toggleable="false" exportable="false">
+                                    <f:facet name="header">
+                                        <h:outputText value="#" />
+                                    </f:facet>
+                                    <h:outputText value="#{sidRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- Item definition label -->
+                                <p:column
+                                    sortBy="#{itemDef.label}"
+                                    filterBy="#{itemDef.label}"
+                                    filterMatchMode="contains"
+                                    >
+                                    <f:facet name="header">
+                                        <h:outputText value="Label" />
+                                    </f:facet>
+                                    <h:outputText value="#{itemDef.label}" title="#{itemDef.toString()}"  style="float:left;" />
+                                </p:column>
+
+                                <!-- Footer -->
+                                <f:facet name="footer">
+                                    <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDataMapping.newEntity.sourceItemDefinitions.size() == 0}" />
+                                    <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDataMapping.newEntity.sourceItemDefinitions.size() == 1}" />
+                                    <h:outputFormat
+                                        value="#{msg.search_results_status_n}"
+                                        rendered="#{mbDataMapping.newEntity.sourceItemDefinitions.size() > 1}"
+                                        >
+                                        <f:param value="#{mbDataMapping.newEntity.sourceItemDefinitions.size()}" />
+                                    </h:outputFormat>
+                                </f:facet>
+                            </p:dataTable>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Target items definitions -->
+                    <p:tab title="#{msg.mapping_targetItemDefinitions}">
+                        <p:panelGrid
+                            id="newTargetDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto; max-height:750px"
+                            >
+
+                            <!-- Study event -->
+                            <h:outputLabel value="#{msg.studyEvent}: #{msg.label_required_suffix}" for="cmbEventDefinitions" />
+                            <p:selectOneMenu
+                                id="cmbEventDefinitions"
+                                value="#{mbStudyManagement.selectedEventDefinition}"
+                                converter="omnifaces.SelectItemsConverter"
+                                required="true"
+                                requiredMessage="You have to selection an event definition, it is mandatory!"
+                                style="width:350px"
+                                >
+                                <p:ajax update=":newMappingForm:newTargetDisplay" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
+                                <f:selectItems
+                                        value="#{mbStudyManagement.odm.findEventDefinitions()}"
+                                        var="eventDef"
+                                        itemValue="#{eventDef}"
+                                        itemLabel="#{eventDef.name}"
+                                        itemDescription="#{eventDef.oid}"
+                                        />
+                            </p:selectOneMenu>
+
+                            <!-- Study form -->
+                            <h:outputText value="CRF: #{msg.label_required_suffix}" for="cmbFormDefinitions" />
+                            <p:selectOneMenu
+                                id="cmbFormDefinitions"
+                                value="#{mbStudyManagement.selectedFormDefinition}"
+                                converter="omnifaces.SelectItemsConverter"
+                                required="true"
+                                requiredMessage="You have to choose a form definition, it is mandatory!"
+                                style="width:350px"
+                                >
+                                <p:ajax update=":newMappingForm:newTargetDisplay" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
+                                <f:selectItems
+                                        value="#{mbStudyManagement.selectedEventDefinition.formDefs}"
+                                        var="formDef"
+                                        itemValue="#{formDef}"
+                                        itemLabel="#{formDef.name}"
+                                        itemDescription="#{formDef.oid}"
+                                        />
+                            </p:selectOneMenu>
+
+                            <!-- Data transformation process -->
+                            <p:commandButton
+                                value="Load"
+                                icon="ui-icon-play"
+                                disabled="#{mbStudyManagement.selectedFormDefinition == null}"
+                                actionListener="#{mbDataMapping.loadTargetMappedItems(mbStudyManagement.selectedEventDefinition, mbStudyManagement.selectedFormDefinition)}"
+                                update=":growl, :newMappingForm:dtTargetDefs"
+                                process="@this newMappingForm"
+                                />
+                            <h:outputText value="" />
+
+                            <!-- Target data definitions -->
+                            <h:outputLabel for="dtTargetDefs" value="#{msg.mapping_targetItemDefinitions}: #{msg.label_required_suffix}" />
+                            <p:dataTable
+                                id="dtTargetDefs"
+                                value="#{mbDataMapping.newEntity.targetItemDefinitions}"
+                                widgetVar="targetItemDefTableNew"
+                                var="targetItemDefNew"
+                                type="ordered"
+                                itemType="none"
+                                paginator="true"
+                                rows="10"
+                                styleClass="paginated"
+                                emptyMessage="#{msg.search_empty}"
+                                filteredValue="#{mbDataMapping.filteredTargetItemDefs}"
+                                selection="#{mbDataMapping.selectedTargetItemDef}"
+                                selectionMode="single"
+                                rowKey="#{targetItemDefNew.label}"
+                                rowIndexVar="tidNewRowIndex"
+                                style="width:450px"
+                                disabled="#{mbDataMapping.uploadedFile == null}">
+
+                                <!-- Row -->
+                                <p:column headerText="#" style="width:5%" toggleable="false" exportable="false">
+                                    <h:outputText value="#{tidNewRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- Item definition label -->
+                                <p:column
+                                    headerText="Label"
+                                    sortBy="#{targetItemDefNew.label}"
+                                    filterBy="#{targetItemDefNew.label}"
+                                    filterMatchMode="contains"
+                                    >
+                                    <h:outputText value="#{targetItemDefNew.label}" title="#{targetItemDefNew.toString()}" style="float:left;" />
+                                </p:column>
+
+                                <!-- Footer -->
+                                <f:facet name="footer">
+                                    <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDataMapping.newEntity.targetItemDefinitions.size() == 0}" />
+                                    <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDataMapping.newEntity.targetItemDefinitions.size() == 1}" />
+                                    <h:outputFormat
+                                        value="#{msg.search_results_status_n}"
+                                        rendered="#{mbDataMapping.newEntity.targetItemDefinitions.size() > 1}"
+                                        >
+                                        <f:param value="#{mbDataMapping.newEntity.targetItemDefinitions.size()}" />
+                                    </h:outputFormat>
+                                </f:facet>
+                            </p:dataTable>
+
+                            <!-- Commands -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                    value="#{msg.menu_save}"
+                                    update=":form:tabView:dtEntities, :growl"
+                                    icon="ui-icon-disk"
+                                    actionListener="#{mbStudyManagement.doAddDataMapping(mbDataMapping.newEntity)}"
+                                    oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewMapping','newMappingForm');"
+                                    process="@this newMappingForm"
+                                    />
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:wizard>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Mapping -->
+        <p:dialog
+            id="dlgMappingEdit"
+            header="#{msg.mapping_edit}"
+            widgetVar="editMappingDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="editMappingForm">
+
+                <p:messages id="messagesMappingEdit" showDetail="true" autoUpdate="true" />
+
+                <!-- Wizard -->
+                <p:wizard widgetVar="editMappingWiz">
+
+                    <!-- Mapping -->
+                    <p:tab title="#{msg.mapping}">
+                        <p:panelGrid
+                            id="editMappingDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+
+                            <!-- Selected EDC study identifer -->
+                            <h:outputLabel value="#{msg.mapping_study} #{msg.study_edcIdentifier}: #{msg.label_required_suffix}" for="txtStudyEdit" />
+                            <h:outputText id="txtStudyEdit" value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" />
+
+                            <!-- Name -->
+                            <h:outputLabel value="#{msg.mapping_name}: #{msg.label_required_suffix}" for="txtMappingNameEdit" />
+                            <p:inputText
+                                id="txtMappingNameEdit"
+                                value="#{mbDataMapping.selectedEntity.name}"
+                                required="true"
+                                maxlength="255"
+                                style="width:330px"
+                                requiredMessage="#{msg.mapping_name} is mandatory!"
+                                />
+
+                            <!-- Description -->
+                            <h:outputLabel value="#{msg.mapping_description}:" for="txtMappingDescriptionEdit" />
+                            <p:inputTextarea id="txtMappingDescriptionEdit" value="#{mbDataMapping.selectedEntity.description}" axlength="512" style="width:330px"/>
+
+                            <!-- Mapping Type -->
+                            <h:outputLabel value="#{msg.mapping_type}: #{msg.label_required_suffix}" for="txtMappingTypeEdit" />
+                            <h:outputText id="txtMappingTypeEdit" value="#{mbDataMapping.selectedEntity.type.label}" />
+
+                            <!-- Source Type -->
+                            <h:outputLabel value="#{msg.mapping_sourceType}: #{msg.label_required_suffix}" for="txtMappingSourceTypeEdit" />
+                            <h:outputText id="txtMappingSourceTypeEdit" value="#{mbDataMapping.selectedEntity.sourceType.label}" />
+
+                            <!-- Target Type -->
+                            <h:outputLabel value="#{msg.mapping_targetType}: #{msg.label_required_suffix}" for="txtMappingTargetTypeEdit" />
+                            <h:outputText id="txtMappingTargetTypeEdit" value="#{mbDataMapping.selectedEntity.targetType.label}" />
+
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Source items definitions -->
+                    <p:tab title="#{msg.mapping_sourceItemDefinitions}">
+                        <p:panelGrid
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto; max-height:750px"
+                            >
+                            <!-- Toolbar Commands -->
+                            <h:outputLabel value="#{msg.menu_commands}:" />
+                            <p:toolbar>
+                                <!-- Left -->
+                                <p:toolbarGroup align="left">
+
+                                    <!-- New -->
+                                    <p:commandButton
+                                        id="btnNewSourceItemDef"
+                                        title="#{msg.menu_new}"
+                                        icon="ui-icon-document"
+                                        immediate="true"
+                                        process="@this"
+                                        update=":editMappingForm:txtSourceItemName, :editMappingForm:btnNewSourceItemDef, :editMappingForm:txtEditSourceItemName, :editMappingForm:btnEditSourceItemDef, :editMappingForm:btnSaveSourceItemDef, :editMappingForm:btnCancelSourceItemDef, :editMappingForm:btnRemoveSourceItemDef"
+                                        actionListener="#{mbDataMapping.prepareNewSourceItemDefinition(mbDataMapping.selectedEntity)}"
+                                        disabled="#{mbDataMapping.newSourceItemDef != null}"
+                                        />
+
+                                    <!-- Edit -->
+                                    <p:commandButton
+                                        id="btnEditSourceItemDef"
+                                        title="#{msg.menu_edit}"
+                                        icon="ui-icon-contact"
+                                        update=":editMappingForm:btnSaveSourceItemDef, :editMappingForm:btnCancelSourceItemDef"
+                                        immediate="true"
+                                        process="@this"
+                                        disabled="#{mbDataMapping.selectedSourceItemDef == null || mbDataMapping.newSourceItemDef != null}"
+                                        />
+
+                                    <!-- Remove -->
+                                    <p:commandButton
+                                        id="btnRemoveSourceItemDef"
+                                        title="#{msg.menu_delete}"
+                                        icon="ui-icon-trash"
+                                        update=":editMappingForm:dtSourceDefsEdit, :editMappingForm:txtSourceItemName, :editMappingForm:txtEditSourceItemName"
+                                        immediate="true"
+                                        process="@this"
+                                        actionListener="#{mbDataMapping.removeSourceItemDefinition(mbDataMapping.selectedEntity)}"
+                                        disabled="#{mbDataMapping.selectedSourceItemDef == null || mbDataMapping.newSourceItemDef != null}"
+                                        />
+
+                                    <!-- Commit-->
+                                    <p:commandButton
+                                        id="btnSaveSourceItemDef"
+                                        title="#{msg.menu_save}"
+                                        icon="ui-icon-disk"
+                                        process="@this editMappingForm"
+                                        update=":editMappingForm:dtSourceDefsEdit, :editMappingForm:txtSourceItemName, :editMappingForm:txtEditSourceItemName, :editMappingForm:btnNewSourceItemDef, :editMappingForm:btnSaveSourceItemDef, :editMappingForm:btnRemoveSourceItemDef, :editMappingForm:btnCancelSourceItemDef, :growl"
+                                        actionListener="#{mbDataMapping.saveSourceItemDefinition(mbDataMapping.selectedEntity)}"
+                                        disabled="#{mbDataMapping.newSourceItemDef == null and mbDataMapping.selectedSourceItemDef == null}"
+                                        />
+
+                                    <!-- Cancel -->
+                                    <p:commandButton
+                                        id="btnCancelSourceItemDef"
+                                        title="#{msg.menu_reset}"
+                                        icon="ui-icon-close"
+                                        immediate="true"
+                                        process="@this"
+                                        update=":editMappingForm:dtSourceDefsEdit, :editMappingForm:txtSourceItemName, :editMappingForm:txtEditSourceItemName, :editMappingForm:btnSaveSourceItemDef, :editMappingForm:btnRemoveSourceItemDef, :editMappingForm:btnCancelSourceItemDef, :growl"
+                                        actionListener="#{mbDataMapping.cancelSourceItemDefinition}"
+                                        disabled="#{mbDataMapping.newSourceItemDef == null and mbDataMapping.selectedSourceItemDef == null}"
+                                        />
+                                </p:toolbarGroup>
+                            </p:toolbar>
+
+                            <!-- Show this line only when edition or adding new source item definition -->
+                            <h:outputLabel value="New item: #{msg.label_required_suffix}" for="txtSourceItemName" />
+                            <p:inputText
+                                id="txtSourceItemName"
+                                value="#{mbDataMapping.newSourceItemDef.label}"
+                                required="true"
+                                requiredMessage="New source item label is mandatory!"
+                                disabled="#{mbDataMapping.newSourceItemDef == null}"
+                                />
+
+                            <h:outputLabel value="Selected item: #{msg.label_required_suffix}" for="txtEditSourceItemName" />
+                            <p:inputText
+                                id="txtEditSourceItemName"
+                                value="#{mbDataMapping.selectedSourceItemDef.label}"
+                                required="true"
+                                requiredMessage="Selected soruce item label is mandatory"
+                                disabled="#{mbDataMapping.selectedSourceItemDef == null}"
+                                />
+
+                            <!-- Source data definitions -->
+                            <h:outputLabel for="dtSourceDefsEdit" value="#{msg.mapping_sourceItemDefinitions}: #{msg.label_required_suffix}" />
+                            <p:dataTable
+                                id="dtSourceDefsEdit"
+                                value="#{mbDataMapping.selectedEntity.sourceItemDefinitions}"
+                                widgetVar="sourceItemDefTable"
+                                var="sourceItemDef"
+                                type="ordered"
+                                itemType="none"
+                                paginator="true"
+                                rows="10"
+                                styleClass="paginated"
+                                emptyMessage="#{msg.search_empty}"
+                                filteredValue="#{mbDataMapping.filteredSourceItemDefs}"
+                                selection="#{mbDataMapping.selectedSourceItemDef}"
+                                selectionMode="single"
+                                rowKey="#{sourceItemDef.label}"
+                                rowIndexVar="sidRowIndex"
+                                style="width:450px"
+                                >
+                                <!--AJAX onclick on datatable row-->
+                                <p:ajax event="rowSelect" update=":editMappingForm:txtEditSourceItemName, :editMappingForm:btnRemoveSourceItemDef, :editMappingForm:btnEditSourceItemDef" />
+
+                                <!-- Row -->
+                                <p:column headerText="#" style="width:3%" exportable="false" toggleable="false">
+                                    <h:outputText value="#{sidRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- Item definition label -->
+                                <p:column
+                                    headerText="Label"
+                                    sortBy="#{sourceItemDef.label}"
+                                    filterBy="#{sourceItemDef.label}"
+                                    filterMatchMode="contains"
+                                    >
+                                    <h:outputText value="#{sourceItemDef.label}" title="#{sourceItemDef.toString()}" style="float:left;" />
+                                </p:column>
+
+                                <!-- Footer -->
+                                <f:facet name="footer">
+                                    <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDataMapping.selectedEntity.sourceItemDefinitions.size() == 0}" />
+                                    <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDataMapping.selectedEntity.sourceItemDefinitions.size() == 1}" />
+                                    <h:outputFormat
+                                            value="#{msg.search_results_status_n}"
+                                            rendered="#{mbDataMapping.selectedEntity.sourceItemDefinitions.size() > 1}"
+                                            >
+                                        <f:param value="#{mbDataMapping.selectedEntity.sourceItemDefinitions.size()}" />
+                                    </h:outputFormat>
+                                </f:facet>
+                            </p:dataTable>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Target items definitions -->
+                    <p:tab title="#{msg.mapping_targetItemDefinitions}">
+                        <p:panelGrid
+                            id="editTargetDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto; max-height:750px"
+                            >
+
+                            <!-- Study event -->
+                            <h:outputLabel value="#{msg.studyEvent}:" />
+                            <p:selectOneMenu
+                                value="#{mbStudyManagement.selectedEventDefinition}"
+                                converter="omnifaces.SelectItemsConverter"
+                                style="width:350px"
+                                >
+                                <p:ajax update=":editMappingForm:editTargetDisplay" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
+                                <f:selectItems
+                                    value="#{mbStudyManagement.odm.findEventDefinitions()}"
+                                    var="eventDef"
+                                    itemValue="#{eventDef}"
+                                    itemLabel="#{eventDef.name}"
+                                    itemDescription="#{eventDef.oid}"
+                                    />
+                            </p:selectOneMenu>
+
+                            <!-- Data transformation process -->
+                            <h:outputText value="Add ocurrence:" />
+                            <p:commandButton
+                                icon="ui-icon-plusthick"
+                                disabled="#{empty mbStudyManagement.selectedEventDefinition}"
+                                actionListener="#{mbDataMapping.selectedEntity.addTargetEventOccurrence(mbStudyManagement.selectedEventDefinition)}"
+                                update=":growl, :editMappingForm:dtTargetDefsEdit"
+                                process="@this editMappingForm"
+                                />
+                            
+                            <!-- Study form -->
+                            <h:outputText value="CRF:" />
+                            <p:selectOneMenu
+                                value="#{mbStudyManagement.selectedFormDefinition}"
+                                converter="omnifaces.SelectItemsConverter"
+                                style="width:350px"
+                                >
+                                <p:ajax update=":editMappingForm:editTargetDisplay" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
+                                <f:selectItems
+                                    value="#{mbStudyManagement.selectedEventDefinition.formDefs}"
+                                    var="formDef"
+                                    itemValue="#{formDef}"
+                                    itemLabel="#{formDef.name}"
+                                    itemDescription="#{formDef.oid}"
+                                    />
+                            </p:selectOneMenu>
+
+                            <!-- Group -->
+                            <h:outputLabel value="Item Group:" />
+                            <p:selectOneMenu
+                                value="#{mbStudyManagement.selectedItemGroupDefinition}"
+                                converter="omnifaces.SelectItemsConverter"
+                                style="width:350px"
+                                >
+                                <p:ajax update=":editMappingForm:editTargetDisplay" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
+                                <f:selectItems
+                                    value="#{mbStudyManagement.selectedFormDefinition.itemGroupDefs}"
+                                    var="groupDef"
+                                    itemValue="#{groupDef}"
+                                    itemLabel="#{groupDef.name}"
+                                    itemDescription="#{groupDef.oid}"
+                                    />
+                            </p:selectOneMenu>
+
+                            <!-- Item -->
+                            <h:outputLabel value="#{msg.itemDefinition}:" />
+                            <p:selectOneMenu
+                                value="#{mbStudyManagement.selectedItemDefinition}"
+                                converter="omnifaces.SelectItemsConverter"
+                                style="width:350px"
+                                >
+                                <p:ajax update=":editMappingForm:editTargetDisplay" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" />
+                                <f:selectItems
+                                    value="#{mbStudyManagement.selectedItemGroupDefinition.itemDefs}"
+                                    var="itemDef"
+                                    itemValue="#{itemDef}"
+                                    itemLabel="#{itemDef.name}"
+                                    itemDescription="#{itemDef.oid}"
+                                    />
+                            </p:selectOneMenu>
+
+                            <!--TODO: project forms to different versions -->
+
+                            <!-- Target data definitions -->
+                            <h:outputLabel for="dtTargetDefsEdit" value="#{msg.mapping_targetItemDefinitions}: #{msg.label_required_suffix}" />
+                            <p:dataTable
+                                id="dtTargetDefsEdit"
+                                value="#{mbDataMapping.selectedEntity.targetItemDefinitions}"
+                                widgetVar="targetItemDefTable"
+                                var="targetItemDef"
+                                type="ordered"
+                                itemType="none"
+                                paginator="true"
+                                rows="10"
+                                styleClass="paginated"
+                                emptyMessage="No target item definition found with given criteria"
+                                filteredValue="#{mbDataMapping.filteredTargetItemDefs}"
+                                selection="#{mbDataMapping.selectedTargetItemDef}"
+                                selectionMode="single"
+                                rowKey="#{targetItemDef.label}"
+                                rowIndexVar="tidRowIndex"
+                                style="width:450px"
+                                >
+                                <!-- Row -->
+                                <p:column headerText="#" style="width:3%" exportable="false" toggleable="false">
+                                    <h:outputText value="#{tidRowIndex + 1}" />
+                                </p:column>
+
+                                <!-- Item definition label -->
+                                <p:column
+                                    headerText="Label"
+                                    sortBy="#{targetItemDef.label}"
+                                    filterBy="#{targetItemDef.label}"
+                                    filterMatchMode="contains"
+                                    >
+                                    <h:outputText value="#{targetItemDef.label}" title="#{targetItemDef.toString()}" style="float:left;" />
+                                </p:column>
+
+                                <!-- Footer -->
+                                <f:facet name="footer">
+                                    <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDataMapping.selectedEntity.targetItemDefinitions.size() == 0}" />
+                                    <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDataMapping.selectedEntity.targetItemDefinitions.size() == 1}" />
+                                    <h:outputFormat
+                                        value="#{msg.search_results_status_n}"
+                                        rendered="#{mbDataMapping.selectedEntity.targetItemDefinitions.size() > 1}"
+                                        >
+                                        <f:param value="#{mbDataMapping.selectedEntity.targetItemDefinitions.size()}" />
+                                    </h:outputFormat>
+                                </f:facet>
+                            </p:dataTable>
+
+                            <!-- Commands -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                    id="btnMappingUpdate"
+                                    value="#{msg.menu_update}"
+                                    update=":form:tabView:dtEntities, :growl"
+                                    icon="ui-icon-disk"
+                                    oncomplete="handleSubmitRequest(xhr, status, args, 'dlgMappingEdit','editMappingForm');"
+                                    actionListener="#{mbStudyManagement.doUpdateEntity}"
+                                    process="@this editMappingForm"
+                                    />
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:wizard>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Mapping -->
+        <p:dialog
+            id="dlgDeleteMapping"
+            header="#{msg.mapping_delete}"
+            widgetVar="deleteMappingDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="deleteMappingForm">
+                <p:panelGrid
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Selected EDC study identifer -->
+                    <h:outputLabel value="#{msg.mapping_study} #{msg.study_edcIdentifier}:" for="txtStudyDelete" />
+                    <h:outputText id="txtStudyDelete" value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" />
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.mapping_name}:" for="txtMappingNameDelete" />
+                    <h:outputText id="txtMappingNameDelete" value="#{mbDataMapping.selectedEntity.name}" />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.mapping_description}:" for="txtMappingDescriptionDelete" />
+                    <p:inputTextarea id="txtMappingDescriptionDelete" value="#{mbDataMapping.selectedEntity.description}" readonly="true" />
+
+                    <!-- Mapping Type -->
+                    <h:outputLabel value="#{msg.mapping_type}:" for="txtMappingTypeDelete" />
+                    <h:outputText id="txtMappingTypeDelete" value="#{mbDataMapping.selectedEntity.type.label}" />
+
+                    <!-- Source Type -->
+                    <h:outputLabel value="#{msg.mapping_sourceType}:" for="txtMappingSourceTypeDelete" />
+                    <h:outputText id="txtMappingSourceTypeDelete" value="#{mbDataMapping.selectedEntity.sourceType.label}" />
+
+                    <!-- Target Type -->
+                    <h:outputLabel value="#{msg.mapping_targetType}:" for="txtMappingTargetTypeDelete" />
+                    <h:outputText id="txtMappingTargetTypeDelete" value="#{mbDataMapping.selectedEntity.targetType.label}" />
+
+                    <!-- Commands-->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            id="btnMappingDelete"
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteMapping','deleteMappingForm');"
+                            actionListener="#{mbStudyManagement.doRemoveDataMapping(mbDataMapping.selectedEntity)}"
+                            process="@this deleteMappingForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- New Record -->
+        <p:dialog
+            id="dlgNewRecord"
+            header="#{msg.mappingRecord_new}"
+            widgetVar="newRecordDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <h:form id="newRecordForm">
+
+                <p:messages id="messagesMappingRecordNew" showDetail="true" autoUpdate="true" />
+
+                <!-- Wizard -->
+                <p:wizard widgetVar="newMappingRecordWiz">
+
+                    <!-- Mapping Record -->
+                    <p:tab title="Record">
+                        <p:panelGrid
+                            id="newRecordDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+                            <!-- Study -->
+                            <h:outputLabel value="#{msg.study_edcIdentifier}: #{msg.label_required_suffix}" for="txtStudyNewRecord" />
+                            <h:outputText id="txtStudyNewRecord" value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" title="#{mbStudyManagement.selectedEntity.title}" />
+
+                            <!-- Mapping -->
+                            <h:outputLabel value="#{msg.mapping}: #{msg.label_required_suffix}" for="txtMappingNewRecord" />
+                            <h:outputText id="txtMappingNewRecord" value="#{mbDataMapping.selectedEntity.name}" title="#{mbDataMapping.selectedEntity.description}" />
+
+                            <!-- Mapping source data item -->
+                            <h:outputLabel value="#{msg.mappingRecord_source}: #{msg.label_required_suffix}" for="cmbSource" />
+                            <p:selectOneMenu
+                                id="cmbSource"
+                                value="#{mbMappingRecord.newEntity.source}"
+                                converter="omnifaces.SelectItemsConverter"
+                                filter="true"
+                                filterMatchMode="contains"
+                                required="true"
+                                requiredMessage="#{msg.mappingRecord_source} is mandatory!"
+                                rendered="#{mbMappingRecord.newEntity != null}"
+                                style="width:400px"
+                                var="d"
+                                >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems
+                                        value="#{mbDataMapping.selectedEntity.sourceItemDefinitions}"
+                                        var="def"
+                                        itemLabel="#{def.label}"
+                                        itemValue="#{def}"
+                                />
+                                <p:column style="width:10%">
+                                    <h:outputText styleClass="ui-icon ui-icon-circle-check" rendered="#{mbDataMapping.selectedEntity.recordForSourceExists(d)}" />
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{d.label}" />
+                                </p:column>
+                            </p:selectOneMenu>
+
+                            <!-- Mapping target data item -->
+                            <h:outputLabel value="#{msg.mappingRecord_target}: #{msg.label_required_suffix}" for="cmbTarget" />
+                            <p:selectOneMenu
+                                    id="cmbTarget"
+                                    value="#{mbMappingRecord.newEntity.target}"
+                                    converter="omnifaces.SelectItemsConverter"
+                                    filter="true"
+                                    filterMatchMode="contains"
+                                    required="true"
+                                    requiredMessage="#{msg.mappingRecord_target} is mandatory!"
+                                    rendered="#{mbMappingRecord.newEntity != null}"
+                                    style="width:400px"
+                                    var="d"
+                                >
+                                <!-- AJAX update on selection changed -->
+                                <p:ajax update=":newRecordForm:grpMultiValueLabel, :newRecordForm:grpMultiValue, :newRecordForm:grpDateLabel, :newRecordForm:grpDate, :newRecordForm:grpCalcLabel, :newRecordForm:grpCalc, :newRecordForm:grpCodedCommandsLabel, :newRecordForm:grpCodedCommands, :newRecordForm:grpSourceCodeLabel, :newRecordForm:grpSourceCode, :newRecordForm:grpTargetCodeLabel, :newRecordForm:grpTargetCode, :newRecordForm:grpCodeMappingsLabel, :newRecordForm:grpCodeMappings" />
+
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems
+                                        value="#{mbDataMapping.selectedEntity.targetItemDefinitions}"
+                                        var="def"
+                                        itemLabel="#{def.label}"
+                                        itemValue="#{def}"
+                                />
+                                <p:column style="width:10%">
+                                    <h:outputText styleClass="ui-icon ui-icon-circle-check" rendered="#{mbDataMapping.selectedEntity.recordForTargetExists(d)}" />
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{d.label}" />
+                                </p:column>
+                            </p:selectOneMenu>
+
+                            <!-- Mapping record priority -->
+                            <h:outputLabel value="#{msg.mappingRecord_priority}:" for="txtPriorityNew" />
+                            <p:spinner id="txtPriorityNew" value="#{mbMappingRecord.newEntity.priority}" />
+
+                            <!-- In case of IMPORT, target is definitelly ODM, additional ODM attribute can be necessary -->
+                            <h:outputLabel value="SE repeat key:" for="txtSeRepeatKeyNew" />
+                            <p:spinner id="txtSeRepeatKeyNew" value="#{mbMappingRecord.newEntity.studyEventRepeatKey}"  />
+
+                            <!-- In case of IMPORT, target is definitelly ODM, additional ODM attribute can be necessary -->
+                            <h:outputLabel value="IG repeat key:" for="txtIgRepeatKeyNew" />
+                            <p:spinner id="txtIgRepeatKeyNew" value="#{mbMappingRecord.newEntity.itemGroupRepeatKey}" />
+
+                            <!-- Default value -->
+                            <h:outputLabel value="#{msg.mappingRecord_defaultValue}:" for="txtDefaultValue" />
+                            <p:inputText id="txtDefaultValue" value="#{mbMappingRecord.newEntity.defaultValue}" />
+
+                            <!-- Multi value separator (in case of import, only when target is multicode) -->
+                            <h:panelGroup id="grpMultiValueLabel">
+                                <h:outputLabel value="#{msg.mappingRecord_multiValueSeparator}: #{msg.label_required_suffix}" for="txtMultiValueSeparator" rendered="#{mbMappingRecord.getTargetIsMultiSelect(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpMultiValue">
+                                <p:inputText
+                                    id="txtMultiValueSeparator"
+                                    value="#{mbMappingRecord.newEntity.multiValueSeparator}"
+                                    required="true"
+                                    requiredMessage="#{msg.mappingRecord_multiValueSeparator} is mandatory for multi value field!"
+                                    rendered="#{mbMappingRecord.getTargetIsMultiSelect(mbStudyManagement.odm, mbMappingRecord.newEntity)}"
+                                    />
+                            </h:panelGroup>
+
+                            <!-- Source Date format string (in case of import, only when target is date or pdate) -->
+                            <h:panelGroup id="grpDateLabel">
+                                <h:outputLabel value="#{msg.mappingRecord_dateFormatString}: #{msg.label_required_suffix}" for="txtDateFormatString" rendered="#{mbMappingRecord.getTargetIsDate(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpDate">
+                                <p:inputText
+                                    id="txtDateFormatString"
+                                    value="#{mbMappingRecord.newEntity.dateFormatString}"
+                                    required="true"
+                                    requiredMessage="#{msg.mappingRecord_dateFormatString} for date field!"
+                                    rendered="#{mbMappingRecord.getTargetIsDate(mbStudyManagement.odm, mbMappingRecord.newEntity)}"
+                                    />
+                            </h:panelGroup>
+
+                            <!-- Calculation string (in case of import, only when target is integer or float -->
+                            <h:panelGroup id="grpCalcLabel">
+                                <h:outputLabel value="#{msg.mappingRecord_calculationString}:" for="txtCalculationString" rendered="#{mbMappingRecord.getTargetIsNumber(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpCalc">
+                                <p:inputText
+                                    id="txtCalculationString"
+                                    value="#{mbMappingRecord.newEntity.calculationString}"
+                                    rendered="#{mbMappingRecord.getTargetIsNumber(mbStudyManagement.odm, mbMappingRecord.newEntity)}"
+                                    />
+                            </h:panelGroup>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Codes -->
+                    <p:tab title="Code Mappings">
+                        <p:panelGrid
+                            id="newRecordCodeDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+                            <!-- Code re-mapping toolbar -->
+                            <h:panelGroup id="grpCodedCommandsLabel">
+                                <h:outputLabel value="#{msg.menu_commands}:" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpCodedCommands">
+                                <p:toolbar rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}">
+
+                                    <!-- Left -->
+                                    <p:toolbarGroup align="left">
+                                        <!-- Autocode -->
+                                        <p:commandButton
+                                            id="btnAddAllCodeMapNew"
+                                            title="Add all codes (automap)"
+                                            icon="ui-icon-play"
+                                            actionListener="#{mbMappingRecord.addAllCodes(mbStudyManagement.odm, mbMappingRecord.newEntity)}"
+                                            update=":growl, :newRecordForm:dtCodeMap, :newRecordForm:txtSourceCode, :newRecordForm:ddlTargetCode, :newRecordForm:txtTargetCode"
+                                            immediate="true"
+                                            process="@this"
+                                            />
+
+                                        <!-- Add -->
+                                        <p:commandButton
+                                            id="btnAddCodeMapNew"
+                                            title="Add code mapping"
+                                            icon="ui-icon-plus"
+                                            actionListener="#{mbMappingRecord.addCodeMapping(mbMappingRecord.newEntity)}"
+                                            update=":growl, :newRecordForm:dtCodeMap, :newRecordForm:txtSourceCode, :newRecordForm:ddlTargetCode, :newRecordForm:txtTargetCode"
+                                            process="@this txtSourceCode txtTargetCode ddlTargetCode"
+                                            />
+
+                                        <!-- Remove -->
+                                        <p:commandButton
+                                            id="btnRemoveCodeMapNew"
+                                            title="Remove code mapping"
+                                            icon="ui-icon-minus"
+                                            actionListener="#{mbMappingRecord.removeCodeMapping(mbMappingRecord.newEntity)}"
+                                            update=":growl, :newRecordForm:dtCodeMap, :newRecordForm:ddlTargetCode"
+                                            immediate="true"
+                                            process="@this"
+                                            disabled="#{mbMappingRecord.selectedCodeMap == null}"
+                                            />
+                                    </p:toolbarGroup>
+                                </p:toolbar>
+                            </h:panelGroup>
+
+                            <!-- Source item code (for codded items + subject gender (that is also coded - but not as ODM data element)) -->
+                            <h:panelGroup id="grpSourceCodeLabel">
+                                <h:outputLabel value="Source code:" for="txtSourceCode" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpSourceCode">
+                                <p:inputText id="txtSourceCode" value="#{mbMappingRecord.sourceCode}" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}"/>
+                            </h:panelGroup>
+
+                            <!-- Target code in case of IMPORT, target will be ODM -->
+                            <h:panelGroup id="grpTargetCodeLabel">
+                                <h:outputLabel value="Target code:" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpTargetCode">
+                                <p:selectOneMenu
+                                    id="ddlTargetCode"
+                                    value="#{mbMappingRecord.targetCode}"
+                                    filter="true"
+                                    filterMatchMode="contains"
+                                    required="true"
+                                    requiredMessage="You have to select a target item code, it is mandatory!"
+                                    rendered="#{mbDataMapping.selectedEntity.type == 'IMPORT' and mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}"
+                                    style="width:400px"
+                                    >
+                                    <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                                    <f:selectItems
+                                            value="#{mbMappingRecord.getTargetItemDef(mbStudyManagement.odm, mbMappingRecord.newEntity).getListItems()}"
+                                            var="item"
+                                            itemLabel="#{item.codedValue} [#{item.decodedText}]"
+                                            itemValue="#{item.codedValue}"
+                                    />
+                                </p:selectOneMenu>
+
+                                <!-- Target target can be whatever -->
+                                <p:inputText id="txtTargetCode" value="#{mbMappingRecord.targetCode}" rendered="#{mbMappingRecord.getTargetItemDef(mbStudyManagement.odm, mbMappingRecord.newEntity) == null and mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+
+                            </h:panelGroup>
+
+                            <!-- Code Map Table -->
+                            <h:panelGroup id="grpCodeMappingsLabel">
+                                <h:outputLabel value="Code mappings:" for="dtCodeMapEdit" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpCodeMappings">
+                                <p:dataTable
+                                    id="dtCodeMap"
+                                    value="#{mbMappingRecord.newEntity.mappingAsList()}"
+                                    widgetVar="editCodeMapTable"
+                                    var="editMapDef"
+                                    type="ordered"
+                                    itemType="none"
+                                    paginator="True"
+                                    rows="5"
+                                    styleClass="paginated"
+                                    emptyMessage="#{msg.search_empty}"
+                                    filteredValue="#{mbMappingRecord.filteredCodes}"
+                                    selection="#{mbMappingRecord.selectedCodeMap}"
+                                    selectionMode="single"
+                                    rowKey="#{editMapDef.key}"
+                                    rowIndexVar="editCmRowIndex"
+                                    rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.newEntity)}"
+                                    style="width:450px"
+                                    >
+
+                                    <!-- AJAX onclick on datatable row -->
+                                    <p:ajax event="rowSelect" update=":newRecordForm:btnRemoveCodeMapNew"/>
+
+                                    <!-- Row -->
+                                    <p:column style="width:3%" exportable="false" toggleable="false">
+                                        <f:facet name="header">
+                                            <h:outputText value="#" />
+                                        </f:facet>
+                                        <h:outputText value="#{editCmRowIndex + 1}" />
+                                    </p:column>
+
+                                    <!-- Map key -->
+                                    <p:column sortBy="#{editMapDef.key}">
+                                        <f:facet name="header">
+                                            <h:outputText value="Source Key" />
+                                        </f:facet>
+                                        <h:outputText value="#{editMapDef.key}" />
+                                    </p:column>
+
+                                    <!-- Map value -->
+                                    <p:column sortBy="#{editMapDef.value}">
+                                        <f:facet name="header">
+                                            <h:outputText value="Target Value" />
+                                        </f:facet>
+                                        <h:outputText value="#{editMapDef.value}" />
+                                    </p:column>
+
+                                    <!-- Footer -->
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbMappingRecord.newEntity.mappingAsList().size() == 0}" />
+                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbMappingRecord.newEntity.mappingAsList().size() == 1}" />
+                                        <h:outputFormat
+                                            value="#{msg.search_results_status_n}"
+                                            rendered="#{mbMappingRecord.newEntity.mappingAsList().size() > 1}"
+                                            >
+                                            <f:param value="#{mbMappingRecord.newEntity.mappingAsList().size()}" />
+                                        </h:outputFormat>
+                                    </f:facet>
+                                </p:dataTable>
+                            </h:panelGroup>
+
+                            <!-- Commands -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                    value="#{msg.menu_save}"
+                                    update=":form:tabView:dtRecords, :growl"
+                                    icon="ui-icon-disk"
+                                    actionListener="#{mbDataMapping.doCreateRecordEntity(mbMappingRecord.newEntity)}"
+                                    oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewRecord','newRecordForm');"
+                                    process="@this newRecordForm"
+                                    />
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:wizard>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Record -->
+        <p:dialog
+            id="dlgEditRecord"
+            header="#{msg.mappingRecord_edit}"
+            widgetVar="editRecordDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="editRecordForm">
+
+                <p:messages id="messagesMappingRecordEdit" showDetail="true" autoUpdate="true" />
+
+                <!-- Wizard -->
+                <p:wizard widgetVar="editMappingRecordWiz">
+
+                    <!-- Mapping Record -->
+                    <p:tab title="Record">
+                        <p:panelGrid
+                            id="editRecordDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+
+                            <!-- Study -->
+                            <h:outputLabel value="#{msg.study_edcIdentifier}: #{msg.label_required_suffix}" for="txtStudyEditRecord" />
+                            <h:outputText id="txtStudyEditRecord" value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" title="#{mbStudyManagement.selectedEntity.title}" />
+
+                            <!-- Mapping -->
+                            <h:outputLabel value="#{msg.mapping}: #{msg.label_required_suffix}" for="txtMappingEditRecord" />
+                            <h:outputText id="txtMappingEditRecord" value="#{mbDataMapping.selectedEntity.name}" title="#{mbDataMapping.selectedEntity.description}" />
+
+                            <!-- Mapping source data item -->
+                            <h:outputLabel value="#{msg.mappingRecord_source}: #{msg.label_required_suffix}" for="cmbEditSource" />
+                            <p:selectOneMenu
+                                id="cmbEditSource"
+                                value="#{mbMappingRecord.selectedEntity.source}"
+                                converter="omnifaces.SelectItemsConverter"
+                                filter="true"
+                                filterMatchMode="contains"
+                                required="true"
+                                requiredMessage="#{msg.mappingRecord_source} is mandatory!"
+                                rendered="#{mbMappingRecord.selectedEntity != null}"
+                                style="width:400px"
+                                var="sourceDef"
+                                >
+                                <f:selectItems
+                                    value="#{mbDataMapping.selectedEntity.sourceItemDefinitions}"
+                                    var="sd"
+                                    itemLabel="#{sd.label}"
+                                    itemValue="#{sd}"
+                                    />
+                                <p:column style="width:10%">
+                                    <h:outputText styleClass="ui-icon ui-icon-circle-check" rendered="#{mbDataMapping.selectedEntity.recordForSourceExists(sourceDef)}" />
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{sourceDef.label}" />
+                                </p:column>
+                            </p:selectOneMenu>
+
+                            <!-- Mapping target data item -->
+                            <h:outputLabel value="#{msg.mappingRecord_target}: #{msg.label_required_suffix}" for="cmbEditTarget" />
+                            <p:selectOneMenu
+                                id="cmbEditTarget"
+                                value="#{mbMappingRecord.selectedEntity.target}"
+                                converter="omnifaces.SelectItemsConverter"
+                                filter="true"
+                                filterMatchMode="contains"
+                                required="true"
+                                requiredMessage="#{msg.mappingRecord_target} is mandatory!"
+                                rendered="#{mbMappingRecord.selectedEntity != null}"
+                                style="width:400px"
+                                var="targetDef"
+                                >
+                                <!-- AJAX update on selection changed -->
+                                <!-- When target is codified, it should be possible to recode the source data -->
+                                <p:ajax update=":editRecordForm:grpEditMultiValueLabel, :editRecordForm:grpEditMultiValue, :editRecordForm:grpEditDateLabel, :editRecordForm:grpEditDate, :editRecordForm:grpEditCalcLabel, :editRecordForm:grpEditCalc, :editRecordForm:grpEditSourceCodeLabel, :editRecordForm:grpEditSourceCode, :editRecordForm:grpEditTargetCodeLabel, :editRecordForm:grpEditTargetCode, :editRecordForm:grpEditCodeMappingsLabel, :editRecordForm:grpEditCodeMappings" />
+
+                                <f:selectItems
+                                    value="#{mbDataMapping.selectedEntity.targetItemDefinitions}"
+                                    var="td"
+                                    itemLabel="#{td.label}"
+                                    itemValue="#{td}"
+                                    />
+                                <p:column style="width:10%">
+                                    <h:outputText styleClass="ui-icon ui-icon-circle-check" rendered="#{mbDataMapping.selectedEntity.recordForTargetExists(targetDef)}" />
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{targetDef.label}" />
+                                </p:column>
+                            </p:selectOneMenu>
+
+                            <!-- Mapping record priority -->
+                            <h:outputLabel value="#{msg.mappingRecord_priority}:" for="txtPriority" />
+                            <p:spinner id="txtPriority" value="#{mbMappingRecord.selectedEntity.priority}" />
+
+                            <!-- ODM StudyEventRepeatKey -->
+                            <h:outputLabel value="SE repeat key:" for="txtSeRepeatKeyEdit" />
+                            <p:spinner id="txtSeRepeatKeyEdit" value="#{mbMappingRecord.selectedEntity.studyEventRepeatKey}" />
+
+                            <!-- ODM ItemGroupRepeatKey -->
+                            <h:outputLabel value="IG repeat key:" for="txtIgRepeatKeyEdit" />
+                            <p:spinner id="txtIgRepeatKeyEdit" value="#{mbMappingRecord.selectedEntity.itemGroupRepeatKey}" />
+
+                            <!-- Default value -->
+                            <h:outputLabel value="#{msg.mappingRecord_defaultValue}:" for="txtDefaultValueEdit" />
+                            <p:inputText id="txtDefaultValueEdit" value="#{mbMappingRecord.selectedEntity.defaultValue}" />
+
+                            <!-- Multi value separator (in case of import, only when target is multicode) -->
+                            <h:panelGroup id="grpEditMultiValueLabel">
+                                <h:outputLabel value="#{msg.mappingRecord_multiValueSeparator}: #{msg.label_required_suffix}" for="txtMultiValueSeparatorEdit"  rendered="#{mbMappingRecord.getTargetIsMultiSelect(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditMultiValue">
+                                <p:inputText
+                                    id="txtMultiValueSeparatorEdit"
+                                    value="#{mbMappingRecord.selectedEntity.multiValueSeparator}"
+                                    required="true"
+                                    requiredMessage="#{msg.mappingRecord_multiValueSeparator} is mandatory for multi value field!"
+                                    rendered="#{mbMappingRecord.getTargetIsMultiSelect(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                    />
+                            </h:panelGroup>
+
+                            <!-- Source Date format string (in case of import, only when target is date or pdate) -->
+                            <h:panelGroup id="grpEditDateLabel">
+                                <h:outputLabel value="#{msg.mappingRecord_dateFormatString}: #{msg.label_required_suffix}" for="txtDateFormatStringEdit" rendered="#{mbMappingRecord.getTargetIsDate(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditDate">
+                                <p:inputText
+                                    id="txtDateFormatStringEdit"
+                                    value="#{mbMappingRecord.selectedEntity.dateFormatString}"
+                                    required="true"
+                                    requiredMessage="#{msg.mappingRecord_dateFormatString} for date field!"
+                                    rendered="#{mbMappingRecord.getTargetIsDate(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                    />
+                            </h:panelGroup>
+
+                            <!-- Calculation string (in case of import, only when target is integer or float) -->
+                            <h:panelGroup id="grpEditCalcLabel">
+                                <h:outputLabel value="#{msg.mappingRecord_calculationString}:" for="txtCalculationStringEdit" rendered="#{mbMappingRecord.getTargetIsNumber(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditCalc">
+                                <p:inputText
+                                    id="txtCalculationStringEdit"
+                                    value="#{mbMappingRecord.selectedEntity.calculationString}"
+                                    rendered="#{mbMappingRecord.getTargetIsNumber(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                    />
+                            </h:panelGroup>
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <!-- Codes -->
+                    <p:tab title="Code Mappings">
+                        <p:panelGrid
+                            id="editRecordCodeDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+                            <!-- Code re-mapping toolbar -->
+                            <h:panelGroup id="grpEditCodedCommandsLabel">
+                                <h:outputLabel id="lblReMapCommands" value="#{msg.menu_commands}:" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditCodedCommands">
+                                <p:toolbar
+                                    id="toolbarReMapCommands"
+                                    rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                    >
+                                    <!-- Left -->
+                                    <p:toolbarGroup align="left">
+
+                                        <!-- Autocode -->
+                                        <p:commandButton
+                                            id="btnAddAllCodeMapEdit"
+                                            title="Add all codes (automap)"
+                                            icon="ui-icon-play"
+                                            actionListener="#{mbMappingRecord.addAllCodes(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                            update=":growl, :editRecordForm:dtCodeMapEdit, :editRecordForm:txtSourceCodeEdit, :editRecordForm:ddlTargetCodeEdit, :editRecordForm:txtTargetCodeEdit"
+                                            immediate="true"
+                                            process="@this"
+                                            />
+
+                                        <!-- Add -->
+                                        <p:commandButton
+                                            id="btnAddCodeMapEdit"
+                                            title="Add code mapping"
+                                            icon="ui-icon-plus"
+                                            actionListener="#{mbMappingRecord.addCodeMapping(mbMappingRecord.selectedEntity)}"
+                                            update=":growl, :editRecordForm:dtCodeMapEdit, :editRecordForm:txtSourceCodeEdit, :editRecordForm:ddlTargetCodeEdit, :editRecordForm:txtTargetCodeEdit"
+                                            process="@this txtSourceCodeEdit txtTargetCodeEdit ddlTargetCodeEdit"
+                                            />
+
+                                        <!-- Remove -->
+                                        <p:commandButton
+                                            id="btnRemoveCodeMapEdit"
+                                            title="Remove code mapping"
+                                            icon="ui-icon-minus"
+                                            actionListener="#{mbMappingRecord.removeCodeMapping(mbMappingRecord.selectedEntity)}"
+                                            update=":growl, :editRecordForm:dtCodeMapEdit, :editRecordForm:ddlTargetCodeEdit"
+                                            immediate="true"
+                                            process="@this"
+                                            disabled="#{mbMappingRecord.selectedCodeMap == null}"
+                                            />
+                                    </p:toolbarGroup>
+                                </p:toolbar>
+                            </h:panelGroup>
+
+                            <!-- Source item code (for codded items + subject gender (that is also coded - but not as ODM data element)) -->
+                            <h:panelGroup id="grpEditSourceCodeLabel">
+                                <h:outputLabel value="Source code:" for="txtSourceCodeEdit" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditSourceCode">
+                                <p:inputText id="txtSourceCodeEdit" value="#{mbMappingRecord.sourceCode}" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+
+                            <!-- Target code in case of IMPORT, target will be ODM -->
+                            <h:panelGroup id="grpEditTargetCodeLabel">
+                                <h:outputLabel value="Target code:" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditTargetCode">
+                                <p:selectOneMenu
+                                    id="ddlTargetCodeEdit"
+                                    value="#{mbMappingRecord.selectedOdmTargetCode}"
+                                    converter="#{transientConverter}"
+                                    filter="true"
+                                    filterMatchMode="contains"
+                                    required="true"
+                                    requiredMessage="You have to select a target item code, it is mandatory!"
+                                    rendered="#{mbDataMapping.selectedEntity.type == 'IMPORT' and mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                    style="width:450px"
+                                    var="editTargetCode"
+                                    >
+                                    <f:selectItems
+                                            value="#{mbMappingRecord.getTargetItemDef(mbStudyManagement.odm, mbMappingRecord.selectedEntity).getListItems()}"
+                                            var="item"
+                                            itemLabel="#{item.codedValue} [#{item.decodedText}]"
+                                            itemValue="#{item}"
+                                    />
+                                    <p:column style="width:10%">
+                                        <h:outputText
+                                                styleClass="ui-icon ui-icon-circle-check"
+                                                rendered="#{mbMappingRecord.selectedEntity.recodeForTargetExists(editTargetCode.codedValue)}"
+                                        />
+                                    </p:column>
+                                    <p:column>
+                                        <h:outputText value="#{editTargetCode.codedValue} [#{editTargetCode.decodedText}]" />
+                                    </p:column>
+                                </p:selectOneMenu>
+                                <!-- SS_GENDER or export mapping -->
+                                <p:inputText id="txtTargetCodeEdit" value="#{mbMappingRecord.targetCode}" rendered="#{mbMappingRecord.getTargetItemDef(mbStudyManagement.odm, mbMappingRecord.selectedEntity) == null and mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+
+                            <!-- Code Map Table -->
+                            <h:panelGroup id="grpEditCodeMappingsLabel">
+                                <h:outputLabel value="Code mappings:" for="dtCodeMapEdit" rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}" />
+                            </h:panelGroup>
+                            <h:panelGroup id="grpEditCodeMappings">
+                                <p:dataTable
+                                    id="dtCodeMapEdit"
+                                    value="#{mbMappingRecord.selectedEntity.mappingAsList()}"
+                                    widgetVar="editCodeMapTable"
+                                    var="editMapDef"
+                                    type="ordered"
+                                    itemType="none"
+                                    paginator="True"
+                                    rows="5"
+                                    styleClass="paginated"
+                                    emptyMessage="#{msg.search_empty}"
+                                    filteredValue="#{mbMappingRecord.filteredCodes}"
+                                    selection="#{mbMappingRecord.selectedCodeMap}"
+                                    selectionMode="single"
+                                    rowKey="#{editMapDef.key}"
+                                    rowIndexVar="editCmRowIndex"
+                                    rendered="#{mbMappingRecord.getTargetIsCoded(mbStudyManagement.odm, mbMappingRecord.selectedEntity)}"
+                                    style="width:450px"
+                                    >
+
+                                    <!--AJAX onclick on datatable row-->
+                                    <p:ajax event="rowSelect" update=":editRecordForm:btnRemoveCodeMapEdit"/>
+
+                                    <!-- Row -->
+                                    <p:column style="width:3%" exportable="false" toggleable="false">
+                                        <f:facet name="header">
+                                            <h:outputText value="#" />
+                                        </f:facet>
+                                        <h:outputText value="#{editCmRowIndex + 1}" />
+                                    </p:column>
+
+                                    <!-- Map key -->
+                                    <p:column sortBy="#{editMapDef.key}">
+                                        <f:facet name="header">
+                                            <h:outputText value="Source Key" />
+                                        </f:facet>
+                                        <h:outputText value="#{editMapDef.key}" />
+                                    </p:column>
+
+                                    <!-- Map value -->
+                                    <p:column sortBy="#{editMapDef.value}">
+                                        <f:facet name="header">
+                                            <h:outputText value="Target Value" />
+                                        </f:facet>
+                                        <h:outputText value="#{editMapDef.value}" />
+                                    </p:column>
+
+                                    <!-- Footer -->
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbMappingRecord.selectedEntity.mappingAsList().size() == 0}" />
+                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbMappingRecord.selectedEntity.mappingAsList().size() == 1}" />
+                                        <h:outputFormat
+                                            value="#{msg.search_results_status_n}"
+                                            rendered="#{mbMappingRecord.selectedEntity.mappingAsList().size() > 1}"
+                                            >
+                                            <f:param value="#{mbMappingRecord.selectedEntity.mappingAsList().size()}" />
+                                        </h:outputFormat>
+                                    </f:facet>
+                                </p:dataTable>
+                            </h:panelGroup>
+
+                            <!-- Commands -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                    value="#{msg.menu_update}"
+                                    update=":form:tabView:dtRecords, :growl"
+                                    icon="ui-icon-disk"
+                                    actionListener="#{mbMappingRecord.doUpdateEntity}"
+                                    oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgEditRecord','editRecordForm');"
+                                    process="@this txtMultiValueSeparatorEdit txtPriority txtDateFormatStringEdit txtDefaultValueEdit"
+                                    />
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:tab>
+                </p:wizard>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Record-->
+        <p:dialog
+            id="dlgDeleteRecord"
+            header="#{msg.mappingRecord_delete}"
+            widgetVar="deleteRecordDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="deleteRecordForm">
+                <p:panelGrid
+                    id="deleteRecordDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Study -->
+                    <h:outputLabel value="#{msg.study_edcIdentifier}: #{msg.label_required_suffix}" for="txtStudyDeleteRecord" />
+                    <h:outputText id="txtStudyDeleteRecord" value="#{mbStudyManagement.selectedEntity.ocStudyIdentifier}" title="#{mbStudyManagement.selectedEntity.title}" />
+
+                    <!-- Mapping -->
+                    <h:outputLabel value="#{msg.mapping}: #{msg.label_required_suffix}" for="txtMappingDeleteRecord" />
+                    <h:outputText id="txtMappingDeleteRecord" value="#{mbDataMapping.selectedEntity.name}" title="#{mbDataMapping.selectedEntity.description}" />
+
+                    <!-- Mapping source data item -->
+                    <h:outputLabel value="#{msg.mappingRecord_source}: #{msg.label_required_suffix}" for="txtDeleteSource" />
+                    <h:outputText id="txtDeleteSource" value="#{mbMappingRecord.selectedEntity.source.label}" />
+
+                    <!-- Mapping target data item -->
+                    <h:outputLabel value="#{msg.mappingRecord_target}: #{msg.label_required_suffix}" for="txtDeleteTarget" />
+                    <h:outputText id="txtDeleteTarget" value="#{mbMappingRecord.selectedEntity.target.label}" />
+
+                    <!-- Mapping record priority -->
+                    <h:outputLabel value="#{msg.mappingRecord_priority}:" for="txtDeletePriority"/>
+                    <h:outputText id="txtDeletePriority" value="#{mbMappingRecord.selectedEntity.priority}" />
+
+                    <!-- ODM StudyEventRepeatKey-->
+                    <h:outputLabel value="SE repeat key:" />
+                    <h:outputText id="txtSeRepeatKeyDelete" value="#{mbMappingRecord.selectedEntity.studyEventRepeatKey}" />
+
+                    <!-- ODM ItemGroupRepeatKey -->
+                    <h:outputLabel value="IG repeat key:" />
+                    <h:outputText id="txtIgRepeatKeyDelete" value="#{mbMappingRecord.selectedEntity.itemGroupRepeatKey}" />
+
+                    <!-- Default value -->
+                    <h:outputLabel value="#{msg.mappingRecord_defaultValue}:" for="txtDefaultValueDelete" />
+                    <h:outputText id="txtDefaultValueDelete" value="#{mbMappingRecord.selectedEntity.defaultValue}" />
+
+                    <!-- Multi value separator -->
+                    <h:outputLabel value="#{msg.mappingRecord_multiValueSeparator}:" for="txtMultiValueSeparatorDelete" />
+                    <h:outputText id="txtMultiValueSeparatorDelete" value="#{mbMappingRecord.selectedEntity.multiValueSeparator}" />
+
+                    <!-- Source Date format string -->
+                    <h:outputLabel value="#{msg.mappingRecord_dateFormatString}:" for="txtDateFormatStringDelete" />
+                    <h:outputText id="txtDateFormatStringDelete" value="#{mbMappingRecord.selectedEntity.dateFormatString}" />
+
+                    <!-- Calculation string -->
+                    <h:outputLabel value="#{msg.mappingRecord_calculationString}:" for="txtCalculationStringDelete" />
+                    <h:outputText id="txtCalculationStringDelete" value="#{mbMappingRecord.selectedEntity.calculationString}" />
+
+                    <!-- Code Map -->
+                    <h:outputLabel value="Code map:" for="dlCodeMapDelete" />
+                    <p:dataList
+                        id="dlCodeMapDelete"
+                        value="#{mbMappingRecord.selectedEntity.mapping}"
+                        var="mapDef"
+                        type="ordered"
+                        >
+                        <f:facet name="header">
+                            Code mappings
+                        </f:facet>
+                        #{mapDef}
+                    </p:dataList>
+
+                    <!-- Commands -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtRecords, :growl"
+                            icon="ui-icon-trash"
+                            actionListener="#{mbDataMapping.doDeleteRecordEntity(mbMappingRecord.selectedEntity)}"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgDeleteRecord','deleteRecordForm');"
+                            process="@this deleteRecordForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- New Annotation -->
+        <p:dialog
+            id="dlgNewAnnotation"
+            header="#{msg.crfFieldAnnotation_new}"
+            widgetVar="newAnnotationDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <h:form id="newAnnotationForm">
+                <p:panelGrid
+                    id="newAnnotationDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- OpenClinica active study -->
+                    <h:outputLabel value="#{msg.study}:" for="txtAnnotationStudyNew" />
+                    <h:outputText id="txtAnnotationStudyNew" value="#{mbStudyManagement.selectedEntity.name}" />
+
+                    <!-- Study event-->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_eventDefinitionOid}: *" for="cmbAnnotationEventDefinitionsNew" />
+                    <p:selectOneMenu
+                        id="cmbAnnotationEventDefinitionsNew"
+                        value="#{mbCrfAnnotation.newEntity.eventDefinitionOid}"
+                        required="true"
+                        requiredMessage="You have to select an event definition, it is mandatory!"
+                        style="width:250px"
+                        >
+                        <p:ajax update=":newAnnotationForm:newAnnotationDisplay" listener="#{mbCrfAnnotation.reloadEventForms}" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        <f:selectItems
+                            value="#{mbCrfAnnotation.eventDefinitionList}"
+                            var="eventDef"
+                            itemLabel="#{eventDef.name}"
+                            itemValue="#{eventDef.oid}"
+                            />
+                    </p:selectOneMenu>
+
+                    <!-- Event eCRF form -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_formOid}: *" for="cmbAnnotationFormDefinitionsNew" />
+                    <p:selectOneMenu
+                        id="cmbAnnotationFormDefinitionsNew"
+                        value="#{mbCrfAnnotation.newEntity.formOid}"
+                        required="true"
+                        requiredMessage="You have to choose a form definition, it is mandatory!"
+                        style="width:250px"
+                        >
+                        <p:ajax update=":newAnnotationForm:newAnnotationDisplay" listener="#{mbCrfAnnotation.reloadFormGroups}" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        <f:selectItems
+                            value="#{mbCrfAnnotation.selectedEventDefinition.formDefs}"
+                            var="formDef"
+                            itemLabel="#{formDef.name}"
+                            itemValue="#{formDef.oid}"
+                            />
+                    </p:selectOneMenu>
+
+                    <!-- eCRF item group -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_groupOid}: *" for="cmbItemGroupDefinitions" />
+                    <p:selectOneMenu
+                        id="cmbItemGroupDefinitions"
+                        value="#{mbCrfAnnotation.newEntity.groupOid}"
+                        required="true"
+                        requiredMessage="You have to choose item group definition, it is mandatory!"
+                        style="width:250px"
+                        >
+                        <p:ajax update=":newAnnotationForm:newAnnotationDisplay" listener="#{mbCrfAnnotation.reloadGroupItems}" />
+                        <p:ajax update=":newAnnotationForm:plItemDefinitions" listener="#{mbCrfAnnotation.reloadItems}" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        <f:selectItems
+                            value="#{mbCrfAnnotation.selectedFormDefinition.itemGroupDefs}"
+                            var="groupDef"
+                            itemLabel="#{groupDef.name}"
+                            itemValue="#{groupDef.oid}"
+                            />
+                    </p:selectOneMenu>
+
+                    <!-- eCRF annotation type -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_annotationType}: *" for="cmbAnnotationTypes" />
+                    <p:selectOneMenu
+                        id="cmbAnnotationTypes"
+                        value="#{mbCrfAnnotation.newEntity.annotationType}"
+                        converter="omnifaces.SelectItemsConverter"
+                        required="true"
+                        requiredMessage="You have to choose type of annotation, it is mandatory!"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="annotationTypeIter"
+                        style="width:280px"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                            value="#{mbAnnotationType.entityList}"
+                            var="annotationType"
+                            itemValue="#{annotationType}"
+                            itemLabel="#{annotationType.name}"
+                            />
+                        <p:column>
+                            <h:outputText value="#{annotationTypeIter.name}" title="#{annotationTypeIter.description}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- eCRF item -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_crfItemOid}: *" for="plItemDefinitions" />
+                    <p:pickList
+                        id="plItemDefinitions"
+                        value="#{mbCrfAnnotation.itemDefinitions}"
+                        var="itemDef"
+                        itemValue="#{itemDef}"
+                        itemLabel="#{itemDef.name}"
+                        showSourceFilter="true"
+                        showTargetFilter="true"
+                        filterMatchMode="contains"
+                        converter="#{transientConverter}"
+                        rendered="#{mbCrfAnnotation.selectedItemGroupDefinition != null}"
+                        required="true"
+                        requiredMessage="You have to choose item definitions which should be annotated!"
+                        >
+                        <f:facet name="sourceCaption">Available</f:facet>
+                        <f:facet name="targetCaption">Selected</f:facet>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="Name" />
+                            </f:facet>
+                            <h:outputText value="#{itemDef.name}" title="#{itemDef.description}" />
+                        </p:column>
+                    </p:pickList>
+
+                    <!-- Commands -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtStudies, :form:tabView:dtCrfFieldAnnotations, :newAnnotationForm, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbStudyManagement.doCreateAnnotation(mbCrfAnnotation.newEntity, mbCrfAnnotation.itemDefinitions)}"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAnnotation','newAnnotationForm');"
+                            process="@this newAnnotationForm"
+                            />
+                        <p:commandButton value="#{msg.menu_reset}" type="reset" icon="ui-icon-close" />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Annotation -->
+        <p:dialog
+            id="dlgAnnotationEdit"
+            header="#{msg.crfFieldAnnotation_edit}"
+            widgetVar="editAnnotationDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="editAnnotationForm">
+                <p:panelGrid
+                    id="editAnnotationDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- OpenClinica active study -->
+                    <h:outputLabel value="#{msg.study}:" for="txtAnnotationStudyEdit" />
+                    <h:outputText id="txtAnnotationStudyEdit" value="#{mbStudyManagement.selectedEntity.name}" />
+
+                    <!-- Study event-->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_eventDefinitionOid}:" for="txtEventDefinitionEdit" />
+                    <h:outputText id="txtEventDefinitionEdit" value="#{mbCrfAnnotation.selectedEntity.eventDefinitionOid}" />
+
+                    <!-- Event eCRF form -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_formOid}:" for="txtFormDefinitionEdit" />
+                    <h:outputText id="txtFormDefinitionEdit" value="#{mbCrfAnnotation.selectedEntity.formOid}" />
+
+                    <!-- eCRF item group -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_groupOid}:" for="txtGroupDefinitionEdit" />
+                    <h:outputText id="txtGroupDefinitionEdit" value="#{mbCrfAnnotation.selectedEntity.groupOid}" />
+
+                    <!-- eCRF item -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_crfItemOid}:" for="txtItemDefinitionEdit" />
+                    <h:outputText id="txtItemDefinitionEdit" value="#{mbCrfAnnotation.selectedEntity.crfItemOid}" />
+
+                    <!-- eCRF annotation type-->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_annotationType}:" for="cmbAnnotationType" />
+                    <p:selectOneMenu
+                        id="cmbAnnotationType"
+                        value="#{mbCrfAnnotation.selectedEntity.annotationType}"
+                        converter="omnifaces.SelectItemsConverter"
+                        required="true"
+                        requiredMessage="You have to choose type of annotation, it is mandatory!"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="annotationTypeIter"
+                        style="width:280px"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbAnnotationType.entityList}"
+                                var="annotationType"
+                                itemValue="#{annotationType}"
+                                itemLabel="#{annotationType.name}"
+                        />
+                        <p:column>
+                            <h:outputText value="#{annotationTypeIter.name}" title="#{annotationTypeIter.description}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Commands -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtStudies, :form:tabView:dtCrfFieldAnnotations, :editAnnotationForm, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAnnotationEdit','editAnnotationForm');"
+                            actionListener="#{mbStudyManagement.doUpdateEntity}"
+                            process="@this editAnnotationForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Delete Annotation -->
+        <p:dialog
+            id="dlgDeleteAnnotation"
+            header="#{msg.crfFieldAnnotation_delete}"
+            widgetVar="deleteAnnotationDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+            <h:form id="deleteAnnotationForm">
+                <p:panelGrid
+                    id="deleteAnnotationDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- OpenClinica active study -->
+                    <h:outputLabel value="#{msg.study}:" for="txtAnnotationStudyDelete" />
+                    <h:outputText id="txtAnnotationStudyDelete" value="#{mbStudyManagement.selectedEntity.name}" />
+
+                    <!-- Study event-->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_eventDefinitionOid}:" for="txtEventDefinition" />
+                    <h:outputText id="txtEventDefinition" value="#{mbCrfAnnotation.selectedEntity.eventDefinitionOid}" />
+
+                    <!-- Event eCRF form -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_formOid}:" for="txtFormDefinition" />
+                    <h:outputText id="txtFormDefinition" value="#{mbCrfAnnotation.selectedEntity.formOid}" />
+
+                    <!-- eCRF item group -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_groupOid}:" for="txtGroupDefinition" />
+                    <h:outputText id="txtGroupDefinition" value="#{mbCrfAnnotation.selectedEntity.groupOid}" />
+
+                    <!-- eCRF item -->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_crfItemOid}:" for="txtItemDefinition" />
+                    <h:outputText id="txtItemDefinition" value="#{mbCrfAnnotation.selectedEntity.crfItemOid}" />
+
+                    <!-- eCRF annotation type-->
+                    <h:outputLabel value="#{msg.crfFieldAnnotation_annotationType}:" for="txtAnnotationType" />
+                    <h:outputText id="txtAnnotationType" value="#{mbCrfAnnotation.selectedEntity.annotationType.name}" title="#{mbCrfAnnotation.selectedEntity.annotationType.description}" />
+
+                    <!-- Commands-->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtStudies, :form:tabView:dtCrfFieldAnnotations, :deleteAnnotationForm, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteAnnotation','deleteAnnotationForm');"
+                            actionListener="#{mbStudyManagement.doRemoveAnnotation(mbCrfAnnotation.selectedEntity)}"
+                            process="@this deleteAnnotationForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                }
+                else {
+                    clearForm(formName);
+
+                    PF('editStudyDialog').hide();
+
+                    PF('newMappingDialog').hide();
+                    PF('deleteMappingDialog').hide();
+                    PF('editMappingDialog').hide();
+
+                    PF('newRecordDialog').hide();
+                    PF('editRecordDialog').hide();
+                    PF('deleteRecordDialog').hide();
+
+                    PF('newAnnotationDialog').hide();
+                    PF('deleteAnnotationDialog').hide();
+                    PF('editAnnotationDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

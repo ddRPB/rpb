@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+        >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="Data" title="Data" url="#" />
+            <p:menuitem value="#{msg.study} Data Export" title=" #{msg.study} Data Export" url="/edc/studyDataExport.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <p:tabView id="tabView">
+            
+            <p:tab title="#{msg.study} Data Export">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Form -->
+                <p:panelGrid
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;"
+                    >
+                    <!-- Upload input data file -->
+                    <h:outputLabel value="Source: #{msg.label_required_suffix}" for="odmExportFile" title="(.xml [CDISC ODM])" />
+                    <p:fileUpload id="odmExportFile"
+                        fileUploadListener="#{mbOdmData.handleUpload}"
+                        rendered="#{mbOdmData.uploadedFile == null}"
+                        mode="advanced"
+                        update=":growl, :form:tabView:txtFileName, :form:tabView:btnTransformData"
+                        label="Choose a file or drag and drop it here:"
+                        auto="false"
+                        allowTypes="/(\.|\/)(xml)$/"
+                        invalidSizeMessage="The maximum file size allowed is 10 Megabyte!"
+                        invalidFileMessage="You are allowed to upload only (xml, csv files)!"
+                        dragDropSupport="true"
+                        fileLimit="1"
+                        />
+
+                    <!-- Filename -->
+                    <h:outputLabel value="Filename: #{msg.label_required_suffix}" for="txtFileName" />
+                    <p:inputText
+                        id="txtFileName"
+                        value="#{mbOdmData.uploadedFile.fileName}"
+                        style="width:500px"
+                        disabled="true"
+                        />
+
+                    <!-- Data transformation process -->
+                    <p:commandButton
+                        id="btnTransformData"
+                        value="Transform"
+                        title="Transform input data into target format"
+                        icon="ui-icon-play"
+                        immediate="true"
+                        process="@this"
+                        disabled="#{mbOdmData.uploadedFile == null}"
+                        actionListener="#{mbOdmData.transformData}"
+                        update=":growl, :form:tabView:cbtnDownload"
+                        />
+
+                    <!-- Download-->
+                    <p:commandButton
+                        id="cbtnDownload"
+                        value="Download"
+                        ajax="false"
+                        onclick="PrimeFaces.monitorDownload(start, stop);"
+                        icon="ui-icon-arrowthick-1-s"
+                        disabled="#{empty mbOdmData.transformedFile}"
+                        >
+                        <p:fileDownload value="#{mbOdmData.transformedFile}" />
+                    </p:commandButton>
+                </p:panelGrid>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs" />
+</ui:composition>

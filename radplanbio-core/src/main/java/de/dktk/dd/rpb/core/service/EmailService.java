@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,33 +19,35 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * Email service
  *
  * @author tomas@skripcak.net
- * @since 22 Januar 2014
+ * @since 22 Jan 2014
  */
-@Service("emailService")
+@Named
 public class EmailService {
 
     //region Injects
 
-    @Autowired
+    @Inject
     private MailSender mailSender;
+
+    @Value("${email.admin:}")
+    private String emailAdmin;
 
     //endregion
 
     //region Methods
 
+    @SuppressWarnings("unused")
     public void sendMail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
@@ -55,25 +57,9 @@ public class EmailService {
     }
 
     public void sendMailToAdmin(String from, String subject, String body) {
-        String emailAdmin = "";
-
-        String resourceName = "email.properties";
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        Properties props = new Properties();
-
-        try {
-            InputStream resourceStream = loader.getResourceAsStream(resourceName);
-            props.load(resourceStream);
-            emailAdmin= props.getProperty("adminEmail");
-
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
-        message.setTo(emailAdmin);
+        message.setTo(this.emailAdmin);
         message.setSubject(subject);
         message.setText(body);
 

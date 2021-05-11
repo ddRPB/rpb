@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,13 +31,17 @@ import javax.persistence.metamodel.StaticMetamodel;
  */
 @SuppressWarnings("unused")
 @StaticMetamodel(Edc.class)
-public class Edc_  {
+public class Edc_ {
 
     // Raw attributes
     public static volatile SingularAttribute<Edc, Integer> id;
     public static volatile SingularAttribute<Edc, String> edcBaseUrl;
     public static volatile SingularAttribute<Edc, String> soapBaseUrl;
+    public static volatile SingularAttribute<Edc, String> edcPublicUrl;
+    public static volatile SingularAttribute<Edc, String> soapPublicUrl;
+    public static volatile SingularAttribute<Edc, String> dataPath;
     public static volatile SingularAttribute<Edc, Boolean> isEnabled;
+    public static volatile SingularAttribute<Edc, Boolean> isValidated;
     public static volatile SingularAttribute<Edc, String> version;
 
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import de.dktk.dd.rpb.core.domain.ctms.TumourEntity;
 import de.dktk.dd.rpb.core.repository.admin.ctms.ITumourEntityRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for user administration of CTMS study phases
+ * Bean for user administration of CTMS tumour entities
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015
@@ -58,8 +58,8 @@ public class TumourEntityBean extends CrudEntityViewModel<TumourEntity, Integer>
     private ITumourEntityRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get TumourEntityRepository
+     * @return TumourEntityRepository
      */
     @Override
     public ITumourEntityRepository getRepository() {
@@ -84,40 +84,54 @@ public class TumourEntityBean extends CrudEntityViewModel<TumourEntity, Integer>
     @PostConstruct
     public void init() {
         this.setColumnVisibilityList(
-                this.buildColumnVisibilityList()
+            this.buildColumnVisibilityList()
         );
         this.setPreSortOrder(
-                this.buildSortOrder()
+            this.buildSortOrder()
         );
+        
         this.load();
-        this.loadTree();
-    }
-
-    //endregion
-
-    //region Commands
-
-    /**
-     * Load tree structure from entities (need to have parent -> children relationship)
-     */
-    public void loadTree() {
-        try {
-            this.root = new DefaultTreeNode();
-            List<TumourEntity> entitiesWithoutParent = new ArrayList<TumourEntity>();
-            for (TumourEntity te : getRepository().find()) {
-                if (te.getParent() == null) {
-                    entitiesWithoutParent.add(te);
-                }
-            }
-            this.buildChildrenNodes(root, entitiesWithoutParent);
-        } catch (Exception err) {
-            this.messageUtil.error(err);
-        }
     }
 
     //endregion
 
     //region Overrides
+
+    /**
+     * Load tree structure from entities (need to have parent -> children relationship)
+     */
+    @Override
+    public void load() {
+        super.load();
+        this.loadTree();
+    }
+
+    /**
+     * Insert a new entity into repository
+     */
+    @Override
+    public void doCreateEntity() {
+        super.doCreateEntity();
+        this.loadTree();
+    }
+
+    /**
+     * Update selected entity in repository
+     */
+    @Override
+    public void doUpdateEntity() {
+        super.doUpdateEntity();
+        this.loadTree();
+    }
+
+    /**
+     * Delete selected entity from repository
+     */
+    @Override
+    public void doDeleteEntity() {
+        super.doDeleteEntity();
+        this.loadTree();
+    }
 
     /**
      * Prepare new transient entity object for UI binding
@@ -132,34 +146,25 @@ public class TumourEntityBean extends CrudEntityViewModel<TumourEntity, Integer>
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
-
+        List<SortMeta> results = new ArrayList<>();
         UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
 
         // TumourEntity administration View
         UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colTumourEntityName");
         if (column != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column);
-            sm1.setSortField("colTumourEntityName");
-            sm1.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm1);
-
-            return results;
+            results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colTumourEntityName", "colTumourEntityName", SortOrder.ASCENDING);
+            if (results != null) {
+                return results;
+            }
         }
 
         // Study TumourEntities View
         column = viewRoot.findComponent(":form:tabView:dtTumourEntities:colTumourEntityName");
         if (column != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column);
-            sm1.setSortField("colTumourEntityName");
-            sm1.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm1);
-
-            return results;
+            results = DataTableUtil.buildSortOrder(":form:tabView:dtTumourEntities:colTumourEntityName", "colTumourEntityName", SortOrder.ASCENDING);
+            if (results != null) {
+                return results;
+            }
         }
 
         return results;
@@ -170,7 +175,7 @@ public class TumourEntityBean extends CrudEntityViewModel<TumourEntity, Integer>
      * @return list of booleans for visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> result = new ArrayList<Boolean>();
+        List<Boolean> result = new ArrayList<>();
 
         result.add(Boolean.TRUE); // Name
         result.add(Boolean.TRUE); // Description
@@ -182,6 +187,25 @@ public class TumourEntityBean extends CrudEntityViewModel<TumourEntity, Integer>
     //endregion
 
     //region Private
+
+    /**
+     * Load tree structure from entities (need to have parent -> children relationship)
+     */
+    private void loadTree() {
+        try {
+            this.root = new DefaultTreeNode();
+            List<TumourEntity> entitiesWithoutParent = new ArrayList<>();
+            for (TumourEntity te : getRepository().find()) {
+                if (te.getParent() == null) {
+                    entitiesWithoutParent.add(te);
+                }
+            }
+            this.buildChildrenNodes(root, entitiesWithoutParent);
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
 
     /**
      * Recursively build the tree structure

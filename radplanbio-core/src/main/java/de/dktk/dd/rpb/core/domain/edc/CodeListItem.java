@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,8 +123,8 @@ public class CodeListItem extends ListItem {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", this.id)
                 .add("code", this.codedValue)
+                .add("decode", this.getDecodedText())
                 .toString();
     }
 

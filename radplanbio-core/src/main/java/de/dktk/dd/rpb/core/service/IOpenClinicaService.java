@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,6 +94,12 @@ public interface IOpenClinicaService {
     MetadataODM getStudyMetadata(String identifier);
 
     /**
+     * Refresh metadata cache for specified study
+     * @param identifier - study identifier
+     */
+    void refreshStudyMetadataCache(String identifier);
+
+    /**
      * Get list of all studies available for user form OpenClinica EDC
      *
      * @return List - StudyType list
@@ -116,15 +122,15 @@ public interface IOpenClinicaService {
      */
     List<Event> listAllEventDefinitionsByStudy(Study study);
 
-    void scheduleStudyEvent(StudySubject subject, ScheduledEvent event) throws OCConnectorException;
+    String scheduleStudyEvent(StudySubject subject, ScheduledEvent event) throws OCConnectorException;
 
     /**
      * Create a new study subject in a study
      *
      * @param studySubject - Study subject entity
-     * @return successful
+     * @return newly created StudySubjectID
      */
-    Boolean createNewStudySubject(StudySubject studySubject);
+    String createNewStudySubject(StudySubject studySubject);
 
     Boolean studySubjectExistsInStudy(StudySubject studySubject, Study study);
 

@@ -6,11 +6,11 @@
 
     <entry key="rtStruct">RT-Strukt</entry>
     <entry key="rtStruct_plural">RT-Strukturen</entry>
-    <entry key="rtStruct_reload">Neu laden vorhandenen RT-Strukturen</entry>
-    <entry key="rtStruct_print">Drucken Tabelle RT-Strukturen</entry>
-    <entry key="rtStruct_new">Definieren Sie eine neue RT-Strukt</entry>
-    <entry key="rtStruct_edit">Bearbeiten Sie ausgewählte RT-Strukt</entry>
-    <entry key="rtStruct_delete">Löschen ausgewählte RT-Strukt</entry>
+    <entry key="rtStruct_reload">Vorhandenen RT-Strukturen neu laden</entry>
+    <entry key="rtStruct_print">Tabelle RT-Strukturen drucken</entry>
+    <entry key="rtStruct_new">Neue RT-Strukt definieren</entry>
+    <entry key="rtStruct_edit">Ausgewählte RT-Strukt bearbeiten</entry>
+    <entry key="rtStruct_delete">Ausgewählte RT-Strukt löschen</entry>
 
     <!-- attributes -->
     <entry key="rtStruct_id">Id</entry>

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,27 +19,23 @@
 
 package de.dktk.dd.rpb.core.security;
 
-import java.io.IOException;
+import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.util.Assert;
 
 import javax.inject.Inject;
-import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.repository.admin.DefaultAccountRepository;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-
-import org.springframework.util.Assert;
+import static de.dktk.dd.rpb.core.util.Constants.*;
 
 /**
- *
  * Authentication processing filter for RadPlanBio
- *
+ * <p>
  * This is the place where it is decided which authentication token will be used depending on the authentication method
  * selected by user via web GUI
  *
@@ -48,40 +44,31 @@ import org.springframework.util.Assert;
  */
 public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    //region Finals
-
-    public static final String SPRING_SECURITY_FORM_USERNAME_KEY = "j_username";
-    public static final String SPRING_SECURITY_FORM_PASSWORD_KEY = "j_password";
-
-    //endregion
-
     //region Injects
 
-    private DefaultAccountRepository defaultAccountRepository;
+    private IDefaultAccountRepository IDefaultAccountRepository;
 
     @Inject
-    public void setDefaultAccountRepository(DefaultAccountRepository defaultAccountRepository) {
-        this.defaultAccountRepository = defaultAccountRepository;
+    public void setIDefaultAccountRepository(IDefaultAccountRepository IDefaultAccountRepository) {
+        this.IDefaultAccountRepository = IDefaultAccountRepository;
     }
 
     //endregion
 
     //region Members
 
-    private String usernameParameter = SPRING_SECURITY_FORM_USERNAME_KEY;
-    private String passwordParameter = SPRING_SECURITY_FORM_PASSWORD_KEY;
+    private String usernameParameter = RPB_UNAMEPARAM;
+    private String passwordParameter = RPB_PASSWDPARAM;
 
     //endregion
 
     //region Constructors
 
-    public MyAuthenticationFilter()
-    {
+    public MyAuthenticationFilter() {
         super("/j_spring_security_check");
     }
 
-    protected MyAuthenticationFilter(String defaultFilterProcessesUrl)
-    {
+    protected MyAuthenticationFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
     }
 
@@ -117,8 +104,7 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
      * @return usernameParameter String
      */
     @SuppressWarnings("unused")
-    public final String getUsernameParameter()
-    {
+    public final String getUsernameParameter() {
         return usernameParameter;
     }
 
@@ -128,8 +114,7 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
      * @return passwordParameter String
      */
     @SuppressWarnings("unused")
-    public final String getPasswordParameter()
-    {
+    public final String getPasswordParameter() {
         return passwordParameter;
     }
 
@@ -139,36 +124,33 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
-            throws AuthenticationException, IOException, ServletException {
+            throws AuthenticationException {
 
         // Retrieve authentication data from the request
-        String username = this.obtainUsername(httpServletRequest);
+        String username = this.obtainUsername(httpServletRequest).toLowerCase();
         String password = this.obtainPassword(httpServletRequest);
 
         // Create UsernamePasswordAuthenticationToken according to user selection
-        UsernamePasswordAuthenticationToken authRequest = null;
+        UsernamePasswordAuthenticationToken authRequest;
 
-        // Get auth type option from web site GUI
-        String authenticationType = httpServletRequest.getParameter("optAuthenticationType");
+        // Load RPB account first
+        DefaultAccount account = this.IDefaultAccountRepository.getByUsername(username);
 
-        if (authenticationType != null) {
-            if (authenticationType.equals("default")) {
-                DefaultAccount account = this.defaultAccountRepository.getByUsername(username);
-                if (account != null) {
-                    if (account.isLdapUser()) {
-                        authRequest = new LdapAuthenticationToken(username, password);
-                    }
-                    else {
-                        authRequest = new DefaultUsernamePasswordAuthenticationToken(username, password);
-                    }
-                }
-                else {
-                    authRequest = new DefaultUsernamePasswordAuthenticationToken(username, password);
-                }
+        if (account != null) {
+            // LDAP account
+            if (account.isLdapUser()) {
+                authRequest = new LdapAuthenticationToken(username, password);
             }
-            else if (authenticationType.equals("oc")) {
+            // OC account
+            else if (account.hasOpenClinicaAccount()) {
                 authRequest = new OpenClinicaUsernamePasswordAuthenticationToken(username, password);
             }
+            // Default account
+            else {
+                authRequest = new DefaultUsernamePasswordAuthenticationToken(username, password);
+            }
+        } else {
+            authRequest = new DefaultUsernamePasswordAuthenticationToken(username, password);
         }
 
         // Allow subclasses to set the "details" property
@@ -184,9 +166,8 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
      * <code>AuthenticationDao</code> will need to generate the expected password in a corresponding manner.</p>
      *
      * @param request so that request attributes can be retrieved
-     *
      * @return the password that will be presented in the <code>Authentication</code> request token to the
-     *         <code>AuthenticationManager</code>
+     * <code>AuthenticationManager</code>
      */
     protected String obtainPassword(HttpServletRequest request) {
         return request.getParameter(passwordParameter);
@@ -197,12 +178,10 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
      * and a separator.
      *
      * @param request so that request attributes can be retrieved
-     *
      * @return the username that will be presented in the <code>Authentication</code> request token to the
-     *         <code>AuthenticationManager</code>
+     * <code>AuthenticationManager</code>
      */
-    protected String obtainUsername(HttpServletRequest request)
-    {
+    protected String obtainUsername(HttpServletRequest request) {
         return request.getParameter(usernameParameter);
     }
 
@@ -210,7 +189,7 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
      * Provided so that subclasses may configure what is put into the authentication request's details
      * property.
      *
-     * @param request that an authentication request is being created for
+     * @param request     that an authentication request is being created for
      * @param authRequest the authentication request object that should have its details set
      */
     protected void setDetails(HttpServletRequest request, UsernamePasswordAuthenticationToken authRequest) {
@@ -218,4 +197,5 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
     }
 
     //endregion
+
 }

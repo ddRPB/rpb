@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="#{msg.collaboartion}" title="#{msg.collaboartion}" url="/collaboration.faces" />
+            <p:menuitem value="#{msg.collaboration}" title="#{msg.collaboration}" url="/collaboration.faces" />
         </p:breadCrumb>
     </ui:define>
 

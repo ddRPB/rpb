@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+    >
+
+    <!-- New user roles -->
+    <changeSet id="insert-role-biolookup" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_BIO_LOOKUP" />
+            <column name="description" value="Can lookup for specimen data in BIObank" />
+        </insert>
+    </changeSet>
+
+    <!-- New Bio table -->
+    <changeSet id="create-table-bio" author="Tomas Skripcak">
+        <!--<validCheckSum>ANY</validCheckSum>-->
+        <createTable tableName="BIO">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="baseurl" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="publicurl" type="varchar(255)" />
+            <column name="isenabled" type="boolean" defaultValueBoolean="true" />
+            <column name="version" type="varchar(15)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Alter Bio table -->
+    <changeSet id="alter-table-bio-username" author="Tomas Skripcak">
+        <addColumn tableName="BIO">
+            <column name="username" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-table-bio-password" author="Tomas Skripcak">
+        <addColumn tableName="BIO">
+            <column name="password" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Alter PartnerSite table -->
+    <changeSet id="alter-table-partnersite-bioid" author="Tomas Skripcak">
+        <addColumn tableName="PARTNERSITE">
+            <column name="bioid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-partnersite-bioid" author="Tomas Skripcak" >
+        <addForeignKeyConstraint
+            baseColumnNames="bioid"
+            baseTableName="PARTNERSITE"
+            constraintName="partnersite_bio_fk6"
+            referencedColumnNames="id"
+            referencedTableName="BIO"
+            />
+    </changeSet>
+
+    <!-- Add BIO unique trial code -->
+    <changeSet id="insert-tag-type-study-biocode" author="Tomas Skripcak">
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="BIO-code" />
+            <column name="description" value="BIO unique trial code (for BIO bank integration purposes)" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+
+    <!-- New annotation types -->
+    <changeSet id="insert-annotationtype-diagsure" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="DIAGSURE" />
+            <column name="description" value="Diagnosis certainty" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-diagtyp" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="DIAGTYP" />
+            <column name="description" value="Type of diagnosis" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-diag" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BFF" />
+            <column name="description" value="Buffy Coat (SPREC: BFF)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-cellfree-dna" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_CELLFREE_DNA" />
+            <column name="description" value="Cell-free DNA Blood (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-cellfree-rna" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_CELLFREE_RNA" />
+            <column name="description" value="Cell-free RNA Blood (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-citrat" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_CITRAT" />
+            <column name="description" value="Citrat Blood (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-edta" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_EDTA" />
+            <column name="description" value="EDTA Blood (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-lihe" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_LIHE" />
+            <column name="description" value="Li-He Blood (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-paxgene-dna" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_PAXGENE-DNA" />
+            <column name="description" value="PAXgene Blood DNA (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld-paxgene-rna" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD_PAXGENE-RNA" />
+            <column name="description" value="PAXgene Blood RNA (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pl1" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_PL1" />
+            <column name="description" value="Plasma single spun (SPREC: PL1)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pl2" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_PL2" />
+            <column name="description" value="Plasma double spun (SPREC: PL2)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-rbc" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_RBC" />
+            <column name="description" value="Red blood cells (SPREC: RBC)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-ser" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_SER" />
+            <column name="description" value="Serum (SPREC: SER)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-bld" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_LIQUID_KIND_BLD" />
+            <column name="description" value="Blood (whole) (SPREC: BLD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-tis-tumor" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_TYPE_TISSUE_KIND_TIS_TUMOR" />
+            <column name="description" value="Solid Tumour Tissue (SPREC: TIS)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-sprec" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_SPREC" />
+            <column name="description" value="Use SPREC" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT" />
+            <column name="description" value="Initial amount" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init0900" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT_09.00" />
+            <column name="description" value="Initial amount 09.00" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init0750" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT_07.50" />
+            <column name="description" value="Initial amount 07.50" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init1000" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT_10.00" />
+            <column name="description" value="Initial amount 10.00" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init0400" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT_04.00" />
+            <column name="description" value="Initial amount 04.00" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init0100" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT_01.00" />
+            <column name="description" value="Initial amount 01.00" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-init0250" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_INIT_02.50" />
+            <column name="description" value="Initial amount 02.50" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-unit" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_UNIT" />
+            <column name="description" value="Amount unit" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-unit-ml" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_UNIT_ML" />
+            <column name="description" value="Amount unit ml" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-unit-pc" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_UNIT_PC" />
+            <column name="description" value="Amount unit pc" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-master" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_MASTER" />
+            <column name="description" value="Master sample" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-group" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_GROUP" />
+            <column name="description" value="Aliquot group sample" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-derived" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_DERIVED" />
+            <column name="description" value="Derived aliquot sample" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-acd" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ACD" />
+            <column name="description" value="Acid citrate dextrose (SPREC: ACD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-add" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ADD" />
+            <column name="description" value="Additives (SPREC: ADD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-zzz" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ZZZ" />
+            <column name="description" value="Other (SPREC: ZZZ)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-cpt" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_CPT" />
+            <column name="description" value="Cell Preparation Tube (SPREC: CPT)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-zzz-cellfree-dna-streck" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ZZZ_CELLFREE-DNA_STRECK" />
+            <column name="description" value="Cell-Free DNA BCT® (Streck) (SPREC: ZZZ)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-zzz-cellfree-rna-streck" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ZZZ_CELLFREE-RNA_STRECK" />
+            <column name="description" value="Cell-Free RNA BCT® (Streck) (SPREC: ZZZ)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-cpd" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_CPD" />
+            <column name="description" value="Citrate phosphate dextrose (SPREC: CPD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-edg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_EDG" />
+            <column name="description" value="EDTA and gel (SPREC: EDG)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-hir" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_HIR" />
+            <column name="description" value="Hirudin (SPREC: HIR)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-hep" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_HEP" />
+            <column name="description" value="Lithium heparin (SPREC: HEP)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-lhg" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_LHG" />
+            <column name="description" value="Lithium heparin and gel (SPREC: LHG)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-org-og5000-oragene" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ORG_OG500_ORAGENE" />
+            <column name="description" value="Oragene OG500 collection container (SPREC: ORG)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-org-on5000-oragene" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ORG_ON500_ORAGENE" />
+            <column name="description" value="Oragene ON500 collection container (SPREC: ORG)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pxd" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PXD" />
+            <column name="description" value="PAXgene® blood DNA (SPREC: PXD)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pax" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PAX" />
+            <column name="description" value="PAXgene® blood RNA+ (SPREC: PAX)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pxr" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PXR" />
+            <column name="description" value="PAXgene® bone marrow RNA (SPREC: PXR)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pet" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PET" />
+            <column name="description" value="Polyethylene tube sterile (SPREC: PET)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pps" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PPS" />
+            <column name="description" value="Polypropylene tube sterile (SPREC: PPS)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-ped" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PED" />
+            <column name="description" value="Potassium EDTA (SPREC: PED)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pix" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PIX" />
+            <column name="description" value="Protease inhibitors (SPREC: PIX)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pi1" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PI1" />
+            <column name="description" value="S8820 protease inhibitor tablets or equivalent (SPREC: PI1)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-cat-sarstedt" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_CAT_SARSTEDT" />
+            <column name="description" value="Serum Monovette (ohne Gel) tube without clot activator (SPREC: CAT)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-sst" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_SST" />
+            <column name="description" value="Serum separator tube with clot activator (SPREC: SST)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-cat" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_CAT" />
+            <column name="description" value="Serum tube without clot activator (SPREC: CAT)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-ped-sarstedt" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PED_SARSTEDT" />
+            <column name="description" value="Potassium EDTA S-Monovette® 9ml K3-EDTA (Sarstedt) (SPREC: PED)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-hep-sarstedt" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_HEP_SARSTEDT" />
+            <column name="description" value="Lithium heparin S-Monovette® Li-Heparin (Sarstedt) (SPREC: HEP)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-sci" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_SCI" />
+            <column name="description" value="Sodium citrate (SPREC: SCI)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-sed" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_SED" />
+            <column name="description" value="Sodium EDTA (SPREC: SED)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-spo" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_SPO" />
+            <column name="description" value="Sodium fluoride/potassium oxalate (SPREC: SPO)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-shp" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_SHP" />
+            <column name="description" value="Sodium heparin (SPREC: SHP)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-tem" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_TEM" />
+            <column name="description" value="Tempus® tube (SPREC: TEM)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-trc" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_TRC" />
+            <column name="description" value="Trace elements tube (SPREC: TRC)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-xxx" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_XXX" />
+            <column name="description" value="Unknown (SPREC: XXX)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pps-urine-sarstedt" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PPS_URINE_SARSTEDT" />
+            <column name="description" value="Polypropylene tube sterile Urin-Monovette® (Sarstedt) (SPREC: PPS)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-cpt-bd" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_CPT_BD" />
+            <column name="description" value="Cell preparation tube Vacutainer® CPT™ - Natriumcitrat (BD) (SPREC: CPT)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-pet-blood-bd" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_PET_BLOOD_BD" />
+            <column name="description" value="Polyethylene tube sterile Vacutainer® EST™ Plus (BD) (SPREC: PET)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-pct-zzz-cotton-swab-x" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_PCT_ZZZ_COTTON-SWAB_X" />
+            <column name="description" value="Other Wattestäbchen (SPREC: ZZZ)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-lts-y-originalcontainer" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_LTS_Y_ORIGINALCONTAINER" />
+            <column name="description" value="Original primary container (SPREC: Y)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-lts-a-matrix-thermo-0.5ml-m80" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_LTS_A_MATRIX_THERMO_0.5ML_M80" />
+            <column name="description" value="PP tube 0.5ml Matrix™-Röhrchen -80°C (Thermo Scientific) (SPREC: A)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-lts-a-matrix-thermo-1.0ml-m80" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_LTS_A_MATRIX_THERMO_1.0ML_M80" />
+            <column name="description" value="PP tube 1.0ml Matrix™-Röhrchen -80°C (Thermo Scientific) (SPREC: A)" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotationtype-lts-a-matrix-thermo-2.0ml-m80" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id"  valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="BIO_SPECIMEN_LTS_A_MATRIX_THERMO_2.0ML_M80" />
+            <column name="description" value="PP tube 2.0ml Matrix™-Röhrchen -80°C (Thermo Scientific) (SPREC: A)" />
+        </insert>
+    </changeSet>
+
+    <!-- Remove studydoc_unique_1 constraint -->
+    <changeSet id="drop-uniqueconstraint-studydoc-1" author="Tomas Skripcak">
+        <dropUniqueConstraint
+                uniqueColumns="filename"
+                constraintName="studydoc_unique_1"
+                tableName="STUDYDOC"
+                />
+    </changeSet>
+
+    <!-- Add studydoc_unique_2 -->
+    <changeSet id="add-uniqueconstraint-studydoc-2" author="Tomas Skripcak">
+        <addUniqueConstraint
+                 columnNames="studyid, filename"
+                 constraintName="studydoc_unique_2"
+                 tableName="STUDYDOC"
+                 />
+    </changeSet>
+
+    <!-- Modify description type -->
+    <changeSet id="alter-studydoc-description" author="Tomas Skripcak" >
+        <modifyDataType
+                columnName="description"
+                newDataType="varchar(4000)"
+                tableName="STUDYDOC"
+                />
+    </changeSet>
+
+</databaseChangeLog>

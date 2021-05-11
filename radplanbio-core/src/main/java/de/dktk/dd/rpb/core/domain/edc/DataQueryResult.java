@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * DataQueryResult domain entity (transient)
  *
- * Data custom radiotherapy research data queries executed via RadPlanBio produces unstructured query result data which is
+ * Data custom radiotherapy research data queries executed via RPB produces unstructured query result data which is
  * stored within this entity. The query is always associated with specific StudySubject (no data exists without this associations).
  *
  * @author tomas@skripcak.net
@@ -164,7 +164,7 @@ public class DataQueryResult implements Identifiable<Integer>, Serializable {
         for (ItemDefinition id : this.dataItems) {
             if (id.getOid().equals(item)) {
                 // If the item is in repeating group put the values in a list
-                if (!value.equals("")) {
+                if (!"".equals(value)) {
                     value += "; ";
                 }
                 value += id.getValue();

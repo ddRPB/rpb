@@ -42,15 +42,6 @@
                                 process="@this"
                                 actionListener="#{mbDocType.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbDocType.prepareNewEntity}"
-                                rendered="#{mbDocType.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
                                 title="#{msg.docType_reload}"
@@ -60,14 +51,6 @@
                                 process="@this"
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbDocType.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbDocType.load}"
-                                rendered="#{mbDocType.tab.activeIndex == 0}"
                                 />
                     </p:toolbarGroup>
 
@@ -82,7 +65,7 @@
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -134,7 +117,7 @@
                             sortBy="#{entity.name}"
                             filterBy="#{entity.name}"
                             filterMatchMode="contains"
-                            style="width:20%"
+                            style="width:25%"
                             visible="#{mbDocType.columnVisibilityList[0]}"
                             >
                         <f:facet name="header">
@@ -148,7 +131,7 @@
                             sortBy="#{entity.description}"
                             filterBy="#{entity.description}"
                             filterMatchMode="contains"
-                            style="width:20%"
+                            style="width:55%"
                             visible="#{mbDocType.columnVisibilityList[1]}"
                             >
                         <f:facet name="header">
@@ -207,13 +190,13 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.docType_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.docType_plural}" />
                     </h:commandLink>
                 </p:panel>

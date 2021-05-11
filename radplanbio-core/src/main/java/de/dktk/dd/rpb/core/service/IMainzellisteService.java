@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,40 +121,59 @@ public interface IMainzellisteService {
 
     //endregion
 
-    //region Create Patient PID
+    //region Create Patient
 
     /**
-     * Create a patient in patient identity database
-     * @param tokenId patient creation token id
-     * @param person person (patient) entity to be created
+     * Create a new patient in patient identity database
+     * @param newPerson person (patient) entity to be created
      * @return JSON formatted result of patient creation
+     * @throws Exception exception
      */
-    JSONObject createPatientJson(String tokenId, Person person) throws Exception;
+    JSONObject createPatient(Person newPerson) throws Exception;
+
+    /**
+     * Create a new patient in patient identity database
+     * @param tokenId patient creation token id
+     * @param person  person (patient) entity to be created
+     * @return JSON formatted result of patient creatino
+     * @throws Exception exception
+     */
+    JSONObject getCreatePatientJsonResponse(String tokenId, Person person) throws Exception;
 
     /**
      * Force to create a new patient in patient identity database (even if there is a possible match)
      * @param tokenId patient creation token id
      * @param person person (patient) entity to be created
-     * @return JSON formatted result of patient creationg
+     * @return JSON formatted result of patient creation
      */
-    JSONObject createSurePatienJson(String tokenId, Person person);
+    JSONObject createSurePatientJson(String tokenId, Person person);
 
     //endregion
 
     // region Edit Patient Data
 
     /**
-     * Edit a patient in patient identity database
+     * Edit the patient IDAT record in the patient identity database
      *
      * @param tokenId patient edit token id
-     * @param person person (patient) entity to be updated
+     * @param person person (patient) entity to be updated (IDAT)
      * @return true if edited IDAT was accepted
      */
-    Boolean editPatientJson(String tokenId, Person person) throws Exception;
+    boolean editPatientJson(String tokenId, Person person) throws Exception;
+
+    /**
+     * Edit the patient IDAT record in the patient identity database
+     *
+     * @param person person (patient entity to be update
+     * @return true if edited IDAT was accepted
+     */
+    boolean editPatient(Person person);
 
     //endregion
 
     //region Get Patients
+
+    Person loadPatient(String pid) throws Exception;
 
     /**
      * Get patient IDAT data
@@ -165,10 +184,18 @@ public interface IMainzellisteService {
     Person getPatient(String tid) throws Exception;
 
     /**
+     * Get list of Patient entities with IDAT according to provided persons with PIDs
+     * @param personPIDList List of Person with PIDs
+     * @return List of patients
+     * @throws Exception exception
+     */
+    List<Person> getPatientListByPIDs(List<Person> personPIDList) throws Exception;
+
+    /**
      *
      * @param tid read token id
      * @return list of patient idat objects
-     * @throws Exception
+     * @throws Exception exception
      */
     List<Person> getPatientList(String tid) throws Exception;
 
@@ -176,7 +203,8 @@ public interface IMainzellisteService {
      * Get all patients from patient identity database
      * @return JSON formated list of all patients in patient identity database
      */
-    List<Person> getAllPatients();
+    List<Person> getAllPatientPIDs();
 
     //endregion
+
 }

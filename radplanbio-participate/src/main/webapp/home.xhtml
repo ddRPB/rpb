@@ -162,7 +162,7 @@
                                         icon="fa fa-play Fs16 white"
                                         actionListener="#{mbStudy.redirect}"
                                         ajax="false"
-                                        style="width:150px;"
+                                        style="width:150px"
                                         />
                                     <!-- Mark as completed in EDC -->
                                     <p:commandButton
@@ -171,7 +171,7 @@
                                         icon="fa fa-check-circle Fs16 white"
                                         actionListener="#{mbStudy.markAsComplete(event)}"
                                         ajax="false"
-                                        style="width:150px;"
+                                        style="width:150px"
                                         />
                                 </f:facet>
                             </p:dataTable>
@@ -270,11 +270,9 @@
 
                         <!-- Left item text -->
                         <p:column
+                            headerText="#{msg.itemDefinition_question}"
                             style="width:70%"
                             >
-                            <f:facet name="header">
-                                <h:outputText value="#{msg.itemDefinition_question}" />
-                            </f:facet>
                             <h:outputText value="#{itemData.itemDefinition.itemDetails.itemPresentInForm.leftItemText}" style="float:left;" />
                         </p:column>
 

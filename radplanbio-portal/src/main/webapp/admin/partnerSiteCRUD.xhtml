@@ -21,67 +21,58 @@
 
     <!-- Definition of page content place holder -->
     <ui:define name="content">
-        <p:tabView id="tabView" activeIndex="#{mbPartnerSite.tab.activeIndex}">
+        <p:tabView id="tabView" activeIndex="#{mbPartnerSite.tab.activeIndex}" scrollable="true">
 
             <!-- Partner Sites -->
             <p:tab title="#{msg.partnerSite_plural}">
 
                 <!-- Toolbar -->
-                <p:toolbar>
+                <p:toolbar id="tbEntities">
+
                     <!-- Left -->
                     <p:toolbarGroup align="left">
                         <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="#{msg.partnerSite_new}"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newSiteDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newSiteForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbPartnerSite.prepareNewEntity}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newSiteDialog').show();"
-                                immediate="true"
-                                update=":newSiteForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbPartnerSite.prepareNewEntity}"
-                                />
+                            value="#{msg.menu_new}"
+                            title="#{msg.partnerSite_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newSiteDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newSiteForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbPartnerSite.prepareNewEntity}"
+                            />
                         <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="#{msg.partnerSite_reload}"
-                                icon="ui-icon-refresh"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbPartnerSite.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbPartnerSite.load}"
-                                />
+                            id="btnReload"
+                            value="#{msg.menu_reload}"
+                            title="#{msg.partnerSite_reload}"
+                            icon="ui-icon-refresh"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbPartnerSite.load}"
+                            />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                                value="#{msg.menu_print}"
-                                title="#{msg.partnerSite_print}"
-                                icon="ui-icon-print"
-                                >
+                            value="#{msg.menu_print}"
+                            title="#{msg.partnerSite_print}"
+                            icon="ui-icon-print"
+                            >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="#{msg.menu_help}"
-                                icon="ui-icon-help"
-                                disabled="True"
-                                />
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            onclick="target='_blank'"
+                            ajax="false"
+                            immediate="true"
+                            action="#{mbMain.navigateToHelp('x1-240003')}"
+                            />
+
                     </p:toolbarGroup>
                 </p:toolbar>
 
@@ -108,7 +99,15 @@
                     >
 
                     <!--AJAX onclick on datatable row-->
-                    <p:ajax event="rowSelect" update=":form:tabView:displayPacs, :form:tabView:displayEdc, :form:tabView:displayPortal, :form:tabView:displayServer, :form:tabView:displayPidGenerator" />
+                    <p:ajax event="rowSelect" update=":form:tabView:tbPortal, :form:tabView:displayPortal, :form:tabView:tbBio, :form:tabView:displayBio, :form:tabView:tbForm, :form:tabView:displayForm, :form:tabView:tbLab, :form:tabView:displayLab, :form:tabView:tbPacs, :form:tabView:displayPacs, :form:tabView:tbEdc, :form:tabView:displayEdc, :form:tabView:tbServer, :form:tabView:displayServer, :form:tabView:tbPid, :form:tabView:displayPid" />
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler datasource="dtEntities" trigger=":form:tabView:dtEntities:btnEntitiesToggler">
+                            <p:ajax event="toggle" listener="#{mbPartnerSite.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
 
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
@@ -118,68 +117,78 @@
                     <!-- Identifier -->
                     <p:column
                         id="colSiteIdentifier"
+                        headerText="#{msg.partnerSite_id}"
                         sortBy="#{site.identifier}"
                         filterBy="#{site.identifier}"
                         filterMatchMode="contains"
+                        visible="#{mbPartnerSite.columnVisibilityList[0]}"
                         style="width:10%"
+                        filterStyle="width:50px"
                         >
-                        <f:facet name="header">
-                            <h:outputText value="ID" />
-                        </f:facet>
-                        <h:outputText value="#{site.identifier}" style="float: left;"  />
+                        <h:outputText value="#{site.identifier}" style="float: left;" />
                     </p:column>
 
                     <!-- Name -->
                     <p:column
-                        sortBy="#{site.siteName}"
-                        filterBy="#{site.siteName}"
+                        headerText="#{msg.partnerSite_siteName}"
+                        sortBy="#{site.name}"
+                        filterBy="#{site.name}"
                         filterMatchMode="contains"
-                        style="width:20%"
+                        visible="#{mbPartnerSite.columnVisibilityList[1]}"
+                        style="width:45%"
                         >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.partnerSite_siteName}" />
-                        </f:facet>
-                        <h:outputText value="#{site.siteName}" style="float: left;" />
+                        <h:outputText value="#{site.name}" style="float: left;" />
                     </p:column>
 
-                    <!-- Description -->
+                    <!-- IsEnabled -->
                     <p:column
-                        sortBy="#{site.siteName}"
-                        filterBy="#{site.siteName}"
-                        filterMatchMode="contains"
-                        style="width:30%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.partnerSite_description}" />
-                        </f:facet>
-                        <h:outputText value="#{site.description}" style="float: left;" />
-                    </p:column>
-
-                    <!-- Is Enabled -->
-                    <p:column
-                        sortBy="#{site.isEnabled}"
+                        headerText="#{msg.partnerSite_isEnabled}"
                         filterBy="#{site.isEnabled}"
-                        filterMatchMode="exact"
-                        style="width:18%"
+                        filterMatchMode="equals"
+                        visible="#{mbPartnerSite.columnVisibilityList[2]}"
+                        style="width:15%"
                         >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.partnerSite_isEnabled}" />
-                        </f:facet>
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('sitesTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('sitesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox  value="#{site.isEnabled}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{site.isEnabled}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
+                    </p:column>
+
+                    <!-- Latitude -->
+                    <p:column
+                        headerText="#{msg.partnerSite_latitude}"
+                        visible="#{mbPartnerSite.columnVisibilityList[3]}"
+                        style="width:8%"
+                        >
+                        <h:outputText value="#{site.latitude}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Longitude -->
+                    <p:column
+                        headerText="#{msg.partnerSite_longitude}"
+                        visible="#{mbPartnerSite.columnVisibilityList[4]}"
+                        style="width:8%"
+                        >
+                        <h:outputText value="#{site.longitude}" style="float: left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
                         headerText="#{msg.menu_commands}"
-                        style="width:17%"
                         exportable="false"
+                        toggleable="false"
+                        style="width:17%"
                         >
                         <p:commandButton
                             title="#{msg.menu_edit}"
@@ -209,34 +218,53 @@
                         <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPartnerSite.entityList.size() == 0}" />
                         <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPartnerSite.entityList.size() == 1}" />
                         <h:outputFormat
-                                value="#{msg.search_results_status_n}"
-                                rendered="#{mbPartnerSite.entityList.size() > 1}"
-                                >
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbPartnerSite.entityList.size() > 1}"
+                            >
                             <f:param value="#{mbPartnerSite.entityList.size()}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
+                <!-- Block table -->
+                <p:blockUI trigger="btnReload dtEntities" block="dtEntities">
+                    #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
+
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.partnerSite_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.partnerSite_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
 
             <!-- Portal -->
-            <p:tab
-                id="tabPortal"
-                title="#{msg.partnerSite_portal}"
-                >
-                <p:toolbar>
-                    <p:toolbarGroup align="left" />
+            <p:tab title="RPB (#{msg.partnerSite_portal})">
+                <!-- Toolbar -->
+                <p:toolbar id="tbPortal">
+
+                    <!-- Left -->
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.portal_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbPortal, :form:tabView:displayPortal"
+                            process="@this"
+                            actionListener="#{mbPortal.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.portal}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
                     <p:toolbarGroup  align="right">
                         <p:commandButton
                                 value="#{msg.menu_help}"
@@ -246,75 +274,350 @@
                                 />
                     </p:toolbarGroup>
                 </p:toolbar>
+
                 <p:panelGrid
-                        id="displayPortal"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;float: left;width: 100%"
-                        >
+                    id="displayPortal"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
 
+                    <!-- Partner Site -->
                     <h:outputLabel value="#{msg.partnerSite}:" />
-                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
 
-                    <h:outputLabel value="Portal base URL (local):" for="txtPortalBaseUrl" />
-                    <h:inputText
-                            id="txtPortalBaseUrl"
-                            value="#{mbPartnerSite.selectedSitePortal.portalBaseUrl}"
-                            requiredMessage="Please enter portal base URL, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            size="50"
-                            />
+                    <!-- BaseUrl -->
+                    <h:outputLabel value="#{msg.portal_baseUrl}:#{msg.label_required_suffix}" for="txtPortalBaseUrl" />
+                    <p:inputText
+                        id="txtPortalBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.portal.portalBaseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.portal_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.portal}"
+                        />
 
-                    <h:outputLabel value="Portal URL (public):" for="txtPortalPublicUrl" />
-                    <h:inputText
-                            id="txtPortalPublicUrl"
-                            value="#{mbPartnerSite.selectedSitePortal.publicUrl}"
-                            maxlength="255"
-                            size="50"
-                            />
+                    <!-- PublicUrl -->
+                    <h:outputLabel value="#{msg.portal_publicUrl}:" for="txtPortalPublicUrl" />
+                    <p:inputText
+                        id="txtPortalPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.portal.publicUrl}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.portal}"
+                        />
 
-                    <h:outputLabel value="Version:" for="txtPortalVersion" />
-                    <h:inputText
-                            id="txtPortalVersion"
-                            value="#{mbPartnerSite.selectedSitePortal.version}"
-                            maxlength="15"
-                            />
+                    <!-- DataPath -->
+                    <h:outputLabel value="#{msg.portal_dataPath}:" for="txtPortalDataPath" />
+                    <p:inputText
+                        id="txtPortalDataPath"
+                        value="#{mbPartnerSite.selectedEntity.portal.dataPath}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.portal}"
+                        />
 
-                    <h:outputText value="Enabled:" for="chbPortalIsEnabled" />
-                    <h:selectBooleanCheckbox id="chbPortalIsEnabled" value="#{mbPartnerSite.selectedSitePortal.isEnabled}" />
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.portal_version}:" for="txtPortalVersion" />
+                    <p:inputText
+                        id="txtPortalVersion"
+                        value="#{mbPartnerSite.selectedEntity.portal.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.portal}"
+                        />
+
+                    <!-- IsEnabled -->
+                    <h:outputText value="#{msg.portal_isEnabled}:#{msg.label_required_suffix}" for="chbPortalIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbPortalIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.portal.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.portal}"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                id="btnPortalSave"
-                                value="#{msg.menu_save}"
-                                title="Save [ctrl+shift+s]"
-                                update=":form:tabView:displayPortal, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbPartnerSite.doUpdatePortal}"
-                                process="@this displayPortal"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+s"
-                                update=":form:tabView:displayPortal, :growl"
-                                actionListener="#{mbPartnerSite.doUpdatePortal}"
-                                process="@this displayPortal"
-                                rendered="#{mbPartnerSite.tab.activeIndex==1}"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbPortal, :form:tabView:displayPortal, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayPortal"
+                            disabled="#{empty mbPartnerSite.selectedEntity.portal}"
+                            />
                     </f:facet>
+                </p:panelGrid>
+            </p:tab>
+
+            <!-- EDC -->
+            <p:tab title="#{msg.partnerSite_edc} (OpenClinica)">
+
+                <!-- Toolbar -->
+                <p:toolbar id="tbEdc">
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.edc_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbEdc, :form:tabView:displayEdc"
+                            process="@this"
+                            actionListener="#{mbEdc.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.edc}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                    id="displayEdc"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
+
+                    <!-- PartnerSite -->
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
+
+                    <!-- BaseUrl-->
+                    <h:outputLabel value="#{msg.edc_baseUrl}:#{msg.label_required_suffix}" for="txtEdcBaseUrl" />
+                    <p:inputText
+                        id="txtEdcBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.edc.edcBaseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.edc_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- SOAP BaseUrl-->
+                    <h:outputLabel value="#{msg.edc_soapBaseUrl}:#{msg.label_required_suffix}" for="txtEdcSoapBaseUrl" />
+                    <p:inputText
+                        id="txtEdcSoapBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.edc.soapBaseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.edc_soapBaseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- PublicUrl -->
+                    <h:outputLabel value="#{msg.edc_publicUrl}:" for="txtEdcPublicUrl" />
+                    <p:inputText
+                        id="txtEdcPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.edc.edcPublicUrl}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- SOAP PublicUrl -->
+                    <h:outputLabel value="#{msg.edc_soapPublicUrl}:" for="txtSoapPublicUrl" />
+                    <p:inputText
+                        id="txtSoapPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.edc.soapPublicUrl}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- DataPath -->
+                    <h:outputLabel value="#{msg.edc_dataPath}:" for="txtEdcDataPath" />
+                    <p:inputText
+                        id="txtEdcDataPath"
+                        value="#{mbPartnerSite.selectedEntity.edc.dataPath}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.edc_version}:" for="txtEdcVersion" />
+                    <p:inputText
+                        id="txtEdcVersion"
+                        value="#{mbPartnerSite.selectedEntity.edc.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- IsEnabled -->
+                    <h:outputLabel value="#{msg.edc_isEnabled}:#{msg.label_required_suffix}" for="chbEdcIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbEdcIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.edc.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- IsValidated -->
+                    <h:outputLabel value="#{msg.edc_isValidated}:#{msg.label_required_suffix}" for="chbEdcIsValidated" />
+                    <p:selectBooleanButton
+                        id="chbEdcIsValidated"
+                        value="#{mbPartnerSite.selectedEntity.edc.isValidated}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                        />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbEdc, :form:tabView:displayEdc, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayEdc"
+                            disabled="#{empty mbPartnerSite.selectedEntity.edc}"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </p:tab>
+
+            <!-- EDC-val -->
+
+            <!-- FormEngine -->
+            <p:tab title="#{msg.partnerSite_formEngine} (Enketo)">
+                <!-- Toolbar -->
+                <p:toolbar id="tbForm">
+
+                    <!-- Left -->
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.formEngine_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbForm, :form:tabView:displayForm"
+                            process="@this"
+                            actionListener="#{mbFormEngine.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.formEngine}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                    id="displayForm"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
+
+                    <!-- Partner Site -->
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
+
+                    <!-- BaseUrl -->
+                    <h:outputLabel value="#{msg.formEngine_baseUrl}:#{msg.label_required_suffix}" for="txtFormBaseUrl" />
+                    <p:inputText
+                        id="txtFormBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.formEngine.baseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.formEngine_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.formEngine}"
+                        />
+
+                    <!-- PublicUrl -->
+                    <h:outputLabel value="#{msg.formEngine_publicUrl}:" for="txtFromPublicUrl" />
+                    <p:inputText
+                        id="txtFromPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.formEngine.publicUrl}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.formEngine}"
+                        />
+
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.formEngine_version}:" for="txtFormVersion" />
+                    <p:inputText
+                        id="txtFormVersion"
+                        value="#{mbPartnerSite.selectedEntity.formEngine.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.formEngine}"
+                        />
+
+                    <!-- IsEnabled-->
+                    <h:outputLabel value="#{msg.formEngine_isEnabled}: #{msg.label_required_suffix}" for="chbFormIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbFormIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.formEngine.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.formEngine}"
+                        />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbForm, :form:tabView:displayForm, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayForm"
+                            disabled="#{empty mbPartnerSite.selectedEntity.formEngine}"
+                            />
+                    </f:facet>
+
                 </p:panelGrid>
             </p:tab>
 
             <!-- PACS -->
-            <p:tab
-                id="tabPacs"
-                title="#{msg.partnerSite_pacs} (ConQuest)"
-                >
+            <p:tab title="#{msg.partnerSite_pacs} (ConQuest)">
 
                 <!-- Toolbar -->
-                <p:toolbar>
-                    <p:toolbarGroup  align="left" />
+                <p:toolbar id="tbPacs">
+                    <!-- Left -->
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.pacs_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbPacs, :form:tabView:displayPacs"
+                            process="@this"
+                            actionListener="#{mbPacs.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.pacs}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_help}"
@@ -326,149 +629,308 @@
                 </p:toolbar>
 
                 <p:panelGrid
-                        id="displayPacs"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;float: left;width: 100%"
-                        >
+                    id="displayPacs"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
 
-                        <h:outputLabel value="#{msg.partnerSite}:" />
-                        <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
-
-                        <h:outputLabel value="PACS base URL (ConQuest web server):" for="txtPacsBaseUrl" />
-                        <h:inputText
-                                id="txtPacsBaseUrl"
-                                value="#{mbPartnerSite.selectedSitePacs.pacsBaseUrl}"
-                                requiredMessage="Please enter PACS base URL, it is mandatory!"
-                                maxlength="255"
-                                required="true"
-                                size="50"
-                                />
-
-                        <h:outputLabel value="Version:" for="txtPacsVersion" />
-                        <h:inputText
-                                id="txtPacsVersion"
-                                value="#{mbPartnerSite.selectedSitePacs.version}"
-                                maxlength="15"
-                                />
-
-                        <h:outputLabel value="Enabled: " for="chbPacsIsEnabled"/>
-                        <h:selectBooleanCheckbox id="chbPacsIsEnabled" value="#{mbPartnerSite.selectedSitePacs.isEnabled}" />
-
-                        <!-- Footer -->
-                        <f:facet name="footer">
-                            <p:commandButton
-                                    id="btnPacsSave"
-                                    value="#{msg.menu_save}"
-                                    title="Save [ctrl+shift+s]"
-                                    update=":form:tabView:displayPacs, :growl"
-                                    icon="ui-icon-disk"
-                                    actionListener="#{mbPartnerSite.doUpdatePacs}"
-                                    process="@this displayPacs"
-                                    />
-                            <p:hotkey
-                                    bind="ctrl+shift+s"
-                                    update=":form:tabView:displayPacs, :growl"
-                                    actionListener="#{mbPartnerSite.doUpdatePacs}"
-                                    process="@this displayPacs"
-                                    rendered="#{mbPartnerSite.tab.activeIndex==2}"
-                                    />
-                        </f:facet>
-                    </p:panelGrid>
-            </p:tab>
-
-            <!-- EDC -->
-            <p:tab
-                id="tabEdc"
-                title="#{msg.partnerSite_edc} (OpenClinica)"
-                >
-
-                <!-- Toolbar -->
-                <p:toolbar>
-                    <p:toolbarGroup align="left" />
-                    <p:toolbarGroup align="right">
-                        <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="#{msg.menu_help}"
-                                icon="ui-icon-help"
-                                disabled="True"
-                                />
-                    </p:toolbarGroup>
-                </p:toolbar>
-
-                <p:panelGrid
-                        id="displayEdc"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;float: left;width: 100%"
-                        >
-
+                    <!-- PartnerSite -->
                     <h:outputLabel value="#{msg.partnerSite}:" />
-                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
 
-                    <h:outputLabel value="EDC base URL (OpenClinica web site - public):" for="txtEdcBaseUrl" />
-                    <h:inputText
-                            id="txtEdcBaseUrl"
-                            value="#{mbPartnerSite.selectedSiteEdc.edcBaseUrl}"
-                            requiredMessage="Please enter EDC base URL, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            size="50"
-                            />
+                    <!-- BaseUrl -->
+                    <h:outputLabel value="#{msg.pacs_baseUrl}:#{msg.label_required_suffix}" for="txtPacsBaseUrl" />
+                    <p:inputText
+                        id="txtPacsBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.pacs.pacsBaseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.pacs_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pacs}"
+                        />
 
-                    <h:outputLabel value="EDC SOAP URL (OpenClinica SOAP web services site - public):" for="txtEdcSoapBaseUrl" />
-                    <h:inputText
-                            id="txtEdcSoapBaseUrl"
-                            value="#{mbPartnerSite.selectedSiteEdc.soapBaseUrl}"
-                            requiredMessage="Please enter EDC SOAP URL, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            size="50"
-                            />
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.pacs_version}:" for="txtPacsVersion" />
+                    <p:inputText
+                        id="txtPacsVersion"
+                        value="#{mbPartnerSite.selectedEntity.pacs.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pacs}"
+                        />
 
-                    <h:outputLabel value="Version:" for="txtEdcVersion" />
-                    <h:inputText
-                            id="txtEdcVersion"
-                            value="#{mbPartnerSite.selectedSiteEdc.version}"
-                            maxlength="15"
-                            />
-
-                    <h:outputText value="Enabled:" for="chbEdcIsEnabled" />
-                    <h:selectBooleanCheckbox
-                            id="chbEdcIsEnabled"
-                            value="#{mbPartnerSite.selectedSiteEdc.isEnabled}"
-                            />
+                    <!-- IsEnabled -->
+                    <h:outputLabel value="#{msg.pacs_isEnabled}:#{msg.label_required_suffix}" for="chbPacsIsEnabled"/>
+                    <p:selectBooleanButton
+                        id="chbPacsIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.pacs.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pacs}"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                title="Save [ctrl+shift+s]"
-                                update=":form:tabView:displayEdc, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbPartnerSite.doUpdateEdc}"
-                                process="@this displayEdc"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+s"
-                                update=":form:tabView:displayEdc, :growl"
-                                actionListener="#{mbPartnerSite.doUpdateEdc}"
-                                process="@this displayEdc"
-                                rendered="#{mbPartnerSite.tab.activeIndex==3}"
-                                />
+                            value="#{msg.menu_save}"
+                            title="Save"
+                            update=":form:tabView:tbPacs, :form:tabView:displayPacs, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayPacs"
+                            disabled="#{empty mbPartnerSite.selectedEntity.pacs}"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </p:tab>
 
+            <!-- BIO -->
+            <p:tab title="#{msg.partnerSite_bio} (CentraXX)">
+                <!-- Toolbar -->
+                <p:toolbar id="tbBio">
+
+                    <!-- Left -->
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.bio_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbBio, :form:tabView:displayBio"
+                            process="@this"
+                            actionListener="#{mbBio.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.bio}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                    id="displayBio"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
+
+                    <!-- Partner Site -->
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
+
+                    <!-- BaseUrl -->
+                    <h:outputLabel value="#{msg.bio_baseUrl}:#{msg.label_required_suffix}" for="txtBioBaseUrl" />
+                    <p:inputText
+                        id="txtBioBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.bio.baseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.bio_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                        />
+
+                    <!-- PublicUrl -->
+                    <h:outputLabel value="#{msg.bio_publicUrl}:" for="txtBioPublicUrl" />
+                    <p:inputText
+                        id="txtBioPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.bio.publicUrl}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                        />
+
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.bio_userName}:#{msg.label_required_suffix}" for="txtBioUserName" />
+                    <p:inputText
+                        id="txtBioUserName"
+                        value="#{mbPartnerSite.selectedEntity.bio.username}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.bio_userName} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                        />
+
+                    <!-- Password -->
+                    <h:outputLabel value="#{msg.bio_password}:#{msg.label_required_suffix}" for="txtBioPassword" />
+                    <p:password
+                        id="txtBioPassword"
+                        value="#{mbPartnerSite.selectedEntity.bio.password}"
+                        maxlength="255"
+                        required="true"
+                        redisplay="true"
+                        requiredMessage="#{msg.bio_password} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                        />
+
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.bio_version}:" for="txtBioVersion" />
+                    <p:inputText
+                        id="txtBioVersion"
+                        value="#{mbPartnerSite.selectedEntity.bio.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                        />
+
+                    <!-- IsEnabled-->
+                    <h:outputLabel value="#{msg.bio_isEnabled}: #{msg.label_required_suffix}" for="chbBioIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbBioIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.bio.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                        />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbBio, :form:tabView:displayBio, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayBio"
+                            disabled="#{empty mbPartnerSite.selectedEntity.bio}"
+                            />
+                    </f:facet>
+
+                </p:panelGrid>
+            </p:tab>
+
+            <!-- DKTK bridgehead -->
+
+            <!-- LAB -->
+            <p:tab title="#{msg.partnerSite_lab} (LabKey)">
+                <!-- Toolbar -->
+                <p:toolbar id="tbLab">
+
+                    <!-- Left -->
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                                value="#{msg.menu_new}"
+                                title="#{msg.lab_new}"
+                                icon="ui-icon-document"
+                                style="float: left;"
+                                immediate="true"
+                                update=":form:tabView:tbLab, :form:tabView:displayLab"
+                                process="@this"
+                                actionListener="#{mbLab.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                                disabled="#{!empty mbPartnerSite.selectedEntity.lab}"
+                        />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                disabled="True"
+                        />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:panelGrid
+                    id="displayLab"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
+
+                    <!-- Partner Site -->
+                    <h:outputLabel value="#{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
+
+                    <!-- BaseUrl -->
+                    <h:outputLabel value="#{msg.lab_baseUrl}:#{msg.label_required_suffix}" for="txtLabBaseUrl" />
+                    <p:inputText
+                        id="txtLabBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.lab.baseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.lab_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.lab}"
+                        />
+
+                    <!-- PublicUrl -->
+                    <h:outputLabel value="#{msg.lab_publicUrl}:" for="txtLabPublicUrl" />
+                    <p:inputText
+                        id="txtLabPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.lab.publicUrl}"
+                        size="50"
+                        maxlength="255"
+                        disabled="#{empty mbPartnerSite.selectedEntity.lab}"
+                        />
+
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.lab_version}:" for="txtLabVersion" />
+                    <p:inputText
+                        id="txtLabVersion"
+                        value="#{mbPartnerSite.selectedEntity.lab.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.lab}"
+                        />
+
+                    <!-- IsEnabled-->
+                    <h:outputLabel value="#{msg.lab_isEnabled}: #{msg.label_required_suffix}" for="chbLabIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbLabIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.lab.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.lab}"
+                        />
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbLab, :form:tabView:displayLab, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayLab"
+                            disabled="#{empty mbPartnerSite.selectedEntity.lab}"
+                            />
+                    </f:facet>
+
+                </p:panelGrid>
+            </p:tab>
+
             <!-- PID generator -->
-            <p:tab
-                id="tabPid"
-                title="#{msg.partnerSite_pid} generator"
-                >
+            <p:tab title="#{msg.partnerSite_pid} (Mainzelliste)">
 
                 <!-- Toolbar -->
-                <p:toolbar>
-                    <p:toolbarGroup align="left" />
+                <p:toolbar id="tbPid">
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.pid_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbPid, :form:tabView:displayPid"
+                            process="@this"
+                            actionListener="#{mbPid.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.pid}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Rigth -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_help}"
@@ -480,175 +942,210 @@
                 </p:toolbar>
 
                 <p:panelGrid
-                        id="displayPidGenerator"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;float: left;width: 100%"
-                        >
+                    id="displayPid"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
 
+                    <!-- PartnerSite -->
                     <h:outputLabel value="#{msg.partnerSite}:" />
-                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
 
-                    <h:outputLabel value="PID generator base URL (Mainzelliste web services - local):" for="txtPidBaseUrl" />
-                    <h:inputText
-                            id="txtPidBaseUrl"
-                            value="#{mbPartnerSite.selectedSitePid.generatorBaseUrl}"
-                            requiredMessage="Please enter PID generator base URL, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            size="50"
-                            />
+                    <!-- BaseUrl-->
+                    <h:outputLabel value="#{msg.pid_baseUrl}:#{msg.label_required_suffix}" for="txtPidBaseUrl" />
+                    <p:inputText
+                        id="txtPidBaseUrl"
+                        value="#{mbPartnerSite.selectedEntity.pid.generatorBaseUrl}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.pid_baseUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                        />
 
-                    <h:outputLabel value="PID generator secret apiKey:" for="txtPidApiKey" />
-                    <h:inputSecret
-                            id="txtPidApiKey"
-                            value="#{mbPartnerSite.selectedSitePid.apiKey}"
-                            requiredMessage="Please enter PID generator connection apiKey, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            redisplay="true"
-                            />
+                    <!-- ApiKey -->
+                    <h:outputLabel value="#{msg.pid_apiKey}:#{msg.label_required_suffix}" for="txtPidApiKey" />
+                    <p:password
+                        id="txtPidApiKey"
+                        value="#{mbPartnerSite.selectedEntity.pid.apiKey}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.pid_apiKey} #{msg.validation_required}!"
+                        redisplay="true"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                        />
 
-                    <h:outputLabel value="Version:" for="txtPidVersion" />
-                    <h:inputText
-                            id="txtPidVersion"
-                            value="#{mbPartnerSite.selectedSitePid.version}"
-                            maxlength="15"
-                            />
+                    <!-- Version -->
+                    <h:outputLabel value="#{msg.pid_version}:" for="txtPidVersion" />
+                    <p:inputText
+                        id="txtPidVersion"
+                        value="#{mbPartnerSite.selectedEntity.pid.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                        />
 
-                    <h:outputLabel value="Enabled:" for="chbPidIsEnabled" />
-                    <h:selectBooleanCheckbox
-                            id="chbPidIsEnabled"
-                            value="#{mbPartnerSite.selectedSitePid.isEnabled}"
-                            />
+                    <!-- IsEnabled -->
+                    <h:outputLabel value="#{msg.pid_isEnabled}:#{msg.label_required_suffix}" for="chbPidIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbPidIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.pid.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                        />
 
-                    <h:outputLabel value="Admin username:" for="txtPidAdminUsername" />
-                    <h:inputText
-                            id="txtPidAdminUsername"
-                            value="#{mbPartnerSite.selectedSitePid.adminUsername}"
-                            requiredMessage="Please enter PID generator admin username, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            />
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.pid_username}:#{msg.label_required_suffix}" for="txtPidAdminUsername" />
+                    <p:inputText
+                        id="txtPidAdminUsername"
+                        value="#{mbPartnerSite.selectedEntity.pid.adminUsername}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.pid_username} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                        />
 
-                    <h:outputLabel value="Admin password:" for="txtPidAdminPassword" />
-                    <h:inputSecret
-                            id="txtPidAdminPassword"
-                            value="#{mbPartnerSite.selectedSitePid.adminPassword}"
-                            requiredMessage="Please enter PID generator admin password, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            redisplay="true"
-                            />
+                    <!-- Password -->
+                    <h:outputLabel value="#{msg.pid_password}:#{msg.label_required_suffix}" for="txtPidAdminPassword" />
+                    <p:password
+                        id="txtPidAdminPassword"
+                        value="#{mbPartnerSite.selectedEntity.pid.adminPassword}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.pid_password} #{msg.validation_required}!"
+                        redisplay="true"
+                        disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                id="btnPidSave"
-                                value="#{msg.menu_save}"
-                                title="Save [ctrl+shift+s]"
-                                update=":form:tabView:displayPidGenerator, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbPartnerSite.doUpdatePid}"
-                                process="@this displayPidGenerator"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+s"
-                                update=":form:tabView:displayPidGenerator, :growl"
-                                actionListener="#{mbPartnerSite.doUpdatePid}"
-                                process="@this displayPidGenerator"
-                                rendered="#{mbPartnerSite.tab.activeIndex==4}"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbPid, :form:tabView:displayPid, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayPid"
+                            disabled="#{empty mbPartnerSite.selectedEntity.pid}"
+                            />
                     </f:facet>
                 </p:panelGrid>
 
             </p:tab>
 
             <!-- Web-API -->
-            <p:tab
-                id="tabIEServer"
-                title="#{msg.partnerSite_server}"
-                >
+            <p:tab title="#{msg.partnerSite_server}">
 
                 <!-- Toolbar -->
-                <p:toolbar>
-                    <p:toolbarGroup  align="left" />
+                <p:toolbar id="tbServer">
+                    <!-- Left -->
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.server_new}"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            update=":form:tabView:tbServer, :form:tabView:displayServer"
+                            process="@this"
+                            actionListener="#{mbServer.prepareNewEntity(mbPartnerSite.selectedEntity)}"
+                            disabled="#{!empty mbPartnerSite.selectedEntity.server}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Rigth -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="#{msg.menu_help}"
-                                icon="ui-icon-help"
-                                disabled="True"
-                                />
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
                     </p:toolbarGroup>
                 </p:toolbar>
 
                 <p:panelGrid
-                        id="displayServer"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;float: left;width: 100%"
-                        >
+                    id="displayServer"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
 
+                    <!-- PartnerSite -->
                     <h:outputLabel value="#{msg.partnerSite}:" />
-                    <h:outputText value="#{mbPartnerSite.selectedEntity.siteName}" />
+                    <h:outputText value="[#{mbPartnerSite.selectedEntity.identifier}] = #{mbPartnerSite.selectedEntity.name}" title="#{mbPartnerSite.selectedEntity.description}" />
 
-                    <h:outputLabel value="Server IP address:" for="txtServerIpAddress" />
-                    <h:inputText
-                            id="txtServerIpAddress"
-                            value="#{mbPartnerSite.selectedSiteServer.ipAddress}"
-                            requiredMessage="Please enter server IP address, it is mandatory!"
-                            maxlength="255"
-                            required="true"
-                            />
+                    <!-- IP Address -->
+                    <h:outputLabel value="#{msg.server_ipAddress}:#{msg.label_required_suffix}" for="txtServerIpAddress" />
+                    <p:inputText
+                        id="txtServerIpAddress"
+                        value="#{mbPartnerSite.selectedEntity.server.ipAddress}"
+                        size="50"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.server_ipAddress} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.server}"
+                        />
 
-                    <h:outputLabel value="Server port:" for="txtServerPort" />
-                    <h:inputText
-                            id="txtServerPort"
-                            value="#{mbPartnerSite.selectedSiteServer.port}"
-                            requiredMessage="Please enter server port, it is mandatory!"
-                            maxlength="5"
-                            required="true"
-                            />
+                    <!-- Port -->
+                    <h:outputLabel value="#{msg.server_port}:#{msg.label_required_suffix}" for="txtServerPort" />
+                    <p:inputText
+                        id="txtServerPort"
+                        value="#{mbPartnerSite.selectedEntity.server.port}"
+                        required="true"
+                        requiredMessage="#{msg.server_port} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.server}"
+                        />
 
-                    <h:outputLabel value="Server URL (public):" for="txtServerPublicUrl" />
-                    <h:inputText
-                            id="txtServerPublicUrl"
-                            value="#{mbPartnerSite.selectedSiteServer.publicUrl}"
-                            maxlength="255"
-                            size="50"
-                            />
+                    <!-- PublicUrl -->
+                    <h:outputLabel value="#{msg.server_publicUrl}:#{msg.label_required_suffix}" for="txtServerPublicUrl" />
+                    <p:inputText
+                        id="txtServerPublicUrl"
+                        value="#{mbPartnerSite.selectedEntity.server.publicUrl}"
+                        maxlength="255"
+                        size="50"
+                        required="true"
+                        requiredMessage="#{msg.server_publicUrl} #{msg.validation_required}!"
+                        disabled="#{empty mbPartnerSite.selectedEntity.server}"
+                        />
 
-                    <h:outputText value="Version:" for="txtServerVersion" />
-                    <h:inputText
-                            id="txtServerVersion"
-                            value="#{mbPartnerSite.selectedSiteServer.version}"
-                            maxlength="15"
-                            />
+                    <!-- Version -->
+                    <h:outputText value="#{msg.server_version}:" for="txtServerVersion" />
+                    <p:inputText
+                        id="txtServerVersion"
+                        value="#{mbPartnerSite.selectedEntity.server.version}"
+                        maxlength="15"
+                        disabled="#{empty mbPartnerSite.selectedEntity.server}"
+                        />
 
-                    <h:outputText value="Enabled:" for="chbServerIsEnabled" />
-                    <h:selectBooleanCheckbox id="chbServerIsEnabled" value="#{mbPartnerSite.selectedSiteServer.isEnabled}" />
+                    <!-- IsEnabeld -->
+                    <h:outputText value="#{msg.server_isEnabled}:#{msg.label_required_suffix}" for="chbServerIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbServerIsEnabled"
+                        value="#{mbPartnerSite.selectedEntity.server.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="#{empty mbPartnerSite.selectedEntity.server}"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                title="Save [ctrl+shift+s]"
-                                update=":form:tabView:displayServer, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbPartnerSite.doUpdateIEServer}"
-                                process="@this displayServer"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+s"
-                                update=":form:tabView:displayServer, :growl"
-                                actionListener="#{mbPartnerSite.doUpdateIEServer}"
-                                process="@this displayServer"
-                                rendered="#{mbPartnerSite.tab.activeIndex==5}"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:tbServer, :form:tabView:displayServer, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doUpdateEntity}"
+                            process="@this displayServer"
+                            disabled="#{empty mbPartnerSite.selectedEntity.server}"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </p:tab>
+
         </p:tabView>
     </ui:define>
 
@@ -657,78 +1154,120 @@
 
         <!-- New PartnerSite -->
         <p:dialog
-                id="dlgNewSite"
-                header="#{msg.partnerSite_new}"
-                widgetVar="newSiteDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgNewSite"
+            header="#{msg.partnerSite_new}"
+            widgetVar="newSiteDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="newSiteForm">
                 <p:panelGrid
-                        id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="newDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Identifier -->
-                    <h:outputLabel value="#{msg.partnerSite_identifier}: *" for="txtIdentifier" />
-                    <h:inputText
-                            id="txtIdentifier"
-                            value="#{mbPartnerSite.newEntity.identifier}"
-                            required="true"
-                            requiredMessage="Please enter site name, it is mandatory!"
-                            maxlength="10"
-                            />
+                    <h:outputLabel value="#{msg.partnerSite_identifier}: #{msg.label_required_suffix}" for="txtIdentifier" />
+                    <p:inputText
+                        id="txtIdentifier"
+                        value="#{mbPartnerSite.newEntity.identifier}"
+                        required="true"
+                        requiredMessage="#{msg.partnerSite_identifier} #{msg.validation_required}!"
+                        maxlength="10"
+                        />
 
                     <!-- Name -->
-                    <h:outputLabel value="#{msg.partnerSite_siteName}: *" for="txtSiteName" />
-                    <h:inputText
+                    <h:outputLabel value="#{msg.partnerSite_siteName}: #{msg.label_required_suffix}" for="txtSiteName" />
+                    <p:inputText
                             id="txtSiteName"
-                            value="#{mbPartnerSite.newEntity.siteName}"
+                            value="#{mbPartnerSite.newEntity.name}"
                             required="true"
-                            requiredMessage="Please enter site name, it is mandatory!"
+                            requiredMessage="#{msg.partnerSite_siteName} #{msg.validation_required}!"
                             maxlength="255"
+                            style="width:350px"
                             />
 
                     <!-- Description -->
                     <h:outputLabel value="#{msg.partnerSite_description}: " for="txtDescription" />
-                    <h:inputTextarea
+                    <p:inputTextarea
                             id="txtDescription"
                             value="#{mbPartnerSite.newEntity.description}"
-                            required="false"
+                            rows="3"
+                            counter="counterDescriptionNew"
+                            maxlength="255"
+                            counterTemplate="#{msg.validation_remaining}"
+                            style="width:350px"
                             />
+
+                    <!-- Description counter -->
+                    <h:outputLabel />
+                    <h:outputText id="counterDescriptionNew" />
 
                     <!-- Latitude -->
                     <h:outputLabel value="#{msg.partnerSite_latitude}:" for="txtLatitude" />
-                    <h:inputText id="txtLatitude" value="#{mbPartnerSite.newEntity.latitude}" />
+                    <p:inputText
+                        id="txtLatitude"
+                        value="#{mbPartnerSite.newEntity.latitude}"
+                        >
+                        <!--<f:validateRegex pattern="^(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))$" />-->
+                    </p:inputText>
 
                     <!-- Longitude -->
                     <h:outputLabel value="#{msg.partnerSite_longitude}:" for="txtLongitude" />
-                    <h:inputText id="txtLongitude" value="#{mbPartnerSite.newEntity.longitude}" />
+                    <p:inputText
+                        id="txtLongitude"
+                        value="#{mbPartnerSite.newEntity.longitude}"
+                        >
+                        <!--<f:validateRegex pattern="^(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))$" />-->
+                    </p:inputText>
+
+                    <!-- IP range -->
+                    <h:outputLabel value="#{msg.partnerSite_ipRange}:" for="txtIpRange" />
+                    <p:inputTextarea
+                        id="txtIpRange"
+                        value="#{mbPartnerSite.newEntity.ipRange}"
+                        rows="3"
+                        counter="counterIpRangeNew"
+                        maxlength="4000"
+                        counterTemplate="#{msg.validation_remaining}"
+                        style="width:350px"
+                        />
+
+                    <!-- IP range counter -->
+                    <h:outputLabel />
+                    <h:outputText id="counterIpRangeNew" />
 
                     <!-- IsEnabled -->
-                    <h:outputText value="#{msg.partnerSite_isEnabled}:" for="chbIsEnabled"/>
-                    <h:selectBooleanCheckbox id="chbIsEnabled" value="#{mbPartnerSite.newEntity.isEnabled}" />
+                    <h:outputLabel value="#{msg.partnerSite_isEnabled}: #{msg.label_required_suffix}" for="chbIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbIsEnabled"
+                        value="#{mbPartnerSite.newEntity.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtEntities, :form:tabView:displayPacs, :form:tabView:displayEdc, :form:tabView:displayPortal, :form:tabView:displayServer, :form:tabView:displayPidGenerator, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbPartnerSite.doCreateEntity}"
-                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSite','newSiteForm');"
-                                process="@this newSiteForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbPartnerSite.doCreateEntity}"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSite','newSiteForm');"
+                            process="@this newSiteForm"
+                            />
                         <p:commandButton
-                                value="#{msg.menu_reset}"
-                                type="reset"
-                                icon="ui-icon-close"
-                                />
+                            value="#{msg.menu_reset}"
+                            type="reset"
+                            icon="ui-icon-close"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -752,29 +1291,81 @@
                     style="margin:0 auto;"
                     >
 
+                    <!-- Identifier -->
                     <h:outputLabel value="#{msg.partnerSite_identifier}:" for="txtIdentifierEdit" />
                     <h:outputText id="txtIdentifierEdit" value="#{mbPartnerSite.selectedEntity.identifier}" />
 
-                    <h:outputLabel value="#{msg.partnerSite_siteName}:" for="txtNameEdit" />
-                    <h:inputText
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.partnerSite_siteName}: #{msg.label_required_suffix}" for="txtNameEdit" />
+                    <p:inputText
                             id="txtNameEdit"
-                            value="#{mbPartnerSite.selectedEntity.siteName}"
+                            value="#{mbPartnerSite.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Please enter site name, it is mandatory!"
+                            requiredMessage="#{msg.partnerSite_siteName} #{msg.validation_required}!"
                             maxlength="255"
+                            style="width:350px"
                             />
 
+                    <!-- Description -->
                     <h:outputLabel value="#{msg.partnerSite_description}:" for="txtDescriptionEdit" />
-                    <h:inputTextarea id="txtDescriptionEdit" value="#{mbPartnerSite.selectedEntity.description}" />
+                    <p:inputTextarea
+                            id="txtDescriptionEdit"
+                            value="#{mbPartnerSite.selectedEntity.description}"
+                            rows="3"
+                            counter="counterDescriptionEdit"
+                            maxlength="255"
+                            counterTemplate="#{msg.validation_remaining}"
+                            style="width:350px"
+                            />
 
+                    <!-- Description counter -->
+                    <h:outputLabel />
+                    <h:outputText id="counterDescriptionEdit" />
+
+                    <!-- Latitude -->
                     <h:outputLabel value="#{msg.partnerSite_latitude}:" for="txtLatitudeEdit" />
-                    <h:inputText id="txtLatitudeEdit" value="#{mbPartnerSite.selectedEntity.latitude}" />
+                    <p:inputText
+                        id="txtLatitudeEdit"
+                        value="#{mbPartnerSite.selectedEntity.latitude}"
+                        >
+                        <!--<f:validateRegex pattern="^(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))$" />-->
+                    </p:inputText>
 
+                    <!-- Longitude -->
                     <h:outputLabel value="#{msg.partnerSite_longitude}:" for="txtLongitudeEdit" />
-                    <h:inputText id="txtLongitudeEdit" value="#{mbPartnerSite.selectedEntity.longitude}" />
+                    <p:inputText
+                        id="txtLongitudeEdit"
+                        value="#{mbPartnerSite.selectedEntity.longitude}"
+                        >
+                        <!--<f:validateRegex pattern="^(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))$" />-->
+                    </p:inputText>
 
+                    <!-- IP range -->
+                    <h:outputLabel value="#{msg.partnerSite_ipRange}:" for="txtIpRangeEdit" />
+                    <p:inputTextarea
+                        id="txtIpRangeEdit"
+                        value="#{mbPartnerSite.selectedEntity.ipRange}"
+                        rows="3"
+                        counter="counterIpRangeEdit"
+                        maxlength="4000"
+                        counterTemplate="#{msg.validation_remaining}"
+                        style="width:350px"
+                        />
+
+                    <!-- IP range counter -->
+                    <h:outputLabel />
+                    <h:outputText id="counterIpRangeEdit" />
+
+                    <!-- IsEnabled -->
                     <h:outputLabel value="#{msg.partnerSite_isEnabled}:" for="chbIsEnabledEdit" />
-                    <h:selectBooleanCheckbox id="chbIsEnabledEdit" value="#{mbPartnerSite.selectedEntity.isEnabled}" />
+                    <p:selectBooleanButton
+                        id="chbIsEnabledEdit"
+                        value="#{mbPartnerSite.selectedEntity.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
@@ -809,23 +1400,53 @@
                     style="margin:0 auto;"
                     >
 
+                    <!-- Identifier -->
                     <h:outputLabel value="#{msg.partnerSite_identifier}:" for="txtIdentifierDelete" />
                     <h:outputText id="txtIdentifierDelete" value="#{mbPartnerSite.selectedEntity.identifier}" />
 
+                    <!-- Name -->
                     <h:outputLabel value="#{msg.partnerSite_siteName}:" for="txtNameDelete" />
-                    <h:outputText id="txtNameDelete" value="#{mbPartnerSite.selectedEntity.siteName}" />
+                    <h:outputText id="txtNameDelete" value="#{mbPartnerSite.selectedEntity.name}" />
 
+                    <!-- Description -->
                     <h:outputLabel value="#{msg.partnerSite_description}:" for="txtDescriptionDelete" />
-                    <h:outputText id="txtDescriptionDelete" value="#{mbPartnerSite.selectedEntity.description}" />
+                    <p:inputTextarea
+                        id="txtDescriptionDelete"
+                        value="#{mbPartnerSite.selectedEntity.description}"
+                        rows="3"
+                        readonly="true"
+                        style="width:350px"
+                        />
 
+                    <!-- Latitude -->
                     <h:outputLabel value="#{msg.partnerSite_latitude}:" for="txtLatitudeDelete" />
                     <h:outputText id="txtLatitudeDelete" value="#{mbPartnerSite.selectedEntity.latitude}" />
 
+                    <!-- Longitude -->
                     <h:outputLabel value="#{msg.partnerSite_longitude}:" for="txtLongitudeDelete" />
                     <h:outputText id="txtLongitudeDelete" value="#{mbPartnerSite.selectedEntity.longitude}" />
 
+                    <!-- IP Range-->
+                    <h:outputLabel value="#{msg.partnerSite_ipRange}:" for="txtIpRangeDelete" />
+                    <p:inputTextarea
+                        id="txtIpRangeDelete"
+                        value="#{mbPartnerSite.selectedEntity.ipRange}"
+                        rows="3"
+                        readonly="true"
+                        style="width:350px"
+                        />
+
+                    <!-- IsEnabled -->
                     <h:outputLabel value="#{msg.partnerSite_isEnabled}:" for="chbIsEnabledDelete" />
-                    <h:selectBooleanCheckbox id="chbIsEnabledDelete" value="#{mbPartnerSite.selectedEntity.isEnabled}" disabled="true" />
+                    <p:selectBooleanButton
+                        id="chbIsEnabledDelete"
+                        value="#{mbPartnerSite.selectedEntity.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">

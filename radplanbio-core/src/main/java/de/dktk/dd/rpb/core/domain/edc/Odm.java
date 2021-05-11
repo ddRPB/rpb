@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,15 +25,12 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
 
-import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -42,7 +39,6 @@ import java.util.List;
  *
  * @author tomas@skripcak.net
  * @since 15 Dec 2014
- * @version 1.0.0
  */
 @XmlRootElement(name="ODM")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -76,14 +72,23 @@ public class Odm implements Identifiable<Integer>, Serializable {
     @XmlAttribute(name="ODMVersion")
     private String odmVersion;
 
+    //TODO: added by Mirko for elastic but seems to be braking import to EDC
+    //@XmlAttribute(name="expirationDateTime", namespace="http://www.uniklinikum-dresden.de/rpb")
+    //private String expirationDateTime;
+
     @XmlElement(name="Study")
     private List<Study> studies;
 
     @XmlElement(name="ClinicalData")
     private List<ClinicalData> clinicalDataList;
 
+    @XmlElement(name="AdminData")
+    private List<AdminData> adminDataList;
+
     @XmlTransient
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder(); // Object hash
+
+    private StudyDetails studyDetails;
 
     //endregion
 
@@ -236,18 +241,39 @@ public class Odm implements Identifiable<Integer>, Serializable {
     //region StudyDetails
 
     public StudyDetails getStudyDetails() {
-        StudyDetails result = null;
+        studyDetails = null;
 
         if (this.studies != null && this.studies.size() == 1) {
             if (this.studies.get(0).getMetaDataVersion().getStudyDetails() != null) {
-                result = this.studies.get(0).getMetaDataVersion().getStudyDetails();
+                studyDetails = this.studies.get(0).getMetaDataVersion().getStudyDetails();
             }
         }
 
-        return result;
+        return studyDetails;
     }
 
     //endregion
+
+    //region AdminData
+
+    public List<AdminData> getAdminDataList() {
+        return adminDataList;
+    }
+
+    public void setAdminDataList(List<AdminData> adminDataList) {
+        this.adminDataList = adminDataList;
+    }
+
+
+    //endregion
+
+//    public String getExpirationDateTime() {
+//        return expirationDateTime;
+//    }
+//
+//    public void setExpirationDateTime(String expirationDateTime) {
+//        this.expirationDateTime = expirationDateTime;
+//    }
 
     //endregion
 
@@ -297,12 +323,8 @@ public class Odm implements Identifiable<Integer>, Serializable {
     public EventDefinition findUniqueEventDefinitionOrNone(String eventDefinitionOid) {
         if (eventDefinitionOid != null) {
             MetaDataVersion metadata = this.findUniqueMetadataOrNone();
-            if (metadata != null && metadata.getStudyEventDefinitions() != null) {
-                for (EventDefinition eventDefinition : metadata.getStudyEventDefinitions()) {
-                    if (eventDefinitionOid.equals(eventDefinition.getOid())) {
-                        return eventDefinition;
-                    }
-                }
+            if (metadata != null) {
+                return metadata.findUniqueEventDefinition(eventDefinitionOid);
             }
         }
 
@@ -420,6 +442,18 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     //region StudySubject
 
+    public StudySubject findFirstStudySubjectOrNone() {
+        if (this.clinicalDataList != null) {
+            for (ClinicalData clinicaData : this.clinicalDataList) {
+                if (clinicaData.getStudySubjects() != null && clinicaData.getStudySubjects().size() == 1) {
+                    return clinicaData.getStudySubjects().get(0);
+                }
+            }
+        }
+
+        return null;
+    }
+
     public StudySubject findUniqueStudySubjectOrNone(String studySubjectIdentifier) {
         if  (studySubjectIdentifier != null) {
             if (this.clinicalDataList != null) {
@@ -438,19 +472,44 @@ public class Odm implements Identifiable<Integer>, Serializable {
         return null;
     }
 
+    public boolean addStudySubject(StudySubject ss) {
+        if (this.clinicalDataList != null) {
+            for (ClinicalData clinicaData : this.clinicalDataList) {
+                if (clinicaData.getStudySubjects() != null) {
+                    return clinicaData.getStudySubjects().add(ss);
+                }
+            }
+        }
+
+        return false;
+    }
+
     //endregion
 
     //region EventData
 
+    public EventData findEventData(String eventDefinitionOid, int repeatKey) {
+        EventData result = null;
+        for (EventData ed : this.findEventData(eventDefinitionOid)) {
+            if (ed.getStudyEventRepeatKey() != null && !ed.getStudyEventRepeatKey().isEmpty()) {
+                if (repeatKey == Integer.parseInt(ed.getStudyEventRepeatKey())) {
+                    result = ed;
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
     public List<EventData> findEventData(String eventDefinitionOid) {
         List<EventData> result = new ArrayList<>();
-
-        ClinicalData data = this.findUniqueClinicalDataOrNone();
-        if (data != null && data.getStudySubjects() != null) {
-            if (data.getStudySubjects().size() == 1) {
-                StudySubject studySubject = data.getStudySubjects().get(0);
-                for (EventData eventData : studySubject.getEventOccurrences()) {
-                    if (eventData.getStudyEventOid().equals((eventDefinitionOid))) {
+        if (eventDefinitionOid != null && !eventDefinitionOid.isEmpty()) {
+            ClinicalData data = this.findUniqueClinicalDataOrNone();
+            if (data != null && data.getStudySubjects() != null) {
+                if (data.getStudySubjects().size() == 1) {
+                    StudySubject studySubject = data.getStudySubjects().get(0);
+                    for (EventData eventData : studySubject.getEventOccurrencesForEventDef(eventDefinitionOid)) {
                         result.add(eventData);
                     }
                 }
@@ -460,76 +519,80 @@ public class Odm implements Identifiable<Integer>, Serializable {
         return result;
     }
 
-    public EventData findEventData(EventData eventData) {
-        // Check whether we are looking for identifiable eventData (according EventDefinition OID)
-        if (eventData != null && eventData.getStudyEventOid() != null && !eventData.getStudyEventOid().equals("")) {
+    public EventData findMatchingEventData(EventData eventData) {
+        EventData result = null;
 
-            // Lookup for existing EventData
+        if (eventData != null) {
+
+            // Lookup for existing event data
             List<EventData> existingEventDataList = this.findEventData(eventData.getStudyEventOid());
-            if (existingEventDataList != null && existingEventDataList.size() > 0) {
+            if (existingEventDataList != null) {
 
-                // Iterate over and look if there is event with the same start datetime
-                for (EventData existingEventData : existingEventDataList) {
-                    if (existingEventData.getStartDate() != null) {
-                        if (existingEventData.getStartDate().equals(eventData.getStartDate())) {
-                            return existingEventData;
-                        }
+                // Iterate over and try to match
+                for (EventData sed : existingEventDataList) {
+                    EventDataMatch edm = new EventDataMatch(sed, eventData);
+                    if (edm.getMatch()) {
+                        result = sed;
+                        break;
                     }
                 }
             }
-            else {
-                return null;
-            }
         }
 
-        return null;
-    }
-
-    public boolean containsEventData(EventData eventData) {
-        // Check whether we are looking for identifiable eventData (according EventDefinition OID)
-        if (eventData != null && eventData.getStudyEventOid() != null && !eventData.getStudyEventOid().equals("")) {
-
-            // Lookup for existing EventData
-            List<EventData> existingEventDataList = this.findEventData(eventData.getStudyEventOid());
-            if (existingEventDataList != null && existingEventDataList.size() > 0) {
-
-                // Iterate over and look if there is event with the same start datetime
-                for (EventData existingEventData : existingEventDataList) {
-                    if (existingEventData.getStartDate() != null) {
-                        if (existingEventData.getStartDate().equals(eventData.getStartDate())) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            else {
-                return false;
-            }
-        }
-
-        return false;
+        return result;
     }
 
     public int calculateNextEventDataRepeatKey(EventData eventData) {
+        int result = 0;
+
         // Check whether we are looking for identifiable eventData (according EventDefinition OID)
-        if (eventData != null && eventData.getStudyEventOid() != null && !eventData.getStudyEventOid().equals("")) {
+        if (eventData != null && eventData.getStudyEventOid() != null && !eventData.getStudyEventOid().isEmpty()) {
 
             // Lookup for existing EventData
             List<EventData> existingEventDataList = this.findEventData(eventData.getStudyEventOid());
             if (existingEventDataList != null) {
-                return existingEventDataList.size() + 1;
-            }
-            else {
-                return 1;
+                for (EventData ed : existingEventDataList) {
+                    // Check if there is a scheduled event that could be used and use the lowest one
+                    if (ed.getStatus().equals(EnumEventDataStatus.SCHEDULED.toString())) {
+                        if (result < Integer.parseInt(ed.getStudyEventRepeatKey())) {
+                            result = Integer.parseInt(ed.getStudyEventRepeatKey());
+                        }
+                    }
+                }
+
+                // If no scheduled empty event found generate next repeat key
+                if (result < 1) {
+                    result = existingEventDataList.size() + 1;
+                }
             }
         }
 
-        return 1;
+        return result;
     }
 
     //endregion
 
     //endregion
+
+    /**
+     * Correct messed up ODM where multiple unique OID nodes exists however they have mergeable content
+     */
+    public void groupElementsByOid() {
+        // Study metadata
+        if (this.studies != null) {
+            for (Study s : this.studies) {
+                if (s.getMetaDataVersion() != null) {
+                    s.getMetaDataVersion().groupElementsByOid();
+                }
+            }
+        }
+        // Clinical data
+        if (this.clinicalDataList != null) {
+            for (ClinicalData cd : this.clinicalDataList) {
+                cd.groupElementsByOid();
+            }
+        }
+    }
 
     /**
      * Update the entities hierarchy CDISC element definitions according to the entities references from metadata
@@ -628,25 +691,44 @@ public class Odm implements Identifiable<Integer>, Serializable {
                     }
                 }
             }
-        }
+         }
 
         return null;
     }
 
     /**
      * Change Subject keys of subject in clinical data list with the new ones
-     * @param freshSubject newly loaded subject with correct subject keys
+     * @param freshSubjects newly loaded subject with correct subject keys
      */
-    public Boolean updateSubjectKeys(List<StudySubject> freshSubject) {
+    public Boolean updateSubjectKeys(List<StudySubject> freshSubjects, EnumStudySubjectIdGeneration idStrategy) {
         Boolean result = false;
 
         if (this.clinicalDataList.size() > 0) {
             for (StudySubject ss : this.clinicalDataList.get(0).getStudySubjects()) {
-                for (StudySubject fss : freshSubject) {
-                    if (fss.getStudySubjectId().equals(ss.getStudySubjectId())) {
-                        ss.setSubjectKey(fss.getSubjectKey());
-                        ss.setPid(fss.getPid());
-                        break;
+                for (StudySubject fss : freshSubjects) {
+
+                    // For study with manual SSID generation, use SSID to match patients
+                    if (EnumStudySubjectIdGeneration.MANUAL.equals(idStrategy)) {
+                        if (fss.getStudySubjectId().equals(ss.getStudySubjectId())) {
+                            ss.setSubjectKey(fss.getSubjectKey());
+                            ss.setPid(fss.getPid());
+                            break;
+                        }
+                    }
+                    // For study with automatic SSID generation, use PID to match patients
+                    else if (EnumStudySubjectIdGeneration.AUTO.equals((idStrategy))) {
+                        if (fss.getPid().equals(ss.getPid())) {
+                            ss.setStudySubjectId(fss.getStudySubjectId());
+                            ss.setSubjectKey(fss.getSubjectKey());
+                            break;
+                        }
+                    }
+                    else {
+                        if (fss.getStudySubjectId().equals(ss.getStudySubjectId())) {
+                            ss.setSubjectKey(fss.getSubjectKey());
+                            ss.setPid(fss.getPid());
+                            break;
+                        }
                     }
                 }
             }
@@ -710,7 +792,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
     /**
      * Sort ItemGroupData elements so that the repeating groups are the last
      */
-    public void sortItemGroupDataRepeatingLast() {
+    public void sortItemGroupData() {
         if (this.clinicalDataList != null) {
             for (ClinicalData cd : this.clinicalDataList) {
                 if (cd.getStudySubjects() != null) {
@@ -719,52 +801,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
                             for (EventData ed : ss.getStudyEventDataList()) {
                                 if (ed.getFormDataList() != null) {
                                     for (FormData fd : ed.getFormDataList()) {
-                                        if (fd.getItemGroupDataList() != null && fd.getItemGroupDataList().size() > 0) {
-                                            Collections.sort(fd.getItemGroupDataList(), new Comparator<ItemGroupData>() {
-                                                public int compare(ItemGroupData groupData1, ItemGroupData groupData2) {
-
-                                                    int result = 0;
-
-                                                    // Ungrouped always first
-                                                    if (groupData1.getItemGroupOid() != null && groupData1.getItemGroupOid().contains(Constants.OC_IG_UNGROUPED)) {
-                                                        result = -1;
-                                                    }
-                                                    else if (groupData2.getItemGroupOid() != null && groupData2.getItemGroupOid().contains(Constants.OC_IG_UNGROUPED)) {
-                                                        result = 1;
-                                                    }
-                                                    // Both are the same groups
-                                                    else if (groupData1.getItemGroupOid() != null && groupData1.getItemGroupOid().equals(groupData2.getItemGroupOid())) {
-
-                                                        // Both are repeating
-                                                        if (groupData1.getItemGroupRepeatKey() != null && !groupData1.getItemGroupRepeatKey().equals("") &&
-                                                                groupData2.getItemGroupRepeatKey() != null && !groupData2.getItemGroupRepeatKey().equals("")) {
-
-                                                            if (Integer.parseInt(groupData1.getItemGroupRepeatKey()) < Integer.parseInt(groupData2.getItemGroupRepeatKey())) {
-                                                                result = -1;
-                                                            }
-                                                            else if (Integer.parseInt(groupData1.getItemGroupRepeatKey()) > Integer.parseInt(groupData2.getItemGroupRepeatKey())) {
-                                                                result = 1;
-                                                            }
-                                                            else {
-                                                                result = 0;
-                                                            }
-                                                        }
-                                                    }
-                                                    else {
-                                                        // First is repeating group
-                                                        if (groupData1.getItemGroupRepeatKey() != null && !groupData1.getItemGroupRepeatKey().equals("")) {
-                                                            result = 1;
-                                                        }
-                                                        // Second is repeating group
-                                                        else if (groupData2.getItemGroupRepeatKey() != null && !groupData2.getItemGroupRepeatKey().equals("")) {
-                                                            result = -1;
-                                                        }
-                                                    }
-
-                                                    return result;
-                                                }
-                                            });
-                                        }
+                                        fd.sortItemGroupData();
                                     }
                                 }
                             }
@@ -782,11 +819,13 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
         // In general these properties are not important for import (clear them)
         this.setOdmVersion(null);
+        //this.setExpirationDateTime(null);
         this.setFileType(null);
         this.setDescription(null);
         this.setCreationDateTime(null);
         this.setFileOid(null);
         this.setStudies(null);
+        this.setAdminDataList(null);
 
         // Also remove unnecessary attributes from StudySubject clinical data (these are OC extensions)
         for (ClinicalData cd : this.getClinicalDataList()) {

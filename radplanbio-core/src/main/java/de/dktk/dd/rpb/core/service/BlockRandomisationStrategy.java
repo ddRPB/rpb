@@ -170,8 +170,9 @@ public class BlockRandomisationStrategy implements IRandomisationStrategy {
         // Get random integer within range <0, range - 1> + minimum = <minimum, maximum>
         int size = random.nextInt(range) + this.configuration.getMinimumBlockSize();
 
-        // Only variable block size, the fixed one has type null
         // Type of block randomisation is configured to be multiply instead of absolute
+        // than block size has to be multiplication of minimal block size (minimal block size not from configuration
+        // but from the proportion of treatment arms, based on number of subjects in arms)
         if (this.configuration.getType() == BlockRandomisationConfiguration.TYPE.MULTIPLY) {
 
             int minBlockSize = minimumBlockSize(this.study);

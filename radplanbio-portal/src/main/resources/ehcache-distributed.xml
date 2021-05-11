@@ -19,7 +19,7 @@
 		for automatic peer discovery see http://ehcache.sourceforge.net/EhcacheUserGuide.html#id.s20.2.1
 		for manual peer discovery see  http://ehcache.sourceforge.net/EhcacheUserGuide.html#id.s20.2.2
 
-		!! please note that timeToLive has a specific meaning with multicast adresses
+		!! please note that timeToLive has a specific meaning with multicast addresses
 	-->
 	<cacheManagerPeerProviderFactory
 		class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"

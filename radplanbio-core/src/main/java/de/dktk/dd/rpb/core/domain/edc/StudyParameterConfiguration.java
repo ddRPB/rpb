@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,34 +36,18 @@ import java.util.List;
 @XmlType(name="StudyParameterConfiguration", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
 public class StudyParameterConfiguration implements Serializable {
 
-    //region Enums
-
-    public enum RON {
-        required,
-        optional,
-        not_used
-    }
-
-    public enum StudySubjectIdGeneration {
-        manual,
-        auto_editable,
-        auto
-    }
-
-    //endregion
-
     //region Members
 
-    private boolean collectSubjectDayOfBirth;
     private boolean allowDiscrepancyManagement;
     private boolean sexRequired;
     private boolean personIdShownOnCrf;
     private boolean secondaryLabelViewable;
     private boolean adminForcedReasonForChange;
 
-    private StudySubjectIdGeneration studySubjectIdGeneration;
-    private RON personIdRequired;
-    private RON locationRequired;
+    private EnumCollectSubjectDob collectSubjectDob;
+    private EnumStudySubjectIdGeneration studySubjectIdGeneration;
+    private EnumRequired personIdRequired;
+    private EnumRequired locationRequired;
 
     @XmlElement(name="StudyParameterListRef", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private List<StudyParameter> studyParameterList;
@@ -72,12 +56,16 @@ public class StudyParameterConfiguration implements Serializable {
 
     //region Properties
 
-    public boolean getCollectSubjectDayOfBirth() {
-        return this.collectSubjectDayOfBirth;
+    public EnumCollectSubjectDob getCollectSubjectDob() {
+        return this.collectSubjectDob;
     }
 
-    public void setCollectSubjectDayOfBirth(Boolean value) {
-        this.collectSubjectDayOfBirth = value;
+    public void setCollectSubjectDob(EnumCollectSubjectDob dobEnum) {
+        this.collectSubjectDob = dobEnum;
+    }
+
+    public void setCollectSubjectDob(String value) {
+        this.collectSubjectDob = EnumCollectSubjectDob.fromString(value);
     }
 
     public boolean getAllowDiscrepancyManagement() {
@@ -120,43 +108,31 @@ public class StudyParameterConfiguration implements Serializable {
         this.adminForcedReasonForChange = value;
     }
 
-    public StudySubjectIdGeneration getStudySubjectIdGeneration() {
+    public EnumStudySubjectIdGeneration getStudySubjectIdGeneration() {
         return this.studySubjectIdGeneration;
     }
 
-    public void setStudySubjectIdGeneration(String value) {
-        if (value.equals("manual")) {
-            this.studySubjectIdGeneration = StudySubjectIdGeneration.manual;
-        }
-        else if (value.equals("auto editable")) {
-            this.studySubjectIdGeneration = StudySubjectIdGeneration.auto_editable;
-        }
-        else if (value.equals("auto non-editable")) {
-            this.studySubjectIdGeneration = StudySubjectIdGeneration.auto;
-        }
+    public void setStudySubjectIdGeneration(EnumStudySubjectIdGeneration enumStudySubjectIdGeneration) {
+        this.studySubjectIdGeneration = enumStudySubjectIdGeneration;
     }
 
-    public RON getPersonIdRequired() {
+    public void setStudySubjectIdGeneration(String value) {
+        this.studySubjectIdGeneration = EnumStudySubjectIdGeneration.fromString(value);
+    }
+
+    public EnumRequired getPersonIdRequired() {
         return this.personIdRequired;
     }
 
     public void setPersonIdRequired(String value) {
-        if (value.equals("required")) {
-            this.personIdRequired = RON.required;
-        }
-        else if (value.equals("optional")) {
-            this.personIdRequired = RON.optional;
-        }
-        else if (value.equals("not used")) {
-            this.personIdRequired = RON.not_used;
-        }
+        this.personIdRequired = EnumRequired.fromString(value);
     }
 
-    public RON getLocationRequired() {
+    public EnumRequired getLocationRequired() {
         return this.locationRequired;
     }
 
-    public void setLocationRequired(RON value) {
+    public void setLocationRequired(EnumRequired value) {
         this.locationRequired = value;
     }
 
@@ -176,101 +152,77 @@ public class StudyParameterConfiguration implements Serializable {
         for (StudyParameter sp : this.studyParameterList) {
             if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_collectDob")) {
                 if (sp.getValue() != null) {
-                    this.collectSubjectDayOfBirth = sp.getValue().equals("1");
+                    this.collectSubjectDob = EnumCollectSubjectDob.fromString(sp.getValue());
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_discrepancyManagement")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_discrepancyManagement")) {
                 if (sp.getValue() != null) {
                     this.allowDiscrepancyManagement = sp.getValue().equals("true");
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_subjectPersonIdRequired")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_subjectPersonIdRequired")) {
                 if (sp.getValue() != null) {
-                    if (sp.getValue().equals("required")) {
-                        this.personIdRequired = RON.required;
-                    }
-                    if (sp.getValue().equals("optional")) {
-                        this.personIdRequired = RON.optional;
-                    }
-                    if (sp.getValue().equals("not used")) {
-                        this.personIdRequired = RON.not_used;
-                    }
+                    this.personIdRequired = EnumRequired.fromString(sp.getValue());
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_genderRequired")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_genderRequired")) {
                 if (sp.getValue() != null) {
                     this.sexRequired = sp.getValue().equals("true");
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_subjectIdGeneration")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_subjectIdGeneration")) {
                 if (sp.getValue() != null) {
-                    if (sp.getValue().equals("manual")) {
-                        this.studySubjectIdGeneration = StudySubjectIdGeneration.manual;
-                    }
-                    if (sp.getValue().equals("auto editable")) {
-                        this.studySubjectIdGeneration = StudySubjectIdGeneration.auto_editable;
-                    }
-                    if (sp.getValue().equals("auto non-editable")) {
-                        this.studySubjectIdGeneration = StudySubjectIdGeneration.auto;
-                    }
+                    this.studySubjectIdGeneration = EnumStudySubjectIdGeneration.fromString(sp.getValue());
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewerNameRequired")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewerNameRequired")) {
                 if (sp.getValue() != null) {
                     // NOOP
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewerNameDefault")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewerNameDefault")) {
                 if (sp.getValue() != null) {
                     // NOOP
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewerNameEditable")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewerNameEditable")) {
                 if (sp.getValue() != null) {
                     // NOOP
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewDateRequired")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewDateRequired")) {
                 if (sp.getValue() != null) {
                     // NOOP
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewDateDefault")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewDateDefault")) {
                 if (sp.getValue() != null) {
                     // NOOP
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewDateEditable")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_interviewDateEditable")) {
                 if (sp.getValue() != null) {
                     // NOOP
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_personIdShownOnCRF")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_personIdShownOnCRF")) {
                 if (sp.getValue() != null) {
                     this.personIdShownOnCrf = sp.getValue().equals("true");
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_secondaryLabelViewable")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_secondaryLabelViewable")) {
                 if (sp.getValue() != null) {
                     this.secondaryLabelViewable = sp.getValue().equals("true");
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_adminForcedReasonForChange")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_adminForcedReasonForChange")) {
                 if (sp.getValue() != null) {
                     this.adminForcedReasonForChange = sp.getValue().equals("true");
                 }
             }
-            if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_eventLocationRequired")) {
+            else if (sp.getStudyParameterListId() != null && sp.getStudyParameterListId().equals("SPL_eventLocationRequired")) {
                 if (sp.getValue() != null) {
-                    if (sp.getValue().equals("required")) {
-                        this.locationRequired = RON.required;
-                    }
-                    if (sp.getValue().equals("optional")) {
-                        this.locationRequired = RON.optional;
-                    }
-                    if (sp.getValue().equals("not used")) {
-                        this.locationRequired = RON.not_used;
-                    }
+                    this.locationRequired = EnumRequired.fromString(sp.getValue());
                 }
             }
         }

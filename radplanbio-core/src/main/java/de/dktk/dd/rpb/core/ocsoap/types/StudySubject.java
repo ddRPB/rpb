@@ -16,6 +16,7 @@
 
 package de.dktk.dd.rpb.core.ocsoap.types;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -25,6 +26,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import de.dktk.dd.rpb.core.util.Constants;
 import org.openclinica.ws.beans.StudySubjectWithEventsType;
 
 /**
@@ -52,6 +54,8 @@ public class StudySubject {
 	private String sex;
 	/** Study Subject date of birth */
 	private XMLGregorianCalendar dateOfBirth;
+	/** Study Subject year of birth */
+	private BigInteger yearOfBirth;
 	/** Study Subject date of registration */
 	private XMLGregorianCalendar dateOfRegistration;
 	/** Events scheduled for this Study Subject */
@@ -62,11 +66,14 @@ public class StudySubject {
     //endregion
 
     //region Constructors
-
-    /** Empty constructor */
+	
     public StudySubject() {
         // NOOP
     }
+
+    public StudySubject(String label) {
+    	this.studySubjectLabel = label;
+	}
 
     /**
 	 * Create a study subject for a given Study
@@ -168,6 +175,15 @@ public class StudySubject {
         this.studySubjectSecondaryLabel = studySubjectSecondaryLabel;
     }
 
+    public String getStudySubjectHeader() {
+    	String header = this.studySubjectLabel;
+   		if (this.personID != null && !this.personID.isEmpty()) {
+			header += Constants.RPB_IDENTIFIERSEP + "[" + this.personID + "]";
+		}
+
+		return header;
+	}
+
 	/**
 	 * Get sex!
 	 * @return sex
@@ -184,12 +200,21 @@ public class StudySubject {
 		this.sex = sex;
 	}
 
+	//region DateOfBirth
+
 	/**
 	 * Get date of birth
 	 * @return dateOfBirth
 	 */
 	public XMLGregorianCalendar getDateOfBirth() {
-		return dateOfBirth;
+		return this.dateOfBirth;
+	}
+
+	/**
+	 * Converts XMLGregorianCalendar to java.util.Date in Java
+	 */
+	public Date getComparableDateOfBirth(){
+		return this.dateOfBirth != null ? this.dateOfBirth.toGregorianCalendar().getTime() : null;
 	}
 
 	/**
@@ -209,6 +234,20 @@ public class StudySubject {
 	public void setDateOfBirth(String dateOfBirth) {
 		setDateOfBirth(dataTypeFactory.newXMLGregorianCalendar(dateOfBirth));
 	}
+
+	//endregion
+
+	//region YearOfBirth
+
+	public BigInteger getYearOfBirth() {
+		return this.yearOfBirth;
+	}
+
+	public void setYearOfBirth(BigInteger yearOfBirth) {
+		this.yearOfBirth = yearOfBirth;
+	}
+
+	//endregion
 
 	//region DateOfRegistration
 

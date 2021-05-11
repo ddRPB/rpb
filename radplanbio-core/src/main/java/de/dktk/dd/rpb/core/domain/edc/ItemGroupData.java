@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -207,7 +207,7 @@ public class ItemGroupData implements Identifiable<Integer>, Serializable {
      * @param itemDataOid formOid to lookup for
      * @return itemData if exists
      */
-    public ItemData findItemGroupData(String itemDataOid) {
+    public ItemData findItemData(String itemDataOid) {
         if (this.itemDataList != null) {
             for (ItemData itemData : this.itemDataList) {
                 if (itemData.getItemOid().equals(itemDataOid)) {
@@ -288,6 +288,25 @@ public class ItemGroupData implements Identifiable<Integer>, Serializable {
                 }
             }
         }
+    }
+
+    //endregion
+
+    //region Data
+
+    public List<ItemData> findAnnotatedItemData(CrfFieldAnnotation annotation) {
+        List<ItemData> result = new ArrayList<>();
+
+        if (annotation != null && this.itemGroupOid.equals(annotation.getGroupOid())) {
+            for (ItemData itemData : this.itemDataList) {
+
+                if (itemData.getItemOid().equals(annotation.getCrfItemOid())) {
+                    result.add(itemData);
+                }
+            }
+        }
+
+        return result;
     }
 
     //endregion

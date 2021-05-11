@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package de.dktk.dd.rpb.portal.web.mb.ctms;
 
 import de.dktk.dd.rpb.core.domain.ctms.CurriculumVitaeItem;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
+import de.dktk.dd.rpb.core.domain.ctms.StudyPerson;
 import de.dktk.dd.rpb.core.repository.ctms.IPersonRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import org.primefaces.component.api.UIColumn;
@@ -41,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for administration of CTMS persons
+ * Bean for administration of CTMS person entities
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015
@@ -54,12 +55,11 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
 
     //region Repository
 
-    @Inject
-    private IPersonRepository repository;
+    private final IPersonRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get PersonRepository
+     * @return PersonRepository
      */
     @SuppressWarnings("unused")
     @Override
@@ -67,16 +67,16 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
         return this.repository;
     }
 
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IPersonRepository repository) {
-        this.repository = repository;
-    }
+    //endregion
 
     //endregion
+
+    //region Constructors
+
+    @Inject
+    public PersonBean(IPersonRepository repository) {
+        this.repository = repository;
+    }
 
     //endregion
 
@@ -84,7 +84,7 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
 
     @PostConstruct
     public void init() {
-        this.columnVisibilityList = new ArrayList<Boolean>();
+        this.columnVisibilityList = new ArrayList<>();
         this.columnVisibilityList.add(Boolean.TRUE); // Surname
         this.columnVisibilityList.add(Boolean.TRUE); // Firstname
         this.columnVisibilityList.add(Boolean.FALSE); // Birthname
@@ -102,15 +102,31 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
 
     //region Commands
 
+    //region CV Items
+
     public void addNewCvItem(CurriculumVitaeItem cvItem) {
-        this.selectedEntity.addCurriculumVitaeItem(cvItem);
-        this.doUpdateEntity();
+        if (this.selectedEntity.addCurriculumVitaeItem(cvItem)) {
+            this.doUpdateEntity();
+        }
     }
 
     public void removeSelectedCvItem(CurriculumVitaeItem cvItem) {
-        this.selectedEntity.removeCurriculumVitaeItem(cvItem);
-        this.doUpdateEntity();
+        if (this.selectedEntity.removeCurriculumVitaeItem(cvItem)) {
+            this.doUpdateEntity();
+        }
     }
+
+    //endregion
+
+    //region StudyPerson
+
+    public void doUpdateEntity(List<StudyPerson> selectedStudyPersonEntities, StudyPerson editMultiEntity) {
+        if (this.selectedEntity.modifyStudyPersonnel(selectedStudyPersonEntities, editMultiEntity)) {
+            this.doUpdateEntity();
+        }
+    }
+
+    //endregion
 
     //endregion
 
@@ -124,12 +140,12 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = new ArrayList<>();
 
         UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
         UIComponent column1 = viewRoot.findComponent(":form:tabView:dtEntities:colPersonSurname");

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:f="http://java.sun.com/jsf/core"
-        xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Study Tag Type" title="Study Tag Type" url="/admin/ctms/studyTagTypeCRUD.faces" />
+            <p:menuitem value="#{msg.study} Tag Type" title="#{msg.study} Tag Type" url="/admin/ctms/studyTagTypeCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -25,7 +25,7 @@
         <p:tabView id="tabView" activeIndex="#{mbStudyTagType.tab.activeIndex}">
 
             <!-- Studies -->
-            <p:tab title="Study Tag Types" titletip="Study Tag Types">
+            <p:tab title="#{msg.study} Tag Types" titletip="#{msg.study} Tag Types">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -34,7 +34,7 @@
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 value="#{msg.menu_new}"
-                                title="Define a new Study Tag Type [ctrl+shift+n]"
+                                title="Define a new Study Tag Type"
                                 icon="ui-icon-document"
                                 oncomplete="PF('newEntityDialog').show();"
                                 style="float: left;"
@@ -43,18 +43,9 @@
                                 process="@this"
                                 actionListener="#{mbStudyTagType.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbStudyTagType.prepareNewEntity}"
-                                rendered="#{mbStudyTagType.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
-                                title="Rolead Tag Types [ctrl+shift+r]"
+                                title="Reload #{msg.study} Tag Types"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 immediate="true"
@@ -62,28 +53,20 @@
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbStudyTagType.load}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStudyTagType.load}"
-                                rendered="#{mbStudyTagType.tab.activeIndex == 0}"
-                                />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print Study Tag Types table"
+                                title="#{msg.menu_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -131,100 +114,100 @@
 
                     <!-- Name -->
                     <p:column
-                            id="colTagTypeName"
-                            sortBy="#{entity.name}"
-                            filterBy="#{entity.name}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbStudyTagType.columnVisibilityList[0]}"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Name" />
-                        </f:facet>
+                        id="colTagTypeName"
+                        headerText="Name"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        filterMatchMode="contains"
+                        style="width:15%"
+                        visible="#{mbStudyTagType.columnVisibilityList[0]}"
+                        >
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
 
                     <!-- Description -->
                     <p:column
-                            sortBy="#{entity.description}"
-                            filterBy="#{entity.description}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbStudyTagType.columnVisibilityList[1]}"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Description" />
-                        </f:facet>
+                        headerText="Description"
+                        sortBy="#{entity.description}"
+                        filterBy="#{entity.description}"
+                        filterMatchMode="contains"
+                        style="width:35%"
+                        visible="#{mbStudyTagType.columnVisibilityList[1]}"
+                        >
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Is Required -->
                     <p:column
-                            sortBy="#{entity.isRequired}"
-                            filterBy="#{entity.isRequired}"
-                            filterMatchMode="exact"
-                            visible="#{mbStudyTagType.columnVisibilityList[2]}"
-                            style="width:20%"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Required" />
-                        </f:facet>
+                        headerText="Required"
+                        filterBy="#{entity.isRequired}"
+                        filterMatchMode="equals"
+                        visible="#{mbStudyTagType.columnVisibilityList[2]}"
+                        style="width:15%"
+                        >
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('entitiesTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox  value="#{entity.isRequired}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{entity.isRequired}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
                     </p:column>
 
                     <!-- Is Boolean -->
                     <p:column
-                            sortBy="#{entity.isBoolean}"
-                            filterBy="#{entity.isBoolean}"
-                            filterMatchMode="exact"
-                            visible="#{mbStudyTagType.columnVisibilityList[3]}"
-                            style="width:20%"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Boolean" />
-                        </f:facet>
+                        headerText="Boolean"
+                        filterBy="#{entity.isBoolean}"
+                        filterMatchMode="equals"
+                        visible="#{mbStudyTagType.columnVisibilityList[3]}"
+                        style="width:15%"
+                        >
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('entitiesTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox  value="#{entity.isBoolean}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{entity.isBoolean}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
                     </p:column>
 
                     <!-- RegEx -->
                     <p:column
-                            sortBy="#{entity.regex}"
-                            filterBy="#{entity.regex}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbStudyTagType.columnVisibilityList[4]}"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Regex" />
-                        </f:facet>
+                        headerText="Regex"
+                        sortBy="#{entity.regex}"
+                        filterBy="#{entity.regex}"
+                        filterMatchMode="contains"
+                        style="width:20%"
+                        visible="#{mbStudyTagType.columnVisibilityList[4]}"
+                        >
                         <h:outputText value="#{entity.regex}" style="float:left;" />
                     </p:column>
 
                     <!-- Max Occurence -->
                     <p:column
-                            sortBy="#{entity.regex}"
-                            filterBy="#{entity.regex}"
-                            filterMatchMode="exact"
-                            style="width:20%"
-                            visible="#{mbStudyTagType.columnVisibilityList[5]}"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Max" />
-                        </f:facet>
+                        headerText="Max"
+                        sortBy="#{entity.maxOccurence}"
+                        filterBy="#{entity.maxOccurence}"
+                        filterMatchMode="exact"
+                        style="width:20%"
+                        visible="#{mbStudyTagType.columnVisibilityList[5]}"
+                        >
                         <h:outputText value="#{entity.maxOccurence}" style="float:left;" />
                     </p:column>
 
@@ -236,17 +219,31 @@
                         toggleable="false"
                         >
                         <p:commandButton
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update=":entityDetailsForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editEntityDialog').show();"
-                                >
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbStudyTagType.selectedEntity}"
-                                    />
+                                value="#{entity}"
+                                target="#{mbStudyTagType.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <p:commandButton
+                            icon="ui-icon-trash"
+                            title="#{msg.menu_delete}"
+                            update=":deleteEntityForm:deleteDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('deleteEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbStudyTagType.selectedEntity}"
+                                />
                         </p:commandButton>
                     </p:column>
 
@@ -264,13 +261,13 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtEntities" fileName="StudyTagTypes" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtEntities" fileName="StudyTagTypes" />
                     </h:commandLink>
                 </p:panel>
@@ -458,6 +455,78 @@
             </h:form>
         </p:dialog>
 
+        <!-- Delete StudyTagType -->
+        <p:dialog
+            id="dlgEntityDelete"
+            header="Delete Study Tag Type"
+            widgetVar="deleteEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="deleteEntityForm">
+                <p:panelGrid
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Name -->
+                    <h:outputLabel value="Name:" for="txtTagTypeNameDelete" />
+                    <h:outputText id="txtTagTypeNameDelete" value="#{mbStudyTagType.selectedEntity.name}" />
+
+                    <!-- Description -->
+                    <h:outputLabel value="Description:" for="txtTagTypeDescriptionDelete" />
+                    <p:inputTextarea
+                        id="txtTagTypeDescriptionDelete"
+                        value="#{mbStudyTagType.selectedEntity.description}"
+                        style="width:350px"
+                        disabled="true"
+                        />
+
+                    <!-- IsRequired -->
+                    <h:outputLabel value="Is required:" for="chbTagTypeIsRequiredDelete" />
+                    <h:selectBooleanCheckbox
+                        id="chbTagTypeIsRequiredDelete"
+                        value="#{mbStudyTagType.selectedEntity.isRequired}"
+                        disabled="true"
+                        />
+
+                    <!-- IsBoolean -->
+                    <h:outputLabel value="Is boolean:" for="chbTagTypeIsBooleanDelete" />
+                    <h:selectBooleanCheckbox
+                        id="chbTagTypeIsBooleanDelete"
+                        value="#{mbStudyTagType.selectedEntity.isBoolean}"
+                        disabled="true"
+                        />
+
+                    <!-- RegEx -->
+                    <h:outputLabel value="Regex:" for="txtTagTypeRegularExpressionDelete" />
+                    <h:outputText id="txtTagTypeRegularExpressionDelete" value="#{mbStudyTagType.selectedEntity.regex}" />
+
+                    <!-- MaxOccurence -->
+                    <h:outputLabel value="Max occurence:" for="txtTagTypeMaxOccurencenDelete" />
+                    <h:outputText id="txtTagTypeMaxOccurencenDelete"  value="#{mbStudyTagType.selectedEntity.maxOccurence}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDelete','deleteEntityForm');"
+                            actionListener="#{mbStudyTagType.doDeleteEntity}"
+                            process="@this deleteEntityForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
         <!-- Submit from dialog -->
         <script type="text/javascript">
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
@@ -468,6 +537,7 @@
                     clearForm(formName);
                     PF('newEntityDialog').hide();
                     PF('editEntityDialog').hide();
+                    PF('deleteEntityDialog').hide();
                 }
             }
             function clearForm(formName) {

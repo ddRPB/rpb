@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,8 +34,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import org.springframework.transaction.annotation.Transactional;
 
-
-
 /**
  * Default implementation of the {@link RtStructType} interface.
  * Note: you may use multiple DAO from this layer.
@@ -52,7 +50,6 @@ public class RtStructTypeRepositoryImpl extends RepositoryImpl<RtStructType, Int
 
     //region Finals
 
-    @SuppressWarnings("unused")
     private static final Logger log = Logger.getLogger(RtStructTypeRepositoryImpl.class);
 
     //endregion
@@ -128,6 +125,7 @@ public class RtStructTypeRepositoryImpl extends RepositoryImpl<RtStructType, Int
     public RtStructType getByName(String name) {
         RtStructType structType = new RtStructType();
         structType.setName(name);
+
         return findUniqueOrNone(structType);
     }
 

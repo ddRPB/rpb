@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,10 @@ import com.google.common.base.Objects;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.domain.Personed;
 
+import de.dktk.dd.rpb.core.domain.bio.AbstractSpecimen;
+import de.dktk.dd.rpb.core.domain.bio.Specimen;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.util.Constants;
@@ -44,21 +47,21 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+//TODO: refactor .... see the Subject class, many things should be moved there
 /**
  * Person domain entity
  *
- * Person in RPB can be patient or study personnel (from CTMS point of view)
+ * Person in RPB can be patient (from EDC, PACS, BIO point of view) or study personnel (from CTMS point of view)
  *
- * Study personnel person is persistent entity stored in RPB database
- * Patient person is transient entity and has identifiable data (persisted outside of RPB)
- * that need to be protected with first level pseudonym generator (PID - pseudonym)
+ * Study personnel is persistent entity stored in RPB database
+ * Patient is transient entity and has identifiable data (persisted via first level pseudonym generator)
  *
  * @author tomas@skripcak.net
  * @since 22 August 2013
  */
 @Entity
 @Table(name = "PERSON")
-public class Person implements Identifiable<Integer>, Serializable {
+public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     //region Finals
 
@@ -87,6 +90,11 @@ public class Person implements Identifiable<Integer>, Serializable {
     // it forces PID generator to generate a new PID in case of possible match
     private boolean isSure;
 
+    // to determine whether patient is registered in BIO bank
+    private Boolean isBio;
+    // to determine whether patient is registered in PACS
+    private Boolean isPacs;
+
     // Many-to-One
     private PersonStatus status;
 
@@ -94,8 +102,9 @@ public class Person implements Identifiable<Integer>, Serializable {
     private List<CurriculumVitaeItem> curriculumVitaeItems; // personnel normally has some profession history
     private List<StudyPerson> participatingInStudies; // person within a study with a specific role
 
-    private List<StudySubject> studySubjects; // transient relation to patient studySubject entities
-    private List<DicomStudy> dicomStudies; // transient relation to patient dicomStudy entities
+    private List<StudySubject> studySubjects; // transient relation to patient StudySubject entities
+    private List<DicomStudy> dicomStudies; // transient relation to patient DicomStudy entities
+    private List<AbstractSpecimen> bioSpecimens; // transient relation to patient Specimen entities
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
@@ -116,6 +125,7 @@ public class Person implements Identifiable<Integer>, Serializable {
 
         this.studySubjects = new ArrayList<>();
         this.dicomStudies = new ArrayList<>();
+        this.bioSpecimens = new ArrayList<>();
     }
 
     public Person(Integer primaryKey) {
@@ -178,7 +188,7 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    //region First name
+    //region Firstname
 
     @Size(max = 255)
     @NotEmpty
@@ -326,6 +336,32 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region IsBio
+
+    @Transient
+    public Boolean getIsBio() {
+        return this.isBio;
+    }
+
+    public void setIsBio(Boolean value) {
+        this.isBio = value;
+    }
+
+    //endregion
+
+    //region IsPacs
+
+    @Transient
+    public Boolean getIsPacs() {
+        return this.isPacs;
+    }
+
+    public void setIsPacs(Boolean value) {
+        this.isPacs = value;
+    }
+
+    //endregion
+
     //region Comment
 
     @Column(name = "COMMENT")
@@ -389,7 +425,7 @@ public class Person implements Identifiable<Integer>, Serializable {
     //region ParticipatingInStudies
 
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "person")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "person", orphanRemoval = true)
     public List<StudyPerson> getStudyPersonnel() {
         return this.participatingInStudies;
     }
@@ -468,6 +504,27 @@ public class Person implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region BioSpecimens
+
+    @Transient
+    public List<AbstractSpecimen> getBioSpecimens() {
+        return this.bioSpecimens;
+    }
+
+    public void setBioSpecimens(List<AbstractSpecimen> bioSpecimens) {
+        this.bioSpecimens = bioSpecimens;
+    }
+
+    public boolean addBioSpecimen(AbstractSpecimen bs) {
+        return !this.bioSpecimens.contains(bs) && this.bioSpecimens.add(bs);
+    }
+
+    public boolean removeBioSpecimen(AbstractSpecimen bs) {
+        return this.bioSpecimens.contains(bs) && this.bioSpecimens.remove(bs);
+    }
+
+    //endregion
+
     //endregion
 
     //endregion
@@ -478,6 +535,16 @@ public class Person implements Identifiable<Integer>, Serializable {
      * Set the default values
      */
     public void initDefaultValues() {
+        this.clearIdentity();
+    }
+
+    //endregion
+
+    //region Patient Methods
+
+    //region IDAT
+
+    public void clearIdentity() {
         this.firstname = "";
         this.surname = "";
         this.birthname = "";
@@ -487,8 +554,6 @@ public class Person implements Identifiable<Integer>, Serializable {
     }
 
     //endregion
-
-    //region Patient Methods
 
     //region DICOM
 
@@ -515,6 +580,24 @@ public class Person implements Identifiable<Integer>, Serializable {
 
         return null;
     }
+
+    //endregion
+
+    //region EDC
+
+    public String findStudySubjectId(String studyIdentifier) {
+        if (studyIdentifier != null && this.studySubjects != null) {
+            for (StudySubject studySubject : this.studySubjects) {
+                if (studyIdentifier.equals(studySubject.getStudy().getOcStudyUniqueIdentifier())) {
+                    return studySubject.getStudySubjectId();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    //endregion
 
     //endregion
 
@@ -574,19 +657,6 @@ public class Person implements Identifiable<Integer>, Serializable {
             return false;
         }
     }
-
-    /**
-     * Return true when patient PID matches (automatically substract partner site identifier if present)
-     * @param otherPatient patient to compare to
-     * @param partnerSiteIdentifier RPB partner site identifier
-     * @return true if patient PID matches
-     */
-    public boolean patientPidEquals(Person otherPatient, String partnerSiteIdentifier) {
-        return this.pid.equalsIgnoreCase(otherPatient.getPid()) ||
-                this.pid.equalsIgnoreCase(otherPatient.getPid().replace(partnerSiteIdentifier + "-", ""));
-    }
-
-    //endregion
 
     //endregion
 

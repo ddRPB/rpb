@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
+            <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
+            <p:menuitem value="#{msg.study} #{msg.timePerspective_plural}" title="#{msg.study} #{msg.timePerspective_plural}" url="/admin/ctms/timePerspectiveCRUD.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <!-- TabView -->
+        <p:tabView id="tabView" activeIndex="#{mbTimePerspective.tab.activeIndex}">
+
+            <!-- Studies -->
+            <p:tab title="#{msg.study} #{msg.timePerspective_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_new}"
+                            title="#{msg.timePerspective_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newEntityDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newEntityForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbTimePerspective.prepareNewEntity}"
+                            />
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="#{msg.timePerspective_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbTimePerspective.load}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.timePerspective_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbTimePerspective.entityList}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    rowKey="#{entity.id}"
+                    selection="#{mbTimePerspective.selectedEntity}"
+                    selectionMode="single"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbTimePerspective.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbTimePerspective.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbTimePerspective.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Name -->
+                    <p:column
+                        id="colTimePerspectiveName"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbTimePerspective.columnVisibilityList[0]}"
+                        style="width:20%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.timePerspective_name}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Description -->
+                    <p:column
+                        sortBy="#{entity.description}"
+                        filterBy="#{entity.description}"
+                        filterMatchMode="contains"
+                        visible="#{mbTimePerspective.columnVisibilityList[1]}"
+                        style="width:60%"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.timePerspective_description}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.description}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
+                        <p:commandButton
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbTimePerspective.selectedEntity}"
+                                />
+                        </p:commandButton>
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbTimePerspective.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbTimePerspective.entityList.size() == 1}" />
+                        <h:outputFormat
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbTimePerspective.entityList.size() > 1}"
+                            >
+                            <f:param value="#{mbTimePerspective.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.study} #{msg.timePerspective_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.study} #{msg.timePerspective_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- New Time Perspective -->
+        <p:dialog
+            id="dlgNewEntity"
+            header="#{msg.timePerspective_new}"
+            widgetVar="newEntityDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="newEntityForm">
+                <p:panelGrid
+                    id="newDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.timePerspective_name}: #{msg.label_required_suffix}" for="txtTimePerspectiveNameNew" />
+                    <p:inputText
+                        id="txtTimePerspectiveNameNew"
+                        value="#{mbTimePerspective.newEntity.name}"
+                        required="true"
+                        requiredMessage="#{msg.timePerspective_name} #{msg.validation_required}!"
+                        maxlength="255"
+                        />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.timePerspective_description}:" for="txtTimePerspectiveDescriptionNew" />
+                    <p:inputTextarea
+                        id="txtTimePerspectiveDescriptionNew"
+                        value="#{mbTimePerspective.newEntity.description}"
+                        maxlength="4000"
+                        style="width:350px"
+                        />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
+                            actionListener="#{mbTimePerspective.doCreateEntity}"
+                            process="@this newEntityForm"
+                            />
+                        <p:commandButton
+                            value="#{msg.menu_reset}"
+                            type="reset"
+                            icon="ui-icon-close"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit Time Perspective -->
+        <p:dialog
+            id="dlgEntityDetails"
+            header="#{msg.timePerspective_edit}"
+            widgetVar="editEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.timePerspective_name}: #{msg.label_required_suffix}" for="txtTimePerspectiveNameEdit" />
+                    <p:inputText
+                        id="txtTimePerspectiveNameEdit"
+                        value="#{mbTimePerspective.selectedEntity.name}"
+                        required="true"
+                        requiredMessage="#{msg.timePerspective_name} #{msg.validation_required}!"
+                        maxlength="255"
+                        />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.timePerspective_description}:" for="txtTimePerspectiveDescriptionEdit" />
+                    <p:inputTextarea
+                        id="txtTimePerspectiveDescriptionEdit"
+                        value="#{mbTimePerspective.selectedEntity.description}"
+                        maxlength="4000"
+                        style="width:350px"
+                        />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            id="btnEntityUpdate"
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                            actionListener="#{mbTimePerspective.doUpdateEntity}"
+                            process="@this entityDetailsForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                } else {
+                    clearForm(formName);
+                    PF('newEntityDialog').hide();
+                    PF('editEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function(){
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +23,12 @@ import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Collection;
 import java.util.List;
-import java.io.Serializable;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
 import org.apache.log4j.Logger;
 
 import org.springframework.dao.DataAccessException;
@@ -41,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import de.dktk.dd.rpb.core.context.UserWithId;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.repository.admin.DefaultAccountRepository;
 
 /**
  * Our default implementation of Spring Security's UserDetailsService.
@@ -58,15 +57,15 @@ public class DefaultUserDetailsServiceImpl implements UserDetailsService
 
     //region Members
 
-    private DefaultAccountRepository defaultAccountRepository;
+    private IDefaultAccountRepository IDefaultAccountRepository;
 
     //endregion
 
     //region Constructors
 
     @Inject
-    public DefaultUserDetailsServiceImpl(DefaultAccountRepository defaultAccountRepository) {
-        this.defaultAccountRepository = defaultAccountRepository;
+    public DefaultUserDetailsServiceImpl(IDefaultAccountRepository IDefaultAccountRepository) {
+        this.IDefaultAccountRepository = IDefaultAccountRepository;
     }
 
     //endregion
@@ -95,7 +94,7 @@ public class DefaultUserDetailsServiceImpl implements UserDetailsService
         }
 
         // Get the account from DB
-        DefaultAccount account = defaultAccountRepository.getByUsername(username);
+        DefaultAccount account = IDefaultAccountRepository.getByUsername(username);
 
         // The account could not be located
         if (account == null) {
@@ -106,25 +105,18 @@ public class DefaultUserDetailsServiceImpl implements UserDetailsService
             throw new UsernameNotFoundException("user " + username + " could not be found");
         }
 
-        // From account roles get granted authorities collection
-        Collection<GrantedAuthority> grantedAuthorities = toGrantedAuthorities(account.getRoleNames());
-
-        String password = account.getPassword();
-        String clearPassword = "";
-        boolean enabled = account.getIsEnabled();
-        Serializable id = account.getId();
-
         // Return the Spring security user details which match with the DB account
         return new UserWithId(
-                username,
-                password,
-                clearPassword,
-                enabled,
+                account.getUsername(),
+                account.getPassword(),
+                "", // clearPassword
+                account.getEmail(),
+                account.getIsEnabled(),
                 true, // accountNonExpired,
                 true, // credentialsNonExpired
-                true, // accountNonLocked,
-                grantedAuthorities,
-                id
+                account.getNonLocked() != null ? account.getNonLocked() : true,
+                this.toGrantedAuthorities(account.getRoleNames()),
+                account.getId()
         );
     }
 

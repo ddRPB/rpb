@@ -1,0 +1,1026 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+    >
+
+    <!-- Add Study protocolId column -->
+    <changeSet id="alter-table-study-protocolid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="protocolid" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+    <!-- New user roles -->
+    <changeSet id="insert-role-ecmatrix" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_EDC_MATRIX" />
+            <column name="description" value="Can monitor eCRF data collection" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-role-ecmetadata" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_EDC_METADATA" />
+            <column name="description" value="Can access EDC study metadata" />
+        </insert>
+    </changeSet>
+
+    <!-- New annotation types -->
+    <changeSet id="insert-annotationtype-diagtim" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="DIAGTIM" />
+            <column name="description" value="Time of diagnosis" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc301" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_01" />
+            <column name="description" value="EORTC QLQ-C30 1. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc302" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_02" />
+            <column name="description" value="EORTC QLQ-C30 2. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc303" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_03" />
+            <column name="description" value="EORTC QLQ-C30 3. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc304" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_04" />
+            <column name="description" value="EORTC QLQ-C30 4. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc305" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_05" />
+            <column name="description" value="EORTC QLQ-C30 5. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc306" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_06" />
+            <column name="description" value="EORTC QLQ-C30 6. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc307" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_07" />
+            <column name="description" value="EORTC QLQ-C30 7. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc308" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_08" />
+            <column name="description" value="EORTC QLQ-C30 8. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc309" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_09" />
+            <column name="description" value="EORTC QLQ-C30 9. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3010" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_10" />
+            <column name="description" value="EORTC QLQ-C30 10. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3011" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_11" />
+            <column name="description" value="EORTC QLQ-C30 11. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3012" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_12" />
+            <column name="description" value="EORTC QLQ-C30 12. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3013" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_13" />
+            <column name="description" value="EORTC QLQ-C30 13. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3014" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_14" />
+            <column name="description" value="EORTC QLQ-C30 14. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3015" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_15" />
+            <column name="description" value="EORTC QLQ-C30 15. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3016" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_16" />
+            <column name="description" value="EORTC QLQ-C30 16. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3017" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_17" />
+            <column name="description" value="EORTC QLQ-C30 17. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3018" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_18" />
+            <column name="description" value="EORTC QLQ-C30 18. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3019" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_19" />
+            <column name="description" value="EORTC QLQ-C30 19. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3020" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_20" />
+            <column name="description" value="EORTC QLQ-C30 20. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3021" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_21" />
+            <column name="description" value="EORTC QLQ-C30 21. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3022" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_22" />
+            <column name="description" value="EORTC QLQ-C30 22. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3023" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_23" />
+            <column name="description" value="EORTC QLQ-C30 23. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3024" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_24" />
+            <column name="description" value="EORTC QLQ-C30 24. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3025" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_25" />
+            <column name="description" value="EORTC QLQ-C30 25. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3026" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_26" />
+            <column name="description" value="EORTC QLQ-C30 26. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3027" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_27" />
+            <column name="description" value="EORTC QLQ-C30 27. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3028" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_28" />
+            <column name="description" value="EORTC QLQ-C30 28. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3029" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_29" />
+            <column name="description" value="EORTC QLQ-C30 29. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqc3030" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQC30_30" />
+            <column name="description" value="EORTC QLQ-C30 30. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn201" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_01" />
+            <column name="description" value="EORTC QLQ-BN20 1. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn202" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_02" />
+            <column name="description" value="EORTC QLQ-BN20 2. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn203" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_03" />
+            <column name="description" value="EORTC QLQ-BN20 3. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn204" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_04" />
+            <column name="description" value="EORTC QLQ-BN20 4. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn205" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_05" />
+            <column name="description" value="EORTC QLQ-BN20 5. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn206" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_06" />
+            <column name="description" value="EORTC QLQ-BN20 6. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn207" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_07" />
+            <column name="description" value="EORTC QLQ-BN20 7. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn208" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_08" />
+            <column name="description" value="EORTC QLQ-BN20 8. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn209" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_09" />
+            <column name="description" value="EORTC QLQ-BN20 9. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2010" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_10" />
+            <column name="description" value="EORTC QLQ-BN20 10. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2011" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_11" />
+            <column name="description" value="EORTC QLQ-BN20 11. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2012" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_12" />
+            <column name="description" value="EORTC QLQ-BN20 12. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2013" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_13" />
+            <column name="description" value="EORTC QLQ-BN20 13. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2014" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_14" />
+            <column name="description" value="EORTC QLQ-BN20 14. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2015" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_15" />
+            <column name="description" value="EORTC QLQ-BN20 15. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2016" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_16" />
+            <column name="description" value="EORTC QLQ-BN20 16. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2017" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_17" />
+            <column name="description" value="EORTC QLQ-BN20 17. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2018" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_18" />
+            <column name="description" value="EORTC QLQ-BN20 18. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2019" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_19" />
+            <column name="description" value="EORTC QLQ-BN20 19. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqbn2020" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQBN20_20" />
+            <column name="description" value="EORTC QLQ-BN20 20. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc131" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_01" />
+            <column name="description" value="EORTC QLQ-LC13 1. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc132" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_02" />
+            <column name="description" value="EORTC QLQ-LC13 2. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc133" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_03" />
+            <column name="description" value="EORTC QLQ-LC13 3. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc134" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_04" />
+            <column name="description" value="EORTC QLQ-LC13 4. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc135" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_05" />
+            <column name="description" value="EORTC QLQ-LC13 5. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc136" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_06" />
+            <column name="description" value="EORTC QLQ-LC13 6. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc137" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_07" />
+            <column name="description" value="EORTC QLQ-LC13 7. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc138" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_08" />
+            <column name="description" value="EORTC QLQ-LC13 8. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc139" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_09" />
+            <column name="description" value="EORTC QLQ-LC13 9. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc1310" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_10" />
+            <column name="description" value="EORTC QLQ-LC13 10. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc1311" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_11" />
+            <column name="description" value="EORTC QLQ-LC13 11. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc1312" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_12" />
+            <column name="description" value="EORTC QLQ-LC13 12. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqlc1313" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQLC13_13" />
+            <column name="description" value="EORTC QLQ-LC13 13. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn351" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_01" />
+            <column name="description" value="EORTC QLQ-HN35 1. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn352" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_02" />
+            <column name="description" value="EORTC QLQ-HN35 2. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn353" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_03" />
+            <column name="description" value="EORTC QLQ-HN35 3. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn354" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_04" />
+            <column name="description" value="EORTC QLQ-HN35 4. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn355" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_05" />
+            <column name="description" value="EORTC QLQ-HN35 5. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn356" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_06" />
+            <column name="description" value="EORTC QLQ-HN35 6. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn357" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_07" />
+            <column name="description" value="EORTC QLQ-HN35 7. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn358" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_08" />
+            <column name="description" value="EORTC QLQ-HN35 8. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn359" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_09" />
+            <column name="description" value="EORTC QLQ-HN35 9. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3510" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_10" />
+            <column name="description" value="EORTC QLQ-HN35 10. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3511" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_11" />
+            <column name="description" value="EORTC QLQ-HN35 11. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3512" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_12" />
+            <column name="description" value="EORTC QLQ-HN35 12. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3513" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_13" />
+            <column name="description" value="EORTC QLQ-HN35 13. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3514" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_14" />
+            <column name="description" value="EORTC QLQ-HN35 14. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3515" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_15" />
+            <column name="description" value="EORTC QLQ-HN35 15. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3516" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_16" />
+            <column name="description" value="EORTC QLQ-HN35 16. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3517" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_17" />
+            <column name="description" value="EORTC QLQ-HN35 17. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3518" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_18" />
+            <column name="description" value="EORTC QLQ-HN35 18. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3519" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_19" />
+            <column name="description" value="EORTC QLQ-HN35 19. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3520" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_20" />
+            <column name="description" value="EORTC QLQ-HN35 20. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3521" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_21" />
+            <column name="description" value="EORTC QLQ-HN35 21. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3522" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_22" />
+            <column name="description" value="EORTC QLQ-HN35 22. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3523" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_23" />
+            <column name="description" value="EORTC QLQ-HN35 23. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3524" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_24" />
+            <column name="description" value="EORTC QLQ-HN35 24. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3525" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_25" />
+            <column name="description" value="EORTC QLQ-HN35 25. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3526" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_26" />
+            <column name="description" value="EORTC QLQ-HN35 26. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3527" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_27" />
+            <column name="description" value="EORTC QLQ-HN35 27. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3528" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_28" />
+            <column name="description" value="EORTC QLQ-HN35 28. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3529" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_29" />
+            <column name="description" value="EORTC QLQ-HN35 29. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3530" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_30" />
+            <column name="description" value="EORTC QLQ-HN35 30. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3531" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_31" />
+            <column name="description" value="EORTC QLQ-HN35 31. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3532" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_32" />
+            <column name="description" value="EORTC QLQ-HN35 32. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3533" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_33" />
+            <column name="description" value="EORTC QLQ-HN35 33. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3534" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_34" />
+            <column name="description" value="EORTC QLQ-HN35 34. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqhn3535" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQHN35_35" />
+            <column name="description" value="EORTC QLQ-HN35 35. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr251" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_01" />
+            <column name="description" value="EORTC QLQ-PR25 1. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr252" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_02" />
+            <column name="description" value="EORTC QLQ-PR25 2. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr253" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_03" />
+            <column name="description" value="EORTC QLQ-PR25 3. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr254" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_04" />
+            <column name="description" value="EORTC QLQ-PR25 4. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr255" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_05" />
+            <column name="description" value="EORTC QLQ-PR25 5. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr256" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_06" />
+            <column name="description" value="EORTC QLQ-PR25 6. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr257" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_07" />
+            <column name="description" value="EORTC QLQ-PR25 7. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr258" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_08" />
+            <column name="description" value="EORTC QLQ-PR25 8. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr259" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_09" />
+            <column name="description" value="EORTC QLQ-PR25 9. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2510" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_10" />
+            <column name="description" value="EORTC QLQ-PR25 10. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2511" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_11" />
+            <column name="description" value="EORTC QLQ-PR25 11. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2512" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_12" />
+            <column name="description" value="EORTC QLQ-PR25 12. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2513" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_13" />
+            <column name="description" value="EORTC QLQ-PR25 13. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2514" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_14" />
+            <column name="description" value="EORTC QLQ-PR25 14. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2515" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_15" />
+            <column name="description" value="EORTC QLQ-PR25 15. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2516" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_16" />
+            <column name="description" value="EORTC QLQ-PR25 16. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2517" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_17" />
+            <column name="description" value="EORTC QLQ-PR25 17. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2518" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_18" />
+            <column name="description" value="EORTC QLQ-PR25 18. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2519" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_19" />
+            <column name="description" value="EORTC QLQ-PR25 19. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2520" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_20" />
+            <column name="description" value="EORTC QLQ-PR25 20. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2521" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_21" />
+            <column name="description" value="EORTC QLQ-PR25 21. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2522" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_22" />
+            <column name="description" value="EORTC QLQ-PR25 22. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2523" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_23" />
+            <column name="description" value="EORTC QLQ-PR25 23. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2524" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_24" />
+            <column name="description" value="EORTC QLQ-PR25 24. question" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-annotationtype-qoleortcqlqpr2525" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="id" valueSequenceNext="annotationtype_id_seq" />
+            <column name="name" value="QOL_EORTC_QLQPR25_25" />
+            <column name="description" value="EORTC QLQ-PR25 25. question" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

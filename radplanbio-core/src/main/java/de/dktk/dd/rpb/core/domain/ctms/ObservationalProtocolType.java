@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,9 +36,7 @@ import javax.persistence.Entity;
 public class ObservationalProtocolType extends AbstractProtocolType {
 
     // Purpose: Natural history, Screening, Psychosocial
-    // Duration: Longitudinal, Cross-sectional
     // Selection: Convenience Sample, Defined Population, Random Sample, Case Control
-    // Timing: Retrospective, Prospective
 
     //region Finals
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 package de.dktk.dd.rpb.core.service;
 
+import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sun.jersey.api.client.Client;
@@ -33,19 +34,27 @@ import org.json.JSONArray;
 import javax.inject.Named;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import de.dktk.dd.rpb.core.domain.ctms.Person;
 
 import java.util.*;
 
 /**
- * Mainzelliste Pseudonym Generation Service
+ * Mainzelliste Pseudonym Generation Service Interface Implementation
+ *
  * @author tomas@skripcak.net
  * @since 21 August 2013
  */
 @Transactional(readOnly = true)
 @Named("pidService")
 public class MainzellisteService implements IMainzellisteService {
+
+    //region Finals
+
+    private static final Logger log = Logger.getLogger(MainzellisteService.class);
+
+    //endregion
 
     //region Members
 
@@ -97,7 +106,7 @@ public class MainzellisteService implements IMainzellisteService {
      * @return true if API version is used
      */
     public boolean getUseApiVersion() {
-        return this.apiVersion != null && ! this.apiVersion.equals("");
+        return !"".equals(this.apiVersion);
     }
 
     //endregion
@@ -311,25 +320,7 @@ public class MainzellisteService implements IMainzellisteService {
                         .post(ClientResponse.class, mainObj.toString());
             }
 
-            // Created
-            if (response.getStatus() == 201) {
-                if (response.hasEntity()) {
-                    String output = response.getEntity(String.class);
-                    finalResult = new JSONObject(output);
-                }
-            }
-            else {
-                if (response.hasEntity()) {
-                  String entity = response.getEntity(String.class);
-                  throw new RuntimeException("Failed : HTTP error code: " +
-                            response.getStatus() +
-                            " message: " +
-                            entity);
-                }
-                else {
-                    throw new RuntimeException("Failed : HTTP error code: " + response.getStatus());
-                }
-            }
+            finalResult = this.getMainzellisteCreatedResponse(response);
         }
 
         return finalResult;
@@ -397,25 +388,7 @@ public class MainzellisteService implements IMainzellisteService {
                         .post(ClientResponse.class, mainObj.toString());
             }
 
-            // Created
-            if (response.getStatus() == 201) {
-                if (response.hasEntity()) {
-                    String output = response.getEntity(String.class);
-                    finalResult = new JSONObject(output);
-                }
-            }
-            else {
-                if (response.hasEntity()) {
-                    String entity = response.getEntity(String.class);
-                    throw new RuntimeException("Failed : HTTP error code: " +
-                            response.getStatus() +
-                            " message: " +
-                            entity);
-                }
-                else {
-                    throw new RuntimeException("Failed : HTTP error code: " + response.getStatus());
-                }
-            }
+            finalResult = this.getMainzellisteCreatedResponse(response);
         }
 
         return finalResult;
@@ -450,9 +423,15 @@ public class MainzellisteService implements IMainzellisteService {
             data.put("fields", fields);
             //data.put("redirect", url)
 
+            //TODO
+            //JSONArray ids = new JSONArray();
+            //ids.put("hisid");
+
             JSONObject mainObj = new JSONObject();
             mainObj.put("type", method);
             mainObj.put("data", data);
+            //TODO
+            //mainObj.put("ids", ids);
 
             Client client = Client.create();
             WebResource webResource = client.resource(this.baseUrl + endpoint + sessionId + "/tokens");
@@ -507,7 +486,28 @@ public class MainzellisteService implements IMainzellisteService {
     /**
      * {@inheritDoc}
      */
-    public JSONObject createPatientJson(String tokenId, Person person) throws Exception {
+    public JSONObject createPatient(Person newPerson) throws Exception {
+        JSONObject response = this.newSession();
+
+        String sessionId = "";
+        if (response != null) {
+            sessionId = response.getString("sessionId");
+        }
+
+        response = this.newPatientToken(sessionId);
+
+        String tokenId = "";
+        if (response != null) {
+            tokenId = response.getString("tokenId");
+        }
+
+        return this.getCreatePatientJsonResponse(tokenId, newPerson);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public JSONObject getCreatePatientJsonResponse(String tokenId, Person person) throws Exception {
         JSONObject finalResult = null;
 
         if (this.getHasConnectionInfo()) {
@@ -567,7 +567,7 @@ public class MainzellisteService implements IMainzellisteService {
     /**
      * {@inheritDoc}
      */
-    public JSONObject createSurePatienJson(String tokenId, Person person) {
+    public JSONObject createSurePatientJson(String tokenId, Person person) {
         JSONObject finalResult = null;
 
         if (this.getHasConnectionInfo()) {
@@ -631,7 +631,7 @@ public class MainzellisteService implements IMainzellisteService {
     /**
      * {@inheritDoc}
      */
-    public Boolean editPatientJson(String tokenId, Person person) throws Exception {
+    public boolean editPatientJson(String tokenId, Person person) throws Exception {
         Boolean editResult = Boolean.FALSE;
 
         if (this.getHasConnectionInfo()) {
@@ -685,9 +685,80 @@ public class MainzellisteService implements IMainzellisteService {
         return editResult;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean editPatient(Person person) {
+
+        boolean result = Boolean.FALSE;
+
+        try {
+            if (person != null && person.getPid() != null) {
+                JSONObject finalResult = this.newSession();
+
+                String sessionId = "";
+                if (finalResult != null) {
+                    sessionId = finalResult.getString("sessionId");
+                }
+
+                finalResult = this.editPatientToken(
+                        sessionId,
+                        person.getPid()
+                );
+
+                String tokenId = "";
+                if (finalResult != null) {
+                    tokenId = finalResult.getString("id");
+                }
+
+                result = this.editPatientJson(tokenId, person);
+            }
+            else {
+                log.info("Cannot edit patient: provided person or PID is null.");
+            }
+        }
+        catch (Exception err) {
+            log.error("Failed to edit person");
+        }
+
+        return result;
+    }
+
     //endregion
 
     //region Get Patients
+
+    public Person loadPatient(String pid) throws Exception {
+        Person result;
+
+        // Session orchestration for identity management
+        JSONObject json = this.newSession();
+
+        String sessionId = "";
+        if (json != null) {
+            sessionId = json.getString("sessionId");
+        }
+
+        json = this.readPatientToken(
+                sessionId,
+                pid
+        );
+
+        String tokenId = "";
+        if (json != null) {
+            tokenId = json.getString("id");
+        }
+
+        // Load IDAT
+        result = this.getPatient(tokenId);
+
+        // Preserve PID
+        if (result != null) {
+            result.setPid(pid);
+        }
+
+        return result;
+    }
 
     /**
      * {@inheritDoc}
@@ -751,8 +822,37 @@ public class MainzellisteService implements IMainzellisteService {
     /**
      * {@inheritDoc}
      */
+    public List<Person> getPatientListByPIDs(List<Person> personPIDList) throws Exception {
+        List<Person> result;
+
+        // Extract PIDs
+        List<String> pids = new ArrayList<>();
+        for (Person p : personPIDList) {
+            if (p.getPid() != null) {
+                pids.add(p.getPid());
+            }
+        }
+
+        JSONObject finalResult = this.newSession();
+        String sessionId = "";
+        if (finalResult != null) {
+            sessionId = finalResult.getString("sessionId");
+        }
+        finalResult = this.readPatientsToken(sessionId, pids);
+        String tokenId = "";
+        if (finalResult != null) {
+            tokenId = finalResult.getString("id");
+        }
+        result = this.getPatientList(tokenId);
+
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public List<Person> getPatientList(String tid) throws Exception {
-        List<Person> personList = new ArrayList<Person>();
+        List<Person> personList = new ArrayList<>();
 
         if (this.getHasConnectionInfo()) {
             String endpoint = "patients/tokenId/" + tid;
@@ -818,8 +918,8 @@ public class MainzellisteService implements IMainzellisteService {
     /**
      * {@inheritDoc}
      */
-    public List<Person> getAllPatients() {
-        List<Person> persons = new ArrayList<Person>();
+    public List<Person> getAllPatientPIDs() {
+        List<Person> persons = new ArrayList<>();
 
         if (this.getHasAdminConnectionInfo()) {
             String endpoint = "patients";
@@ -851,7 +951,7 @@ public class MainzellisteService implements IMainzellisteService {
                     for (int j = 0; j < jsonIdArray.length(); j++) {
                         jsonObj = jsonIdArray.getJSONObject(j);
                         String type = jsonObj.getString("type");
-                        if (type.equals("pid")) {
+                        if ("pid".equals(type)) {
                             break;
                         }
                     }
@@ -872,6 +972,36 @@ public class MainzellisteService implements IMainzellisteService {
     }
 
     //endregion
+
+    //endregion
+
+    //region Private Methods
+
+    private JSONObject getMainzellisteCreatedResponse(ClientResponse response) throws Exception {
+
+        JSONObject finalResult = null;
+
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+            if (response.hasEntity()) {
+                String output = response.getEntity(String.class);
+                finalResult = new JSONObject(output);
+            }
+        }
+        else {
+            if (response.hasEntity()) {
+                String entity = response.getEntity(String.class);
+                throw new RuntimeException("Failed : HTTP error code: " +
+                        response.getStatus() +
+                        " message: " +
+                        entity);
+            }
+            else {
+                throw new RuntimeException("Failed : HTTP error code: " + response.getStatus());
+            }
+        }
+
+        return finalResult;
+    }
 
     //endregion
 

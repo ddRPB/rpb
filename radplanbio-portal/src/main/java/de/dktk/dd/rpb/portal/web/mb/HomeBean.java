@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 
-import de.dktk.dd.rpb.core.domain.admin.SampleContent;
+import de.dktk.dd.rpb.core.domain.cms.SampleContent;
 
 /**
  * Bean for home view
@@ -51,8 +51,7 @@ import de.dktk.dd.rpb.core.domain.admin.SampleContent;
 public class HomeBean implements Serializable {
 
     //region Finals
-
-    // Different version of the class - serialisation/de-serialisation issue
+    
     private static final long serialVersionUID = 1L;
 
     //endregion
@@ -106,11 +105,10 @@ public class HomeBean implements Serializable {
      */
     public void loadRssContent() {
         FacesContext context = FacesContext.getCurrentInstance();
-
-        //facesContext.externalContext.requestContextPath}/rssFeed.faces
+        
         HttpServletRequest req = (HttpServletRequest)context.getExternalContext().getRequest();
         String url = req.getRequestURL().toString();
-        String rssFeedUrl = url.substring(0, url.length() - req.getRequestURI().length()) + req.getContextPath() + "/rssFeed.faces";
+        String rssFeedUrl = url.substring(0, url.length() - req.getRequestURI().length()) + req.getContextPath() + "/api/rss";
 
         // Force https if external access
         if (rssFeedUrl.contains("uniklinikum-dresden.de")) {
@@ -147,10 +145,10 @@ public class HomeBean implements Serializable {
                 ( (HttpsURLConnection) urlCon ).setSSLSocketFactory(sslSocketFactory);
             }
 
-            final InputStream cinput = urlCon.getInputStream();
+            final InputStream is = urlCon.getInputStream();
 
             SyndFeedInput input = new SyndFeedInput();
-            SyndFeed feed = input.build(new XmlReader(cinput));
+            SyndFeed feed = input.build(new XmlReader(is));
 
             @SuppressWarnings("unchecked")
             List<SyndEntry> feedList = feed.getEntries();
@@ -162,20 +160,14 @@ public class HomeBean implements Serializable {
             //      feedSize = count;
             // }
 
-            this.rssContentList = new ArrayList<SampleContent>();
+            this.rssContentList = new ArrayList<>();
 
             for (SyndEntry entry : feedList) {
                 SampleContent rss = new SampleContent();
 
                 rss.setTitle(entry.getTitle());
                 rss.setCreatedDate(entry.getPublishedDate());
-
-                String summary = "";
-                for (int j = 0; j < entry.getContents().size(); j++) {
-                    summary = summary + entry.getContents().get(j).getValue() + "\n";
-                }
-
-                rss.setSummary(summary);
+                rss.setSummary(entry.getDescription().getValue());
 
                 //  Update
                 this.rssContentList.add(rss);

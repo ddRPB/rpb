@@ -66,6 +66,11 @@ form .required-pseudo-label {
 	text-align: left !important;
 }
 
+/* auto layout table to support auto resizing of the table on resizing the window, adding or removing columns*/
+.ui-datatable-tablewrapper table, .ui-treetable table {
+    table-layout: auto !important;
+}
+
 /* fix p:selectOneMenu */
 .ui-selectonemenu label.ui-selectonemenu-label{
 	text-align:left !important;
@@ -133,6 +138,23 @@ form .required-pseudo-label {
 	margin:5px auto;
 }
 
+/* p:menuButton */
+ul.ui-menu-child {
+	width: 200px !important;
+}
+
+.ui-menu .ui-menu-item {
+	width: 200px !important;
+}
+
+.ui-menu.ui-widget li.ui-corner-all {
+	width: 200px !important;
+}
+
+.ui-menu.ui-widget {
+	min-width: 200px !important;
+}
+
 /* p:pickList */
 .ui-picklist.p4 .ui-picklist-list{
 	width: 800px;
@@ -172,21 +194,57 @@ form .required-pseudo-label {
 	margin:50px auto;
 }
 
-.versionEnv {
+.environment {
 	position: fixed;
-	top: 0;
+	top: 0px;
+	left: 0px;
+	width: 58px;
+	height: 58px;
 	z-index: 1000;
+}
+
+.Development {
+	background: transparent url("#{resource['icons/environment/development.gif']}") no-repeat center left;
+}
+.Integration {
+	background: transparent url("#{resource['icons/environment/integration.gif']}") no-repeat center left;
+}
+.Production {
+	background: transparent url("#{resource['icons/environment/production.gif']}") no-repeat center left;
+}
+
+.version {
+	position: fixed;
+	left: 170px;
+	top: 5px;
+	font-size: 10px;
+	font-weight: bold;
+	z-index: 1;
 }
 
 /* RPB header bar */
 .headerBar {
+	overflow: hidden;
 	margin-top: 0px;
 	height: 20px;
 	width: 100%;
 	background: #3890D9;
 }
 
-.headerText {
+.headerTextLeft {
+	float: left;
+	margin-top: 2px;
+	margin-left: 8px;
+	text-align: left;
+	color: #FFFFFF;
+	font-family: Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-weight: bold;
+}
+
+.headerTextRight {
+	float: right;
+	margin-top: 2px;
 	margin-right: 10px;
 	text-align: right;
 	color: #FFFFFF;

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for EDC ItemData</comment>
+
+    <entry key="itemData">Item Daten</entry>
+    <entry key="itemData_plural">Daten</entry>
+    <entry key="itemData_reload">Vorhandenen Item Daten neu laden</entry>
+    <entry key="itemData_print">Tabelle Item Daten drucken</entry>
+    <entry key="itemData_new">Neue Item Data definieren</entry>
+    <entry key="itemData_edit">Ausgewählte Item Data bearbeiten</entry>
+    <entry key="itemData_delete">Ausgewählten Item Data löschen</entry>
+
+    <!-- attributes -->
+    <entry key="itemData_id">Id</entry>
+    <entry key="itemData_oid">Oid</entry>
+    <entry key="itemData_value">Wert</entry>
+    <entry key="itemData_status">Status</entry>
+    <entry key="itemData_itemDefinition">Item Definition</entry>
+
+</properties>

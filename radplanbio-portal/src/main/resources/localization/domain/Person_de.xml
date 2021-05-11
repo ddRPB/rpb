@@ -8,14 +8,21 @@
     <entry key="person_patient">Patient</entry>
     <entry key="person_plural">Personen</entry>
     <entry key="person_patient_plural">Patienten</entry>
-    <entry key="person_reload">Neu laden vorhandenen Personen</entry>
-    <entry key="person_print">Drucken Tabelle Personen</entry>
-    <entry key="person_new">Definieren Sie eine neue Person</entry>
-    <entry key="person_edit">Bearbeiten Sie ausgewählte Person</entry>
-    <entry key="person_delete">Löschen ausgewählten Person</entry>
+    <entry key="person_reload">Vorhandenen Personen neu laden</entry>
+    <entry key="person_patient_reload">Vorhandenen Patienten neu laden</entry>
+    <entry key="person_print">Tabelle Personen drucken</entry>
+    <entry key="person_patient_print">Tabelle Patienten drucken</entry>
+    <entry key="person_new">Neue Person definieren</entry>
+    <entry key="person_patient_new">Neuen Patient definieren</entry>
+    <entry key="person_edit">Ausgewählte Person bearbeiten</entry>
+    <entry key="person_patient_edit">Ausgewählten Patient bearbeiten</entry>
+    <entry key="person_delete">Ausgewählten Person löschen</entry>
+    <entry key="person_patient_delete">Ausgewählten Patient löschen</entry>
 
     <!-- attributes -->
     <entry key="person_id">Id</entry>
+    <entry key="person_pid">PID</entry>
+    <entry key="person_idat">IDAT</entry>
     <entry key="person_titlesBefore">Titel vor</entry>
     <entry key="person_firstname">Vorname</entry>
     <entry key="person_surname">Nachname</entry>

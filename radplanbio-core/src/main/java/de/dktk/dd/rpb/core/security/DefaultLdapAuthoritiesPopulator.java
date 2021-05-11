@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,12 @@ import java.util.Collection;
 import java.util.List;
 
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.repository.admin.DefaultAccountRepository;
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
+
+import de.dktk.dd.rpb.core.service.AuditEvent;
+import de.dktk.dd.rpb.core.service.AuditLogService;
 import org.apache.log4j.Logger;
+
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,11 +37,10 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 import javax.inject.Inject;
 
-import static com.google.common.collect.Lists.newArrayList;
-
 /**
  * DefaultLdapAuthoritiesPopulator
- * Populate LDAP user authorities with assigned RPB user authorities (we don't use LDAP for authorisation)
+ * Populate LDAP user authorities with assigned RPB user authorities
+ * (we don't use LDAP for authorisation just for authentication)
  *
  * @author tomas@skripcak.net
  * @since 16 Nov 2015
@@ -50,35 +53,54 @@ public class DefaultLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator
 
     //endregion
 
-    //region Injects
+    //region Members
+
+    private IDefaultAccountRepository IDefaultAccountRepository;
+    private AuditLogService auditLogService;
+
+    //endregion
+
+    //region Constructors
 
     @Inject
-    private DefaultAccountRepository defaultAccountRepository;
-
-    @SuppressWarnings("unused")
-    public void setDefaultAccountRepository(DefaultAccountRepository repository) {
-        this.defaultAccountRepository = repository;
+    public DefaultLdapAuthoritiesPopulator(IDefaultAccountRepository IDefaultAccountRepository, AuditLogService auditLogService) {
+        this.IDefaultAccountRepository = IDefaultAccountRepository;
+        this.auditLogService = auditLogService;
     }
 
     //endregion
 
+    //region Methods
+
     public Collection<GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
 
-        Collection<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
+        Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-        DefaultAccount account = defaultAccountRepository.getByUsername(username);
+        DefaultAccount account = IDefaultAccountRepository.getByUsername(username);
 
         // The account could not be located
         if (account != null) {
-            // From account roles get granted authorities collection
-            grantedAuthorities = toGrantedAuthorities(account.getRoleNames());
+            if (account.getIsEnabled()) {
+                this.auditLogService.event(AuditEvent.LoginSuccessful, username);
+                // From account roles get granted authorities collection
+                grantedAuthorities = toGrantedAuthorities(account.getRoleNames());
+            }
+            else {
+                this.auditLogService.event(AuditEvent.LoginFailed, username);
+            }
         }
         else {
-            log.info("LDAP user " + username + " could not be found in RPB database, no authorities loaded.");
+            if (log.isInfoEnabled()) {
+                log.info("LDAP user " + username + " could not be found in RPB database, no authorities loaded.");
+            }
+
+            this.auditLogService.event(AuditEvent.LoginFailed, username);
         }
 
         return grantedAuthorities;
     }
+
+    //endregion
 
     //region Private
 
@@ -88,7 +110,7 @@ public class DefaultLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator
      * @return collection of GrantedAuthorities
      */
     private Collection<GrantedAuthority> toGrantedAuthorities(List<String> roles) {
-        List<GrantedAuthority> result = newArrayList();
+        List<GrantedAuthority> result = new ArrayList<>();
 
         for (String role : roles) {
             result.add(new SimpleGrantedAuthority(role));

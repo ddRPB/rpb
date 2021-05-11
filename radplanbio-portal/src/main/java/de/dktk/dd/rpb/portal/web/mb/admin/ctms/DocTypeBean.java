@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,12 @@ package de.dktk.dd.rpb.portal.web.mb.admin.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.DocType;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IDocTypeRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -39,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for user administration of CTMS study status
+ * Bean for user administration of CTMS document types
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015
@@ -52,29 +49,27 @@ public class DocTypeBean extends CrudEntityViewModel<DocType, Integer> {
 
     //region Repository
 
-    @Inject
     private IDocTypeRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get DocTypeRepository
+     * @return DocTypeRepository
      */
-    @SuppressWarnings("unused")
     @Override
     public IDocTypeRepository getRepository() {
         return this.repository;
     }
 
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IDocTypeRepository repository) {
-        this.repository = repository;
-    }
+    //endregion
 
     //endregion
+
+    //region Constructors
+
+    @Inject
+    public DocTypeBean(IDocTypeRepository repository) {
+        this.repository = repository;
+    }
 
     //endregion
 
@@ -82,7 +77,7 @@ public class DocTypeBean extends CrudEntityViewModel<DocType, Integer> {
 
     @PostConstruct
     public void init() {
-        this.columnVisibilityList = new ArrayList<Boolean>();
+        this.columnVisibilityList = new ArrayList<>();
         this.columnVisibilityList.add(Boolean.TRUE); // Name
         this.columnVisibilityList.add(Boolean.TRUE); // Description
 
@@ -104,24 +99,17 @@ public class DocTypeBean extends CrudEntityViewModel<DocType, Integer> {
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colName", "colName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     //endregion

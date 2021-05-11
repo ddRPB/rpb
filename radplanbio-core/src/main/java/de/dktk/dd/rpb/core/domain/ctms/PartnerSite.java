@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.*;
@@ -28,8 +29,17 @@ import javax.validation.constraints.Size;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
-import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
+import de.dktk.dd.rpb.core.domain.admin.*;
 
+import de.dktk.dd.rpb.core.domain.bio.Bio;
+import de.dktk.dd.rpb.core.domain.edc.FormEngine;
+import de.dktk.dd.rpb.core.domain.lab.Lab;
+import de.dktk.dd.rpb.core.domain.pacs.Pacs;
+import de.dktk.dd.rpb.core.domain.pid.Pid;
+import de.dktk.dd.rpb.core.domain.rpb.AbstractComponent;
+import de.dktk.dd.rpb.core.domain.rpb.PacsComponent;
+import de.dktk.dd.rpb.core.domain.rpb.Portal;
+import de.dktk.dd.rpb.core.domain.rpb.Server;
 import org.apache.log4j.Logger;
 
 import org.hibernate.annotations.LazyCollection;
@@ -38,11 +48,10 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import com.google.common.base.Objects;
 
-import de.dktk.dd.rpb.core.domain.admin.Portal;
-import de.dktk.dd.rpb.core.domain.admin.Pid;
-import de.dktk.dd.rpb.core.domain.admin.Server;
-import de.dktk.dd.rpb.core.domain.admin.Pacs;
 import de.dktk.dd.rpb.core.domain.edc.Edc;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
 
 /**
  * PartnerSite domain entity
@@ -72,21 +81,25 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
     private String description;
     private Float latitude;
     private Float longitude;
-
+    private String ipRange;
     private Boolean isEnabled;
 
-    // One to one
-    private Pacs pacs; // association to PACS system
-    private Edc edc; // association to Electronic Data Capture systen
-    private Pid pid; // association to Patient Identity Management sytsem
-    private Portal portal; // association to RadPlanBio-Portal
-    private Server server; // association to RadPlanBio import export server
+    // One-to-One
+    private Portal portal; // association to RPB portal
+    private Pid pid; // association to Patient Identity Management system (Mainzelliste)
+    private Edc edc; // association to RPB Electronic Data Capture system (OpenClinica)
+    private FormEngine formEngine; // TODO: association to RPB Form Engine (Enketo) move to components
+    private Pacs pacs; // association to PACS system (Conquest)
+    private Bio bio; // TODO: association to BIO bank system (Centraxx) move to components
+    private Lab lab; // TODO: association to LAB system (LabKey) move to components
+    private Server server; // association to RPB import export server (will be deprecated in the future)
 
-    // One to many
+    // One-to-Many
     private List<DefaultAccount> defaultAccounts; // Partner site users
 
-    // Many to many
-    private List<Study> studies; // RadPlanBio studies where partner site is participating
+    // Many-to-Many
+    private List<Study> studies; // RPB studies where partner site is participating
+    private List<AbstractComponent> components; // RPB components configured for partner site
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
@@ -107,7 +120,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //region Properties
 
-    //region Id
+    //region ID
 
     @Id
     @Column(name = "SITEID", precision = 10)
@@ -198,6 +211,20 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
+    //region IpRange
+
+    @Size(max = 4000)
+    @Column(name = "IPRANGE", length = 4000)
+    public String getIpRange() {
+        return ipRange;
+    }
+
+    public void setIpRange(String ipRange) {
+        this.ipRange = ipRange;
+    }
+
+    //endregion
+
     //region IsEnabled
 
     @Column(name = "ISENABLED")
@@ -211,49 +238,9 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
-    //region Pacs
+    //region One-to-One
 
-    @OneToOne(fetch= FetchType.EAGER, cascade=CascadeType.ALL)
-    @JoinColumn(name="PACSID")
-    public Pacs getPacs() {
-        return this.pacs;
-    }
-
-    public void setPacs(Pacs pacs) {
-        this.pacs = pacs;
-    }
-
-    //endregion
-
-    //region Edc
-
-    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-    @JoinColumn(name="EDCID")
-    public Edc getEdc() {
-        return this.edc;
-    }
-
-    public void setEdc(Edc edc) {
-        this.edc = edc;
-    }
-
-    //endregion
-
-    //region Pid
-
-    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-    @JoinColumn(name="GENERATORID")
-    public Pid getPid() {
-        return this.pid;
-    }
-
-    public void setPid(Pid value) {
-        this.pid = value;
-    }
-
-    //endregion
-
-    //region Portal
+    //region RPB portal
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="PORTALID")
@@ -267,7 +254,91 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
-    //region Server
+    //region PID
+
+    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="GENERATORID")
+    public Pid getPid() {
+        return this.pid;
+    }
+
+    public void setPid(Pid value) {
+        this.pid = value;
+    }
+
+    //endregion
+
+    //region EDC
+
+    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="EDCID")
+    public Edc getEdc() {
+        return this.edc;
+    }
+
+    public void setEdc(Edc edc) {
+        this.edc = edc;
+    }
+
+    //endregion
+
+    //region FormEngine
+
+    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="FORMENGINEID")
+    public FormEngine getFormEngine() {
+        return this.formEngine;
+    }
+
+    public void setFormEngine(FormEngine formEngine) {
+        this.formEngine = formEngine;
+    }
+
+    //endregion
+
+    //region PACS
+
+    @OneToOne(fetch= FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="PACSID")
+    public Pacs getPacs() {
+        return this.pacs;
+    }
+
+    public void setPacs(Pacs pacs) {
+        this.pacs = pacs;
+    }
+
+    //endregion
+
+    //region BIO
+
+    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="BIOID")
+    public Bio getBio() {
+        return this.bio;
+    }
+
+    public void setBio(Bio bio) {
+        this.bio = bio;
+    }
+
+    //endregion
+
+    //region LAB
+
+    @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="LABID")
+    public Lab getLab() {
+        return this.lab;
+    }
+
+    public void setLab(Lab lab) {
+        this.lab = lab;
+    }
+
+    //endregion
+
+    //region RPB-server
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="SERVERID")
@@ -280,6 +351,10 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
     }
 
     //endregion
+
+    //endregion
+
+    //region One-to-Many
 
     //region Users
 
@@ -310,12 +385,15 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
     /**
      * Helper method to determine if the passed {@link DefaultAccount} is present in the user list.
      */
-    @SuppressWarnings("unused")
     public boolean containsDefaultAccount(DefaultAccount account) {
         return this.getDefaultAccounts() != null && this.getDefaultAccounts().contains(account);
     }
 
     //endregion
+
+    //endregion
+
+    //region Many-to-Many
 
     //region Studies
 
@@ -344,6 +422,25 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
+    //region Components
+
+    //TODO: modify DB model
+    @Transient
+//    @LazyCollection(LazyCollectionOption.TRUE)
+//    @JoinTable(name="PARTNERSITE_COMPONENT", joinColumns= { @JoinColumn(name="SITEID") }, inverseJoinColumns={ @JoinColumn(name="COMPONENTID") })
+//    @ManyToMany(fetch= FetchType.LAZY, cascade = { PERSIST, MERGE })
+    public List<AbstractComponent> getComponents() {
+        return this.components;
+    }
+
+    public void setComponents(List<AbstractComponent> list) {
+        this.components = list;
+    }
+    
+    //endregion
+
+    //endregion
+
     //endregion
 
     //region Init
@@ -353,6 +450,73 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
      */
     public void initDefaultValues() {
         // NOOP
+    }
+
+    //endregion
+
+    //region Methods
+
+    /**
+     * Determine whether EDC component is enabled for this partner site
+     * @return true when EDC is enabled for this partner site
+     */
+    public boolean hasEnabledEdc() {
+        return this.getEdc() != null && this.getEdc().getIsEnabled();
+    }
+
+    /**
+     * Determine whether FormEngine component is enabled for this partner site
+     * @return true when FormEngine is enabled for this partner site
+     */
+    public boolean hasEnabledFormEngine() {
+        return  this.getFormEngine() != null && this.getFormEngine().getIsEnabled();
+    }
+
+    /**
+     * Determine whether PACS component is enabled for this partner site
+     * @return true when PACS is enabled for this partner site
+     */
+    public boolean hasEnabledPacs() {
+        return this.getPacs() != null && this.getPacs().getIsEnabled();
+    }
+
+    /**
+     * Determine whether BIO bank component is enabled for this partner site
+     * @return true when BIO bank is enabled for this partner site
+     */
+    public boolean hasEnabledBio() {
+        return this.getBio() != null && this.getBio().getIsEnabled();
+    }
+
+    /**
+     * Determine whether LAB component is enabled for this partner site
+     * @return true when LAB is enabled for this partner site
+     */
+    public boolean hasEnabledLab() {
+        return this.getLab() != null && this.getLab().getIsEnabled();
+    }
+
+    /**
+     * Determine whether PID generator component is enabled for this partner site
+     * @return true when PID generator is enabled for this partner site
+     */
+    public boolean hasEnabledPid() {
+        return this.getPid() != null && this.getPid().getIsEnabled();
+    }
+
+    public List<PacsComponent> findPacsComponents() {
+        List<PacsComponent> result = new ArrayList<>();
+
+        if (this.components != null && this.components.size() > 0) {
+
+            for (int i = 0; i < this.components.size(); i++) {
+                if (this.components.get(i) instanceof PacsComponent) {
+                    result.add((PacsComponent) this.components.get(i));
+                }
+            }
+        }
+
+        return result;
     }
 
     //endregion
@@ -381,11 +545,12 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
         return Objects.toStringHelper(this)
                 .add("id", this.siteId)
                 .add("identifier", this.identifier)
-                .add("sitename", this.name)
+                .add("siteName", this.name)
                 .add("description", this.description)
                 .add("latitude", this.latitude)
                 .add("longitude", this.longitude)
-                .add("isenabled", this.isEnabled)
+                .add("ipRange", this.ipRange)
+                .add("isEnabled", this.isEnabled)
                 .toString();
     }
 

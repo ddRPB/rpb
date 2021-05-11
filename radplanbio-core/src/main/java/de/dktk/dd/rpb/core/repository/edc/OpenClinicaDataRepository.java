@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,16 +20,15 @@
 package de.dktk.dd.rpb.core.repository.edc;
 
 import de.dktk.dd.rpb.core.dao.edc.OpenClinicaDataDao;
-import de.dktk.dd.rpb.core.domain.edc.DataQueryResult;
-import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.*;
 
-import de.dktk.dd.rpb.core.domain.edc.Study;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.openclinica.ws.beans.StudyType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -74,6 +73,16 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
         return this.dao.getUserAccountHash(username);
     }
 
+    @Transactional
+    public String getUserId(String username) {
+        return this.dao.getUserId(username);
+    }
+
+    @Transactional
+    public String getUserName(int id) {
+        return this.dao.getUserName(id);
+    }
+
     //endregion
 
     //region Study
@@ -94,7 +103,62 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
 
     //endregion
 
-    //region CRF item values
+    //region StudySubject
+
+    @Transactional
+    public List<StudySubject> findStudySubjectsByPseudonym(String pid, List<StudyType> studyTypeList) {
+        return this.dao.findStudySubjectsByPseudonym(pid, studyTypeList);
+    }
+
+    //endregion
+
+    //region EventData
+
+    @Transactional
+    public boolean swapEventDataOrder(StudySubject studySubject, EventData eventData, int originalEventRepeatKey) {
+
+        boolean result = false;
+
+        // Fetch eventData from DB
+        List<EventData> eventDataList = this.dao.getEventData(studySubject, eventData.getEventDefinition());
+
+        // Find eventData that will be swapped from DB (they included primary keys IDs)
+        EventData eventData1 = null;
+        EventData eventData2 = null;
+
+        // Figure out the latest eventData repeat key
+        int max = 0;
+        for (EventData ed : eventDataList) {
+
+            // Free slot
+            if (ed.getStudyEventRepeatKeyInteger() > max) {
+                max = ed.getStudyEventRepeatKeyInteger();
+            }
+            // Original
+            if (ed.getStudyEventRepeatKeyInteger() == originalEventRepeatKey) {
+                eventData1 = ed;
+            }
+            // New
+            if (ed.getStudyEventRepeatKey().equals(eventData.getStudyEventRepeatKey())) {
+                eventData2 = ed;
+            }
+        }
+        // Use the next unused occurrence
+        max++;
+
+        // Swap the order
+        if (max > 0 && eventData1 != null && eventData2 != null) {
+            result = this.dao.changeStudyEventRepeatKey(eventData1, max);
+            result &= this.dao.changeStudyEventRepeatKey(eventData2, eventData1.getStudyEventRepeatKeyInteger());
+            result &= this.dao.changeStudyEventRepeatKey(eventData1, eventData2.getStudyEventRepeatKeyInteger());
+        }
+
+        return result;
+    }
+
+    //endregion
+
+    //region ItemData
 
     @Override
     @Transactional(readOnly = true)

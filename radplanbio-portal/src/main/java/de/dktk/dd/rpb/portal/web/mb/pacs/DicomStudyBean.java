@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,11 @@ import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.repository.pacs.IDicomStudyRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
@@ -61,15 +58,6 @@ public class DicomStudyBean extends CrudEntityViewModel<DicomStudy, Integer> {
     @Override
     public IDicomStudyRepository getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IDicomStudyRepository repository) {
-        this.repository = repository;
     }
 
     //endregion
@@ -111,23 +99,17 @@ public class DicomStudyBean extends CrudEntityViewModel<DicomStudy, Integer> {
     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results =  DataTableUtil.buildSortOrder(":form:tabView:dtDicomStudies:colDicomStudyUid", "colDicomStudyUid", SortOrder.ASCENDING);
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtDicomStudies:colDicomStudyUid");
+        if (results != null) {
+            return results;
+        }
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colDicomStudyUid");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         // Initial visibility of columns
         results.add(Boolean.TRUE); // UID

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
+//import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.base.Objects;
 import org.apache.log4j.Logger;
 
@@ -78,6 +79,7 @@ public class MetaDataVersion implements Serializable {
     private List<MultiSelectListDefinition> multiSelectListDefinitions;
 
     @XmlElement(name="StudyDetails", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    //@JsonInclude(JsonInclude.Include.NON_NULL)
     private StudyDetails studyDetails;
 
     //endregion
@@ -87,12 +89,12 @@ public class MetaDataVersion implements Serializable {
     //region Constructors
 
     public MetaDataVersion() {
-        this.studyEventDefinitions = new ArrayList<EventDefinition>();
-        this.formDefinitions = new ArrayList<FormDefinition>();
-        this.itemGroupDefinitions = new ArrayList<ItemGroupDefinition>();
-        this.itemDefinitions = new ArrayList<ItemDefinition>();
-        this.codeListDefinitions = new ArrayList<CodeListDefinition>();
-        this.multiSelectListDefinitions = new ArrayList<MultiSelectListDefinition>();
+        this.studyEventDefinitions = new ArrayList<>();
+        this.formDefinitions = new ArrayList<>();
+        this.itemGroupDefinitions = new ArrayList<>();
+        this.itemDefinitions = new ArrayList<>();
+        this.codeListDefinitions = new ArrayList<>();
+        this.multiSelectListDefinitions = new ArrayList<>();
     }
 
     //endregion
@@ -203,6 +205,7 @@ public class MetaDataVersion implements Serializable {
 
     //region StudyDetails
 
+    //@JsonInclude(JsonInclude.Include.NON_NULL)
     public StudyDetails getStudyDetails() {
         return this.studyDetails;
     }
@@ -214,6 +217,44 @@ public class MetaDataVersion implements Serializable {
     //endregion
 
     //endregion
+
+    //endregion
+
+    //region Methods
+
+    public void groupElementsByOid() {
+        List<EventDefinition> uniqueStudyEventDefinitionList = new ArrayList<>();
+
+        for (EventDefinition ed : this.studyEventDefinitions) {
+            
+            boolean oidExists = false;
+            for (EventDefinition newEd : uniqueStudyEventDefinitionList) {
+                if (newEd.equals(ed)) {
+                    oidExists = true;
+
+                    // Add the referenced forms
+                    newEd.getFormRefs().addAll(ed.getFormRefs());
+                    break;
+                }
+            }
+
+            if (!oidExists) {
+                uniqueStudyEventDefinitionList.add(ed);
+            }
+        }
+
+        this.setStudyEventDefinitions(uniqueStudyEventDefinitionList);
+    }
+
+    public EventDefinition findUniqueEventDefinition(String eventDefinitionOid) {
+        for (EventDefinition eventDefinition : this.studyEventDefinitions) {
+            if (eventDefinitionOid.equals(eventDefinition.getOid())) {
+                return eventDefinition;
+            }
+        }
+
+        return null;
+    }
 
     //endregion
 

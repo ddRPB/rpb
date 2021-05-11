@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,18 @@ package de.dktk.dd.rpb.core.domain.edc;
 import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -154,8 +160,31 @@ public class EventData implements Identifiable<Integer>, Serializable {
         return this.startDate;
     }
 
-    public void setStartDate(String value) {
-        this.startDate = value;
+    public Date getComparableStartDate() {
+        if (this.startDate != null && !this.startDate.equals("")) {
+            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+            try {
+                return format.parse(this.startDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+        this.startDate = format.format(startDate);
+
+    }
+
+    public void setStartDate(XMLGregorianCalendar startDate) {
+        this.setStartDate(startDate.toGregorianCalendar().getTime());
     }
 
     //endregion
@@ -176,6 +205,15 @@ public class EventData implements Identifiable<Integer>, Serializable {
 
     public String getStudyEventRepeatKey() {
         return this.studyEventRepeatKey;
+    }
+
+    public Integer getStudyEventRepeatKeyInteger() {
+        if (this.studyEventRepeatKey != null && !this.studyEventRepeatKey.isEmpty()) {
+            return Integer.parseInt(this.studyEventRepeatKey);
+        }
+        else {
+            return null;
+        }
     }
 
     public void setStudyEventRepeatKey(String value) {
@@ -275,7 +313,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
     //region Overrides
 
     /**
-     * Equals implementation using a business key.
+     * Equals implementation using a business key
      */
     @Override
     public boolean equals(Object other) {
@@ -288,7 +326,8 @@ public class EventData implements Identifiable<Integer>, Serializable {
      */
     @Override
     public int hashCode() {
-        return identifiableHashBuilder.hash(log, this, this.studyEventOid);
+        String alternateIdentifier = this.studyEventRepeatKey != null ? this.studyEventOid + "_" + this.studyEventRepeatKey : this.studyEventOid;
+        return identifiableHashBuilder.hash(log, this, alternateIdentifier);
     }
 
     /**
@@ -329,6 +368,48 @@ public class EventData implements Identifiable<Integer>, Serializable {
                 }
             }
         }
+    }
+
+    //endregion
+
+    //region Data
+
+    public List<ItemData> getAllItemData() {
+        List<ItemData> results = new ArrayList<>();
+
+        if (this.formDataList != null) {
+            for (FormData formData : this.formDataList) {
+                results.addAll(formData.getAllItemData());
+            }
+        }
+
+        return results;
+    }
+
+    public List<ItemData> findAnnotatedItemData(CrfFieldAnnotation annotation) {
+        List<ItemData> results = new ArrayList<>();
+
+        if (annotation != null && this.studyEventOid.equals(annotation.getEventDefinitionOid())) {
+            if (this.formDataList != null) {
+                for (FormData formData : this.formDataList) {
+                    results.addAll(formData.findAnnotatedItemData(annotation));
+                }
+            }
+        }
+
+        return results;
+    }
+
+    public List<ItemData> findAnnotatedItemData(List<CrfFieldAnnotation> annotations) {
+        List<ItemData> results = new ArrayList<>();
+
+        if (annotations != null) {
+            for (CrfFieldAnnotation annotation : annotations) {
+                results.addAll(this.findAnnotatedItemData(annotation));
+            }
+        }
+
+        return results;
     }
 
     //endregion

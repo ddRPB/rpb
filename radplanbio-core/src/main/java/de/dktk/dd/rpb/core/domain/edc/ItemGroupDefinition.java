@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class ItemGroupDefinition implements Identifiable<Integer>, Serializable 
     @XmlAttribute(name="Comment")
     private String comment;
 
-    boolean isRepeating;
+    private boolean isRepeating;
 
     @XmlElement(name="ItemRef")
     private List<ItemDefinition> itemRefs;

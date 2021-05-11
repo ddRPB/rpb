@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,75 +19,116 @@
 
 package de.dktk.dd.rpb.core.repository.admin;
 
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+
+import javax.inject.Inject;
+
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-import de.dktk.dd.rpb.core.repository.support.Repository;
+import de.dktk.dd.rpb.core.dao.ctms.PartnerSiteDao;
+import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+
+import org.apache.log4j.Logger;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The PartnerSiteRepository is a data-centric service for the {@link PartnerSite} entity.
- * It provides the expected methods to get/delete a {@link PartnerSite} instance
- * plus some methods to perform searches.
- * <p>
- * Search logic is driven by 2 kinds of parameters: a {@link PartnerSite} instance used
- * as a properties holder against which the search will be performed and a {@link de.dktk.dd.rpb.core.dao.support.SearchParameters}
- * instance from where you can control your search options including the usage
- * of named queries.
+ * Default implementation of the {@link PartnerSite} interface.
+ * Note: you may use multiple DAO from this layer.
+ * @see IPartnerSiteRepository
  *
- * PartnerSiteRepository Interface
+ * IPartnerSiteRepository interface implementation
  *
  * @author tomas@skripcak.net
  * @since 10 Apr 2013
  */
-public interface PartnerSiteRepository extends Repository<PartnerSite, Integer> {
+@Named("partnerSiteRepository")
+@Singleton
+public class PartnerSiteRepository extends RepositoryImpl<PartnerSite, Integer> implements IPartnerSiteRepository {
+
+    //region Finals
+
+    @SuppressWarnings("unused")
+    private static final Logger log = Logger.getLogger(PartnerSiteRepository.class);
+
+    //endregion
+
+    //region Injects
+
+    protected PartnerSiteDao partnerSiteDao;
+
+    @Inject
+    public void setPartnerSiteDao(PartnerSiteDao value) {
+        this.partnerSiteDao = value;
+    }
+
+    //endregion
+
+    //region Overrides
 
     /**
-     * Return the persistent instance of {@link PartnerSite} with the given unique property value siteName,
-     * or null if there is no such persistent instance.
-     *
-     * @param siteName the unique value
-     * @return the corresponding {@link PartnerSite} persistent instance or null
+     * Dao getter used by the {@link RepositoryImpl}.
      */
-    PartnerSite getBySiteName(String siteName);
+    @Override
+    public GenericDao<PartnerSite, Integer> getDao() {
+        return this.partnerSiteDao;
+    }
 
     /**
-     * Delete a {@link PartnerSite} using the unique column siteName
-     *
-     * @param siteName the unique value
+     * {@inheritDoc}
      */
-    void deleteBySiteName(String siteName);
+    @Override
+    public PartnerSite getNew() {
+        return new PartnerSite();
+    }
 
     /**
-     * Save a {@link PartnerSite} and its Pacs (if new insert if exits update)
-     *
-     * @param partnerSite the partnerSite object for save
+     * {@inheritDoc}
      */
-    void savePartnerSitePacs(PartnerSite partnerSite);
+    @Override
+    public PartnerSite getNewWithDefaults() {
+        PartnerSite result = getNew();
+        result.initDefaultValues();
+        return result;
+    }
 
     /**
-     * Save a {@link PartnerSite} and its Edc (if new insert if exits update)
-     *
-     * @param partnerSite the partnerSite object for save
+     * {@inheritDoc}
      */
-    void savePartnerSiteEdc(PartnerSite partnerSite);
+    @Override
+    @Transactional(readOnly = true)
+    public PartnerSite get(PartnerSite model) {
+        if (model == null) {
+            return null;
+        }
+
+        if (model.isIdSet()) {
+            return super.get(model);
+        }
+
+        if (!isNotEmpty(model.getName())) {
+            PartnerSite result = getBySiteName(model.getName());
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
 
     /**
-     * Save a {@link PartnerSite} and its Pid (if new insert if exits update)
-     *
-     * @param partnerSite the partnerSite object for save
+     * {@inheritDoc}
      */
-    void savePartnerSitePid(PartnerSite partnerSite);
+    @Override
+    @Transactional(readOnly = true)
+    public PartnerSite getBySiteName(String _siteName) {
+        PartnerSite site = new PartnerSite();
+        site.setName(_siteName);
+        return findUniqueOrNone(site);
+    }
 
-    /**
-     * Save a {@link PartnerSite} and its Portal (if new insert if exits update)
-     *
-     * @param partnerSite the partnerSite object for save
-     */
-    void savePartnerSitePortal(PartnerSite partnerSite);
-
-    /**
-     * Save a {@link PartnerSite} and its Server (if new insert if exits update)
-     *
-     * @param partnerSite the partnerSite object for save
-     */
-    void savePartnerSiteServer(PartnerSite partnerSite);
+    //endregion
 
 }

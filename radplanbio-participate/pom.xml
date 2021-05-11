@@ -13,7 +13,7 @@
 	</parent>
 	<artifactId>radplanbio-participate</artifactId>
 	<packaging>war</packaging>
-	<name>radplanbio-participate</name>
+	<name>radplanbio-mobile</name>
 	<description>RadPlanBio eCOA/ePRO</description>
 	<prerequisites>
 		<maven>2.2.0</maven>
@@ -52,30 +52,37 @@
 		<!-- Version dependencies when used in multiple dependencies -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<maven-celerio-plugin.outputDir>${project.basedir}</maven-celerio-plugin.outputDir>
-		<hibernate.version>4.3.10.Final</hibernate.version>
-		<spring.version>4.3.18.RELEASE</spring.version><!--old 4.1.6.RELEASE-->
-		<spring-security.version>3.2.7.RELEASE</spring-security.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
+		<spring.version>4.3.18.RELEASE</spring.version><!--old 4.1.6.RELEASE new 4.3.18.RELEASE-->
+		<spring-security.version>4.1.5.RELEASE</spring-security.version><!--old 3.2.7.RELEASE new 4.1.1.RELEASE-->
 		<jsf-api.version>2.1.24</jsf-api.version>
-		<primefaces.version>6.0</primefaces.version>
+		<primefaces.version>6.1</primefaces.version>
+		<primefaces-themes.version>1.0.10</primefaces-themes.version>
 		<omnifaces.version>1.8.1</omnifaces.version>
 		<slf4j.version>1.5.10</slf4j.version>
+		
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- Variables substituted in resources file at build time -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<application.name>${project.name}</application.name>
 		<application.version>${project.version}</application.version>
 		<application.description>${project.description}</application.description>
+
 		<!-- host port where the application will be deployed -->
 		<application.host>localhost</application.host>
 		<application.port>8080</application.port>
-		<application.contextpath>/radplanbio</application.contextpath>
-		<log4j.level>DEBUG</log4j.level>
-		<!-- hibernate, see by src/main/resource/hibernate.properties -->
-		<hibernate.show.sql>true</hibernate.show.sql>
-		<hibernate.format.sql>true</hibernate.format.sql>
-		<hibernate.generate_statistics>true</hibernate.generate_statistics>
-		<hibernate.use_sql_comments>true</hibernate.use_sql_comments>
-		<!-- Control hibernate 2d level caching -->
+		<application.contextpath>/participate</application.contextpath>
+
+		<!-- Logging (set WARN for production) -->
+		<log4j.level>WARN</log4j.level>
+
+		<!-- Hibernate, see by src/main/resource/hibernate.properties (set false for production) -->
+		<hibernate.show.sql>false</hibernate.show.sql>
+		<hibernate.format.sql>false</hibernate.format.sql>
+		<hibernate.use_sql_comments>false</hibernate.use_sql_comments>
+		<hibernate.generate_statistics>false</hibernate.generate_statistics>
+		
+		<!-- Control Hibernate 2d level caching -->
 		<hibernate.ehcache.configuration.file>ehcache.xml</hibernate.ehcache.configuration.file>
 		<hibernate.use.second.level.cache>true</hibernate.use.second.level.cache>
 		<hibernate.use.query.cache>true</hibernate.use.query.cache>
@@ -218,16 +225,15 @@
 	<!-- REPORTING -->
 	<!-- ~~~~~~~~~ -->
 	<reporting />
-
+	
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- DEPENDENCIES -->
 	<!-- ~~~~~~~~~~~~ -->
 	<dependencies>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- List specific dependencies below -->
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-
+		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>radplanbio-core</artifactId>
@@ -262,6 +268,13 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
 			<version>${hibernate.version}</version>
+			<!-- TODO: hibernate embeds Ehcache 2.4.3 we want to exclude it because we have separate dependency for it -->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<groupId>net.sf.ehcache</groupId>-->
+					<!--<artifactId>ehcache-core</artifactId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -321,7 +334,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
-			<version>4.2.0.Final</version>
+			<version>4.3.2.Final</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency> <!-- validation html -->
@@ -330,9 +343,9 @@
 			<version>1.7.2</version>
 		</dependency>
 
-		<!-- ~~~~~~ -->
+		<!-- ~~~~~~~~~ -->
 		<!-- Exporting -->
-		<!-- ~~~~~~ -->
+		<!-- ~~~~~~~~~ -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
@@ -558,18 +571,18 @@
 			<version>${spring-security.version}</version>
 		</dependency>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~ -->
 		<!-- RSS -->
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~ -->
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
 			<version>1.5.0</version>
 		</dependency>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~ -->
 		<!-- JSF                         -->
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~ -->
 		<dependency>
 			<groupId>org.jboss.el</groupId>
 			<artifactId>jboss-el</artifactId>
@@ -601,20 +614,31 @@
 			<artifactId>omnifaces</artifactId>
 			<version>${omnifaces.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-web</artifactId>
-			<version>2.0.4</version>
+		<dependency><!-- optional theme (see also web.xml to enable it) -->
+			<groupId>org.primefaces.themes</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>${primefaces-themes.version}</version>
 		</dependency>
-		<!--<dependency>&lt;!&ndash; optional theme (see also web.xml to enable it) &ndash;&gt;-->
-			<!--<groupId>org.primefaces.themes</groupId>-->
-			<!--<artifactId>bootstrap</artifactId>-->
-			<!--<version>${primefaces-themes.version}</version>-->
+
+		<!-- ~~~~~ -->
+		<!-- CACHE -->
+		<!-- ~~~~~ -->
+		<!--TODO: only extra dependency if excluded from hibernate -->
+		<!--<dependency>-->
+			<!--<groupId>net.sf.ehcache</groupId>-->
+			<!--<artifactId>ehcache</artifactId>-->
+			<!--<version>2.9.0</version>-->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<artifactId>ehcache-core</artifactId>-->
+					<!--<groupId>net.sf.ehcache</groupId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
 		<!--</dependency>-->
 
-		<!-- ~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
 		<!-- SOAP WEB SERVICES - exclude spring framework and javax.servlet api because it was already added-->
-		<!-- ~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
 		<dependency>
 			<groupId>org.jvnet.jax-ws-commons.spring</groupId>
 			<artifactId>jaxws-spring</artifactId>
@@ -636,6 +660,10 @@
 					<groupId>org.springframework</groupId>
 					<artifactId>spring-context</artifactId>
 				</exclusion>
+				<exclusion>
+					<artifactId>activation</artifactId>
+					<groupId>javax.activation</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<!-- This is necessary for web service to work also (somehow this library was missing in the deploy environment) -->
@@ -651,9 +679,9 @@
 			<version>1.0</version>
 		</dependency>
 
-		<!-- ~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
 		<!-- REST WEB SERVICES -->
-		<!-- ~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~ -->
 		<dependency>
 			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
@@ -775,17 +803,17 @@
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-core</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-image</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-net</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 
 		<dependency>
@@ -816,10 +844,18 @@
 			<url>http://repository.primefaces.org</url>
 			<layout>default</layout>
 		</repository>
-		<repository>
+		
+		<!-- <repository>
 			<id>spring-release</id>
 			<url>https://repo.springsource.org/libs-release/</url>
+		</repository> -->
+		
+		<repository> 
+			<id>repository.spring.release</id> 
+			<name>Spring GA Repository</name> 
+			<url>http://repo.spring.io/release</url> 
 		</repository>
+		
 		<repository>
 			<id>jboss</id>
 			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Lab</comment>
+
+    <entry key="lab">LAB</entry>
+    <entry key="lab_plural">LABs</entry>
+    <entry key="lab_reload">Reload existing LABs</entry>
+    <entry key="lab_print">Print LABs table</entry>
+    <entry key="lab_new">Define a new LAB</entry>
+    <entry key="lab_edit">Edit selected LAB</entry>
+    <entry key="lab_delete">Delete selected LAB</entry>
+
+    <!-- attributes -->
+    <entry key="lab_id">ID</entry>
+    <entry key="lab_baseUrl">Base URL</entry>
+    <entry key="lab_publicUrl">Public URL</entry>
+    <entry key="lab_isEnabled">Enabled</entry>
+    <entry key="lab_version">Version</entry>
+
+</properties>

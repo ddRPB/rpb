@@ -6,11 +6,11 @@
 
     <entry key="docType">Dokument Art</entry>
     <entry key="docType_plural">Dokumentarten</entry>
-    <entry key="docType_reload">Neu laden vorhandenen Dokumentarten</entry>
-    <entry key="docType_print">Drucken Tabelle Dokumentarten</entry>
-    <entry key="docType_new">Definieren Sie einen neuen Dokument Art</entry>
-    <entry key="docType_edit">Bearbeiten Sie ausgewählten Dokument Art</entry>
-    <entry key="docType_delete">Löschen ausgewählten Dokument Art</entry>
+    <entry key="docType_reload">Vorhandenen Dokumentarten neu laden</entry>
+    <entry key="docType_print">Tabelle Dokumentarten drucken</entry>
+    <entry key="docType_new">Neuen Dokument Art definieren</entry>
+    <entry key="docType_edit">Ausgewählten Dokument Art bearbeiten</entry>
+    <entry key="docType_delete">Ausgewählten Dokument Art löschen</entry>
 
     <!-- attributes -->
     <entry key="docType_id">Id</entry>

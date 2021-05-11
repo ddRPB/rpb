@@ -39,7 +39,10 @@ public class MappingRecord_ {
     public static volatile SingularAttribute<MappingRecord, String> defaultValue;
     public static volatile SingularAttribute<MappingRecord, String> multiValueSeparator;
     public static volatile SingularAttribute<MappingRecord, String> dateFormatString;
+    public static volatile SingularAttribute<MappingRecord, String> calculationString;
     public static volatile SingularAttribute<MappingRecord, Integer> priority;
+    public static volatile SingularAttribute<MappingRecord, String> studyEventRepeatKey;
+    public static volatile SingularAttribute<MappingRecord, String> itemGroupRepeatKey;
 
     // One to one
     public static volatile SingularAttribute<MappingRecord, AbstractMappedItem> source;

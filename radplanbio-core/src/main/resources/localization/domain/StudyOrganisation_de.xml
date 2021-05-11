@@ -6,11 +6,11 @@
 
     <entry key="studyOrganisation">Studie Organisation</entry>
     <entry key="studyOrganisation_plural">Studie Organisationen</entry>
-    <entry key="studyOrganisation_reload">Reload existing Studie Organisationen</entry>
-    <entry key="studyOrganisation_print">Drucken Tabelle Organisationen</entry>
-    <entry key="studyOrganisation_new">Definieren Sie eine neue Studie Organisation</entry>
-    <entry key="studyOrganisation_edit">Bearbeiten ausgewählte Studie Organisation</entry>
-    <entry key="studyOrganisation_delete">Löschen ausgewählte Studie Organisation</entry>
+    <entry key="studyOrganisation_reload">Vorhandenen Studie Organisationen neu laden</entry>
+    <entry key="studyOrganisation_print">Tabelle Studie Organisationen drucken</entry>
+    <entry key="studyOrganisation_new">Neue Studie Organisation definieren</entry>
+    <entry key="studyOrganisation_edit">Ausgewählte Studie Organisation bearbeiten</entry>
+    <entry key="studyOrganisation_delete">Ausgewählte Studie Organisation löschen</entry>
 
     <!-- attributes -->
     <entry key="studyOrganisation_id">Id</entry>

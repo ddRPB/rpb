@@ -14,7 +14,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="CV Item Types" title="Curriculum Vitae Item Types" url="/admin/ctms/cvItemTypeCRUD.faces" />
+            <p:menuitem value="#{msg.curriculumVitaeItem} #{msg.curriculumVitaeItemType_plural}" title="#{msg.curriculumVitaeItem} #{msg.curriculumVitaeItemType_plural}" url="/admin/ctms/cvItemTypeCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbCurriculumVitaeItemType.tab.activeIndex}">
 
             <!-- CV Item Types -->
-            <p:tab title="CV Item Types" titletip="Curriculum Vitae Item Types">
+            <p:tab title="#{msg.curriculumVitaeItem} #{msg.curriculumVitaeItemType_plural}">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -32,7 +32,7 @@
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 value="#{msg.menu_new}"
-                                title="Define a new CV Item Type [ctrl+shift+n]"
+                                title="#{msg.curriculumVitaeItemType_new}"
                                 icon="ui-icon-document"
                                 oncomplete="PF('newEntityDialog').show();"
                                 style="float: left;"
@@ -41,18 +41,9 @@
                                 process="@this"
                                 actionListener="#{mbCurriculumVitaeItemType.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbCurriculumVitaeItemType.prepareNewEntity}"
-                                rendered="#{mbCurriculumVitaeItemType.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
-                                title="Reload CV Item Types [ctrl+shift+r]"
+                                title="#{msg.curriculumVitaeItemType_reload}"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 immediate="true"
@@ -60,28 +51,20 @@
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbCurriculumVitaeItemType.loadTree}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbCurriculumVitaeItemType.loadTree}"
-                                rendered="#{mbCurriculumVitaeItemType.tab.activeIndex == 0}"
-                                />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print CV Item Types table"
+                                title="#{msg.curriculumVitaeItemType_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -108,7 +91,7 @@
                             sortBy="#{entity.name}"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.curriculumVitaeItemType_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
@@ -118,7 +101,7 @@
                             style="width:40%"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.curriculumVitaeItemType_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
@@ -166,7 +149,7 @@
         <!-- New CV Item Type -->
         <p:dialog
                 id="dlgNewEntity"
-                header="New Curriculum Viate Item Type"
+                header="#{msg.curriculumVitaeItemType_new}"
                 widgetVar="newEntityDialog"
                 resizable="false"
                 ajax="true"
@@ -185,17 +168,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtCvItemTypeNameNew" />
+                    <h:outputLabel value="#{msg.curriculumVitaeItemType_name}: #{msg.label_required_suffix}" for="txtCvItemTypeNameNew" />
                     <p:inputText
                             id="txtCvItemTypeNameNew"
                             value="#{mbCurriculumVitaeItemType.newEntity.name}"
                             required="true"
-                            requiredMessage="Curriculum Vitae Item Type name is mandatory!"
+                            requiredMessage="#{msg.curriculumVitaeItemType_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtCvItemTypeDescriptionNew" />
+                    <h:outputLabel value="#{msg.curriculumVitaeItemType_description}:" for="txtCvItemTypeDescriptionNew" />
                     <p:inputTextarea
                             id="txtCvItemTypeDescriptionNew"
                             value="#{mbCurriculumVitaeItemType.newEntity.description}"
@@ -204,7 +187,7 @@
                             />
 
                     <!-- Parent -->
-                    <h:outputLabel value="Parent:" for="ddlCvItemTypeParentNew" />
+                    <h:outputLabel value="#{msg.curriculumVitaeItemType_parent}:" for="ddlCvItemTypeParentNew" />
                     <p:selectOneMenu
                             id="ddlCvItemTypeParentNew"
                             value="#{mbCurriculumVitaeItemType.newEntity.parent}"
@@ -249,7 +232,7 @@
         <!-- Edit CV Item Type -->
         <p:dialog
                 id="dlgEntityDetails"
-                header="Edit Person Status details"
+                header="#{msg.curriculumVitaeItemType_edit}"
                 widgetVar="editEntityDialog"
                 resizable="false"
                 appendToBody="true"
@@ -267,17 +250,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtCvItemTypeNameEdit" />
+                    <h:outputLabel value="#{msg.curriculumVitaeItemType_name}: #{msg.label_required_suffix}" for="txtCvItemTypeNameEdit" />
                     <p:inputText
                             id="txtCvItemTypeNameEdit"
                             value="#{mbCurriculumVitaeItemType.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Curriculum Vitae Item Type name is mandatory!"
+                            requiredMessage="#{msg.curriculumVitaeItemType_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtCvItemTypeDescriptionEdit" />
+                    <h:outputLabel value="#{msg.curriculumVitaeItemType_description}:" for="txtCvItemTypeDescriptionEdit" />
                     <p:inputTextarea
                             id="txtCvItemTypeDescriptionEdit"
                             value="#{mbCurriculumVitaeItemType.selectedEntity.description}"
@@ -286,7 +269,7 @@
                             />
 
                     <!-- Parent -->
-                    <h:outputLabel value="Parent:" for="ddlCvItemTypeParentEdit" />
+                    <h:outputLabel value="#{msg.curriculumVitaeItemType_parent}:" for="ddlCvItemTypeParentEdit" />
                     <p:selectOneMenu
                             id="ddlCvItemTypeParentEdit"
                             value="#{mbCurriculumVitaeItemType.newEntity.parent}"

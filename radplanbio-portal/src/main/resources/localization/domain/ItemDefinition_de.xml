@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for EDC ItemDefinition</comment>
+
+    <entry key="itemDefinition">Item Definition</entry>
+    <entry key="itemDefinition_plural">Definitionen</entry>
+    <entry key="itemDefinition_reload">Vorhandenen Item Definitionen neu laden</entry>
+    <entry key="itemDefinition_print">Tabelle Item Definitionen drucken</entry>
+    <entry key="itemDefinition_new">Neue Item Definition definieren</entry>
+    <entry key="itemDefinition_edit">Ausgewählte Item Definition bearbeiten</entry>
+    <entry key="itemDefinition_delete">Ausgewählten Item Definition löschen</entry>
+
+    <!-- attributes -->
+    <entry key="itemDefinition_id">Id</entry>
+    <entry key="itemDefinition_oid">Oid</entry>
+    <entry key="itemDefinition_name">Name</entry>
+    <entry key="itemDefinition_question">Frage</entry>
+
+</properties>

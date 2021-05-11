@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,21 +28,18 @@ import de.dktk.dd.rpb.core.domain.randomisation.BlockRandomisationConfiguration;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IStudyTagTypeRepository;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
+import de.dktk.dd.rpb.core.service.IFileStorageService;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.FlowEvent;
-import org.primefaces.extensions.model.timeline.TimelineEvent;
-import org.primefaces.extensions.model.timeline.TimelineModel;
+import org.primefaces.model.timeline.TimelineEvent;
+import org.primefaces.model.timeline.TimelineModel;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -67,7 +64,6 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
 
     //region Repository
 
-    @Inject
     private IStudyRepository repository;
 
     /**
@@ -79,24 +75,10 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
         return this.repository;
     }
 
-    /**
-     * Set StudyRepository
-     * @param repository StudyRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IStudyRepository repository) {
-        this.repository = repository;
-    }
-
-    @Inject
-    IStudyTagTypeRepository tagTypeRepository;
-
-    @SuppressWarnings("unused")
-    public void setTagTypeRepository(IStudyTagTypeRepository tagTypeRepository) {
-        this.tagTypeRepository = tagTypeRepository;
-    }
-
     //endregion
+
+    private IStudyTagTypeRepository tagTypeRepository;
+    private IFileStorageService fileStorageService;
 
     //endregion
 
@@ -166,14 +148,6 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
 
     //endregion
 
-    //region ProtocolTypes
-
-    public EnumProtocolType[] getProtocolTypes() {
-        return EnumProtocolType.values();
-    }
-
-    //endregion
-
     //region TimeLineEventsModel
 
     public TimelineModel getTimeLineEventsModel() {
@@ -204,6 +178,8 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
         }
         else if (this.selectedEntity != null && this.selectedEntity.getRandomisationConfiguration() == null) {
             this.randomisationConf = new BlockRandomisationConfiguration();
+            // Block size has to be multiplication of minimal block size (minimal block size not from configuration
+            // but from the proportion of treatment arms, based on number of subjects in arms)
             this.randomisationConf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
         }
 
@@ -218,15 +194,26 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
 
     //endregion
 
+    //region Constructors
+
+    @Inject
+    public StudyBean(IStudyRepository repository, IStudyTagTypeRepository tagTypeRepository, IFileStorageService fileStorageService) {
+        this.repository = repository;
+        this.tagTypeRepository = tagTypeRepository;
+        this.fileStorageService = fileStorageService;
+    }
+
+    //endregion
+
     //region Init
 
     @PostConstruct
     public void init() {
         // Initialise study tag search criteria
-        this.tagSearchCriteria = new ArrayList<StudyTag>();
+        this.tagSearchCriteria = new ArrayList<>();
 
         // To enabled editing in cell PrimeFaces requires drop down list component
-        this.tagBooleanList = new ArrayList<String>();
+        this.tagBooleanList = new ArrayList<>();
         this.tagBooleanList.add(Boolean.FALSE.toString().toLowerCase());
         this.tagBooleanList.add(Boolean.TRUE.toString().toLowerCase());
 
@@ -250,7 +237,7 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
     //region TumourEntities
 
     public void prepareNewTumourEntities() {
-        this.assignedTumourEntities = new ArrayList<TumourEntity>();
+        this.assignedTumourEntities = new ArrayList<>();
     }
 
     public void doAddTumourEntities(List<TumourEntity> tumourEntities) {
@@ -322,7 +309,7 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
         }
     }
 
-    public void initiliseMissingRequiredTags(List<StudyTagType> requiredStudyTagTypes) {
+    public void initialiseMissingRequiredTags(List<StudyTagType> requiredStudyTagTypes) {
         this.selectedEntity.initialiseAllRequiredTags(
                 requiredStudyTagTypes
         );
@@ -346,7 +333,7 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
 
     //region StudyPersonnel
 
-    public void doAddNewPresonnel(StudyPerson studyPerson) {
+    public void doAddNewPersonnel(StudyPerson studyPerson) {
         this.selectedEntity.addStudyPersonnel(studyPerson);
         this.doUpdateEntity();
     }
@@ -396,7 +383,7 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
             // Take options from criterion
             for (Object option : newCriterion.getConfiguredValues()) {
                 // Setup constraints for criterion from each option
-                List<String> constraintValue = new ArrayList<String>();
+                List<String> constraintValue = new ArrayList<>();
                 constraintValue.add(option.toString());
                 DichotomousConstraint co = new DichotomousConstraint(constraintValue);
 
@@ -474,10 +461,8 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
         this.selectedEntity.removeDoc(selectedStudyDoc);
         this.doUpdateEntity();
 
-        // Try to remove from file system
         try {
-            ExternalContext extContext = FacesContext.getCurrentInstance().getExternalContext();
-            File file = new File(extContext.getRealPath("//WEB-INF//files//" + "//" + this.selectedEntity.getId() + "//" + selectedStudyDoc.getFilename()));
+            File file = this.fileStorageService.getFile("files//" + "//" + this.selectedEntity.getId() + "//" + selectedStudyDoc.getFilename());
             if (!file.delete()) {
                 throw new Exception("Delete failed while deleting file from file system.");
             }
@@ -594,12 +579,12 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStudyTitle", "colStudyTitle", SortOrder.ASCENDING);
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStudyName", "colStudyName", SortOrder.ASCENDING);
         if (results != null) {
             return results;
         }
 
-        return new ArrayList<SortMeta>();
+        return new ArrayList<>();
     }
 
     /**
@@ -607,7 +592,8 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
      * @return List of Boolean values determining column visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> result = new ArrayList<Boolean>();
+        List<Boolean> result = new ArrayList<>();
+        result.add(Boolean.FALSE); // protocol id
         result.add(Boolean.TRUE); // short title
         result.add(Boolean.FALSE); // title
         result.add(Boolean.TRUE); // tumour entities
@@ -615,6 +601,7 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
         result.add(Boolean.TRUE); // sponsoring type
         result.add(Boolean.TRUE); // status
         result.add(Boolean.TRUE); // protocol type
+        result.add(Boolean.FALSE); // study timing
 
         // All dynamic study tags are hidden
         int tagTypeCount = this.tagTypeRepository.find().size();
@@ -630,10 +617,10 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
     //region Private
 
     private List<Study> buildAndStudyFilter(List<Study> studies) {
-        List<Study> studyFilter = new ArrayList<Study>();
+        List<Study> studyFilter = new ArrayList<>();
 
         for (Study s : studies) {
-            List<StudyTag> criteriaToMatch = new ArrayList<StudyTag>();
+            List<StudyTag> criteriaToMatch = new ArrayList<>();
             criteriaToMatch.addAll(this.tagSearchCriteria);
 
             for (StudyTag st : s.getTags()) {

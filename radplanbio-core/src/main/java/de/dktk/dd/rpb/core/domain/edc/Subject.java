@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,25 +19,40 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
-import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
+import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
+import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
-
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static de.dktk.dd.rpb.core.util.Constants.RPB_DATEFORMAT;
+
+//TODO: refactor Subject and Person classes
+//TODO: move to rpb package
+// Subject (of research) is aggregate class should be clean of:
+// studySubjectId, secondaryId, oid, gender, dateOfBirth, yearOfBirth, enrollmentDate, and treatmentArm
+
+// Person is optional just IDAT for patient subjects
+// List of study subjects, bio specimens, dicom studies, and persisted trial subjects (with arm) should be in a Subject
+// These should be removed from Person
 
 /**
  * RadPlanBio Subject - domain entity (transient)
- * Data about subject can originated from different systems (OC, PID, randomisation), this transient domain object
- * aggregates the important information about subject together in order to be presented in the consistent form
+ * Data about subject can originated from different systems (EDC, PACS, PID, RAND)
+ * this transient domain object aggregates the important information about subject together
+ * in order to be presented in the consistent form
  *
  * @author tomas@skripcak.net
  * @since 14 Jun 2013
@@ -86,6 +101,8 @@ public class Subject implements Identifiable<Integer>, Serializable {
 
     // When subject is included in randomised study it can have treatment arm
     private TreatmentArm arm;
+
+    private List<DicomStudy> dicomStudyList;
 
     //endregion
 
@@ -168,7 +185,7 @@ public class Subject implements Identifiable<Integer>, Serializable {
     //region Gender
 
     public String getGender() {
-        return  this.gender;
+        return this.gender;
     }
 
     public void setGender(String value) {
@@ -183,7 +200,7 @@ public class Subject implements Identifiable<Integer>, Serializable {
         return this.dateOfBirth;
     }
 
-    public void setDateOfBirth(Date value){
+    public void setDateOfBirth(Date value) {
         this.dateOfBirth = value;
     }
 
@@ -223,7 +240,17 @@ public class Subject implements Identifiable<Integer>, Serializable {
     }
 
     /**
+     * Converts XMLGregorianCalendar to a String with pattern "dd.MM.yyyy"
+     */
+    public String getEnrollmentDateString() {
+        DateFormat df = new SimpleDateFormat(RPB_DATEFORMAT);
+        Date date = this.enrollmentDate.toGregorianCalendar().getTime();
+        return df.format(date);
+    }
+
+    /**
      * Converts java.util.Date in Java to XMLGregorianCalendar (from GUI)
+     *
      * @param value enrollment date as Date
      */
     public void setComparableEnrollmentDate(Date value) {
@@ -269,6 +296,20 @@ public class Subject implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    // region DicomStudy
+    public List<DicomStudy> getDicomStudyList() {
+        if (dicomStudyList == null) {
+            dicomStudyList = new ArrayList<>();
+        }
+        return dicomStudyList;
+    }
+
+    public void setDicomStudyList(List<DicomStudy> dicomStudyList) {
+        this.dicomStudyList = dicomStudyList;
+    }
+    // endregion
+
+
     //endregion
 
     //region Methods
@@ -287,6 +328,33 @@ public class Subject implements Identifiable<Integer>, Serializable {
         // Also person data if present
         if (this.person != null) {
             this.person.initDefaultValues();
+        }
+    }
+
+    /**
+     * Generate unique PersonID according to RPB conventions when no PID generator is used but person ID is required
+     *
+     * @param rpbStudy       RPB study
+     * @param rpbPartnerSite RPB partner site
+     */
+    public void generateUniqueIdentifier(de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy, PartnerSite rpbPartnerSite) {
+        if (rpbStudy != null && rpbPartnerSite != null) {
+
+            // Unique for RPB partner site
+            String partnerSitePart = rpbPartnerSite.getIdentifier() + Constants.RPB_IDENTIFIERSEP;
+            // Unique for RPB study
+            String studyPart = rpbStudy.getTagValue("EDC-code") + Constants.RPB_IDENTIFIERSEP;
+            // Unique for RPB study subject
+            String subjectPart;
+            if (this.studySubjectId.startsWith(partnerSitePart)) {
+                subjectPart = this.studySubjectId.replace(partnerSitePart, "");
+            } else if (this.studySubjectId.startsWith(rpbPartnerSite.getIdentifier())) {
+                subjectPart = this.studySubjectId.replace(rpbPartnerSite.getIdentifier(), "");
+            } else {
+                subjectPart = this.studySubjectId;
+            }
+
+            this.uniqueIdentifier = (partnerSitePart + studyPart + subjectPart);
         }
     }
 

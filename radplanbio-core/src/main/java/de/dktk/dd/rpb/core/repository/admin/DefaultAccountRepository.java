@@ -37,9 +37,9 @@ import de.dktk.dd.rpb.core.dao.admin.DefaultAccountDao;
 /**
  * Default implementation of the {@link IDefaultAccountRepository} interface.
  * Note: you may use multiple DAO from this layer.
- * @see DefaultAccountRepository
+ * @see IDefaultAccountRepository
  *
- * DefaultAccountRepository
+ * IDefaultAccountRepository
  *
  * @author tomas@skripcak.net
  * @since 10 Apr 2013

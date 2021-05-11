@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,7 +118,8 @@ public class Organisation implements Identifiable<Integer>, Named, Serializable 
 
     //region One-to-Many
 
-    @OneToMany(mappedBy = "parent")
+    //TODO: lazy load
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<Organisation> getChildren() {
         return this.children;
     }
@@ -141,7 +142,8 @@ public class Organisation implements Identifiable<Integer>, Named, Serializable 
 
     //region Many-to-One
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    //TODO: lazy load
+    @ManyToOne()
     @JoinColumn(name="PARENTID")
     public Organisation getParent() {
         return  this.parent;

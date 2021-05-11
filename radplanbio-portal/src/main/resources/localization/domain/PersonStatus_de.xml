@@ -5,12 +5,12 @@
     <comment>Domain resources for PersonStatus</comment>
 
     <entry key="personStatus">Status</entry>
-    <entry key="personStatus_plural">Statuses</entry>
-    <entry key="personStatus_reload">Neu laden vorhandenen Statuses</entry>
-    <entry key="personStatus_print">Drucken Tabelle Statuses</entry>
-    <entry key="personStatus_new">Definieren Sie eine neue Status</entry>
-    <entry key="personStatus_edit">Bearbeiten Sie ausgewählte Status</entry>
-    <entry key="personStatus_delete">Löschen ausgewählten Status</entry>
+    <entry key="personStatus_plural">Status</entry>
+    <entry key="personStatus_reload">Vorhandene Status neu laden</entry>
+    <entry key="personStatus_print">Tabelle Status drucken</entry>
+    <entry key="personStatus_new">Neuen Status definieren</entry>
+    <entry key="personStatus_edit">Ausgewählten Status bearbeiten</entry>
+    <entry key="personStatus_delete">Ausgewählten Status löschen</entry>
 
     <!-- attributes -->
     <entry key="personStatus_id">Id</entry>

@@ -58,8 +58,9 @@ public class MappedCsvItem extends AbstractMappedItem {
     }
 
     public MappedCsvItem(String header) {
-        this.header = header;
-        this.label = header;
+        // The column name should be free from starting and trailing spaces
+        this.header = header.trim();
+        this.label = header.trim();
     }
 
     //endregion

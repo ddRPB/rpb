@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,9 @@ import java.io.Serializable;
  * @since 12 Sep 2013
  */
 @Entity
-@Table(name = "STUDYDOC")
+@Table(name = "STUDYDOC", uniqueConstraints={
+    @UniqueConstraint(columnNames = {"STUDYID", "FILENAME"})
+})
 public class StudyDoc implements Identifiable<Integer>, Serializable {
 
     //region Finals
@@ -52,7 +54,7 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
 
     // Raw attributes
     private Integer id; // pk
-    private String filename; // not null, unique
+    private String filename; // not null
     private String displayname;
     private String description;
 
@@ -96,7 +98,7 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
 
     @Size(max = 255)
     @NotEmpty
-    @Column(name = "FILENAME", nullable = false, unique = true)
+    @Column(name = "FILENAME", nullable = false)
     public String getFilename()  {
         return this.filename;
     }
@@ -123,8 +125,8 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
 
     //region Description
 
-    @Size(max = 255)
-    @Column(name = "DESCRIPTION")
+    @Size(max = 4000)
+    @Column(name = "DESCRIPTION", length = 4000)
     public String getDescription()  {
         return this.description;
     }
@@ -195,8 +197,7 @@ public class StudyDoc implements Identifiable<Integer>, Serializable {
      * equals implementation using a business key.
      */
     @Override
-    public boolean equals(Object other)
-    {
+    public boolean equals(Object other) {
         return this == other || (other instanceof StudyDoc && hashCode() == other.hashCode());
     }
 

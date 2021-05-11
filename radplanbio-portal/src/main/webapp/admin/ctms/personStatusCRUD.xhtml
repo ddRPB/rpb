@@ -14,7 +14,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Person Statuses" title="Person Statuses" url="/admin/ctms/personStatusCRUD.faces" />
+            <p:menuitem value="#{msg.person} #{msg.personStatus_plural}" title="#{msg.person} #{msg.personStatus_plural}" url="/admin/ctms/personStatusCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbPersonStatus.tab.activeIndex}">
 
             <!-- Studies -->
-            <p:tab title="Person Statuses" titletip="Person Statuses">
+            <p:tab title="#{msg.person} #{msg.personStatus_plural}" titletip="Person Statuses">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -33,7 +33,7 @@
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 value="#{msg.menu_new}"
-                                title="Define a new Person Status [ctrl+shift+n]"
+                                title="#{msg.personStatus_new}"
                                 icon="ui-icon-document"
                                 oncomplete="PF('newEntityDialog').show();"
                                 style="float: left;"
@@ -42,18 +42,9 @@
                                 process="@this"
                                 actionListener="#{mbPersonStatus.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbPersonStatus.prepareNewEntity}"
-                                rendered="#{mbPersonStatus.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
-                                title="Reload Person Statuses [ctrl+shift+r]"
+                                title="#{msg.personStatus_reload}"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 immediate="true"
@@ -61,28 +52,20 @@
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbPersonStatus.load}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbPersonStatus.load}"
-                                rendered="#{mbPersonStatus.tab.activeIndex == 0}"
-                                />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print Person Statuses table"
+                                title="#{msg.personStatus_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -130,52 +113,66 @@
 
                     <!-- Name -->
                     <p:column
-                            id="colStatusName"
-                            sortBy="#{entity.name}"
-                            filterBy="#{entity.name}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbPersonStatus.columnVisibilityList[0]}"
-                            >
+                        id="colStatusName"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbPersonStatus.columnVisibilityList[0]}"
+                        style="width:20%"
+                        >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.personStatus_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
 
                     <!-- Description -->
                     <p:column
-                            sortBy="#{entity.description}"
-                            filterBy="#{entity.description}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            visible="#{mbPersonStatus.columnVisibilityList[1]}"
-                            >
+                        sortBy="#{entity.description}"
+                        filterBy="#{entity.description}"
+                        filterMatchMode="contains"
+                        visible="#{mbPersonStatus.columnVisibilityList[1]}"
+                        style="width:60%"
+                        >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.personStatus_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            style="width:17%"
-                            toggleable="false"
-                            >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
                         <p:commandButton
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update=":entityDetailsForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editEntityDialog').show();"
-                                >
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbPersonStatus.selectedEntity}"
-                                    />
+                                value="#{entity}"
+                                target="#{mbPersonStatus.selectedEntity}"
+                                />
+                        </p:commandButton>
+
+                        <p:commandButton
+                            icon="ui-icon-trash"
+                            title="#{msg.menu_delete}"
+                            update=":deleteEntityForm:deleteDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('deleteEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbPersonStatus.selectedEntity}"
+                                />
                         </p:commandButton>
                     </p:column>
 
@@ -193,14 +190,14 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtEntities" fileName="PersonStatuses" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.person}#{msg.personStatus_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtEntities" fileName="PersonStatuses" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.person}#{msg.personStatus_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -213,7 +210,7 @@
         <!-- New Person Status -->
         <p:dialog
                 id="dlgNewEntity"
-                header="New Person Status"
+                header="#{msg.personStatus_new}"
                 widgetVar="newEntityDialog"
                 resizable="false"
                 ajax="true"
@@ -225,46 +222,46 @@
             <!-- Form -->
             <h:form id="newEntityForm">
                 <p:panelGrid
-                        id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="newDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtPersonStatusNameNew" />
+                    <h:outputLabel value="#{msg.personStatus_name}: #{msg.label_required_suffix}" for="txtPersonStatusNameNew" />
                     <p:inputText
-                            id="txtPersonStatusNameNew"
-                            value="#{mbPersonStatus.newEntity.name}"
-                            required="true"
-                            requiredMessage="Person status name is mandatory!"
-                            maxlength="255"
-                            />
+                        id="txtPersonStatusNameNew"
+                        value="#{mbPersonStatus.newEntity.name}"
+                        required="true"
+                        requiredMessage="#{msg.personStatus_name} is mandatory!"
+                        maxlength="255"
+                        />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtPersonStatusDescriptionNew" />
+                    <h:outputLabel value="#{msg.personStatus_description}:" for="txtPersonStatusDescriptionNew" />
                     <p:inputTextarea
-                            id="txtPersonStatusDescriptionNew"
-                            value="#{mbPersonStatus.newEntity.description}"
-                            maxlength="4000"
-                            style="width:350px"
-                            />
+                        id="txtPersonStatusDescriptionNew"
+                        value="#{mbPersonStatus.newEntity.description}"
+                        maxlength="4000"
+                        style="width:350px"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
-                                actionListener="#{mbPersonStatus.doCreateEntity}"
-                                process="@this newEntityForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :newEntityForm, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
+                            actionListener="#{mbPersonStatus.doCreateEntity}"
+                            process="@this newEntityForm"
+                            />
                         <p:commandButton
-                                value="#{msg.menu_reset}"
-                                type="reset"
-                                icon="ui-icon-close"
-                                />
+                            value="#{msg.menu_reset}"
+                            type="reset"
+                            icon="ui-icon-close"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -273,7 +270,7 @@
         <!-- Edit Person Status -->
         <p:dialog
                 id="dlgEntityDetails"
-                header="Edit Person Status details"
+                header="#{msg.personStatus_edit}"
                 widgetVar="editEntityDialog"
                 resizable="false"
                 appendToBody="true"
@@ -284,24 +281,24 @@
             <!-- Form -->
             <h:form id="entityDetailsForm">
                 <p:panelGrid
-                        id="editDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtPersonStatusNameEdit" />
+                    <h:outputLabel value="#{msg.personStatus_name}: #{msg.label_required_suffix}" for="txtPersonStatusNameEdit" />
                     <p:inputText
                             id="txtPersonStatusNameEdit"
                             value="#{mbPersonStatus.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Person status name is mandatory!"
+                            requiredMessage="#{msg.personStatus_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtPersonStatusDescriptionEdit" />
+                    <h:outputLabel value="#{msg.personStatus_description}:" for="txtPersonStatusDescriptionEdit" />
                     <p:inputTextarea
                             id="txtPersonStatusDescriptionEdit"
                             value="#{mbPersonStatus.selectedEntity.description}"
@@ -325,6 +322,54 @@
             </h:form>
         </p:dialog>
 
+        <!-- Delete Person Status-->
+        <p:dialog
+            id="dlgEntityDelete"
+            header="#{msg.personStatus_delete}"
+            widgetVar="deleteEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="deleteEntityForm">
+                <p:panelGrid
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.personStatus_name}:" for="txtPersonStatusNameDelete" />
+                    <h:outputText id="txtPersonStatusNameDelete" value="#{mbPersonStatus.selectedEntity.name}" />
+
+                    <!-- Description -->
+                    <h:outputLabel value="#{msg.personStatus_description}:" for="txtPersonStatusDescriptionDelete" />
+                    <p:inputTextarea
+                            id="txtPersonStatusDescriptionDelete"
+                            value="#{mbPersonStatus.selectedEntity.description}"
+                            style="width:350px"
+                            disabled="true"
+                            />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDelete','deleteEntityForm');"
+                            actionListener="#{mbPersonStatus.doDeleteEntity}"
+                            process="@this deleteEntityForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
         <!-- Submit from dialog -->
         <script type="text/javascript">
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
@@ -335,6 +380,7 @@
                     clearForm(formName);
                     PF('newEntityDialog').hide();
                     PF('editEntityDialog').hide();
+                    PF('deleteEntityDialog').hide();
                 }
             }
             function clearForm(formName) {

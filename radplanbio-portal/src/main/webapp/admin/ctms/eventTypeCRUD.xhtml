@@ -14,7 +14,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Timeline Event Types" title="Timeline Event Types" url="/admin/ctms/eventTypeCRUD.faces" />
+            <p:menuitem value="Timeline #{msg.studyEvent} #{msg.eventType_plural}" title="Timeline #{msg.studyEvent} #{msg.eventType_plural}" url="/admin/ctms/eventTypeCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbEventType.tab.activeIndex}">
 
             <!-- Studies -->
-            <p:tab title="Timeline Event Types" titletip="Timeline Event Types">
+            <p:tab title="Timeline #{msg.studyEvent} #{msg.eventType_plural}">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -33,7 +33,7 @@
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 value="#{msg.menu_new}"
-                                title="Define a new Timeline Event Type [ctrl+shift+n]"
+                                title="#{msg.eventType_new}"
                                 icon="ui-icon-document"
                                 oncomplete="PF('newEntityDialog').show();"
                                 style="float: left;"
@@ -42,18 +42,9 @@
                                 process="@this"
                                 actionListener="#{mbEventType.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbEventType.prepareNewEntity}"
-                                rendered="#{mbEventType.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
-                                title="Reload Timeline Event Types [ctrl+shift+r]"
+                                title="#{msg.eventType_reload}"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 immediate="true"
@@ -61,28 +52,20 @@
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbEventType.load}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbEventType.load}"
-                                rendered="#{mbEventType.tab.activeIndex == 0}"
-                                />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print Timeline Event Types table"
+                                title="#{msg.eventType_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -138,7 +121,7 @@
                             visible="#{mbEventType.columnVisibilityList[0]}"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.eventType_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
@@ -148,11 +131,11 @@
                             sortBy="#{entity.description}"
                             filterBy="#{entity.description}"
                             filterMatchMode="contains"
-                            style="width:20%"
+                            style="width:50%"
                             visible="#{mbEventType.columnVisibilityList[1]}"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.eventType_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
@@ -193,14 +176,14 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtEntities" fileName="TimeLineEventTypes" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="Timeline#{msg.studyEvent}#{msg.eventType_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtEntities" fileName="TimeLineEventTypes" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="Timeline#{msg.studyEvent}#{msg.eventType_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -213,7 +196,7 @@
         <!-- New TimeLine Event Type -->
         <p:dialog
                 id="dlgNewEntity"
-                header="New Timeline Event Type"
+                header="#{msg.eventType_new}"
                 widgetVar="newEntityDialog"
                 resizable="false"
                 ajax="true"
@@ -232,17 +215,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtTimeLineEventTypeNameNew" />
+                    <h:outputLabel value="#{msg.eventType_name}: #{msg.label_required_suffix}" for="txtTimeLineEventTypeNameNew" />
                     <p:inputText
                             id="txtTimeLineEventTypeNameNew"
                             value="#{mbEventType.newEntity.name}"
                             required="true"
-                            requiredMessage="Timeline Event Type name is mandatory!"
+                            requiredMessage="#{msg.eventType_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtTimeLineEventTypeDescriptionNew" />
+                    <h:outputLabel value="#{msg.eventType_description}:" for="txtTimeLineEventTypeDescriptionNew" />
                     <p:inputTextarea
                             id="txtTimeLineEventTypeDescriptionNew"
                             value="#{mbEventType.newEntity.description}"
@@ -273,7 +256,7 @@
         <!-- Edit TimeLine Event Type -->
         <p:dialog
                 id="dlgEntityDetails"
-                header="Edit Timeline Event Type details"
+                header="#{msg.eventType_edit}"
                 widgetVar="editEntityDialog"
                 resizable="false"
                 appendToBody="true"
@@ -291,17 +274,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtTimeLineEventTypeNameEdit" />
+                    <h:outputLabel value="#{msg.eventType_name}: #{msg.label_required_suffix}" for="txtTimeLineEventTypeNameEdit" />
                     <p:inputText
                             id="txtTimeLineEventTypeNameEdit"
                             value="#{mbEventType.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Timeline Event Type name is mandatory!"
+                            requiredMessage="#{msg.eventType_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtTimeLineEventTypeDescriptionEdit" />
+                    <h:outputLabel value="#{msg.eventType_description}:" for="txtTimeLineEventTypeDescriptionEdit" />
                     <p:inputTextarea
                             id="txtTimeLineEventTypeDescriptionEdit"
                             value="#{mbEventType.selectedEntity.description}"

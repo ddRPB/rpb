@@ -15,7 +15,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="#{msg.configuration}" title="#{msg.configuration}" url="#" />
-            <p:menuitem value="Software" title="Software" url="#" />
+            <p:menuitem value="#{msg.software}" title="#{msg.software}" url="#" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,91 +24,77 @@
         <p:tabView id="tabView" activeIndex="#{mbSoftware.tab.activeIndex}">
 
             <!-- Tab -->
-            <p:tab title="Software" titletip="RadPlanBio software for download">
+            <p:tab title="#{msg.software_plural}" titletip="RPB #{msg.software} for download">
 
                 <!-- Toolbar -->
                 <p:toolbar>
 
-                    <!-- Right -->
-                    <p:toolbarGroup align="right">
-                        <p:commandButton
-                                value="#{msg.menu_print}"
-                                title="#{msg.menu_print}"
-                                icon="ui-icon-print"
-                                >
-                            <p:printer target="dtEntities" />
-                        </p:commandButton>
-                        <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
-                                icon="ui-icon-help"
-                                disabled="True"
-                                />
-                    </p:toolbarGroup>
-
                     <!-- Left -->
                     <p:toolbarGroup align="left">
                         <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="Define a new software [ctrl+shift+n]"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newSoftwareDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newSoftwareForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbSoftware.prepareNewEntity}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newSoftwareDialog').show();"
-                                immediate="true"
-                                update=":newSoftwareForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbSoftware.prepareNewEntity}"
-                                />
+                            value="#{msg.menu_new}"
+                            title="#{msg.software_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newSoftwareDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newSoftwareForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbSoftware.prepareNewEntity}"
+                            />
                         <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="Rolead software [ctrl+shift+r]"
-                                icon="ui-icon-refresh"
-                                style="float: left;"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbSoftware.loadSoftware}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbSoftware.loadSoftware}"
-                                />
+                            id="btnSoftwareReload"
+                            value="#{msg.menu_reload}"
+                            title="#{msg.software_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbSoftware.loadSoftware}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.software_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
                     </p:toolbarGroup>
 
                 </p:toolbar>
 
                 <!-- Data table -->
                 <p:dataTable
-                        id="dtEntities"
-                        var="software"
-                        value="#{mbSoftware.entityList}"
-                        widgetVar="softwareTable"
-                        resizableColumns="false"
-                        draggableColumns="false"
-                        paginator="true"
-                        rows="15"
-                        rowsPerPageTemplate="15,25,50"
-                        emptyMessage="#{msg.search_empty}"
-                        selection="#{mbSoftware.selectedEntity}"
-                        selectionMode="single"
-                        rowKey="#{software.name}"
-                        rowIndexVar="rowIndex"
-                        filteredValue="#{mbSoftware.filteredEntities}"
-                        sortMode="multiple"
-                        sortBy="#{mbSoftware.preSortOrder}"
-                        disabledTextSelection="false"
-                        >
+                    id="dtEntities"
+                    var="software"
+                    value="#{mbSoftware.entityList}"
+                    widgetVar="softwareTable"
+                    resizableColumns="false"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbSoftware.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{software.name}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbSoftware.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbSoftware.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
 
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
@@ -117,79 +103,72 @@
 
                     <!-- Name -->
                     <p:column
-                            id="colSoftwareName"
-                            sortBy="#{software.name}"
-                            filterBy="#{software.name}"
-                            filterMatchMode="contains"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Name" />
-                        </f:facet>
+                        id="colSoftwareName"
+                        headerText="#{msg.software_name}"
+                        sortBy="#{software.name}"
+                        filterBy="#{software.name}"
+                        filterMatchMode="contains"
+                        style="width:25%"
+                        >
                         <h:outputText value="#{software.name}" style="float: left;" />
                     </p:column>
 
                     <!-- Platform -->
                     <p:column
-                            sortBy="#{software.platform}"
-                            filterBy="#{software.platform}"
-                            filterMatchMode="in"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Platform" />
-                        </f:facet>
+                        headerText="#{msg.software_platform}"
+                        sortBy="#{software.platform}"
+                        filterBy="#{software.platform}"
+                        filterMatchMode="in"
+                        style="width:15%"
+                        >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
-                                    label="Platforms"
-                                    onchange="PF('softwareTable').filter()"
-                                    panelStyle="width:100px"
-                                    scrollHeight="90"
-                                    >
-                                <f:selectItem
-                                        itemLabel="win7"
-                                        itemValue="win7"
-                                        />
-                                <f:selectItem
-                                        itemLabel="debian"
-                                        itemValue="debian"
-                                        />
-                                <f:selectItem
-                                        itemLabel="osx"
-                                        itemValue="osx"
-                                        />
+                                label="#{msg.software_platform}"
+                                onchange="PF('softwareTable').filter()"
+                                panelStyle="width:100px"
+                                scrollHeight="90"
+                                >
+                                <f:selectItem itemLabel="win7" itemValue="win7" />
+                                <f:selectItem itemLabel="debian" itemValue="debian"/>
+                                <f:selectItem itemLabel="osx" itemValue="osx" />
                             </p:selectCheckboxMenu>
                         </f:facet>
-                        <h:outputText value="#{software.platform}" />
+                        <h:outputText value="#{software.platform}" style="float: left;" />
                     </p:column>
 
                     <!-- Version -->
                     <p:column
-                            sortBy="#{software.version}"
-                            filterBy="#{software.version}"
-                            filterMatchMode="contains"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Version" />
-                        </f:facet>
-                        <h:outputText value="#{software.version}" />
+                        headerText="#{msg.software_version}"
+                        sortBy="#{software.version}"
+                        filterBy="#{software.version}"
+                        filterMatchMode="contains"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{software.version}" style="float: left;" />
                     </p:column>
 
                     <!-- Latest -->
                     <p:column
-                            sortBy="#{software.latest}"
-                            filterBy="#{software.latest}"
-                            filterMatchMode="contains"
-                            >
-                        <f:facet name="header">
-                            <h:outputText value="Latest" />
-                        </f:facet>
+                        headerText="#{msg.software_latest}"
+                        filterBy="#{software.latest}"
+                        filterMatchMode="equals"
+                        style="width:18%"
+                        >
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('softwareTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('softwareTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox value="#{software.latest}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{software.latest}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
                     </p:column>
 
                     <!-- Commands -->
@@ -201,31 +180,31 @@
                         >
 
                         <p:commandButton
-                                title="#{msg.menu_edit}"
-                                icon="ui-icon-contact"
-                                update=":softwareDetailsForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editSoftwareDialog').show();"
-                                >
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            update=":softwareDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editSoftwareDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{software}"
-                                    target="#{mbSoftware.selectedEntity}"
-                                    />
+                                value="#{software}"
+                                target="#{mbSoftware.selectedEntity}"
+                                />
                         </p:commandButton>
 
                         <p:commandButton
-                                title="#{msg.menu_delete}"
-                                icon="ui-icon-trash"
-                                update=":viewSoftwareForm:deleteDisplay"
-                                oncomplete="PF('viewSoftwareDialog').show();"
-                                immediate="true"
-                                process="@this"
-                                >
+                            title="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":viewSoftwareForm:deleteDisplay"
+                            oncomplete="PF('viewSoftwareDialog').show();"
+                            immediate="true"
+                            process="@this"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{software}"
-                                    target="#{mbSoftware.selectedEntity}"
-                                    />
+                                value="#{software}"
+                                target="#{mbSoftware.selectedEntity}"
+                                />
                         </p:commandButton>
 
                     </p:column>
@@ -241,18 +220,22 @@
                             <f:param value="#{mbSoftware.entityList.size()}" />
                         </h:outputFormat>
                     </f:facet>
-
                 </p:dataTable>
 
+                <!-- Block table -->
+                <p:blockUI trigger="btnSoftwareReload dtEntities" block="dtEntities">
+                    #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
+
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtEntities" fileName="Software" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.software_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtEntities" fileName="Software" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.software_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -267,7 +250,7 @@
         <!-- New -->
         <p:dialog
             id="dlgNewSoftware"
-            header="Create new software"
+            header="#{msg.software_new}"
             widgetVar="newSoftwareDialog"
             resizable="false"
             ajax="true"
@@ -280,90 +263,90 @@
             <h:form id="newSoftwareForm">
 
                 <p:panelGrid id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Partner site hosting the portal (software repository) -->
-                    <h:outputLabel value="Portal of parter site: " />
-                    <h:outputLabel value="#{mbMain.myAccount.partnerSite.siteName}"
-                                   title="#{mbMain.myAccount.partnerSite.description}" />
+                    <h:outputLabel value="#{msg.portal} #{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbMain.myAccount.partnerSite.identifier}] = #{mbMain.myAccount.partnerSite.name}" title="#{mbMain.myAccount.partnerSite.description}" />
 
-                    <!-- Identifier -->
-                    <h:outputLabel value="Name: *" for="txtName" />
-                    <h:inputText id="txtName"
-                            value="#{mbSoftware.newEntity.name}"
-                            required="true"
-                            requiredMessage="Please enter software name, it is mandatory!"
-                            maxlength="255"
-                            />
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.software_name}: #{msg.label_required_suffix}" for="txtName" />
+                    <p:inputText id="txtName"
+                         value="#{mbSoftware.newEntity.name}"
+                         maxlength="255"
+                         required="true"
+                         requiredMessage="#{msg.software_name} #{msg.validation_required}!"
+                         style="width:250px"
+                         />
 
                     <!-- Platform -->
-                    <h:outputLabel value="Platform: *" for="ddlPlatform" />
-                    <p:selectOneMenu id="ddlPlatform"
-                                     value="#{mbSoftware.newEntity.platform}"
-                                     style="width:250px"
-                            >
-                        <f:selectItem
-                                itemLabel="win7"
-                                itemValue="win7"
-                                />
-                        <f:selectItem
-                                itemLabel="debian"
-                                itemValue="debian"
-                                />
-                        <f:selectItem
-                                itemLabel="osx"
-                                itemValue="osx"
-                                />
+                    <h:outputLabel value="#{msg.software_platform}: #{msg.label_required_suffix}" for="ddlPlatform" />
+                    <p:selectOneMenu
+                        id="ddlPlatform"
+                        value="#{mbSoftware.newEntity.platform}"
+                        required="true"
+                        requiredMessage="#{msg.software_platform} #{msg.validation_required}!"
+                        style="width:250px"
+                        >
+                        <f:selectItem itemLabel="win7" itemValue="win7" />
+                        <f:selectItem itemLabel="debian" itemValue="debian" />
+                        <f:selectItem itemLabel="osx" itemValue="osx" />
                     </p:selectOneMenu>
 
                     <!-- Description -->
-                    <h:outputLabel value="Description: " for="txtDescription" />
-                    <p:inputTextarea id="txtDescription"
-                             value="#{mbSoftware.newEntity.description}"
-                             maxlength="255"
-                             />
+                    <h:outputLabel value="#{msg.software_description}:" for="txtDescription" />
+                    <p:inputTextarea
+                        id="txtDescription"
+                        value="#{mbSoftware.newEntity.description}"
+                        rows="3"
+                        maxlength="255"
+                        style="width:250px"
+                        />
 
                     <!-- Filename -->
-                    <h:outputLabel value="Filename: *" for="txtFilename" />
-                    <h:inputText id="txtFilename"
-                                 value="#{mbSoftware.newEntity.filename}"
-                                 required="true"
-                                 requiredMessage="Please enter filename, it is mandatory!"
-                                 maxlength="255"
-                                 />
+                    <h:outputLabel value="#{msg.software_filename}: #{msg.label_required_suffix}" for="txtFilename" />
+                    <p:inputText
+                        id="txtFilename"
+                        value="#{mbSoftware.newEntity.filename}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.software_filename} #{msg.validation_required}!"
+                        style="width:250px"
+                        />
 
                     <!-- Version -->
-                    <h:outputLabel value="Version: " for="txtVersion" />
-                    <h:inputText id="txtVersion"
-                                 value="#{mbSoftware.newEntity.version}"
-                                 maxlength="15"
-                                 />
+                    <h:outputLabel value="#{msg.software_version}:" for="txtVersion" />
+                    <p:inputText
+                        id="txtVersion"
+                        value="#{mbSoftware.newEntity.version}"
+                        maxlength="15"
+                        />
 
                     <!-- Lastest -->
-                    <h:outputLabel value="Is lastest: " for="cbLastest" />
-                    <p:selectBooleanCheckbox id="cbLastest"
-                                             value="#{mbSoftware.newEntity.latest}"
-                                             rendered="#{mbSoftware.newEntity != null}"
-                                             />
+                    <h:outputLabel value="#{msg.software_latest}: #{msg.label_required_suffix}" for="cbLastest" />
+                    <p:selectBooleanButton
+                        id="cbLastest"
+                        value="#{mbSoftware.newEntity.latest}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                icon="ui-icon-disk"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbSoftware.doCreateSoftware}"
-                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSoftware','newSoftwareForm');"
-                                process="@this newSoftwareForm"
-                                />
-                        <p:commandButton
-                                value="#{msg.menu_reset}"
-                                type="reset"
-                                icon="ui-icon-close"
-                                />
+                            value="#{msg.menu_save}"
+                            icon="ui-icon-disk"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbSoftware.doCreateSoftware}"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSoftware','newSoftwareForm');"
+                            process="@this newSoftwareForm"
+                            />
+                        <p:commandButton value="#{msg.menu_reset}" type="reset" icon="ui-icon-close" />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -371,98 +354,103 @@
 
         <!-- Edit -->
         <p:dialog
-                id="dlgSoftwareDetails"
-                header="Software Detail"
-                widgetVar="editSoftwareDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgSoftwareDetails"
+            header="#{msg.software_edit}"
+            widgetVar="editSoftwareDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="softwareDetailsForm">
                 <p:panelGrid
-                        id="editDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Partner site hosting the portal (software repository) -->
-                    <h:outputLabel value="Portal of parter site: " />
-                    <h:outputLabel value="#{mbMain.myAccount.partnerSite.siteName}"
-                                   title="#{mbMain.myAccount.partnerSite.description}" />
+                    <h:outputLabel value="#{msg.portal} #{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbMain.myAccount.partnerSite.identifier}] = #{mbMain.myAccount.partnerSite.name}" title="#{mbMain.myAccount.partnerSite.description}" />
 
                     <!-- Identifier -->
-                    <h:outputLabel value="Name: *" for="txtNameE" />
-                    <h:inputText id="txtNameE"
-                                 value="#{mbSoftware.selectedEntity.name}"
-                                 required="true"
-                                 requiredMessage="Please enter software name, it is mandatory!"
-                                 maxlength="255"
-                            />
+                    <h:outputLabel value="#{msg.software_name}: #{msg.label_required_suffix}" for="txtNameE" />
+                    <p:inputText
+                        id="txtNameE"
+                        value="#{mbSoftware.selectedEntity.name}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.software_name} #{msg.validation_required}!"
+                        style="width:250px"
+                        />
 
                     <!-- Platform -->
-                    <h:outputLabel value="Platform: *" for="ddlPlatformE" />
-                    <p:selectOneMenu id="ddlPlatformE"
-                                     value="#{mbSoftware.selectedEntity.platform}"
-                                     style="width:250px"
-                            >
-                        <f:selectItem
-                                itemLabel="win7"
-                                itemValue="win7"
-                                />
-                        <f:selectItem
-                                itemLabel="debian"
-                                itemValue="debian"
-                                />
-                        <f:selectItem
-                                itemLabel="osx"
-                                itemValue="osx"
-                                />
+                    <h:outputLabel value="#{msg.software_platform}: #{msg.label_required_suffix}" for="ddlPlatformE" />
+                    <p:selectOneMenu
+                        id="ddlPlatformE"
+                        value="#{mbSoftware.selectedEntity.platform}"
+                        required="true"
+                        requiredMessage="#{msg.software_platform} #{msg.validation_required}!"
+                        style="width:250px"
+                        >
+                        <f:selectItem itemLabel="win7" itemValue="win7" />
+                        <f:selectItem itemLabel="debian" itemValue="debian" />
+                        <f:selectItem itemLabel="osx" itemValue="osx" />
                     </p:selectOneMenu>
 
                     <!-- Description -->
-                    <h:outputLabel value="Description: " for="txtDescriptionE" />
-                    <p:inputTextarea id="txtDescriptionE"
-                                     value="#{mbSoftware.selectedEntity.description}"
-                                     maxlength="255"
+                    <h:outputLabel value="#{msg.software_description}:" for="txtDescriptionE" />
+                    <p:inputTextarea
+                            id="txtDescriptionE"
+                            value="#{mbSoftware.selectedEntity.description}"
+                            rows="3"
+                            maxlength="255"
+                            style="width:250px"
                             />
 
                     <!-- Filename -->
-                    <h:outputLabel value="Filename: *" for="txtFilenameE" />
-                    <h:inputText id="txtFilenameE"
-                                 value="#{mbSoftware.selectedEntity.filename}"
-                                 required="true"
-                                 requiredMessage="Please enter filename, it is mandatory!"
-                                 maxlength="255"
+                    <h:outputLabel value="#{msg.software_filename}: #{msg.label_required_suffix}" for="txtFilenameE" />
+                    <p:inputText
+                            id="txtFilenameE"
+                            value="#{mbSoftware.selectedEntity.filename}"
+                            maxlength="255"
+                            required="true"
+                            requiredMessage="#{msg.software_filename} #{msg.validation_required}!"
+                            style="width:250px"
                             />
 
                     <!-- Version -->
-                    <h:outputLabel value="Version: " for="txtVersionE" />
-                    <h:inputText id="txtVersionE"
-                                 value="#{mbSoftware.selectedEntity.version}"
-                                 maxlength="15"
+                    <h:outputLabel value="#{msg.software_version}:" for="txtVersionE" />
+                    <p:inputText
+                            id="txtVersionE"
+                            value="#{mbSoftware.selectedEntity.version}"
+                            maxlength="15"
                             />
 
                     <!-- Lastest -->
-                    <h:outputLabel value="Is lastest: " for="cbLastestE" />
-                    <p:selectBooleanCheckbox id="cbLastestE"
-                                             value="#{mbSoftware.selectedEntity.latest}"
-                                             rendered="#{mbSoftware.selectedEntity != null}"
-                            />
+                    <h:outputLabel value="#{msg.software_latest}: #{msg.label_required_suffix}" for="cbLastestE" />
+                    <p:selectBooleanButton
+                        id="cbLastestE"
+                        value="#{mbSoftware.selectedEntity.latest}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtEntities, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgSoftwareDetails','softwareDetailsForm');"
-                                actionListener="#{mbSoftware.doUpdateSoftware}"
-                                process="@this softwareDetailsForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgSoftwareDetails','softwareDetailsForm');"
+                            actionListener="#{mbSoftware.doUpdateSoftware}"
+                            process="@this softwareDetailsForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -470,62 +458,74 @@
 
         <!-- Delete -->
         <p:dialog
-                id="dlgViewSoftware"
-                header="Delete Software"
-                widgetVar="viewSoftwareDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgViewSoftware"
+            header="#{msg.software_delete}"
+            widgetVar="viewSoftwareDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="viewSoftwareForm">
                 <p:panelGrid
-                        id="deleteDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-                    <!-- Partner site hosting the portal (software repository) -->
-                    <h:outputLabel value="Portal of parter site: " />
-                    <h:outputLabel value="#{mbMain.myAccount.partnerSite.siteName}"
-                                   title="#{mbMain.myAccount.partnerSite.description}" />
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
-                    <!-- Identifier -->
-                    <h:outputLabel value="Name: " />
-                    <h:outputLabel value="#{mbSoftware.selectedEntity.name}" />
+                    <!-- Partner site hosting the portal (software repository) -->
+                    <h:outputLabel value="#{msg.portal} #{msg.partnerSite}:" />
+                    <h:outputText value="[#{mbMain.myAccount.partnerSite.identifier}] = #{mbMain.myAccount.partnerSite.name}" title="#{mbMain.myAccount.partnerSite.description}" />
+
+                    <!-- Name -->
+                    <h:outputLabel value="#{msg.software_name}:" />
+                    <h:outputText value="#{mbSoftware.selectedEntity.name}" />
 
                     <!-- Platform -->
-                    <h:outputLabel value="Platform: " />
-                    <h:outputLabel value="#{mbSoftware.selectedEntity.platform}" />
+                    <h:outputLabel value="#{msg.software_platform}:" />
+                    <h:outputText value="#{mbSoftware.selectedEntity.platform}" />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description: " />
-                    <p:inputTextarea value="#{mbSoftware.selectedEntity.description}" disabled="true" />
+                    <h:outputLabel value="#{msg.software_description}:" />
+                    <p:inputTextarea
+                        value="#{mbSoftware.selectedEntity.description}"
+                        rows="3"
+                        disabled="true"
+                        style="width:250px"
+                        />
 
                     <!-- Filename -->
-                    <h:outputLabel value="Filename: " />
-                    <h:outputLabel value="#{mbSoftware.selectedEntity.filename}" />
+                    <h:outputLabel value="#{msg.software_filename}:" />
+                    <h:outputText value="#{mbSoftware.selectedEntity.filename}" />
 
                     <!-- Version -->
-                    <h:outputLabel value="Version: " />
-                    <h:outputLabel value="#{mbSoftware.selectedEntity.version}" />
+                    <h:outputLabel value="#{msg.software_version}:" />
+                    <h:outputText value="#{mbSoftware.selectedEntity.version}" />
 
                     <!-- Lastest -->
-                    <h:outputLabel value="Is lastest: " />
-                    <p:selectBooleanCheckbox value="#{mbSoftware.selectedEntity.latest}" disabled="true" rendered="#{mbSoftware.selectedEntity != null}" />
+                    <h:outputLabel value="#{msg.software_latest}:" />
+                    <p:selectBooleanButton
+                        value="#{mbSoftware.selectedEntity.latest}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_delete}"
-                                icon="ui-icon-trash"
-                                update=":form:tabView:dtEntities, :growl"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewSoftware','viewSoftwareForm');"
-                                actionListener="#{mbSoftware.doDeleteSoftware}"
-                                process="@this viewSoftwareForm"
-                                />
+                            value="#{msg.menu_delete}"
+                            icon="ui-icon-trash"
+                            update=":form:tabView:dtEntities, :growl"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewSoftware','viewSoftwareForm');"
+                            actionListener="#{mbSoftware.doDeleteSoftware}"
+                            process="@this viewSoftwareForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>

@@ -157,7 +157,7 @@ public class OCConnector {
 
 	/**
 	 * Create instance (we are a singleton, so, protected), called via getInstance method
-	 * @throws DatatypeConfigurationException 
+	 * @throws DatatypeConfigurationException DatatypeConfigurationException
 	 */
 	protected OCConnector() throws DatatypeConfigurationException {
 		dataTypeFactory = DatatypeFactory.newInstance();
@@ -171,9 +171,9 @@ public class OCConnector {
 	 * Create instance (we are a singleton, so, protected), called via getInstance method
 	 * @param connectInfo OpenClinica connection info and credentials.
 	 * @param logging toggle logging
-	 * @throws MalformedURLException 
-	 * @throws ParserConfigurationException 
-	 * @throws DatatypeConfigurationException 
+	 * @throws MalformedURLException MalformedURLException
+	 * @throws ParserConfigurationException ParserConfigurationException
+	 * @throws DatatypeConfigurationException DatatypeConfigurationException
 	 */
 	protected OCConnector(ConnectInfo connectInfo, boolean logging)
 			throws MalformedURLException, ParserConfigurationException, DatatypeConfigurationException {
@@ -275,14 +275,14 @@ public class OCConnector {
      * resulted in a redirect request to https://wsdl.location.com, But the http library does not allow that.
      * So it just forwards the 302 http code up as an exception.
      *
-	 * @throws MalformedURLException 
-	 * @throws ParserConfigurationException 
+	 * @throws MalformedURLException MalformedURLException
+	 * @throws ParserConfigurationException ParserConfigurationException
 	 */
 	private void setupBindings() throws MalformedURLException, ParserConfigurationException {
-        studyBinding = new StudyWsService(baseURL + URL_STUDY).getWsSoap11();
 
         // Make sure if the end point you need point to is on https, that you are making a direct https call and not a http call that will ask for an https redirect
         // In this case make sure that endpoint address is the same as I configure it depending on settings stored in DB
+		studyBinding = new StudyWsService(baseURL + URL_STUDY).getWsSoap11();
         BindingProvider studyBindingProvider = (BindingProvider) studyBinding;
         if (!studyBindingProvider.getRequestContext().get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY).equals(baseURL + URL_STUDY)) {
             studyBindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseURL + URL_STUDY);
@@ -294,11 +294,18 @@ public class OCConnector {
             studySubjectBindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseURL + URL_STUDYSUBJECT);
         }
 
-        eventBinding = new EventWsService(baseURL + URL_EVENT).getWsSoap11();
-        BindingProvider eventBindingProvider = (BindingProvider) eventBinding;
-        if (!eventBindingProvider.getRequestContext().get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY).equals(baseURL + URL_EVENT)) {
-            eventBindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseURL + URL_EVENT);
-        }
+        // TODO: for some reason I am experiencing problem that event SOAP endpoint is not available
+		// as I am not actually using the Event service for scheduling I can hide this and live without this feature
+		try {
+			eventBinding = new EventWsService(baseURL + URL_EVENT).getWsSoap11();
+			BindingProvider eventBindingProvider = (BindingProvider) eventBinding;
+			if (!eventBindingProvider.getRequestContext().get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY).equals(baseURL + URL_EVENT)) {
+				eventBindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseURL + URL_EVENT);
+			}
+		}
+		catch (Exception err) {
+			err.printStackTrace();
+		}
 
 		dataBinding = new DataWsService(baseURL + URL_DATA).getWsSoap11();
         BindingProvider dataBindingProvider = (BindingProvider) dataBinding;
@@ -338,17 +345,21 @@ public class OCConnector {
 	 * @param binding binding
 	 */
 	private void setupDefaultHandlers(Object binding) {
-		if (logging) {
-			Util.addMessageHandler(binding, new LoggingHandler());
+		if (binding != null) {
+
+			if (logging) {
+				Util.addMessageHandler(binding, new LoggingHandler());
+			}
+
+			Util.addMessageHandler(binding, 0, wsseHandler.newInstance());
 		}
-		Util.addMessageHandler(binding, 0, wsseHandler.newInstance());
 	}
 
 	/**
 	 * Clears messages
 	 */
 	public void clearMessages() {
-		messages = new ArrayList<String>();
+		this.messages = new ArrayList<>();
 	}
 
     //endregion

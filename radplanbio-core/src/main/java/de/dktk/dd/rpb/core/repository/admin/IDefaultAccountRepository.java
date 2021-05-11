@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2014  Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.repository.support.Repository;
 
 /**
- * The DefaultAccountRepository is a data-centric service for the {@link DefaultAccount} entity.
+ * The IDefaultAccountRepository is a data-centric service for the {@link DefaultAccount} entity.
  * It provides the expected methods to get/delete a {@link DefaultAccount} instance
  * plus some methods to perform searches.
  * <p>
@@ -32,7 +32,7 @@ import de.dktk.dd.rpb.core.repository.support.Repository;
  * instance from where you can control your search options including the usage
  * of named queries.
  *
- * DefaultAccountRepository Interfaces
+ * IDefaultAccountRepository Interfaces
  *
  * @author tomas@skripcak.net
  * @since 10 Apr 2013

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for FormEngine</comment>
+
+    <entry key="formEngine">FORM</entry>
+    <entry key="formEngine_plural">FORMs</entry>
+    <entry key="formEngine_reload">Reload existing FORMs</entry>
+    <entry key="formEngine_print">Print FORMs table</entry>
+    <entry key="formEngine_new">Define a new FORM</entry>
+    <entry key="formEngine_edit">Edit selected FORM</entry>
+    <entry key="formEngine_delete">Delete selected FORM</entry>
+
+    <!-- attributes -->
+    <entry key="formEngine_id">ID</entry>
+    <entry key="formEngine_baseUrl">Base URL</entry>
+    <entry key="formEngine_publicUrl">Public URL</entry>
+    <entry key="formEngine_isEnabled">Enabled</entry>
+    <entry key="formEngine_version">Version</entry>
+
+</properties>

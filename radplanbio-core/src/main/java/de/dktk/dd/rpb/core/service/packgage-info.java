@@ -1,4 +1,4 @@
 /**
- * Miscellaneous service classes
+ * Miscellaneous core service classes
  */
-package de.dkfz.portal.service;
+package de.dktk.dd.rpb.core.service;

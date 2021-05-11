@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * RPB item code list definiition (CDISC ODM)
+ * RPB item code list definition (CDISC ODM)
  *
  * @author tomas@skripcak.net
  * @since 04 Jun 2013

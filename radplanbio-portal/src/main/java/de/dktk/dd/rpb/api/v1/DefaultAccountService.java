@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,10 @@ package de.dktk.dd.rpb.api.v1;
 import de.dktk.dd.rpb.api.support.BaseService;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.edc.Study;
-import de.dktk.dd.rpb.core.repository.edc.IOpenClinicaDataRepository;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -42,18 +41,6 @@ public class DefaultAccountService extends BaseService {
     //region Finals
 
     private static final Logger log = Logger.getLogger(DefaultAccountService.class);
-
-    //endregion
-
-    //region Injects
-
-    @Inject
-    private IOpenClinicaDataRepository ocRepository;
-
-    @SuppressWarnings("unused")
-    public void setOcRepository(IOpenClinicaDataRepository ocRepository) {
-        this.ocRepository = ocRepository;
-    }
 
     //endregion
 
@@ -77,31 +64,39 @@ public class DefaultAccountService extends BaseService {
         // Find user that corresponds to that specific apiKey
         DefaultAccount userAccount = this.getAuthenticatedUser(apiKey);
         if (userAccount == null) {
-            log.info("No apiKey corresponding user, unauthorised");
+            log.info("No ApiKey corresponding user, unauthorised");
             return javax.ws.rs.core.Response.status(401).build();
         }
+
+        log.info("User with corresponding ApiKey was found.");
 
         Response notAuthorised = this.notAuthorisedResponse(identifier, userAccount);
         if (notAuthorised != null) {
             return notAuthorised;
         }
 
+        log.info("User is authorised to retrieve his DefaultAccount data.");
+
         // For OC accounts load additional resources
         if (userAccount.hasOpenClinicaAccount()) {
 
             // Load OC password hash
             userAccount.setOcPasswordHash(
-                this.ocRepository.getUserAccountHash(
+                this.openClinicaDataRepository.getUserAccountHash(
                         userAccount.getOcUsername()
                 )
             );
 
+            log.info("EDC User password hash loaded from EDC system");
+
             // Load OC active study
             userAccount.setActiveStudy(
-                this.ocRepository.getUserActiveStudy(
+                this.openClinicaDataRepository.getUserActiveStudy(
                         userAccount.getOcUsername()
                 )
             );
+
+            log.info("Active EDC study loaded for user.");
         }
 
         return javax.ws.rs.core.Response.status(200).entity(userAccount).build();
@@ -117,7 +112,9 @@ public class DefaultAccountService extends BaseService {
 
     @PUT
     @Path("/{param}/activestudy/{studyIdentifierParam}")
-    public Response changeDefaultAccountActiveStudy(@Context HttpHeaders headers, @PathParam("param") String identifier, @PathParam("studyIdentifierParam") String studyIdentifierParam) {
+    public Response changeDefaultAccountActiveStudy(@Context HttpHeaders headers,
+                                                    @PathParam("param") String identifier,
+                                                    @PathParam("studyIdentifierParam") String studyIdentifierParam) {
 
         // ApiKey for authentication
         String apiKey = headers.getRequestHeader("X-Api-Key").get(0);
@@ -138,12 +135,13 @@ public class DefaultAccountService extends BaseService {
             return notAuthorised;
         }
 
-        Study newActiveStudy = this.ocRepository.getStudyByIdentifier(studyIdentifierParam);
+        Study newActiveStudy = this.openClinicaDataRepository.getStudyByIdentifier(studyIdentifierParam);
 
-        if (this.ocRepository.changeUserActiveStudy(
+        if (this.openClinicaDataRepository.changeUserActiveStudy(
                 userAccount.getOcUsername(),
-                newActiveStudy)) {
-            return javax.ws.rs.core.Response.status(204).build(); // OK, retrun no content code
+                newActiveStudy
+            )) {
+            return javax.ws.rs.core.Response.status(204).build(); // OK, return no content code
         }
         else {
             return javax.ws.rs.core.Response.status(403).build(); // Something failed return forbidden code

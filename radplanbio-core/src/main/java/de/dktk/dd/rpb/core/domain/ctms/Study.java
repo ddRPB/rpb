@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,6 +68,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
     //region Members
 
     private Integer id; // pk, auto increment
+    private String protocolId; // sponsor unique protocol id 255
     private String name; // short study name (possible abbreviation) 255
     private String title; // long (full) study title 4000
     private String description; // optional description 4000
@@ -76,19 +77,21 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
     private String ocStudyIdentifier; // EDC study reference not null
 
     private Boolean isStratifyTrialSite; // should stratification during randomisation include trial site property
+    private Boolean isEnrollmentArmAssignmentRequired; // should treatment arm be specified during enrolment process
 
     // One to one
     private AbstractProtocolType protocolType; // study design (interventional, observational, registry)
     private AbstractRandomisationConfiguration randomisationConfiguration; // configuration for randomisation
 
     @Transient
-    private de.dktk.dd.rpb.core.domain.edc.Study edcStudy; // OpenClinica transient study definition
+    private de.dktk.dd.rpb.core.domain.edc.Study edcStudy; // OC CDISC ODM study metadata definition
 
     // Many to one
     private PartnerSite partnerSite; // not null, owner of the study (data is located on owner systems), randomisation is performed here (principal site)
     private StudyPhase phase;
     private StudyStatus status;
     private SponsoringType sponsoringType;
+    private TimePerspective timing;
 
     // One to many
     private List<StudyDoc> studyDocs; // attached study documents
@@ -143,6 +146,20 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
     @Transient
     public boolean isIdSet() {
         return id != null;
+    }
+
+    //endregion
+
+    //region ProtocolId
+
+    @Size(max = 255)
+    @Column(name = "PROTOCOLID")
+    public String getProtocolId() {
+        return this.protocolId;
+    }
+
+    public void setProtocolId(String value) {
+        this.protocolId = value;
     }
 
     //endregion
@@ -215,7 +232,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
-    // region OC study identifier
+    // region EDC StudyIdentifier
 
     @Size(max = 255)
     @Column(name = "OCSTUDYIDENTIFIER")
@@ -251,19 +268,72 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
+    //region IsEnrollmentArmAssignmentRequired
+
+    @Column(name = "ENROLLMENTARMREQUIRED")
+    public Boolean getIsEnrollmentArmAssignmentRequired() {
+        return this.isEnrollmentArmAssignmentRequired;
+    }
+
+    public void setIsEnrollmentArmAssignmentRequired(Boolean value) {
+        isEnrollmentArmAssignmentRequired = value;
+    }
+
+    //endregion
+
+    //region IsInSilico
+
+    @Transient
+    public Boolean getIsInSilico() {
+        return this.protocolType != null && this.protocolType instanceof InSilicoProtocolType;
+    }
+
+    //endregion
+
+    //region IsInterventional
+
+    @Transient
+    public Boolean getIsInterventional() {
+        return this.protocolType != null && this.protocolType instanceof InterventionalProtocolType;
+    }
+
+    //endregion
+
+    //region IsMetaAnalysis
+
+    @Transient
+    public Boolean getIsMetaAnalysis() {
+        return this.protocolType != null && this.protocolType instanceof MetaAnalysisProtocolType;
+    }
+
+    //endregion
+
     //region IsObservational
 
     @Transient
-    @SuppressWarnings("unused")
     public Boolean getIsObservational() {
-        Boolean result = Boolean.FALSE;
-
-        if (this.protocolType != null) {
-            result = this.protocolType instanceof ObservationalProtocolType;
-        }
-
-        return result;
+        return this.protocolType != null && this.protocolType instanceof ObservationalProtocolType;
     }
+
+    //endregion
+
+    //region IsPilot
+
+    @Transient
+    public Boolean getIsPilot() {
+        return this.protocolType != null && this.protocolType instanceof PilotProtocolType;
+    }
+
+    //endregion
+
+    //region IsRegistry
+
+    @Transient
+    public Boolean getIsRegistry() {
+        return this.protocolType != null && this.protocolType instanceof RegistryProtocolType;
+    }
+
+    //endregion
 
     //endregion
 
@@ -312,21 +382,58 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
             else if (this.protocolType instanceof RegistryProtocolType) {
                 result = EnumProtocolType.REGISTRY;
             }
+            else if (this.protocolType instanceof PilotProtocolType) {
+                result = EnumProtocolType.PILOT;
+            }
+            else if (this.protocolType instanceof MetaAnalysisProtocolType) {
+                result = EnumProtocolType.METAANALYSIS;
+            }
+            else if (this.protocolType instanceof InSilicoProtocolType) {
+                result = EnumProtocolType.INSILICO;
+            }
         }
 
         return result;
     }
 
     public void setEnumProtocolType(EnumProtocolType enumProtocolType) {
+        // Create value object according selected enum
         if (enumProtocolType != null) {
             if (enumProtocolType == EnumProtocolType.OBSERVATIONAL) {
-                this.protocolType = new ObservationalProtocolType();
+                // There is a change of protocol type
+                if (this.protocolType == null || !(this.protocolType instanceof ObservationalProtocolType)) {
+                    this.protocolType = new ObservationalProtocolType();
+                }
             }
             else if (enumProtocolType == EnumProtocolType.INTERVENTIONAL) {
-                this.protocolType = new InterventionalProtocolType();
+                // There is a change of protocol type
+                if (this.protocolType == null || !(this.protocolType instanceof InterventionalProtocolType)) {
+                    this.protocolType = new InterventionalProtocolType();
+                }
             }
             else if (enumProtocolType == EnumProtocolType.REGISTRY) {
-                this.protocolType = new RegistryProtocolType();
+                // There is a change of protocol type
+                if (this.protocolType == null || !(this.protocolType instanceof RegistryProtocolType)) {
+                    this.protocolType = new RegistryProtocolType();
+                }
+            }
+            else if (enumProtocolType == EnumProtocolType.PILOT) {
+                // There is a change of protocol type
+                if (this.protocolType == null || !(this.protocolType instanceof PilotProtocolType)) {
+                    this.protocolType = new PilotProtocolType();
+                }
+            }
+            else if (enumProtocolType == EnumProtocolType.METAANALYSIS) {
+                // There is a change of protocol type
+                if (this.protocolType == null || !(this.protocolType instanceof MetaAnalysisProtocolType)) {
+                    this.protocolType = new MetaAnalysisProtocolType();
+                }
+            }
+            else if (enumProtocolType == EnumProtocolType.INSILICO) {
+                // There is a change of protocol type
+                if (this.protocolType == null || !(this.protocolType instanceof InSilicoProtocolType)) {
+                    this.protocolType = new InSilicoProtocolType();
+                }
             }
         }
         else {
@@ -336,7 +443,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
-    //region EDC study
+    //region EDC Study
 
     @Transient
     public de.dktk.dd.rpb.core.domain.edc.Study getEdcStudy() {
@@ -345,6 +452,26 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     public void setEdcStudy(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) {
         this.edcStudy = edcStudy;
+    }
+
+    /**
+     * Determine whether study has assigned EDC study metadata
+     *
+     * @return True when EDC study metadata (CDISC ODM) are present
+     */
+    @Transient
+    public Boolean getHasEdcStudy() {
+        return this.edcStudy != null;
+    }
+
+    /**
+     * Determine whether study is defined as multi-centre according to EDC study metadata
+     *
+     * @return True for multi-centre study, False if EDC study metadata does not exists or if mono-centre
+     */
+    @Transient
+    public Boolean getIsEdcStudyMultiCentre() {
+        return (this.edcStudy != null && this.edcStudy.isMultiCentre());
     }
 
     //endregion
@@ -510,7 +637,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     //endregion
 
-    //region Subject stratification criteria
+    //region SubjectStratificationCriteria
 
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "study", orphanRemoval = true)
@@ -561,6 +688,11 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         this.tags = list;
     }
 
+    /**
+     * Helper method to add the passed {@link StudyTag} to the tag list
+     * @param tag {@link StudyTag} that should be added
+     * @return True if addition was successful
+     */
     public boolean addTag(StudyTag tag) {
         // TODO: business logic verify whether tag max occurrence is not broken
 
@@ -568,8 +700,22 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         return this.tags.add(tag);
     }
 
+    /**
+     * Helper method to remove the passed {@link StudyTag} from the tag list
+     * @param tag {@link StudyTag} that should be removed
+     * @return True if removal was successful
+     */
     public boolean removeTag(StudyTag tag) {
-        return this.tags.contains(tag) && this.tags.remove(tag);
+        return this.containsTag(tag) && this.tags.remove(tag);
+    }
+
+    /**
+     * Helper method to determine whether provided {@link StudyTag} exists within this study
+     * @param tag {@link StudyTag} that should be checked for existence
+     * @return True if provided {@link StudyTag} definition already exists
+     */
+    public boolean containsTag(StudyTag tag) {
+        return this.tags != null && this.tags.contains(tag);
     }
 
     //endregion
@@ -585,6 +731,11 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         this.studyPersonnel = studyPersonnel;
     }
 
+    /**
+     * Helper method to add the passed {@link StudyPerson} to the studyPersonnel list
+     * @param studyPerson {@link StudyPerson} that should be added
+     * @return True if addition was successful
+     */
     public boolean addStudyPersonnel(StudyPerson studyPerson) {
         if (!this.studyPersonnel.contains(studyPerson)) {
             studyPerson.setStudy(this);
@@ -594,13 +745,22 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         return false;
     }
 
+    /**
+     * Helper method to remove the passed {@link StudyPerson} from the studyPersonnel list
+     * @param studyPerson {@link StudyPerson} that should be removed
+     * @return True if removal was successful
+     */
     public boolean removeStudyPersonnel(StudyPerson studyPerson)  {
-        if (this.studyPersonnel.contains(studyPerson)) {
-            studyPerson.getPerson().getStudyPersonnel().remove(studyPerson);
-            return this.studyPersonnel.remove(studyPerson);
-        }
+        return this.containsStudyPersonnel(studyPerson) && this.studyPersonnel.remove(studyPerson);
+    }
 
-        return false;
+    /**
+     * Helper method to determine whether provided {@link StudyPerson} exists within this study
+     * @param studyPerson {@link StudyPerson} that should be checked for existence
+     * @return True if provided {@link StudyPerson} definition already exists
+     */
+    public boolean containsStudyPersonnel(StudyPerson studyPerson) {
+        return this.studyPersonnel != null && this.studyPersonnel.contains(studyPerson);
     }
 
     public Boolean studyPersonExists(Person person) {
@@ -631,6 +791,11 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         this.studyOrganisations = studyOrganisations;
     }
 
+    /**
+     * Helper method to add the passed {@link StudyOrganisation} to the studyOrganisations list
+     * @param studyOrganisation {@link StudyOrganisation} that should be added
+     * @return True if addition was successful
+     */
     public boolean addStudyOrganisation(StudyOrganisation studyOrganisation) {
         if (!this.studyOrganisations.contains(studyOrganisation)) {
             studyOrganisation.setStudy(this);
@@ -640,8 +805,22 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         return false;
     }
 
+    /**
+     * Helper method to remove the passed {@link StudyOrganisation} from the studyOrganisations list
+     * @param studyOrganisation {@link StudyOrganisation} that should be removed
+     * @return True if removal was successful
+     */
     public boolean removeStudyOrganisation(StudyOrganisation studyOrganisation) {
-        return this.studyOrganisations.contains(studyOrganisation) && this.studyOrganisations.remove(studyOrganisation);
+        return this.containsStudyOrganisation(studyOrganisation) && this.studyOrganisations.remove(studyOrganisation);
+    }
+
+    /**
+     * Helper method to determine whether provided {@link StudyOrganisation} exists within this study
+     * @param studyOrganisation {@link StudyOrganisation} that should be checked for existence
+     * @return True if provided {@link StudyOrganisation} definition already exists
+     */
+    public boolean containsStudyOrganisation(StudyOrganisation studyOrganisation) {
+        return this.studyOrganisations != null && this.studyOrganisations.contains(studyOrganisation);
     }
 
     public Boolean studyOrganisationExists(Organisation organistaion) {
@@ -672,6 +851,11 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         this.timeLineEvents = timeLineEvents;
     }
 
+    /**
+     * Helper method to add the passed {@link TimeLineEvent} to the timeLineEvents list
+     * @param event {@link TimeLineEvent} that should be added
+     * @return True if addition was successful
+     */
     public boolean addTimeLineEvent(TimeLineEvent event) {
         if (!this.timeLineEvents.contains(event)) {
             event.setStudy(this);
@@ -681,8 +865,22 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         return false;
     }
 
+    /**
+     * Helper method to remove the passed {@link TimeLineEvent} from the timeLineEvents list
+     * @param event {@link TimeLineEvent} that should be removed
+     * @return True if removal was successful
+     */
     public boolean removeTimeLineEvent(TimeLineEvent event) {
-        return this.timeLineEvents.contains(event) && this.timeLineEvents.remove(event);
+        return this.containsTimeLineEvent(event) && this.timeLineEvents.remove(event);
+    }
+
+    /**
+     * Helper method to determine whether provided {@link TimeLineEvent} exists within this study
+     * @param event {@link TimeLineEvent} that should be checked for existence
+     * @return True if provided {@link TimeLineEvent} definition already exists
+     */
+    public boolean containsTimeLineEvent(TimeLineEvent event) {
+        return this.timeLineEvents != null && this.timeLineEvents.contains(event);
     }
 
     //endregion
@@ -691,7 +889,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     //region Many-to-One
 
-    //region Principal partner site
+    //region PrincipalPartnerSite
 
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="SITEID")
@@ -743,6 +941,20 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     public void setSponsoringType(SponsoringType sponsoringType) {
         this.sponsoringType = sponsoringType;
+    }
+
+    //endregion
+
+    //region TimePerspective
+
+    @ManyToOne(fetch=FetchType.EAGER)
+    @JoinColumn(name="TIMEPERSPECTIVEID")
+    public TimePerspective getTiming() {
+        return this.timing;
+    }
+
+    public void setTiming(TimePerspective timing) {
+        this.timing = timing;
     }
 
     //endregion
@@ -870,7 +1082,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
     }
 
     //endregion
-
+    
     //region StudyTags Methods
 
     public void initialiseAllRequiredTags(List<StudyTagType> requiredTagTypes) {
@@ -960,12 +1172,11 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     //region CrfFieldAnnotation Methods
 
-    /**
-     * Find list of CrfFieldAnnotation entities that are of specified annotationType
-     *
-     * @param annotationTypeName unique name that identifies RPB AnnotationType
-     * @return List of CrfFieldAnnotation entities of given type
-     */
+    public CrfFieldAnnotation findAnnotation(String annotationTypeName, CrfFieldAnnotation example) {
+        List<CrfFieldAnnotation> result = this.findMatchingAnnotations(annotationTypeName, example);
+        return result.size() > 0 ? result.get(1) : null;
+    }
+
     public List<CrfFieldAnnotation> findAnnotations(String annotationTypeName) {
         List<CrfFieldAnnotation> result = new ArrayList<>();
 
@@ -980,65 +1191,36 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
         return result;
     }
 
-    /**
-     * Find list of CrfFieldAnnotation entities of specified annotationType according to example entity
-     *
-     * @param annotationTypeName unique name that identifies RPB AnnotationType
-     * @param crfFieldAnnotationExample example for search
-     * @return List of CrfFieldAnnotation entities
-     */
-    public List<CrfFieldAnnotation> findAnnotationsByExample(String annotationTypeName, CrfFieldAnnotation crfFieldAnnotationExample) {
-        List<CrfFieldAnnotation> result = new ArrayList<>();
-
-        // Check whether example is valid
-        if (crfFieldAnnotationExample != null &&
-                !"".equals(crfFieldAnnotationExample.getEventDefinitionOid()) &&
-                !"".equals(crfFieldAnnotationExample.getFormOid()) &&
-                !"".equals(crfFieldAnnotationExample.getGroupOid()) &&
-                !"".equals(crfFieldAnnotationExample.getCrfItemOid())) {
-
-            if (this.crfFieldAnnotations != null) {
-                for (CrfFieldAnnotation cfa : this.crfFieldAnnotations) {
-
-                    // Check the type of annotation
-                    if (cfa.getAnnotationType().getName().equals(annotationTypeName)) {
-
-                        // Check the if example match
-                        if (cfa.getEventDefinitionOid().equals(crfFieldAnnotationExample.getEventDefinitionOid()) &&
-                                cfa.getFormOid().equals(crfFieldAnnotationExample.getFormOid()) &&
-                                cfa.getGroupOid().equals(crfFieldAnnotationExample.getGroupOid()) &&
-                                cfa.getCrfItemOid().equals(crfFieldAnnotationExample.getCrfItemOid())) {
-
-                            result.add(cfa);
-                        }
-                    }
-                }
-            }
-        }
-
-        return result;
+    public List<CrfFieldAnnotation> findAnnotations(CrfFieldAnnotation example) {
+        return this.findMatchingAnnotations(example);
     }
 
-    /**
-     * Get CRF field annotations that are of specified annotationTypes and belong to specified event
-     * @param annotationTypes list of unique annotation type names
-     * @param eventOid study event definition OID
-     * @return List of CrfFieldAnnotations entity of given types belonging to event
-     */
-    public List<CrfFieldAnnotation> findEventAnnotations(List<String> annotationTypes, String eventOid) {
-        List<CrfFieldAnnotation> result = new ArrayList<>();
+    public List<CrfFieldAnnotation> findAnnotations(String annotationTypeName, CrfFieldAnnotation example) {
+        return this.findMatchingAnnotations(annotationTypeName, example);
+    }
 
-        if (this.crfFieldAnnotations != null) {
-            for (CrfFieldAnnotation cfa : this.crfFieldAnnotations) {
-                for (String annotationTypeName : annotationTypes) {
-                    if (cfa.getAnnotationType().getName().equals(annotationTypeName) && cfa.getEventDefinitionOid().equals(eventOid)) {
-                        result.add(cfa);
-                    }
-                }
-            }
+    public List<CrfFieldAnnotation> findAnnotations(List<String> annotationTypeNames, CrfFieldAnnotation example) {
+        List<CrfFieldAnnotation> results = new ArrayList<>();
+
+        for (String annotationTypeName : annotationTypeNames) {
+            results.addAll(this.findMatchingAnnotations(annotationTypeName, example));
         }
 
-        return result;
+        return results;
+    }
+
+    //endregion
+
+    //region AnnotationTypes
+
+    public List<AnnotationType> findAnnotationsTypes(CrfFieldAnnotation example) {
+        List<AnnotationType> results = new ArrayList<>();
+
+        for (CrfFieldAnnotation specimenAnnotation : this.findAnnotations(example)) {
+            results.add(specimenAnnotation.getAnnotationType());
+        }
+
+        return results;
     }
 
     //endregion
@@ -1123,6 +1305,8 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
                                     if (cfa.getGroupOid().equals(igd.getOid())) {
                                         for (ItemDefinition id : igd.getItemDefs()) {
                                             if (cfa.getCrfItemOid().equals(id.getOid())) {
+                                                igd.setFormDefinition(fd);
+                                                id.setItemGroupDefinition(igd);
                                                 results.add(id);
                                                 break;
                                             }
@@ -1170,6 +1354,111 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
                 .add("id", this.id)
                 .toString();
     }
+
+    //endregion
+
+    //region Private Methods
+
+    //region CrfFieldAnnotation
+
+    private List<CrfFieldAnnotation> findMatchingAnnotations(String annotationTypeName, CrfFieldAnnotation example) {
+        List<CrfFieldAnnotation> result = new ArrayList<>();
+
+        // Filter is provided
+        if (example != null) {
+
+            // Annotation with any event Oid is a match when Oid is not provided
+            boolean eventOidMatch = StringUtils.isEmpty(example.getEventDefinitionOid());
+            // Annotation with any form Oid is a match when Oid is not provided
+            boolean formOidMatch = StringUtils.isEmpty(example.getFormOid());
+            // Annotation with any item group Oid is a match when Oid is not provided
+            boolean itemGroupOidMatch = StringUtils.isEmpty(example.getGroupOid());
+            // Annotation with any item Oid is a match when Oid is not provided
+            boolean itemOidMatch = StringUtils.isEmpty(example.getCrfItemOid());
+
+            for (CrfFieldAnnotation annotation : this.crfFieldAnnotations) {
+
+                // Check if the type of annotation is matching
+                if (annotationTypeName.equals(annotation.getAnnotationType().getName())) {
+
+                    boolean exampleMatch = this.annotationExampleMatch(
+                            example,
+                            annotation,
+                            eventOidMatch,
+                            formOidMatch,
+                            itemGroupOidMatch,
+                            itemOidMatch
+                    );
+
+                    // Check the if example match
+                    if (exampleMatch) {
+                        result.add(annotation);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private List<CrfFieldAnnotation> findMatchingAnnotations(CrfFieldAnnotation example) {
+        List<CrfFieldAnnotation> result = new ArrayList<>();
+
+        // Filter is provided
+        if (example != null) {
+
+            // Annotation with any event Oid is a match when Oid is not provided
+            boolean eventOidMatch = StringUtils.isEmpty(example.getEventDefinitionOid());
+            // Annotation with any form Oid is a match when Oid is not provided
+            boolean formOidMatch = StringUtils.isEmpty(example.getFormOid());
+            // Annotation with any item group Oid is a match when Oid is not provided
+            boolean itemGroupOidMatch = StringUtils.isEmpty(example.getGroupOid());
+            // Annotation with any item Oid is a match when Oid is not provided
+            boolean itemOidMatch = StringUtils.isEmpty(example.getCrfItemOid());
+
+            for (CrfFieldAnnotation annotation : this.crfFieldAnnotations) {
+
+                boolean exampleMatch = this.annotationExampleMatch(
+                        example,
+                        annotation,
+                        eventOidMatch,
+                        formOidMatch,
+                        itemGroupOidMatch,
+                        itemOidMatch
+                );
+
+                // Check the if example match
+                if (exampleMatch) {
+                    result.add(annotation);
+                }
+            }
+
+        }
+
+        return result;
+    }
+
+    private boolean annotationExampleMatch(CrfFieldAnnotation example, CrfFieldAnnotation annotation, boolean eventOidMatch, boolean formOidMatch, boolean itemGroupOidMatch, boolean itemOidMatch) {
+
+        // Check matching when OIDs are provided
+        if (!eventOidMatch) {
+            eventOidMatch = annotation.getEventDefinitionOid().equals(example.getEventDefinitionOid());
+        }
+        if (!formOidMatch) {
+            formOidMatch = annotation.getFormOid().equals(example.getFormOid());
+        }
+        if (!itemGroupOidMatch) {
+            itemGroupOidMatch = annotation.getGroupOid().equals(example.getGroupOid());
+        }
+        if (!itemOidMatch) {
+            itemOidMatch = annotation.getCrfItemOid().equals(example.getCrfItemOid());
+        }
+
+        // Check the if annotation example match the provided annotation
+        return  eventOidMatch && formOidMatch && itemGroupOidMatch && itemOidMatch;
+    }
+
+    //endregion
 
     //endregion
 

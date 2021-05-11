@@ -11,38 +11,50 @@
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="License" title="License" url="/license.faces" />
+            <p:menuitem value="#{msg.licence}" title="#{msg.licence}" url="/license.faces" />
         </p:breadCrumb>
     </ui:define>
 
     <!-- Definition of content place holder content -->
     <ui:define name="content">
-        <p:panel header="Software licenses">
+        <p:panel header="#{msg.software} #{msg.licence}">
             <p>
                 <p:outputPanel>
-                    RadPlanBio components developed by DKTK Dresden site:
+                    RPB components developed by DKTK:
                     <ul>
-                        <li>RPB-Portal -- Unified access to the platform functionality (GNU GPL)
+                        <li><a href="https://github.com/ddRPB/rpb">ddRPB</a> -- radiotherapy clinical research IT infrastructure (GNU GPL):
                             <ul>
-                                <li>Randomisation - inspired by <a href="http://dschrimpf.github.io/randi3/">RANDI</a> -- Randomization process in clinical trials (GNU GPL)</li>
+                                <li>ddRPB-core -- Core library </li>
+                                <li>ddRPB-web-API -- Unified platform web-API</li>
+                                <li>ddRPB-portal -- Unified platform portal</li>
+                                <li>ddRPB-mobile -- Patient Reported Outcomes (ePRO) and Clinician Outcome Assessment (eCOA)</li>
+                                <li>Randomisation (inspired by <a href="http://dschrimpf.github.io/randi3">RANDI</a>) -- Randomization process in clinical trials</li>
                             </ul>
                         </li>
-                        <li>RPB-Web-API -- Programatic access to the platform functionality - web serivices (GNU GPL)</li>
-                        <li>RPB-Desktop-Client -- Application for DICOM data de/re-identification and upload/download (GNU GPL)</li>
+                        <li><a href="https://github.com/ddRPB/rpb-server">ddRPB-server</a> -- Program access to the platform functionality - web services (GNU GPL)</li>
+                        <li><a href="https://github.com/ddRPB/rpb-client">ddRPB-client</a> -- Application for DICOM data de/re-identification and upload/download (GNU GPL)</li>
                     </ul>
 
-                    RadPlanBio integrates several existing software systems, each with its own source license:
+                    RPB integrates with several existing OSS, each with its own source license:
                     <ul>
-                        <li>EDC - <a href="https://www.openclinica.com/">OpenClinica</a> -- Electronic Data Capture solution for collection of study data (GNU LGPL)</li>
-                        <li>PACS - <a href="http://ingenium.home.xs4all.nl/dicom.html">ConQuest</a> -- DICOM PACS server as a medical image data storage (PUBLIC DOMAIN)</li>
-                        <li>PIDG - <a href="http://www.unimedizin-mainz.de/imbei/informatik/opensource/mainzelliste.html">MainzelListe</a> -- patient PID generator (pseudonymisation) (AGPL)</li>
+                        <li>EDC - <a href="https://www.openclinica.com">OpenClinica</a> -- Electronic Data Capture (GNU LGPL)</li>
+                        <li>PACS - <a href="http://ingenium.home.xs4all.nl/dicom.html">Conquest</a> -- DICOM Server (PUBLIC DOMAIN)</li>
+                        <li>LAB - <a href="https://www.labkey.com">LabKey</a> -- Laboratory Data Management (ALv2)</li>
+                        <li>PIDG - <a href="http://www.unimedizin-mainz.de/imbei/informatik/ag-verbundforschung/mainzelliste.html">Mainzelliste</a> -- Patient PID Generator (pseudonymisation) (AGPL)</li>
                         <li>
-                            DICOM viewers:
+                            DICOM Viewers:
                             <ul>
-                                <li><a href="http://ivmartel.github.io/dwv/">DWV</a> -- HTML5 (GNU GPL)</li>
-                                <li><a href="http://www.dcm4che.org/confluence/display/WEA/Home">WEASIS</a> -- JAVA WebStart (EPL)</li>
+                                <li><a href="https://nroduit.github.io">WEASIS</a> -- Java WebStart (EPL)</li>
                             </ul>
                         </li>
+                        <li>HL7 - <a href="https://www.nextgen.com/products-and-services/integration-engine">NextGen Connect</a>-- Health care integration engine (MPL 1.1)</li>
+                        <li>XForms - <a href="https://enketo.org">Enketo</a> -- Web form rendering engine (OpenRosa API support) for ePRO/eCOA (ASL)</li>
+                        <li>CTP - <a href="https://www.rsna.org/research/imaging-research-tools">Clinical Trials Processor</a> -- Image processing application for imaging clinical trials data (RSNA Public License)</li>
+                    </ul>
+
+                    RPB integrates with commercial software systems:
+                    <ul>
+                        <li>BIO - <a href="http://www.kairos.de/produkte/centraxx-bio">CentraXX</a> -- BIO bank</li>
                     </ul>
               </p:outputPanel>
             </p>

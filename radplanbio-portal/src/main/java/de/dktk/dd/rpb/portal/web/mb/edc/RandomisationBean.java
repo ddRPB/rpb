@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,15 +34,19 @@ import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.primefaces.component.api.UIColumn;
+
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
+import org.primefaces.model.chart.Axis;
+import org.primefaces.model.chart.AxisType;
+import org.primefaces.model.chart.BarChartModel;
+import org.primefaces.model.chart.ChartSeries;
+
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -58,7 +62,7 @@ import java.util.List;
  */
 @Named("mbRandomisation")
 @Scope("view")
-public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
+public class RandomisationBean extends CrudEntityViewModel<Subject, Integer> {
 
     //region Injects
 
@@ -67,27 +71,12 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
     @Inject
     private MainBean mainBean;
 
-    /**
-     * Set MainBean
-     *
-     * @param bean MainBean
-     */
-    @SuppressWarnings("unused")
-    public void setMainBean(MainBean bean) {
-        this.mainBean = bean;
-    }
-
     //endregion
 
     //region Study integration facade
 
     @Inject
     private StudyIntegrationFacade studyIntegrationFacade;
-
-    @SuppressWarnings("unused")
-    public void setStudyIntegrationFacade(StudyIntegrationFacade value) {
-        this.studyIntegrationFacade = value;
-    }
 
     //endregion
 
@@ -96,23 +85,12 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
     @Inject
     private IStudyRepository studyRepository;
 
-    @SuppressWarnings("unused")
-    public void setStudyRepository(IStudyRepository value) {
-        this.studyRepository = value;
-    }
-
     //endregion
 
     //region TrialSubjectRepository
 
     @Inject
     private ITrialSubjectRepository trialSubjectRepository;
-
-    @SuppressWarnings("unused")
-    public void setTrialSubjectRepository(ITrialSubjectRepository repository) {
-        this.trialSubjectRepository = repository;
-    }
-
 
     //endregion
 
@@ -130,6 +108,8 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
 
     private Study rpbActiveStudy;
     private TrialSubject newTrialSubject;
+
+    private BarChartModel armsBarModel;
 
     //endregion
 
@@ -159,6 +139,18 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
 
     //endregion
 
+    //region BarChartModel
+
+    public BarChartModel getArmsBarModel() {
+        return armsBarModel;
+    }
+
+    public void setArmsBarModel(BarChartModel armsBarModel) {
+        this.armsBarModel = armsBarModel;
+    }
+
+    //endregion
+
     //endregion
 
     //region Init
@@ -166,7 +158,7 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
     @PostConstruct
     public void init() {
         this.setPreSortOrder(
-                this.buildSortOrder()
+            this.buildSortOrder()
         );
     }
 
@@ -234,19 +226,16 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
         try {
             if (!FacesContext.getCurrentInstance().isPostback()) {
 
+                // Init empty model
+                this.armsBarModel = new BarChartModel();
+
                 // Local active RPB study
                 this.studyIntegrationFacade.init(this.mainBean);
-
                 this.rpbActiveStudy = this.studyIntegrationFacade.loadStudy();
 
-                if (this.rpbActiveStudy == null) {
-                    throw new Exception("There is no RPB study defined for your current active study in OpenClinica.");
+                if (this.isRandomisedTrial()) {
+                    this.reload();
                 }
-                if (!this.rpbActiveStudy.getIsRandomisedClinicalTrial()) {
-                    throw new Exception("To access RadPlanBio subject randomisation feature the active study have to be randomised clinical trial.");
-                }
-
-                this.reload();
             }
         }
         catch (Exception err) {
@@ -256,67 +245,117 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
 
     public void reload() {
         try {
-            if (this.rpbActiveStudy == null) {
-                throw new Exception("There is no RPB study defined for your current active study in OpenClinica.");
-            }
-            if (!this.rpbActiveStudy.getIsRandomisedClinicalTrial()) {
-                throw new Exception("To access RadPlanBio subject randomisation feature the active study have to be randomised clinical trial.");
-            }
+            if (this.isRandomisedTrial()) {
 
-            this.studyIntegrationFacade.init(this.mainBean);
-            // Faster load with new OC REST APIs
-            if (new ComparableVersion(
-                    this.mainBean.getMyAccount().getPartnerSite().getEdc().getVersion()
-                    )
-                    .compareTo(
-                            new ComparableVersion("3.7")
-                    ) >= 0) {
-                this.studyIntegrationFacade.setRetreiveStudySubjectOID(Boolean.FALSE);
-            }
+                this.studyIntegrationFacade.init(this.mainBean);
+                // Faster load with new OC REST APIs
+                if (new ComparableVersion(
+                        this.mainBean.getMyAccount().getPartnerSite().getEdc().getVersion()
+                )
+                        .compareTo(
+                                new ComparableVersion("3.7")
+                        ) >= 0) {
+                    this.studyIntegrationFacade.setRetrieveStudySubjectOID(Boolean.FALSE);
+                }
 
-            List<Subject> ocSubjects = this.studyIntegrationFacade.loadSubjects();
+                List<Subject> ocSubjects = this.studyIntegrationFacade.loadSubjects();
 
-            // Subject which have been randomised for RadPlanBio study in specific site
-            List<TrialSubject> randomisedSubjects;
+                // Subject which have been randomised for RadPlanBio study in specific site
+                List<TrialSubject> randomisedSubjects;
 
-            if (this.isPrincipalSite()) {
-                randomisedSubjects = this.trialSubjectRepository.find(); //TODO: Make the select accroding to study and site
-            }
-            else {
-                throw new Exception("Cannot load randomised subjects because this is not the principal partner site and decentral randomisation is not implemented.");
-            }
+                if (this.isPrincipalSite()) {
 
-            // Compose subjects aggregate RadPlanBio subjects association with trial subject for randomisation
-            // This is a good candidate for moving the code to study integration facade
-            this.entityList = new ArrayList<Subject>();
-            for (Subject ocSubject : ocSubjects) {
+                    //TODO: Make the search for subject according to study as well
 
-                Subject subject = new Subject();
-                subject.setUniqueIdentifier(ocSubject.getUniqueIdentifier());
-                subject.setStudySubjectId(ocSubject.getStudySubjectId());
-                subject.setSecondaryId(ocSubject.getSecondaryId());
-                subject.setGender(ocSubject.getGender());
+                    // Search for existing trial subject for logged user partner site
+                    TrialSubject trialSubjectQuery = this.trialSubjectRepository.getNew();
+                    trialSubjectQuery.setTrialSite(
+                            this.mainBean.getMyAccount().getPartnerSite()
+                    );
 
-                TrialSubject alreadyRandomisedSubject = null;
-                for (TrialSubject ts : randomisedSubjects) {
-                    if (ts.getOcStudySubjectId().equals(ocSubject.getStudySubjectId())) {
-                        alreadyRandomisedSubject = ts;
-                        break;
+                    randomisedSubjects = this.trialSubjectRepository.find(trialSubjectQuery);
+                }
+                else {
+                    throw new Exception("Cannot load randomised subjects because this is not the principal partner site and decentral randomisation is not implemented.");
+                }
+
+                // Compose subjects aggregate RadPlanBio subjects association with trial subject for randomisation
+                // This is a good candidate for moving the code to study integration facade
+                this.entityList = new ArrayList<>();
+                for (Subject ocSubject : ocSubjects) {
+
+                    Subject subject = new Subject();
+                    subject.setUniqueIdentifier(ocSubject.getUniqueIdentifier());
+                    subject.setStudySubjectId(ocSubject.getStudySubjectId());
+                    subject.setSecondaryId(ocSubject.getSecondaryId());
+                    subject.setGender(ocSubject.getGender());
+
+                    TrialSubject alreadyRandomisedSubject = null;
+                    for (TrialSubject ts : randomisedSubjects) {
+                        if (ts.getOcStudySubjectId().equals(ocSubject.getStudySubjectId())) {
+                            alreadyRandomisedSubject = ts;
+                            break;
+                        }
                     }
+
+                    if (alreadyRandomisedSubject != null) {
+                        subject.setArm(alreadyRandomisedSubject.getTreatmentArm());
+                    }
+
+                    entityList.add(subject);
                 }
 
-                if (alreadyRandomisedSubject != null) {
-                    subject.setArm(alreadyRandomisedSubject.getTreatmentArm());
-                }
+                // Reload plot visualisation
+                this.reloadArmsBarModel();
 
-                entityList.add(subject);
+                // Prepare new data for UI data binding
+                this.prepareNewEntity();
             }
-
-            // Prepare new data for UI data binding
-            this.prepareNewEntity();
         }
         catch (Exception err) {
             this.messageUtil.error(err);
+        }
+    }
+
+    /**
+     * Prepares bar plot model for arms and subjects
+     */
+    public void reloadArmsBarModel() {
+        this.armsBarModel = new BarChartModel();
+
+        this.armsBarModel.setTitle(this.rpbActiveStudy.getName() + " Randomisation Progress");
+        this.armsBarModel.setLegendPosition("ne");
+        this.armsBarModel.setShowPointLabels(Boolean.TRUE);
+
+        Axis xAxis = this.armsBarModel.getAxis(AxisType.X);
+        xAxis.setMin(1);
+        xAxis.setMax(1);
+
+        Axis yAxis = this.armsBarModel.getAxis(AxisType.Y);
+        yAxis.setLabel("Subjects");
+        yAxis.setMin(0);
+
+        // If we know expected total enrolment we can better calculate the axis range
+        if (this.rpbActiveStudy.getExpectedTotalEnrollment() != null) {
+
+            // Exact treatment arm sizes;
+            int yAxisMax = this.rpbActiveStudy.getExpectedTotalEnrollment() / this.rpbActiveStudy.getTreatmentArms().size();
+
+            // Multi-centre
+            if (this.rpbActiveStudy.getParticipatingSites() != null) {
+                yAxisMax /=  this.rpbActiveStudy.getParticipatingSites().size();
+            }
+
+            yAxis.setMax(yAxisMax);
+        }
+        yAxis.setTickFormat("%d");
+
+        for (TreatmentArm arm : this.rpbActiveStudy.getTreatmentArms()) {
+            ChartSeries armSeries = new ChartSeries();
+            armSeries.setLabel(arm.getName());
+            armSeries.set("Arms", arm.getSubjects().size());
+
+            this.armsBarModel.addSeries(armSeries);
         }
     }
 
@@ -328,6 +367,19 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
         // TODO: when decentral randomisation will be implemented enable checking for principal site
         return true;
         //return this.rpbActiveStudy.getPartnerSite().getIdentifier().equals(this.rpbAccount.getPartnerSite().getIdentifier());
+    }
+
+    private boolean isRandomisedTrial() {
+        if (this.rpbActiveStudy == null) {
+            this.messageUtil.info("There is no RPB study defined for your current EDC active study.");
+            return false;
+        }
+        else if (!this.rpbActiveStudy.getIsRandomisedClinicalTrial()) {
+            this.messageUtil.info("To access RPB subject randomisation the active study have to be randomised clinical trial.");
+            return false;
+        }
+
+        return true;
     }
 
     //endregion
@@ -343,42 +395,36 @@ public class RandomisationBean  extends CrudEntityViewModel<Subject, Integer> {
         if (this.isPrincipalSite()) {
             principalSiteStudySubjectCriteria = this.rpbActiveStudy.getSubjectCriteria();
         }
-//        else {
-//            // I have to contact principal study site over REST and get the RPB study from there
-//        }
+        else {
+            // I have to contact principal study site over REST and get the RPB study from there
+            // NOOP
+        }
 
         this.newTrialSubject = this.trialSubjectRepository.getNew();
+
+        //TODO: maybe better load site according to selected subject PID (in case somebody gets idea that our DD users will randomise their subjects)
         this.newTrialSubject.setTrialSite(this.mainBean.getMyAccount().getPartnerSite());
 
-        List<PrognosticVariable<?>> variables = new ArrayList<PrognosticVariable<?>>();
-
+        List<PrognosticVariable<?>> variables = new ArrayList<>();
         for (AbstractCriterion<? extends Serializable, ? extends AbstractConstraint<? extends Serializable>> criterion : principalSiteStudySubjectCriteria) {
-
-            PrognosticVariable<String> variable = new PrognosticVariable<String>((AbstractCriterion<String,? extends AbstractConstraint<String>>) criterion);
+            PrognosticVariable<String> variable = new PrognosticVariable<>((AbstractCriterion<String, ? extends AbstractConstraint<String>>) criterion);
             variables.add(variable);
             variable.setSubject(newTrialSubject);
         }
         this.newTrialSubject.setPrognosticVariables(variables);
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtSubjects:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtSubjects:colStudySubjectId");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStudySubjectId");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     //endregion

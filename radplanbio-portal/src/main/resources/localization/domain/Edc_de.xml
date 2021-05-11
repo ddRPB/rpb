@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Edc</comment>
+
+    <entry key="edc">EDC</entry>
+    <entry key="edc_plural">EDCs</entry>
+    <entry key="edc_reload">Vorhandenen EDCs neu laden</entry>
+    <entry key="edc_print">Tabelle EDCs drucken</entry>
+    <entry key="edc_new">Neue EDC definieren</entry>
+    <entry key="edc_edit">Ausgewählten EDC bearbeiten</entry>
+    <entry key="edc_delete">Ausgewählten EDC löschen</entry>
+
+    <!-- attributes -->
+    <entry key="edc_id">ID</entry>
+    <entry key="edc_baseUrl">Base URL</entry>
+    <entry key="edc_soapBaseUrl">SOAP base URL</entry>
+    <entry key="edc_publicUrl">Öffentliche URL</entry>
+    <entry key="edc_soapPublicUrl">SOAP Öffentliche URL</entry>
+    <entry key="edc_dataPath">Data Pfad</entry>
+    <entry key="edc_isEnabled">Aktiviert</entry>
+    <entry key="edc_isValidated">Validiert</entry>
+    <entry key="edc_version">Version</entry>
+
+</properties>

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,71 +20,51 @@
 package de.dktk.dd.rpb.portal.web.mb;
 
 import de.dktk.dd.rpb.core.service.EmailService;
+import org.springframework.context.annotation.Scope;
 
 import java.io.*;
 
 import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * Bean for contact view
  *
  * @author tomas@skripcak.net
  * @since 01 Oct 2013
- * @version 1.0.0
- *
  */
-@ManagedBean(name="mbContact")
-@ViewScoped
+@Named("mbContact")
+@Scope(value="view")
 public class ContactBean implements Serializable {
 
     //region Finals
 
-    // Different version of the class - serialisation/deserialisation issue
+    // Different version of the class - serialisation/de-serialisation issue
     private static final long serialVersionUID = 1L;
 
     //endregion
 
-    //region Injects
-
-    //region E-mail service
-
-    @ManagedProperty(value="#{emailService}")
-    private EmailService emailService;
-
-    /**
-     * Get DefaultAccountRepository
-     *
-     * @return DefaultAccountRepository - repository to access default user account data
-     */
-    @SuppressWarnings("unused")
-    public EmailService getEmailService() {
-        return this.emailService;
-    }
-
-    /**
-     * Set Default AccountRepository
-     * @param value email service
-     */
-    @SuppressWarnings("unused")
-    public void setEmailService(EmailService value) {
-        this.emailService = value;
-    }
-
-    //endregion
-
-    //endregion
-
     //region Members
+
+    private EmailService emailService;
 
     private String name;
     private String to;
     private String from;
     private String subject;
     private String body;
+
+    //endregion
+
+    //region Constructors
+
+    @Inject
+    public ContactBean(EmailService emailService) {
+        this.emailService = emailService;
+    }
 
     //endregion
 
@@ -162,7 +142,7 @@ public class ContactBean implements Serializable {
 
         try {
             this.emailService.sendMailToAdmin(this.from, this.subject, this.body);
-            context.addMessage(null, new FacesMessage("Info", "Email successfuly sent to the administrator."));
+            context.addMessage(null, new FacesMessage("Info", "E-mail successfully sent to the administrator."));
             this.clearFields();
         }
         catch (Exception err) {

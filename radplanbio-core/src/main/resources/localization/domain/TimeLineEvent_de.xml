@@ -6,11 +6,11 @@
 
     <entry key="timeLineEvent">Timeline Ereignis</entry>
     <entry key="timeLineEvent_plural">Timeline Ereignissen</entry>
-    <entry key="timeLineEvent_reload">Neu laden vorhandenen Timeline Ereignissen</entry>
-    <entry key="timeLineEvent_print">Drucken Tabelle Timeline Ereignissen</entry>
-    <entry key="timeLineEvent_new">Definieren Sie eine neue Timeline Ereignis</entry>
-    <entry key="timeLineEvent_edit">Bearbeiten Sie ausgewählte Timeline Ereignis</entry>
-    <entry key="timeLineEvent_delete">Löschen ausgewählten Timeline Ereignis</entry>
+    <entry key="timeLineEvent_reload">Vorhandenen Timeline Ereignissen neu laden</entry>
+    <entry key="timeLineEvent_print">Tabelle Timeline Ereignissen drucken</entry>
+    <entry key="timeLineEvent_new">Neue Timeline Ereignis definieren</entry>
+    <entry key="timeLineEvent_edit">Ausgewählte Timeline Ereignis bearbeiten</entry>
+    <entry key="timeLineEvent_delete">Ausgewählte Timeline Ereignis löschen</entry>
 
     <!-- attributes -->
     <entry key="timeLineEvent_id">Id</entry>

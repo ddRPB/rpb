@@ -6,21 +6,21 @@
 
     <entry key="organisation">Organisation</entry>
     <entry key="organisation_plural">Organisationen</entry>
-    <entry key="organisation_reload">Neu laden vorhandenen Organisationen</entry>
-    <entry key="organisation_print">Drucken Tabelle Organisationen</entry>
-    <entry key="organisation_new">Definieren Sie eine neue Organisation</entry>
-    <entry key="organisation_edit">Bearbeiten Sie ausgewählte Organisation</entry>
-    <entry key="organisation_delete">Löschen ausgewählten Organisation</entry>
+    <entry key="organisation_reload">Vorhandenen Organisationen neu laden</entry>
+    <entry key="organisation_print">Tabelle Organisationen drucken</entry>
+    <entry key="organisation_new">Neue Organisation definieren</entry>
+    <entry key="organisation_edit">Ausgewählte Organisation bearbeiten</entry>
+    <entry key="organisation_delete">Ausgewählten Organisation löschen</entry>
 
     <!-- attributes -->
     <entry key="organisation_id">Id</entry>
     <entry key="organisation_name">Name</entry>
 
     <!-- many-to-one -->
-    <entry key="organisation_parent">Parent</entry>
+    <entry key="organisation_parent">Vorfahr</entry>
 
     <!-- one-to-many -->
-    <entry key="organisation_children">Children</entry>
-    <entry key="organisation_studyOrganisations">Study organisations</entry>
+    <entry key="organisation_children">Nachkommenschaft</entry>
+    <entry key="organisation_studyOrganisations">Studie Organisationen</entry>
 
 </properties>

@@ -1,40 +1,58 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <ui:composition
-    xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:ui="http://java.sun.com/jsf/facelets"
-    xmlns:f="http://java.sun.com/jsf/core"
-    xmlns:h="http://java.sun.com/jsf/html"
-    xmlns:p="http://primefaces.org/ui"
-    template="/WEB-INF/layouts/main.xhtml"
-    >
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+>
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
-            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="PACS" title="PACS - medical imaging" url="#" />
-            <p:menuitem value="DICOM #{msg.study_plural}" title="DICOM #{msg.study_plural}" url="/pacs/dicomPatientStudies.faces" />
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces"/>
+            <p:menuitem value="#{msg.pacs}" title="#{msg.pacs} - medical imaging" url="#"/>
+            <p:menuitem value="DICOM #{msg.study_plural}" title="DICOM #{msg.study_plural}"
+                        url="/pacs/dicomPatientStudies.faces"/>
         </p:breadCrumb>
     </ui:define>
 
     <!-- Definition of the page content place holder -->
     <ui:define name="content">
 
-        <!-- RadPlanBio Study DICOM data -->
-        <p:tabView id="tabView" dynamic="true" activeIndex="#{mbDicomStudies.activeTabIndex}">
+        <!-- RPB Study DICOM data -->
+        <p:tabView id="tabView" activeIndex="#{mbDicomStudies.tab.activeIndex}">
 
-            <!-- Study Subjects -->
+            <!-- DICOM Study Subjects -->
             <p:tab title="#{msg.studySubject_plural}">
+
                 <!-- Toolbar -->
                 <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- Reload -->
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.studySubject_reload}"
+                                icon="ui-icon-refresh"
+                                action="#{mbDicomStudies.load}"
+                                ajax="false"
+                                update=":form:tabView:dtDicomSubjects, :growl"
+                        />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
                                 title="#{msg.studySubject_print}"
                                 icon="ui-icon-print"
-                                >
-                            <p:printer target="dtDicomSubjects" />
+                        >
+                            <p:printer target="dtDicomSubjects"/>
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
@@ -44,24 +62,7 @@
                                 ajax="false"
                                 immediate="true"
                                 action="#{mbMain.navigateToHelp('x1-240003')}"
-                                />
-                    </p:toolbarGroup>
-                    <p:toolbarGroup align="left">
-                        <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="#{msg.studySubject_reload}"
-                                icon="ui-icon-refresh"
-                                action="#{mbDicomStudies.reloadSubjects}"
-                                ajax="false"
-                                update=":form:tabView:dtDicomSubjects, :growl"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtDicomSubjects, :growl"
-                                actionListener="#{mbDicomStudies.reloadSubjects}"
-                                />
+                        />
                     </p:toolbarGroup>
                 </p:toolbar>
 
@@ -69,7 +70,7 @@
                 <p:dataTable
                         id="dtDicomSubjects"
                         var="subject"
-                        value="#{mbDicomStudies.studySubjectsList}"
+                        value="#{mbDicomStudies.entityList}"
                         widgetVar="studySubjectsTable"
                         resizableColumns="true"
                         paginator="true"
@@ -77,57 +78,57 @@
                         rows="15"
                         rowsPerPageTemplate="15,25,50"
                         emptyMessage="#{msg.search_empty}"
-                        filteredValue="#{mbDicomStudies.filteredStudySubjects}"
-                        selection="#{mbDicomStudies.selectedStudySubject}"
+                        filteredValue="#{mbDicomStudies.filteredEntities}"
+                        selection="#{mbDicomStudies.selectedEntity}"
                         selectionMode="single"
                         rowKey="#{subject.studySubjectId}"
                         rowIndexVar="rowIndex"
                         sortMode="multiple"
-                        sortBy="#{mbDicomStudies.subjectsPreSortOrder}"
+                        sortBy="#{mbDicomStudies.preSortOrder}"
                         disabledTextSelection="false"
-                        >
+                >
 
                     <!--AJAX onclick on datatable row -->
-                    <p:ajax event="rowSelect" update=":form:tabView:dtDicomEvents, :form:tabView:dtDicomStudies" />
+                    <p:ajax event="rowSelect" listener="#{mbDicomStudies.loadSelectedSubjectDetails()}"
+                            update=":form:tabView:dtStudyEvents, :form:tabView:dtDicomStudies, :growl"/>
 
                     <!-- Table header -->
                     <f:facet name="header">
-                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
-                        <p:columnToggler
-                                datasource="dtDicomSubjects"
-                                trigger=":form:tabView:dtDicomSubjects:btnEntitiesToggler"
-                                style="width:450px"
-                                >
-                            <p:ajax event="toggle" listener="#{mbDicomStudies.onSubjectEntityToggle}" />
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right"
+                                         icon="ui-icon-calculator"/>
+                        <p:columnToggler datasource="dtDicomSubjects"
+                                         trigger=":form:tabView:dtDicomSubjects:btnEntitiesToggler">
+                            <p:ajax event="toggle" listener="#{mbDicomStudies.onEntityToggle}"/>
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
-                    <!--Study subject ID -->
+                    <!-- StudySubject ID -->
                     <p:column
                             id="colStudySubjectId"
                             headerText="#{msg.studySubject_studySubjectId}"
                             sortBy="#{subject.studySubjectId}"
                             filterBy="#{subject.studySubjectId}"
-                            visible="#{mbDicomStudies.subjectColumnVisibilityList[0]}"
+                            visible="#{mbDicomStudies.columnVisibilityList[0]}"
                             style="width:15%"
-                            >
-                        <h:outputText value="#{subject.studySubjectId}" style="float: left;" />
+                    >
+                        <h:outputText value="#{subject.studySubjectId}" style="float: left;"/>
                     </p:column>
 
                     <!-- PID -->
                     <p:column
                             headerText="#{msg.studySubject_personId}"
-                            sortBy="#{subject.uniqueIdentifier}"
-                            filterBy="#{subject.uniqueIdentifier}"
-                            visible="#{mbDicomStudies.subjectColumnVisibilityList[1]}"
+                            sortBy="#{subject.pid}"
+                            filterBy="#{subject.pid}"
+                            visible="#{mbDicomStudies.columnVisibilityList[1]}"
                             style="width:15%"
-                            >
-                        <h:outputText style="font-family:consolas, courier new,monospace;float: left;" value="#{subject.uniqueIdentifier}" />
+                    >
+                        <h:outputText style="font-family:consolas, courier new,monospace;float: left;"
+                                      value="#{subject.pid}"/>
                     </p:column>
 
                     <!-- Secondary ID -->
@@ -135,83 +136,124 @@
                             headerText="#{msg.studySubject_secondaryId}"
                             sortBy="#{subject.secondaryId}"
                             filterBy="#{subject.secondaryId}"
-                            visible="#{mbDicomStudies.subjectColumnVisibilityList[2]}"
+                            visible="#{mbDicomStudies.columnVisibilityList[2]}"
                             style="width:15%"
-                            >
-                        <h:outputText value="#{subject.secondaryId}"  style="float: left;" />
+                    >
+                        <h:outputText value="#{subject.secondaryId}" style="float: left;"/>
                     </p:column>
 
                     <!-- Gender -->
                     <p:column
                             headerText="#{msg.studySubject_gender}"
-                            sortBy="#{subject.gender}"
-                            filterBy="#{subject.gender}"
+                            sortBy="#{subject.sex}"
+                            filterBy="#{subject.sex}"
                             filterMatchMode="in"
-                            visible="#{mbDicomStudies.subjectColumnVisibilityList[3]}"
+                            visible="#{mbDicomStudies.columnVisibilityList[3]}"
                             style="width:10%"
-                            >
+                    >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
                                     label="Options"
                                     onchange="PF('studySubjectsTable').filter()"
                                     panelStyle="width:50px"
                                     scrollHeight="50"
-                                    >
-                                <f:selectItem itemLabel="m" itemValue="m" />
-                                <f:selectItem itemLabel="f" itemValue="f" />
+                            >
+                                <f:selectItem itemLabel="m" itemValue="m"/>
+                                <f:selectItem itemLabel="f" itemValue="f"/>
                             </p:selectCheckboxMenu>
                         </f:facet>
-                        <h:outputText value="#{subject.gender}" />
+                        <h:outputText value="#{subject.sex}"/>
                     </p:column>
 
                     <!-- Enrollment Date -->
                     <p:column
                             headerText="#{msg.studySubject_enrollmentDate}"
-                            sortBy="#{subject.comparableEnrollmentDate}"
+                            sortBy="#{subject.enrollmentDate}"
                             filterBy="#{subject.enrollmentDate}"
-                            visible="#{mbDicomStudies.subjectColumnVisibilityList[4]}"
+                            visible="#{mbDicomStudies.columnVisibilityList[4]}"
                             style="width:10%"
-                            >
-                        <h:outputText value="#{subject.enrollmentDate}" style="float:left;" />
+                    >
+                        <h:outputText value="#{subject.enrollmentDate}" style="float:left;"/>
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                            style="width:10%"
+                    >
+                        <!-- Redirect -->
+                        <p:commandButton
+                                title="#{msg.person_patient} Lookup"
+                                icon="ui-icon-arrowthick-1-e"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{mbMain.redirectToPid(subject)}"
+                                update=":growl"
+                                disabled="!#{userContext.hasRole('ROLE_PID_USER')}"
+                        />
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomStudies.studySubjectsList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomStudies.studySubjectsList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbDicomStudies.entityList.size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbDicomStudies.entityList.size() == 1}"/>
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbDicomStudies.studySubjectsList.size() > 1}"
-                                >
-                            <f:param value="#{mbDicomStudies.studySubjectsList.size()}" />
+                                rendered="#{mbDicomStudies.entityList.size() > 1}"
+                        >
+                            <f:param value="#{mbDicomStudies.entityList.size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtDicomSubjects" fileName="#{msg.studySubject_plural}" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtDicomSubjects" fileName="#{msg.studySubject_plural}"/>
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtDicomSubjects" fileName="#{msg.studySubject_plural}" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtDicomSubjects" fileName="#{msg.studySubject_plural}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
 
-            <!-- Study Events -->
+            <!-- DICOM Study Events -->
             <p:tab title="#{msg.studyEvent_plural}">
+
                 <!-- Toolbar -->
                 <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- Reload -->
+                        <p:commandButton
+                                value="#{msg.menu_reload}"
+                                title="#{msg.studyEvent_reload}"
+                                icon="ui-icon-refresh"
+                                style="float: left;"
+                                immediate="true"
+                                ajax="false"
+                                action="#{mbDicomStudies.loadSelectedSubjectDetails}"
+                                update=":form:tabView:dtStudyEvents, :growl"
+                                oncomplete="PF('subjectEventsTable').filter()"
+                        />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
                                 title="#{msg.studyEvent_print}"
                                 icon="ui-icon-print"
-                                >
-                            <p:printer target="dtDicomEvents" />
+                        >
+                            <p:printer target="dtStudyEvents"/>
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
@@ -221,16 +263,15 @@
                                 ajax="false"
                                 immediate="true"
                                 action="#{mbMain.navigateToHelp('x1-240003')}"
-                                />
+                        />
                     </p:toolbarGroup>
-                    <p:toolbarGroup align="left" />
                 </p:toolbar>
 
                 <!-- DICOM Subject Events -->
                 <p:dataTable
-                        id="dtDicomEvents"
+                        id="dtStudyEvents"
                         var="event"
-                        value="#{mbDicomStudies.scheduledEventList}"
+                        value="#{mbDicomStudies.selectedEntity.getEventOccurrencesForEvenDefs(mbDicomStudies.dicomEventDefinitions)}"
                         widgetVar="subjectEventsTable"
                         resizableColumns="true"
                         paginator="true"
@@ -238,146 +279,157 @@
                         rows="15"
                         rowsPerPageTemplate="15,25,50"
                         emptyMessage="#{msg.search_empty}"
-                        filteredValue="#{mbDicomStudies.filteredScheduledEvents}"
-                        selection="#{mbDicomStudies.selectedScheduledEvent}"
+                        filteredValue="#{mbStudyEvents.filteredEntities}"
+                        selection="#{mbDicomStudies.selectedDicomEventData}"
                         selectionMode="single"
-                        rowKey="#{event.eventOID}#{event.studyEventRepeatKey}"
+                        rowKey="#{event.studyEventOid}#{event.studyEventRepeatKey}"
                         rowIndexVar="rowIndex"
                         sortMode="multiple"
-                        sortBy="#{mbDicomStudies.eventsPreSortOrder}"
+                        sortBy="#{mbStudyEvents.preSortOrder}"
                         disabledTextSelection="false"
-                        >
+                >
 
                     <!--AJAX onclick on datatable row -->
-                    <p:ajax event="rowSelect" update=":form:tabView:dtDicomStudies" />
+                    <p:ajax event="rowSelect" listener="#{mbDicomStudies.loadDicomStudies()}"
+                            update=":form:tabView:dtDicomStudies, :growl"/>
 
                     <!-- Table header -->
                     <f:facet name="header">
-                        <p:commandButton id="btnEventsEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
-                        <p:columnToggler
-                                datasource="dtDicomEvents"
-                                trigger=":form:tabView:dtDicomEvents:btnEventsEntitiesToggler"
-                                style="width:450px"
-                                >
-                            <p:ajax event="toggle" listener="#{mbDicomStudies.onEventEntityToggle}" />
+                        <h:outputText
+                                value="#{mbDicomStudies.selectedEntity.studySubjectId}-[#{mbDicomStudies.selectedEntity.pid}]"
+                                style="float:left"/>
+                        <p:commandButton id="btnEventsEntitiesToggler" value="#{msg.menu_columns}" style="float:right"
+                                         icon="ui-icon-calculator"/>
+                        <p:columnToggler datasource="dtStudyEvents"
+                                         trigger=":form:tabView:dtStudyEvents:btnEventsEntitiesToggler">
+                            <p:ajax event="toggle" listener="#{mbStudyEvents.onEntityToggle}"/>
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
                     <!-- Study Event Name -->
                     <p:column
                             id="colEventName"
                             headerText="#{msg.studyEvent_name}"
-                            sortBy="#{event.eventName}"
-                            filterBy="#{event.eventName}"
-                            visible="#{mbDicomStudies.eventsColumnVisibilityList[0]}"
+                            sortBy="#{event.eventDefinition.name}"
+                            filterBy="#{event.eventDefinition.name}"
+                            visible="#{mbStudyEvents.columnVisibilityList[0]}"
                             style="width:20%"
-                            >
-                        <h:outputText value="#{event.eventName}" style="float: left;" />
+                    >
+                        <h:outputText value="#{event.eventDefinition.name}" style="float: left;"/>
                         <h:outputText
                                 value="[#{event.studyEventRepeatKey}]"
-                                rendered="#{event.isRepeating}"
+                                rendered="#{event.eventDefinition.isRepeating}"
                                 style="float: left;"
-                                />
+                        />
                     </p:column>
 
                     <!-- Study Event Description -->
                     <p:column
                             headerText="#{msg.studyEvent_description}"
-                            sortBy="#{event.description}"
-                            visible="#{mbDicomStudies.eventsColumnVisibilityList[1]}"
+                            sortBy="#{event.eventDefinition.description}"
+                            visible="#{mbStudyEvents.columnVisibilityList[1]}"
                             style="width:15%"
-                            >
-                        <h:outputText value="#{event.description}"  style="float: left;" />
+                    >
+                        <h:outputText value="#{event.eventDefinition.description}" style="float: left;"/>
                     </p:column>
 
                     <!-- Category -->
                     <p:column
-                        headerText="#{msg.studyEvent_category}"
-                        sortBy="#{event.category}"
-                        visible="#{mbDicomStudies.eventsColumnVisibilityList[2]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.category}"  style="float: left;" />
+                            headerText="#{msg.studyEvent_category}"
+                            sortBy="#{event.eventDefinition.category}"
+                            visible="#{mbStudyEvents.columnVisibilityList[2]}"
+                            style="width:15%"
+                    >
+                        <h:outputText value="#{event.eventDefinition.category}" style="float: left;"/>
                     </p:column>
 
                     <!-- Type -->
                     <p:column
-                        headerText="#{msg.studyEvent_type}"
-                        sortBy="#{event.type}"
-                        visible="#{mbDicomStudies.eventsColumnVisibilityList[3]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.type}"  style="float: left;" />
+                            headerText="#{msg.studyEvent_type}"
+                            sortBy="#{event.eventDefinition.type}"
+                            visible="#{mbStudyEvents.columnVisibilityList[3]}"
+                            style="width:15%"
+                    >
+                        <h:outputText value="#{event.eventDefinition.type}" style="float: left;"/>
                     </p:column>
 
                     <!-- Repeating -->
                     <p:column
                             headerText="#{msg.studyEvent_repeating}"
-                            sortBy="#{event.isRepeating}"
-                            filterBy="#{event.isRepeating}"
-                            visible="#{mbDicomStudies.eventsColumnVisibilityList[4]}"
-                            style="width:15%"
-                            >
+                            sortBy="#{event.eventDefinition.isRepeating}"
+                            filterBy="#{event.eventDefinition.isRepeating}"
+                            filterMatchMode="equals"
+                            visible="#{mbStudyEvents.columnVisibilityList[4]}"
+                            style="width:10%"
+                    >
                         <f:facet name="filter">
-                            <p:selectOneMenu
-                                    onchange="PF('subjectEventsTable').filter()"
-                                    style="width:150px"
-                                    >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
-                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
-                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            <p:selectOneButton onchange="PF('subjectEventsTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean"/>
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox value="#{event.isRepeating}" disabled="true" />
+                        <p:selectBooleanButton
+                                value="#{event.eventDefinition.isRepeating}"
+                                onLabel="#{msg.yes}"
+                                offLabel="#{msg.no}"
+                                onIcon="ui-icon-check"
+                                offIcon="ui-icon-close"
+                                disabled="true"
+                        />
                     </p:column>
 
-                    <!-- OC Study Event Start Date -->
+                    <!-- Start Date -->
                     <p:column
+                            id="colEventStartDate"
                             headerText="#{msg.studyEvent_startDate}"
                             sortBy="#{event.comparableStartDate}"
                             filterBy="#{event.startDate}"
-                            visible="#{mbDicomStudies.eventsColumnVisibilityList[5]}"
+                            visible="#{mbStudyEvents.columnVisibilityList[5]}"
                             style="width:15%"
-                            >
-                        <h:outputText value="#{event.startDate}" style="float: left;" />
+                    >
+                        <h:outputText value="#{event.startDate}" style="float: left;"/>
                     </p:column>
 
                     <!-- Status -->
                     <p:column
                             headerText="#{msg.studyEvent_status}"
                             sortBy="#{event.status}"
-                            visible="#{mbDicomStudies.eventsColumnVisibilityList[6]}"
+                            visible="#{mbStudyEvents.columnVisibilityList[6]}"
                             style="width:15%"
-                            >
-                        <h:outputText value="#{event.status}"  style="float: left;" />
+                    >
+                        <h:outputText value="#{event.status}" style="float: left;"/>
                     </p:column>
 
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomStudies.scheduledEventList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomStudies.scheduledEventList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbDicomStudies.selectedEntity.getEventOccurrencesForEvenDefs(mbDicomStudies.dicomEventDefinitions).size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbDicomStudies.selectedEntity.getEventOccurrencesForEvenDefs(mbDicomStudies.dicomEventDefinitions).size() == 1}"/>
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbDicomStudies.scheduledEventList.size() > 1}"
-                                >
-                            <f:param value="#{mbDicomStudies.scheduledEventList.size()}" />
+                                rendered="#{mbDicomStudies.selectedEntity.getEventOccurrencesForEvenDefs(mbDicomStudies.dicomEventDefinitions).size() > 1}"
+                        >
+                            <f:param
+                                    value="#{mbDicomStudies.selectedEntity.getEventOccurrencesForEvenDefs(mbDicomStudies.dicomEventDefinitions).size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtDicomEvents" fileName="#{msg.studyEvent_plural}" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtStudyEvents" fileName="#{msg.studyEvent_plural}"/>
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtDicomEvents" fileName="#{msg.studyEvent_plural}" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtStudyEvents" fileName="#{msg.studyEvent_plural}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -387,13 +439,34 @@
 
                 <!-- Toolbar -->
                 <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- New -->
+                        <!-- TODO: association with DICOM study form research PACS or upload -->
+                        <!-- TODO: neither of these are finished so I comment this from UI for now -->
+                        <!--<p:commandButton-->
+                        <!--value="#{msg.menu_new}"-->
+                        <!--title="#{msg.dicomStudy_new}"-->
+                        <!--icon="ui-icon-document"-->
+                        <!--oncomplete="PF('newDicomDialog').show();"-->
+                        <!--style="float: left;"-->
+                        <!--immediate="true"-->
+                        <!--update=":newDicomForm:newDisplay"-->
+                        <!--process="@this"-->
+                        <!--disabled="#{!userContext.hasRole('ROLE_PACS_UPLOAD')}"-->
+                        <!--/>-->
+
+                    </p:toolbarGroup>
+
+                    <!-- Rigth -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print DICOM studies"
+                                title="#{msg.dicomStudy_print}"
                                 icon="ui-icon-print"
-                                >
-                            <p:printer target="dtDicomStudies" />
+                        >
+                            <p:printer target="dtDicomStudies"/>
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
@@ -403,114 +476,121 @@
                                 ajax="false"
                                 immediate="true"
                                 action="#{mbMain.navigateToHelp('x1-240003')}"
-                                />
+                        />
                     </p:toolbarGroup>
                 </p:toolbar>
 
                 <!-- DICOM studies -->
                 <p:dataTable
-                    id="dtDicomStudies"
-                    var="study"
-                    value="#{mbDicomStudies.studyList}"
-                    widgetVar="studiesTable"
-                    resizableColumns="true"
-                    paginator="true"
-                    draggableColumns="false"
-                    rows="15"
-                    rowsPerPageTemplate="15,25,50"
-                    emptyMessage="#{msg.search_empty}"
-                    selection="#{mbDicomStudies.selectedStudy}"
-                    selectionMode="single"
-                    rowKey="#{study.studyInstanceUID}"
-                    rowIndexVar="rowIndex"
-                    filteredValue="#{mbDicomStudies.filteredStudies}"
-                    sortMode="multiple"
-                    sortBy="#{mbDicomStudies.dicomStudiesPreSortOrder}"
-                    disabledTextSelection="false"
-                    >
+                        id="dtDicomStudies"
+                        var="study"
+                        value="#{mbDicomStudies.dicomStudyList}"
+                        widgetVar="studiesTable"
+                        resizableColumns="true"
+                        paginator="true"
+                        draggableColumns="false"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbDicomStudy.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{study.studyInstanceUID}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbDicomStudy.filteredEntities}"
+                        sortMode="multiple"
+                        sortBy="#{mbDicomStudy.preSortOrder}"
+                        disabledTextSelection="false"
+                >
 
                     <!-- Table header -->
                     <f:facet name="header">
-                        <p:commandButton id="btnDicomStudyEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
-                        <p:columnToggler
-                                datasource="dtDicomStudies"
-                                trigger=":form:tabView:dtDicomStudies:btnDicomStudyEntitiesToggler"
-                                style="width:450px"
-                                >
-                            <p:ajax event="toggle" listener="#{mbDicomStudies.onDicomStudyEntityToggle}" />
+                        <h:outputText
+                                value="#{mbDicomStudies.selectedEntity.studySubjectId}-[#{mbDicomStudies.selectedEntity.pid}] / "
+                                style="float:left"/>
+                        <h:outputText value="#{mbDicomStudies.selectedDicomEventData.eventDefinition.name}"
+                                      style="float: left;"/>
+                        <h:outputText value="[#{mbDicomStudies.selectedDicomEventData.studyEventRepeatKey}]"
+                                      rendered="#{mbDicomStudies.selectedDicomEventData.eventDefinition.isRepeating}"
+                                      style="float: left;"/>
+                        <p:commandButton id="btnDicomStudyEntitiesToggler" value="#{msg.menu_columns}"
+                                         style="float:right" icon="ui-icon-calculator"/>
+                        <p:columnToggler datasource="dtDicomStudies"
+                                         trigger=":form:tabView:dtDicomStudies:btnDicomStudyEntitiesToggler">
+                            <p:ajax event="toggle" listener="#{mbDicomStudy.onEntityToggle}"/>
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row expansion -->
-                    <p:column style="width:16px">
-                        <p:rowToggler />
+                    <p:column exportable="false" toggleable="false" style="width:16px">
+                        <p:rowToggler/>
                     </p:column>
 
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
                         <f:facet name="header">
-                            <h:outputText value="#" />
+                            <h:outputText value="#"/>
                         </f:facet>
-                        <h:outputText value="#{rowIndex + 1}" />
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
                     <!-- eCRF DICOM study label -->
                     <p:column
                             id="colDicomStudyLabel"
                             headerText="eCRF label"
-                            sortBy="#{study.eCrfLabel}"
-                            filterBy="#{study.eCrfLabel}"
+                            sortBy="#{study.crfItemDefinition.label}"
+                            filterBy="#{study.crfItemDefinition.label}"
                             filterMatchMode="contains"
                             visible="#{mbDicomStudies.dicomStudyColumnVisibilityList[0]}"
                             style="width:20%"
-                            >
-                        <h:outputText value="#{study.eCrfLabel}" style="float: left;" />
+                    >
+                        <h:outputText value="#{study.crfItemDefinition.label}" style="float: left;"/>
                     </p:column>
 
                     <!-- DICOM study description-->
                     <p:column
-                            headerText="DICOM Study Description"
+                            headerText="#{msg.dicomStudy_studyDescription}"
                             sortBy="#{study.studyDescription}"
                             visible="#{mbDicomStudies.dicomStudyColumnVisibilityList[1]}"
                             style="width:40%"
-                            >
-                        <h:outputText value="#{study.studyDescription}" style="float: left;" />
+                    >
+                        <h:outputText value="#{study.studyDescription}" style="float: left;"/>
                     </p:column>
 
                     <!-- DICOM study type deduced from series modalities -->
                     <p:column
-                            headerText="Type"
+                            headerText="#{msg.dicomStudy_modalities}"
                             sortBy="#{study.studyType}"
                             filterBy="#{study.studyType}"
                             filterMatchMode="contains"
                             visible="#{mbDicomStudies.dicomStudyColumnVisibilityList[2]}"
                             style="width:20%"
-                            >
-                        <h:outputText value="#{study.studyType}" style="float: left;"  />
+                    >
+                        <h:outputText value="#{study.studyType}" style="float: left;"/>
                     </p:column>
 
                     <!-- Date -->
                     <p:column
-                            headerText="Date"
-                            sortBy="#{study.studyDate}"
-                            filterBy="#{study.studyDate}"
+                            headerText="#{msg.dicomStudy_studyDate}"
+                            sortBy="#{study.dateStudy}"
+                            filterBy="#{study.dateStudyString}"
                             filterMatchMode="contains"
                             visible="#{mbDicomStudies.dicomStudyColumnVisibilityList[3]}"
                             style="width:10%"
-                            >
-                        <h:outputText value="#{study.studyDate}" style="float: left;"  />
+                    >
+                        <h:outputText value="#{study.dateStudyString}" style="float: left;"/>
                     </p:column>
 
                     <!-- DICOM study instace UID -->
                     <p:column
-                            headerText="UID"
+                            id="colDicomStudyUid"
+                            headerText="#{msg.dicomStudy_studyInstanceUID}"
                             sortBy="#{study.studyInstanceUID}"
                             filterBy="#{study.studyInstanceUID}"
                             filterMatchMode="contains"
                             visible="#{mbDicomStudies.dicomStudyColumnVisibilityList[4]}"
                             style="width:10%"
-                            >
-                        <h:outputText value="#{study.studyInstanceUID}" style="float: left;" />
+                    >
+                        <h:outputText value="#{study.studyInstanceUID}" style="float: left;"/>
                     </p:column>
 
                     <p:column
@@ -519,21 +599,19 @@
                         toggleable="false"
                         style="width:17%"
                         >
-                        <h:link value="View"
-                                outcome="/pacs/studyView.faces"
-                                target="_blank"
-                                >
-                            <!--New funtionaltity which should enable weasis for outside-->
-                            <f:param name="mode" value="rpbweasisstudyview" />
-                            <f:param name="patientId" value="#{mbDicomStudies.patientId}" />
-                            <f:param name="studyUid" value="#{study.studyInstanceUID}" />
-                        </h:link>
-                        <h:outputText value="&#160;" />
-                        <h:link value="Download"
-                                outcome="/pacs/dicomStudyDownload.faces"
-                                target="_blank">
-                            <f:param name="study" value="#{mbDicomStudies.patientId}:#{study.studyInstanceUID}" />
-                        </h:link>
+
+                        <!-- Download -->
+                        <p:commandButton
+                            title="#{msg.menu_download}"
+                            icon="ui-icon-arrowthick-1-s"
+                            update=":growl"
+                            process="@this"
+                            immediate="true"
+                            ajax="false"
+                            action="#{mbDicomStudies.downloadDicomStudy(mbDicomStudies.selectedEntity.pid, study.studyInstanceUID, study.studySeries.size())}"
+                            disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD')}"
+                            />
+
                     </p:column>
 
                     <!-- DicomSeries -->
@@ -541,7 +619,7 @@
 
                         <p:dataTable
                                 id="dtDicomSeries"
-                                var="dicomSerie"
+                                var="dicomSeries"
                                 value="#{study.studySeries}"
                                 widgetVar="dicomSeriesTable"
                                 resizableColumns="true"
@@ -552,76 +630,76 @@
                                 emptyMessage="#{msg.search_empty}"
                                 selection="#{mbDicomSerie.selectedEntity}"
                                 selectionMode="single"
-                                rowKey="#{dicomSerie.seriesInstanceUID}"
+                                rowKey="#{dicomSeries.seriesInstanceUID}"
                                 rowIndexVar="subRowIndex"
                                 filteredValue="#{mbDicomSerie.filteredEntities}"
                                 sortMode="multiple"
                                 sortBy="#{mbDicomSerie.preSortOrder}"
                                 disabledTextSelection="false"
-                                >
+                        >
 
                             <!-- Table header -->
                             <f:facet name="header">
-                                <p:commandButton id="btnDicomSeriesEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
-                                <p:columnToggler
-                                        datasource="dtDicomSeries"
-                                        trigger=":form:tabView:dtDicomStudies:dtDicomSeries:btnDicomSeriesEntitiesToggler"
-                                        style="width:450px"
-                                    >
-                                    <p:ajax event="toggle" listener="#{mbDicomSerie.onEntityToggle}" />
+                                <p:commandButton id="btnDicomSeriesEntitiesToggler" value="#{msg.menu_columns}"
+                                                 style="float:right" icon="ui-icon-calculator"/>
+                                <p:columnToggler datasource="dtDicomSeries"
+                                                 trigger=":form:tabView:dtDicomStudies:dtDicomSeries:btnDicomSeriesEntitiesToggler">
+                                    <p:ajax event="toggle" listener="#{mbDicomSerie.onEntityToggle}"/>
                                 </p:columnToggler>
                             </f:facet>
 
                             <!-- Row -->
                             <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
-                                <h:outputText value="#{subRowIndex + 1}" />
+                                <h:outputText value="#{subRowIndex + 1}"/>
                             </p:column>
 
                             <!-- SeriesInstance UID -->
                             <p:column
-                                id="colDicomSerieUid"
-                                headerText="UID"
-                                sortBy="#{dicomSerie.seriesInstanceUID}"
-                                filterBy="#{dicomSerie.seriesInstanceUID}"
-                                filterMatchMode="contains"
-                                visible="#{mbDicomSerie.columnVisibilityList[0]}"
-                                style="width:10%"
-                                >
-                                <h:outputText value="#{dicomSerie.seriesInstanceUID}" style="float: left;" />
+                                    id="colDicomSerieUid"
+                                    headerText="#{msg.dicomSeries_seriesInstanceUID}"
+                                    sortBy="#{dicomSeries.seriesInstanceUID}"
+                                    filterBy="#{dicomSeries.seriesInstanceUID}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[0]}"
+                                    style="width:10%"
+                            >
+                                <h:outputText value="#{dicomSeries.seriesInstanceUID}" style="float: left;"/>
                             </p:column>
 
                             <!-- Description -->
                             <p:column
-                                headerText="Description"
-                                sortBy="#{dicomSerie.seriesDescription}"
-                                filterBy="#{dicomSerie.seriesDescription}"
-                                filterMatchMode="contains"
-                                visible="#{mbDicomSerie.columnVisibilityList[1]}"
-                                style="width:50%"
-                                >
-                                <h:outputText value="#{dicomSerie.seriesDescription}" style="float: left;" />
+                                    headerText="#{msg.dicomSeries_seriesDescription}"
+                                    sortBy="#{dicomSeries.seriesDescription}"
+                                    filterBy="#{dicomSeries.seriesDescription}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[1]}"
+                                    style="width:50%"
+                            >
+                                <h:outputText value="#{dicomSeries.seriesDescription}" style="float: left;"/>
                             </p:column>
 
                             <!-- Modality -->
                             <p:column
-                                headerText="Modality"
-                                sortBy="#{dicomSerie.seriesModality}"
-                                filterBy="#{dicomSerie.seriesModality}"
-                                filterMatchMode="contains"
-                                visible="#{mbDicomSerie.columnVisibilityList[2]}"
-                                style="width:20%"
-                                >
-                                <h:outputText value="#{dicomSerie.seriesModality}" style="float: left;" />
+                                    headerText="#{msg.dicomSeries_modality}"
+                                    sortBy="#{dicomSeries.seriesModality}"
+                                    filterBy="#{dicomSeries.seriesModality}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[2]}"
+                                    style="width:20%"
+                            >
+                                <h:outputText value="#{dicomSeries.seriesModality}" style="float: left;"/>
                             </p:column>
 
                             <!-- Time -->
                             <p:column
-                                headerText="Time"
-                                sortBy="#{dicomSerie.seriesTime}"
-                                visible="#{mbDicomSerie.columnVisibilityList[3]}"
-                                style="width:10%"
-                                >
-                                <h:outputText value="#{dicomSerie.seriesTime}" style="float: left;" />
+                                    headerText="#{msg.dicomSeries_seriesTime}"
+                                    sortBy="#{dicomSeries.timeSeries}"
+                                    filterBy="#{dicomSeries.timeSeriesString}"
+                                    filterMatchMode="contains"
+                                    visible="#{mbDicomSerie.columnVisibilityList[3]}"
+                                    style="width:10%"
+                            >
+                                <h:outputText value="#{dicomSeries.timeSeriesString}" style="float: left;"/>
                             </p:column>
 
                             <p:column
@@ -630,214 +708,255 @@
                                 toggleable="false"
                                 style="width:17%"
                                 >
-                                <h:link value="View"
-                                        outcome="/pacs/studySubjectView.faces"
-                                        target="_blank">
-                                    <!--radplanbioview - mode for static DWV -->
-                                    <f:param name="mode" value="radplanbiosimpleview" />
-                                    <f:param name="patientId" value="#{mbDicomStudies.patientId}" />
-                                    <f:param name="seriesUID" value="#{dicomSerie.seriesInstanceUID}" />
-                                </h:link>
-                                <h:outputText value="&#160;" />
-                                <h:link value="Download"
-                                        outcome="/pacs/dicomSeriesDownload.faces"
-                                        target="_blank">
-                                    <f:param name="series" value="#{mbDicomStudies.patientId}:#{dicomSerie.seriesInstanceUID}" />
-                                </h:link>
+
+                                <!-- Download -->
+                                <p:commandButton
+                                    title="#{msg.menu_download}"
+                                    icon="ui-icon-arrowthick-1-s"
+                                    update=":growl"
+                                    process="@this"
+                                    immediate="true"
+                                    ajax="false"
+                                    action="#{mbDicomStudies.downloadDicomSeries(mbDicomStudies.selectedEntity.pid, study.studyInstanceUID, dicomSeries.seriesInstanceUID)}"
+                                    disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD')}"
+                                    />
+                                
                             </p:column>
 
                             <!-- Footer -->
                             <f:facet name="footer">
-                                <h:outputText value="#{msg.search_results_status_0}" rendered="#{study.studySeries.size() == 0}" />
-                                <h:outputText value="#{msg.search_results_status_1}" rendered="#{study.studySeries.size() == 1}" />
+                                <h:outputText value="#{msg.search_results_status_0}"
+                                              rendered="#{study.studySeries.size() == 0}"/>
+                                <h:outputText value="#{msg.search_results_status_1}"
+                                              rendered="#{study.studySeries.size() == 1}"/>
                                 <h:outputFormat
-                                    value="#{msg.search_results_status_n}"
-                                    rendered="#{study.studySeries.size() > 1}"
-                                    >
-                                    <f:param value="#{study.studySeries.size()}" />
+                                        value="#{msg.search_results_status_n}"
+                                        rendered="#{study.studySeries.size() > 1}"
+                                >
+                                    <f:param value="#{study.studySeries.size()}"/>
                                 </h:outputFormat>
                             </f:facet>
                         </p:dataTable>
                     </p:rowExpansion>
 
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomStudies.studyList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomStudies.studyList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbDicomStudies.dicomStudyList.size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbDicomStudies.dicomStudyList.size() == 1}"/>
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbDicomStudies.studyList.size() > 1}"
-                                >
-                            <f:param value="#{mbDicomStudies.studyList.size()}" />
+                                rendered="#{mbDicomStudies.dicomStudyList.size() > 1}"
+                        >
+                            <f:param value="#{mbDicomStudies.dicomStudyList.size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtDicomStudies" fileName="DICOM-#{msg.study_plural}" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtDicomStudies" fileName="DICOM-#{msg.study_plural}"/>
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtDicomStudies" fileName="DICOM-#{msg.study_plural}" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtDicomStudies" fileName="DICOM-#{msg.study_plural}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
-
-            <!-- DICOM Series -->
-            <!--<p:tab title="DICOM Series">-->
-
-                <!--&lt;!&ndash; Toolbar &ndash;&gt;-->
-                <!--<p:toolbar>-->
-                    <!--<p:toolbarGroup align="right">-->
-                        <!--<p:commandButton-->
-                                <!--value="#{msg.menu_print}"-->
-                                <!--title="Print DICOM study series"-->
-                                <!--icon="ui-icon-print"-->
-                                <!--&gt;-->
-                            <!--<p:printer target="dtStudySeries" />-->
-                        <!--</p:commandButton>-->
-                        <!--<p:commandButton-->
-                                <!--value="#{msg.menu_help}"-->
-                                <!--title="#{msg.menu_help}"-->
-                                <!--icon="ui-icon-help"-->
-                                <!--onclick="target='_blank'"-->
-                                <!--ajax="false"-->
-                                <!--immediate="true"-->
-                                <!--action="#{mbMain.navigateToHelp('x1-240003')}"-->
-                                <!--/>-->
-                    <!--</p:toolbarGroup>-->
-                <!--</p:toolbar>-->
-
-                <!--&lt;!&ndash; DICOM Series &ndash;&gt;-->
-                <!--<p:dataTable-->
-                    <!--id="dtStudySeries"-->
-                    <!--var="serie"-->
-                    <!--value="#{mbDicomStudies.serieList}"-->
-                    <!--widgetVar="studySeriesTable"-->
-                    <!--resizableColumns="true"-->
-                    <!--paginator="true"-->
-                    <!--draggableColumns="false"-->
-                    <!--rows="15"-->
-                    <!--rowsPerPageTemplate="15,25,50"-->
-                    <!--emptyMessage="#{msg.search_empty}"-->
-                    <!--filteredValue="#{mbDicomStudies.filteredSeries}"-->
-                    <!--selection="#{mbDicomStudies.selectedSerie}"-->
-                    <!--selectionMode="single"-->
-                    <!--rowKey="#{serie.seriesInstanceUID}"-->
-                    <!--rowIndexVar="rowIndex"-->
-                    <!--sortMode="multiple"-->
-                    <!--sortBy="#{mbDicomStudies.dicomSeriesPreSortOrder}"-->
-                    <!--disabledTextSelection="false"-->
-                    <!--&gt;-->
-
-                    <!--&lt;!&ndash; Table header &ndash;&gt;-->
-                    <!--<f:facet name="header">-->
-                        <!--<p:commandButton id="btnDicomSeriesEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />-->
-                        <!--<p:columnToggler-->
-                                <!--datasource="dtStudySeries"-->
-                                <!--trigger=":form:tabView:dtStudySeries:btnDicomSeriesEntitiesToggler"-->
-                                <!--style="width:450px"-->
-                                <!--&gt;-->
-                            <!--<p:ajax event="toggle" listener="#{mbDicomStudies.onDicomSeriesEntityToggle}" />-->
-                        <!--</p:columnToggler>-->
-                    <!--</f:facet>-->
-
-                    <!--&lt;!&ndash; Row &ndash;&gt;-->
-                    <!--<p:column headerText="#" exportable="false" toggleable="false" style="width:5%">-->
-                        <!--<h:outputText value="#{rowIndex + 1}" />-->
-                    <!--</p:column>-->
-
-                    <!--<p:column-->
-                            <!--id="colSeriesInstanceUid"-->
-                            <!--headerText="Series UID"-->
-                            <!--sortBy="#{serie.seriesInstanceUID}"-->
-                            <!--filterBy="#{serie.seriesInstanceUID}"-->
-                            <!--visible="#{mbDicomStudies.dicomSeriesColumnVisibilityList[0]}"-->
-                            <!--style="width:10%"-->
-                            <!--&gt;-->
-                        <!--<h:outputText value="#{serie.seriesInstanceUID}" style="float: left;" />-->
-                    <!--</p:column>-->
-
-                    <!--<p:column-->
-                            <!--headerText="Description"-->
-                            <!--sortBy="#{serie.seriesDescription}"-->
-                            <!--filterBy="#{serie.seriesDescription}"-->
-                            <!--visible="#{mbDicomStudies.dicomSeriesColumnVisibilityList[1]}"-->
-                            <!--style="width:50%"-->
-                            <!--&gt;-->
-                        <!--<h:outputText value="#{serie.seriesDescription}" style="float: left;" />-->
-                    <!--</p:column>-->
-
-                    <!--<p:column-->
-                            <!--headerText="Modality"-->
-                            <!--sortBy="#{serie.seriesModality}"-->
-                            <!--filterBy="#{serie.seriesModality}"-->
-                            <!--visible="#{mbDicomStudies.dicomSeriesColumnVisibilityList[2]}"-->
-                            <!--style="width:5%"-->
-                            <!--&gt;-->
-                        <!--<h:outputText value="#{serie.seriesModality}" style="float: left;" />-->
-                    <!--</p:column>-->
-
-                    <!--&lt;!&ndash; Time &ndash;&gt;-->
-                    <!--<p:column-->
-                            <!--headerText="Time"-->
-                            <!--sortBy="#{serie.seriesTime}"-->
-                            <!--visible="#{mbDicomStudies.dicomSeriesColumnVisibilityList[3]}"-->
-                            <!--style="width:10%"-->
-                            <!--&gt;-->
-                        <!--<h:outputText value="#{serie.seriesTime}" style="float: left;" />-->
-                    <!--</p:column>-->
-
-                    <!--<p:column-->
-                        <!--headerText="#{msg.menu_commands}"-->
-                        <!--exportable="false"-->
-                        <!--toggleable="false"-->
-                        <!--style="width:17%"-->
-                        <!--&gt;-->
-                        <!--<h:link value="View"-->
-                                <!--outcome="/pacs/studySubjectView.faces"-->
-                                <!--target="_blank">-->
-                            <!--<f:param name="mode" value="radplanbioview" />-->
-                            <!--<f:param name="patientId" value="#{mbDicomStudies.patientId}" />-->
-                            <!--<f:param name="seriesUID" value="#{serie.seriesInstanceUID}" />-->
-                        <!--</h:link>-->
-                        <!--<h:outputText value="&#160;" />-->
-                        <!--<h:link value="Download"-->
-                                <!--outcome="/pacs/dicomSeriesDownload.faces"-->
-                                <!--target="_blank">-->
-                            <!--<f:param name="series" value="#{mbDicomStudies.patientId}:#{serie.seriesInstanceUID}" />-->
-                        <!--</h:link>-->
-                    <!--</p:column>-->
-
-                    <!--<f:facet name="footer">-->
-                        <!--<h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomStudies.serieList.size() == 0}" />-->
-                        <!--<h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomStudies.serieList.size() == 1}" />-->
-                        <!--<h:outputFormat-->
-                                <!--value="#{msg.search_results_status_n}"-->
-                                <!--rendered="#{mbDicomStudies.serieList.size() > 1}"-->
-                                <!--&gt;-->
-                            <!--<f:param value="#{mbDicomStudies.serieList.size()}" />-->
-                        <!--</h:outputFormat>-->
-                    <!--</f:facet>-->
-                <!--</p:dataTable>-->
-
-                <!--&lt;!&ndash; Export &ndash;&gt;-->
-                <!--<p:panel header="#{msg.menu_export}">-->
-                    <!--<h:commandLink>-->
-                        <!--<p:graphicImage value="/resources/img/excel.png" title="xls" />-->
-                        <!--<p:dataExporter type="xls" target="dtStudySeries" fileName="DICOMStudySeries" />-->
-                    <!--</h:commandLink>-->
-                    <!--<h:commandLink>-->
-                        <!--<p:graphicImage value="/resources/img/csv.png" title="csv" />-->
-                        <!--<p:dataExporter type="csv" target="dtStudySeries" fileName="DICOMStudySeries" />-->
-                    <!--</h:commandLink>-->
-                <!--</p:panel>-->
-            <!--</p:tab>-->
         </p:tabView>
     </ui:define>
 
     <!-- Definition of dialogs place holder -->
-    <ui:define name="dialogs" />
+    <ui:define name="dialogs">
+
+        <!-- New -->
+        <p:dialog
+                id="dlgNewDicom"
+                header="#{msg.dicomStudy_new}"
+                widgetVar="newDicomDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
+            <h:form id="newDicomForm">
+                <p:panelGrid
+                        id="newDisplay"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                >
+
+                    <!-- TODO: selection between upload new or association of existing from PACS-->
+                    <h:outputLabel value="Source:" for="ddlNewDicomViewType"/>
+                    <p:selectOneButton id="ddlNewDicomViewType" value="#{mbDicomStudies.newDicomViewType}">
+                        <!-- AJAX update -->
+                        <!--<p:ajax event="change" update=":form:tabView:pnlSearch:pnlSearchCriteria, :growl" />-->
+
+                        <!-- Upload client -->
+                        <f:selectItem itemLabel="CLIENT" itemValue="CLIENT"/>
+                        <!-- PACS association-->
+                        <f:selectItem itemLabel="PACS" itemValue="PACS" itemDisabled="true"/>
+                    </p:selectOneButton>
+
+                    <!-- Subject Study/StudySite -->
+                    <h:outputLabel value="#{msg.study}:" for="txtStudyNew"/>
+                    <h:outputText
+                            id="txtStudyNew"
+                            value="#{mbDicomStudies.rpbStudy.name} (#{mbDicomStudies.rpbStudy.getTagValue('EDC-code')})"
+                            title="#{mbDicomStudies.selectedEntity.study.oid}"
+                    />
+
+                    <!-- Subject PartnerSite -->
+                    <h:outputLabel value="#{msg.partnerSite}:" for="txtPartnerSiteNew"/>
+                    <h:outputText
+                            id="txtPartnerSiteNew"
+                            value="#{mbDicomStudies.selectedSubjectSite.name} (#{mbDicomStudies.selectedSubjectSite.identifier})"
+                            title="#{mbDicomStudies.selectedSubjectSite.description}"
+                    />
+
+                    <!-- Subject -->
+                    <h:outputLabel value="#{msg.studySubject}:" for="txtStudySubjectNew"/>
+                    <h:outputText
+                            id="txtStudySubjectNew"
+                            value="#{mbDicomStudies.selectedEntity.studySubjectId}-[#{mbDicomStudies.selectedEntity.pid}]"
+                            title="#{mbDicomStudies.selectedEntity.subjectKey}"
+                    />
+
+                    <!-- DICOM Event -->
+                    <h:outputLabel value="#{msg.studyEvent}:" for="txtStudyEventNew"/>
+                    <h:outputText
+                            id="txtStudyEventNew"
+                            value="#{mbDicomStudies.selectedDicomEventData.eventDefinition.name}[#{mbDicomStudies.selectedDicomEventData.studyEventRepeatKey}]"
+                            title="#{mbDicomStudies.selectedDicomEventData.eventDefinition.oid}"
+                            style="float: left;"
+                    />
+
+                    <!-- DICOM Study Item -->
+                    <h:outputLabel value="#{msg.dicomStudy}: #{msg.label_required_suffix}" for="cmbDicomItemsNew"/>
+                    <p:selectOneMenu
+                            id="cmbDicomItemsNew"
+                            value="#{mbDicomStudies.newDicomItem}"
+                            converter="omnifaces.SelectItemsConverter"
+                            style="width:250px"
+                            required="true"
+                            requiredMessage="#{msg.dicomStudy} #{msg.validation_required}!"
+                    >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}"
+                                      noSelectionOption="true"/>
+                        <f:selectItems
+                                value="#{mbDicomStudies.loadUploadSlots()}"
+                                var="item"
+                                itemValue="#{item}"
+                                itemLabel="#{item.label}"
+                                itemDescription="#{item.oid}"
+                        />
+                    </p:selectOneMenu>
+
+                    <f:facet name="footer">
+                        <p:commandButton
+                                value="#{msg.menu_upload}"
+                                update=":form:tabView:dtDicomStudies, :growl"
+                                icon="ui-icon-arrowreturnthick-1-n"
+                                actionListener="#{mbDicomStudies.upload()}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewDicom','newDicomForm');"
+                                process="@this newDicomForm"
+                                disabled="#{!userContext.hasRole('ROLE_PACS_UPLOAD')}"
+                        />
+                        <p:commandButton
+                                value="#{msg.menu_reset}"
+                                type="reset"
+                                icon="ui-icon-close"
+                        />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Edit -->
+        <!--<p:dialog-->
+        <!--id="dlgArticleDetails"-->
+        <!--header="#{msg.rss_edit}"-->
+        <!--widgetVar="editArticleDialog"-->
+        <!--resizable="false"-->
+        <!--appendToBody="true"-->
+        <!--modal="true"-->
+        <!--closeOnEscape="true"-->
+        <!--&gt;-->
+        <!--<h:form id="articleDetailsForm">-->
+        <!--<p:panelGrid-->
+        <!--id="editDisplay"-->
+        <!--columns="2"-->
+        <!--cellpadding="4"-->
+        <!--style="margin:0 auto;"-->
+        <!--&gt;-->
+        <!--<h:outputLabel value="#{msg.rss_createdDate}: *" for="datePublished" />-->
+        <!--<p:calendar-->
+        <!--id="datePublished"-->
+        <!--value="#{mbContentLazy.selectedEntity.createdDate}"-->
+        <!--pattern="dd.MM.yyyy"-->
+        <!--showButtonPanel="true"-->
+        <!--navigator="true"-->
+        <!--required="true"-->
+        <!--showOn="button"-->
+        <!--requiredMessage="Publication date is mandatory!"-->
+        <!--/>-->
+
+        <!--<h:outputLabel value="#{msg.rss_title}: *" for="txtTitleEdit" />-->
+        <!--<h:inputText-->
+        <!--id="txtTitleEdit"-->
+        <!--value="#{mbContentLazy.selectedEntity.title}"-->
+        <!--required="true"-->
+        <!--requiredMessage="Please enter title, it is mandatory!"-->
+        <!--maxlength="255"-->
+        <!--/>-->
+
+        <!--<h:outputLabel value="#{msg.rss_summary}: *" for="txtAbstractEdit" />-->
+        <!--<p:editor-->
+        <!--id="txtAbstractEdit"-->
+        <!--value="#{mbContentLazy.selectedEntity.summary}"-->
+        <!--required="true"-->
+        <!--requiredMessage="Please enter summary, it is mandatory!"-->
+        <!--maxlength="512"-->
+        <!--width="500"-->
+        <!--/>-->
+
+        <!--<f:facet name="footer">-->
+        <!--<p:commandButton-->
+        <!--value="#{msg.menu_save}"-->
+        <!--update=":form:tabView:dtEntities, :growl"-->
+        <!--icon="ui-icon-disk"-->
+        <!--oncomplete="handleSubmitRequest(xhr, status, args, 'dlgArticleDetails','articleDetailsForm');"-->
+        <!--actionListener="#{mbContentLazy.doUpdateEntity}"-->
+        <!--process="@this articleDetailsForm"-->
+        <!--disabled="#{!userContext.hasRole('ROLE_CMS_EDIT')}"-->
+        <!--/>-->
+        <!--</f:facet>-->
+        <!--</p:panelGrid>-->
+        <!--</h:form>-->
+        <!--</p:dialog>-->
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#' + dialogName);
+                if (args.validationFailed) {
+                    dialog.effect("shake", {times: 3}, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('newDicomDialog').hide();
+                }
+            }
+
+            function clearForm(formName) {
+                jQuery('#' + formName).each(function () {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
 </ui:composition>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:f="http://java.sun.com/jsf/core"
-        xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
@@ -30,46 +30,40 @@
                 <!-- Studies toolbar -->
                 <p:toolbar>
 
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="#{msg.studySubject_reload}"
+                            icon="ui-icon-refresh"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtSubjects, :form:tabView:chartArms, :growl"
+                            actionListener="#{mbRandomisation.reload}"
+                            />
+                    </p:toolbarGroup>
+
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                                value="#{msg.menu_print}"
-                                title="#{msg.studySubject_print}"
-                                icon="ui-icon-print"
-                                >
+                            value="#{msg.menu_print}"
+                            title="#{msg.studySubject_print}"
+                            icon="ui-icon-print"
+                            >
                             <p:printer target="dtSubjects" />
                         </p:commandButton>
 
                         <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="#{msg.menu_help}"
-                                icon="ui-icon-help"
-                                onclick="target='_blank'"
-                                ajax="false"
-                                immediate="true"
-                                action="#{mbMain.navigateToHelp('x1-280005')}"
-                                />
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            onclick="target='_blank'"
+                            ajax="false"
+                            immediate="true"
+                            action="#{mbMain.navigateToHelp('x1-280005')}"
+                            />
                     </p:toolbarGroup>
 
-                    <!-- Left -->
-                    <p:toolbarGroup align="left">
-                        <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="#{msg.studySubject_reload}"
-                                icon="ui-icon-refresh"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtSubjects, :growl"
-                                actionListener="#{mbRandomisation.reload}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtSubjects, :growl"
-                                actionListener="#{mbRandomisation.reload}"
-                                />
-                    </p:toolbarGroup>
                 </p:toolbar>
 
                 <!-- RadPlanBio subjects table -->
@@ -80,9 +74,10 @@
                         widgetVar="subjectsTable"
                         resizableColumns="true"
                         paginator="true"
+                        paginatorAlwaysVisible="false"
                         draggableColumns="false"
                         rows="15"
-                        rowsPerPageTemplate="15,25,50"
+                        rowsPerPageTemplate="15,25,50,100"
                         emptyMessage="#{msg.search_empty}"
                         selection="#{mbRandomisation.selectedEntity}"
                         selectionMode="single"
@@ -92,7 +87,7 @@
                         sortMode="multiple"
                         sortBy="#{mbRandomisation.preSortOrder}"
                         disabledTextSelection="false"
-                        >
+                    >
 
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
@@ -101,35 +96,35 @@
 
                     <!-- OC Study subject ID-->
                     <p:column
-                            id="colStudySubjectId"
-                            headerText="#{msg.studySubject_studySubjectId}"
-                            sortBy="#{subject.studySubjectId}"
-                            filterBy="#{subject.studySubjectId}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            >
+                        id="colStudySubjectId"
+                        headerText="#{msg.studySubject_studySubjectId}"
+                        sortBy="#{subject.studySubjectId}"
+                        filterBy="#{subject.studySubjectId}"
+                        filterMatchMode="contains"
+                        style="width:20%"
+                        >
                         <h:outputText value="#{subject.studySubjectId}" style="float:left;" />
                     </p:column>
 
                     <!-- PID -->
                     <p:column
-                            headerText="#{msg.studySubject_personId}"
-                            sortBy="#{subject.uniqueIdentifier}"
-                            filterBy="#{subject.uniqueIdentifier}"
-                            filterMatchMode="contains"
-                            style="width:20%"
-                            >
-                        <h:outputText value="#{subject.uniqueIdentifier}" style="float:left;"  />
+                        headerText="#{msg.studySubject_personId}"
+                        sortBy="#{subject.uniqueIdentifier}"
+                        filterBy="#{subject.uniqueIdentifier}"
+                        filterMatchMode="contains"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{subject.uniqueIdentifier}" style="font-family:consolas, courier new,monospace; float: left;" />
                     </p:column>
 
                     <!-- Treatment arm -->
                     <p:column
-                            headerText="#{msg.studySubject_arm}"
-                            sortBy="#{subject.arm.name}"
-                            filterBy="#{subject.arm.name}"
-                            filterMatchMode="in"
-                            style="width:30%"
-                            >
+                        headerText="#{msg.studySubject_arm}"
+                        sortBy="#{subject.arm.name}"
+                        filterBy="#{subject.arm.name}"
+                        filterMatchMode="in"
+                        style="width:30%"
+                        >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
                                     label="#{msg.treatmentArm_plural}"
@@ -151,21 +146,22 @@
 
                     <!-- Commands -->
                     <p:column
-                          headerText="#{msg.menu_commands}"
-                          exportable="false"
-                          toggleable="false"
-                          style="width:17%"
-                          >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
                         <!-- Randomise -->
                         <p:commandButton
-                                icon="ui-icon-shuffle"
-                                title="Randomise"
-                                update=":randomiseSubjectForm:randomiseDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('randomiseSubjectDialog').show();"
-                                disabled="#{subject.isAlreadyRandomised}"
-                                >
+                            icon="ui-icon-shuffle"
+                            title="Randomise"
+                            update=":randomiseSubjectForm:randomiseDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('randomiseSubjectDialog').show();"
+                            disabled="#{subject.isAlreadyRandomised}"
+                            rendered="#{userContext.hasRole('ROLE_EDC_RANDOMISE')}"
+                            >
                             <f:setPropertyActionListener
                                     value="#{subject}"
                                     target="#{mbRandomisation.selectedEntity}"
@@ -187,16 +183,56 @@
                 </p:dataTable>
 
                 <!-- Export Datatable-->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtSubjects" fileName="#{msg.randomisation}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtSubjects" fileName="#{msg.randomisation}" />
                     </h:commandLink>
                 </p:panel>
+            </p:tab>
+
+            <!-- Randomisation progress -->
+            <p:tab title="#{msg.treatmentArm_plural}">
+
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="#{msg.studySubject_reload}"
+                            icon="ui-icon-refresh"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtSubjects, :form:tabView:chartArms, :growl"
+                            actionListener="#{mbRandomisation.reload}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <!-- Export -->
+                        <p:commandButton
+                            type="button"
+                            value="#{msg.menu_export}"
+                            icon="ui-icon-extlink"
+                            onclick="exportChart()"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Arms bar chart -->
+                <p:chart
+                    id="chartArms"
+                    model="#{mbRandomisation.armsBarModel}"
+                    widgetVar="chartArms"
+                    type="bar"
+                    responsive="true"
+                    style="height:500px"
+                    />
             </p:tab>
         </p:tabView>
     </ui:define>
@@ -233,7 +269,7 @@
 
                         <!-- Randomised subject site -->
                         <h:outputText value="#{msg.partnerSite}:" />
-                        <h:outputText value="#{mbRandomisation.newTrialSubject.trialSite.siteName}" />
+                        <h:outputText value="#{mbRandomisation.newTrialSubject.trialSite.name}" />
 
                         <!-- Stratify site -->
                         <h:outputText value="Stratify #{msg.partnerSite}:" />
@@ -250,29 +286,24 @@
 
                     <!-- Prognostic Variables -->
                     <p:dataList
-                            value="#{mbRandomisation.newTrialSubject.prognosticVariables}"
-                            var="prognosticVariable"
-                            type="definition"
-                            >
+                        value="#{mbRandomisation.newTrialSubject.prognosticVariables}"
+                        var="prognosticVariable"
+                        type="definition"
+                        >
                         <p:panelGrid
-                                columns="2"
-                                cellpadding="4"
-                                style="margin:0 auto;"
-                                >
-                            <h:outputText
-                                    for="rbtnCriterium"
-                                    value="#{prognosticVariable.criterion.name}: *" />
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+                            <h:outputText value="#{prognosticVariable.criterion.name}: *" for="rbtnCriterium"/>
                             <p:selectOneMenu
-                                    id="rbtnCriterium"
-                                    value="#{prognosticVariable.value}"
-                                    required="true"
-                                    requiredMessage="Criterion is mandatory!"
-                                    converter="#{stringConverter}"
-                                    >
-                                <f:selectItem
-                                        itemLabel="#{msg.search_select_one}"
-                                        itemValue=""
-                                        />
+                                id="rbtnCriterium"
+                                value="#{prognosticVariable.value}"
+                                required="true"
+                                requiredMessage="Criterion is mandatory!"
+                                converter="omnifaces.SelectItemsConverter"
+                                >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
                                 <f:selectItems value="#{prognosticVariable.criterion.configuredValues}" />
                             </p:selectOneMenu>
                         </p:panelGrid>
@@ -301,6 +332,18 @@
             </h:form>
         </p:dialog>
 
+        <!-- Export chart -->
+        <p:dialog
+            widgetVar="dlg"
+            showEffect="fade"
+            modal="true"
+            header="Randomisation Progress"
+            resizable="false"
+            closeOnEscape="true"
+            >
+            <p:outputPanel id="outputArmsBarChart" layout="block" />
+        </p:dialog>
+
         <!-- Submit from dialog -->
         <script type="text/javascript">
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
@@ -316,6 +359,13 @@
                 jQuery('#'+formName).each(function() {
                     this.reset();
                 });
+            }
+            function exportChart() {
+                //export image
+                $('#outputArmsBarChart').empty().append(PF('chartArms').exportAsImage());
+
+                //show the dialog
+                PF('dlg').show();
             }
         </script>
     </ui:define>

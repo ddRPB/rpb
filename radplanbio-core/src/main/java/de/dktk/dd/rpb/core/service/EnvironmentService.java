@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2014  Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.dkfz.core.service;
+package de.dktk.dd.rpb.core.service;
 
-import static org.apache.commons.lang.StringUtils.trimToEmpty;
-import static de.dkfz.core.service.EnvironmentService.Environment.Development;
-import static de.dkfz.core.service.EnvironmentService.Environment.Integration;
-import static de.dkfz.core.service.EnvironmentService.Environment.Production;
-import static de.dkfz.core.service.EnvironmentService.Environment.toEnvironment;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.inject.Named;
 
-import org.springframework.beans.factory.annotation.Value;
+import static de.dktk.dd.rpb.core.service.EnvironmentService.Environment.*;
+import static org.apache.commons.lang.StringUtils.trimToEmpty;
 
 @Named
 public class EnvironmentService {
 
-    // environmentName hold the name of env (e.g. development, production, etc.)
-    // Value annotation is used to specify the default value
-    @Value("${env_name:developement}")
-    private String environmentName;
-
     public enum Environment {
         Development, Integration, Production;
+
         boolean is(String value) {
             return name().equalsIgnoreCase(trimToEmpty(value));
         }
@@ -53,23 +46,43 @@ public class EnvironmentService {
         }
     }
 
-    public boolean isDevelopment() {
-        return Development.is(environmentName);
-    }
+    //region Members
 
-    public boolean isIntegration() {
-        return Integration.is(environmentName);
-    }
+    // Value annotation is used to specify the default value
+    @Value("${build.environment}")
+    private String environmentName; // environmentName hold the name of env (e.g. development, production, etc.)
 
-    public boolean isProduction() {
-        return Production.is(environmentName);
-    }
+    //endregion
+
+    //region Properties
 
     /***
      * Get the name of environment where the app is running
      * @return the name of environment where tha app is running
      */
-    public Environment getEnvironmentName() {
+    public Environment getEnvironment() {
         return toEnvironment(this.environmentName);
     }
+
+    //endregion
+
+    //region Helpers
+
+    @SuppressWarnings("unused")
+    public boolean isDevelopment() {
+        return Development.is(environmentName);
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isIntegration() {
+        return Integration.is(environmentName);
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isProduction() {
+        return Production.is(environmentName);
+    }
+
+    //endregion
+
 }

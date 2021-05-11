@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.repository.support.Repository;
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
 
+import de.dktk.dd.rpb.portal.web.util.TabBean;
+import org.primefaces.component.datatable.DataTable;
+import org.primefaces.event.SelectEvent;
 import org.primefaces.event.ToggleEvent;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortMeta;
@@ -41,11 +44,11 @@ import org.primefaces.model.SortOrder;
 import org.primefaces.model.Visibility;
 
 /**
- * Extends PrimeFaces {@link LazyDataModel}
+ * Extends PrimeFaces {@link LazyDataModel} to provide Generic CRUD lazy view model
  */
 public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extends Serializable> extends LazyDataModel<E> {
 
-    // region Finals
+    //region Finals
 
     private static final long serialVersionUID = 1L;
 
@@ -63,13 +66,14 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
     private boolean bypassFirstOffset = true;
     private int size = 0;
 
+    protected List<Boolean> columnVisibilityList;
     protected E selectedEntity;
     protected E newEntity;
-    protected E[] selectedRows;
+    protected E[] selectedEntities;
 
     protected Repository<E, PK> repository;
 
-    protected List<Boolean> columnVisibilityList;
+    protected TabBean tab = new TabBean();
 
     //endregion
 
@@ -83,15 +87,12 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
 
     //region Properties
 
-    //region Entity DataTable Properties
-
     //region Selected Entity Property
 
     /**
      * Get Selected Entity
      * @return selected entity - E
      */
-    @SuppressWarnings("unused")
     public E getSelectedEntity() {
         return this.selectedEntity;
     }
@@ -100,7 +101,6 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
      * Set Selected Entity
      * @param entity - E
      */
-    @SuppressWarnings("unused")
     public void setSelectedEntity(E entity) {
         this.selectedEntity = entity;
     }
@@ -109,17 +109,13 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
 
     //region Selected Entities Property
 
-    @SuppressWarnings("unused")
-    public void setSelectedRows(E[] selectedRows) {
-        this.selectedRows = selectedRows;
+    public E[] getSelectedEntities() {
+        return this.selectedEntities;
     }
 
-    @SuppressWarnings("unused")
-    public E[] getSelectedRows() {
-        return selectedRows;
+    public void setSelectedEntities(E[] selectedEntities) {
+        this.selectedEntities = selectedEntities;
     }
-
-    //endregion
 
     //endregion
 
@@ -129,7 +125,6 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
      * Get New Entity
      * @return NewRole - Entity
      */
-    @SuppressWarnings("unused")
     public E getNewEntity() {
         return this.newEntity;
     }
@@ -138,8 +133,7 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
      * Set New Entity
      * @param entity - Entity
      */
-    @SuppressWarnings("unused")
-    public void setNewSoftware(E entity) {
+    public void setNewEntity(E entity) {
         this.newEntity = entity;
     }
 
@@ -161,6 +155,14 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
 
     //endregion
 
+    //region Tab
+
+    public TabBean getTab() {
+        return this.tab;
+    }
+
+    //endregion
+
     //endregion
 
     //region EventHandlers
@@ -171,6 +173,15 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
         }
         catch (Exception err) {
             this.messageUtil.error(err);
+        }
+    }
+
+    /**
+     * React to mouse click on row
+     */
+    public void onRowSelect(SelectEvent event) {
+        if (event.getObject() != null) {
+            this.setSelectedEntity((E) event.getObject());
         }
     }
 
@@ -233,54 +244,96 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
 
     //region Commands
 
-//    /**
-//     * Action invoked from sub search pages used to select the target of an association.
-//     */
-//    public String select() {
-//        return select(getRowData());
-//    }
-//
-//    protected String select(E selectedRow) {
-//        return getCallBack().selected(selectedRow);
-//    }
-//
-//    /**
-//     * React to mouse click and force the navigation depending on the context.
-//     * When in sub mode, the select action is invoked otherwise the edit action is invoked.
-//     */
-//    public void onRowSelect(SelectEvent event) {
-//        E selected = getSelectedRow();
-//        if (selected != null) {
-//            if (getCurrentConversation().getCurrentContext().isSub()) {
-//                Faces.navigate(controller.select(selected));
-//            } else if (controller.getPermission().canEdit(selected)) {
-//                Faces.navigate(controller.edit(selected));
-//            } else {
-//                Faces.navigate(controller.view(selected));
-//            }
-//        }
-//    }
+    /**
+     * Prepare new entity for binding
+     */
+    public void doPrepareNewEntity() {
+        this.newEntity = this.repository.getNew();
+    }
+
+    /**
+     * Prepare new entity with defaults for binding
+     */
+    public void doPrepareNewEntityWithDefaults() {
+        this.newEntity = this.repository.getNewWithDefaults();
+    }
+
+    /**
+     * Insert a new entity into repository
+     */
+    public void doCreateEntity() {
+        try {
+            // Persist
+            this.repository.save(this.newEntity);
+            this.selectedEntity = this.newEntity;
+            this.repository.refresh(this.selectedEntity);
+
+            this.messageUtil.infoEntity("status_saved_ok", this.newEntity);
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    /**
+     * Update selected entity in repository
+     */
+    public void doUpdateEntity() {
+        try {
+            // Commit changes
+            this.selectedEntity = this.repository.merge(
+                    this.selectedEntity
+            );
+            this.messageUtil.infoEntity("status_saved_ok", this.selectedEntity);
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    /**
+     * Delete selected entity from repository
+     */
+    public void doDeleteEntity() {
+        try {
+            // Delete
+            this.repository.delete(selectedEntity);
+
+            this.messageUtil.infoEntity("status_deleted_ok", this.selectedEntity);
+            this.selectedEntity = null;
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
 
     //endregion
 
     //region Abstract Methods
 
+    /**
+     * Get entity example which will be use for query
+     * @param filters filter values from viewModel
+     * @return entity for query by example
+     */
     protected abstract E getEntity(Map<String, Object> filters);
 
+    /**
+     * Get newly initialised SearchParameters for certain viewModel
+     * @return searchParameters
+     */
+    protected abstract SearchParameters searchParameters();
+
+    /**
+     * Extent provided searchParameters about default order from certain viewModel
+     * @param searchParameters provided searchParameters
+     * @return searchParameters extended about default order
+     */
     protected abstract SearchParameters defaultOrder(SearchParameters searchParameters);
 
     //endregion
 
     //region Helpers
-
-    /**
-     * Default search parameters
-     */
-    public SearchParameters searchParameters() {
-        return new SearchParameters() //
-                .anywhere() //
-                .caseInsensitive();
-    }
 
     /**
      * Convert PrimeFaces {@link SortOrder} to our {@link OrderByDirection}.
@@ -293,7 +346,6 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
      * Applies the passed parameters to the passed SearchParameters.
      * @return the passed searchParameters
      */
-    @SuppressWarnings("unused")
     protected SearchParameters populateSearchParameters(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, Object> filters) {
 
         SearchParameters sp = this.searchParameters();
@@ -317,7 +369,6 @@ public abstract class GenericLazyDataModel<E extends Identifiable<PK>, PK extend
      * _HACK_
      * Call it from your view when a <code>search</code> event is triggered to bypass offset sent by primefaces paginator.
      */
-    @SuppressWarnings("unused")
     public void onSearch() {
         bypassFirstOffset = true;
     }

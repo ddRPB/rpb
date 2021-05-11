@@ -19,7 +19,7 @@
 
     <!-- Definition of page content place holder -->
     <ui:define name="content">
-        <p:tabView id="tabView" activeIndex="#{mbUserAccount.tab.activeIndex}">
+        <p:tabView id="tabView" activeIndex="#{mbUserAccountLazy.tab.activeIndex}">
 
             <!-- Default user accounts -->
             <p:tab title="#{msg.account_plural}">
@@ -29,45 +29,32 @@
 
                     <!-- Left -->
                     <p:toolbarGroup align="left">
-                        <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="#{msg.account_new}"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newAccountDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newAccountForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbUserAccount.prepareNewEntity}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newAccountDialog').show();"
-                                immediate="true"
-                                update=":newAccountForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbUserAccount.prepareNewEntity}"
-                                rendered="#{mbUserAccount.tab.activeIndex == 0}"
-                                />
 
+                        <!-- New -->
                         <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="#{msg.account_reload}"
-                                icon="ui-icon-refresh"
-                                style="float: left;"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbUserAccount.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbUserAccount.load}"
-                                rendered="#{mbUserAccount.tab.activeIndex == 0}"
-                                />
+                            value="#{msg.menu_new}"
+                            title="#{msg.account_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newAccountDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newAccountForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbUserAccountLazy.doPrepareNewEntityWithDefaults}"
+                            />
+
+                        <!-- Reload -->
+                        <p:commandButton
+                            id="btnAccountReload"
+                            value="#{msg.menu_reload}"
+                            title="#{msg.account_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            oncomplete="PF('entitiesTable').filter()"
+                            />
                     </p:toolbarGroup>
 
                     <!-- Right -->
@@ -80,9 +67,8 @@
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
-                            id="btnUserAccountsHelp"
                             value="#{msg.menu_help}"
-                            title="To be implemented"
+                            title="#{msg.menu_help}"
                             icon="ui-icon-help"
                             disabled="True"
                             />
@@ -91,38 +77,30 @@
 
                 <!-- Default accounts table -->
                 <p:dataTable
-                        id="dtEntities"
-                        var="account"
-                        value="#{mbUserAccount.entityList}"
-                        widgetVar="accountsTable"
-                        resizableColumns="true"
-                        draggableColumns="false"
-                        paginator="true"
-                        rows="15"
-                        rowsPerPageTemplate="15,25,50"
-                        emptyMessage="#{msg.search_empty}"
-                        selection="#{mbUserAccount.selectedEntity}"
-                        selectionMode="single"
-                        rowKey="#{account.id}"
-                        rowIndexVar="rowIndex"
-                        filteredValue="#{mbUserAccount.filteredEntities}"
-                        sortMode="multiple"
-                        sortBy="#{mbUserAccount.preSortOrder}"
-                        disabledTextSelection="false"
-                        >
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbUserAccountLazy}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
+                    emptyMessage="#{msg.search_empty}"
+                    selectionMode="single"
+                    rowIndexVar="rowIndex"
+                    lazy="true"
+                    disabledTextSelection="false"
+                    >
 
-                    <!--AJAX onclick on datatable row-->
-                    <p:ajax event="rowSelect" update=":form:tabView:dtAccountRoles" />
+                    <!-- AJAX onclick on data table row -->
+                    <p:ajax event="rowSelect" listener="#{mbUserAccountLazy.onRowSelect}" update=":form:tabView:dtAccountRoles" />
 
                     <!-- Table header -->
                     <f:facet name="header">
                         <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
-                        <p:columnToggler
-                            datasource="dtEntities"
-                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
-                            style="width:450px"
-                            >
-                            <p:ajax event="toggle" listener="#{mbUserAccount.onEntityToggle}" />
+                        <p:columnToggler datasource="dtEntities" trigger=":form:tabView:dtEntities:btnEntitiesToggler">
+                            <p:ajax event="toggle" listener="#{mbUserAccountLazy.onEntityToggle}" />
                         </p:columnToggler>
                     </f:facet>
 
@@ -133,139 +111,179 @@
 
                     <!-- Username -->
                     <p:column
-                            id="colUserName"
-                            headerText="#{msg.account_username}"
-                            sortBy="#{account.username}"
-                            filterBy="#{account.username}"
-                            filterMatchMode="contains"
-                            style="width:15%"
-                            visible="#{mbUserAccount.columnVisibilityList[0]}"
-                            >
-                        <h:outputText value="#{account.username}" style="float: left;" />
+                        id="colUserName"
+                        headerText="#{msg.account_username}"
+                        sortBy="#{entity.username}"
+                        filterBy="#{entity.username}"
+                        filterMatchMode="contains"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[0]}"
+                        style="width:25%"
+                        >
+                        <h:outputText value="#{entity.username}" style="float: left;" />
                     </p:column>
 
                     <!-- Email -->
                     <p:column
-                            headerText="#{msg.account_email}"
-                            sortBy="#{account.email}"
-                            filterBy="#{account.email}"
-                            filterMatchMode="contains"
-                            style="width:25%"
-                            visible="#{mbUserAccount.columnVisibilityList[1]}"
-                            >
-                        <h:outputText value="#{account.email}" style="float: left;" />
+                        headerText="#{msg.account_email}"
+                        sortBy="#{entity.email}"
+                        filterBy="#{entity.email}"
+                        filterMatchMode="contains"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[1]}"
+                        style="width:30%"
+                        >
+                        <h:outputText value="#{entity.email}" style="float: left;" />
                     </p:column>
 
                     <!-- Partner Site -->
                     <p:column
                         id="colAccountSite"
                         headerText="#{msg.account_partnerSite}"
-                        sortBy="#{account.partnerSite.siteName}"
-                        filterBy="#{account.partnerSite.siteName}"
-                        filterMatchMode="in"
-                        style="width:20%"
-                        visible="#{mbUserAccount.columnVisibilityList[2]}"
+                        sortBy="#{entity.partnerSite.name}"
+                        filterBy="#{entity.partnerSite}"
+                        filterMatchMode="exact"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[2]}"
+                        style="width:25%"
                         >
                         <f:facet name="filter">
-                            <p:selectCheckboxMenu
-                                    label="#{msg.partnerSite_plural}"
-                                    onchange="PF('accountsTable').filter()"
-                                    panelStyle="width:270px"
-                                    scrollHeight="150"
-                                    >
+                            <p:selectOneMenu
+                                label="#{msg.partnerSite_plural}"
+                                var="partnerSiteIter"
+                                onchange="PF('entitiesTable').filter()"
+                                converter="omnifaces.SelectItemsConverter"
+                                panelStyle="width:250px"
+                                >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                                 <f:selectItems
-                                        value="#{mbPartnerSite.entityList}"
-                                        var="partnerSite"
-                                        itemLabel="#{partnerSite.siteName}"
-                                        itemValue="#{partnerSite.siteName}"
-                                        itemDescription="#{partnerSite.description}"
-                                        />
-                            </p:selectCheckboxMenu>
+                                    value="#{mbPartnerSite.entityList}"
+                                    var="partnerSite"
+                                    itemLabel="#{partnerSite.name}"
+                                    itemDescription="#{partnerSite.description}"
+                                    />
+                                <p:column>
+                                    <h:outputText value="[#{partnerSiteIter.identifier}]" />
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{partnerSiteIter.name}" />
+                                </p:column>
+                            </p:selectOneMenu>
                         </f:facet>
-                        <h:outputText value="#{account.partnerSite.siteName}" style="float: left;" />
+                        <h:outputText value="#{entity.partnerSite.name}" title="#{entity.partnerSite.description}" style="float: left;" />
                     </p:column>
 
                     <!-- IsEnabled -->
                     <p:column
-                        sortBy="#{account.isEnabled}"
-                        filterBy="#{account.isEnabled}"
-                        filterMatchMode="exact"
-                        style="width:18%"
-                        visible="#{mbUserAccount.columnVisibilityList[3]}"
+                        headerText="#{msg.account_isEnabled}"
+                        filterBy="#{entity.isEnabled}"
+                        filterMatchMode="equals"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[3]}"
+                        style="width:10%"
                         >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.account_isEnabled}" />
-                        </f:facet>
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('accountsTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox value="#{account.isEnabled}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{entity.isEnabled}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
+                    </p:column>
+
+                    <!-- Non Locked -->
+                    <p:column
+                        headerText="#{msg.account_nonLocked}"
+                        filterBy="#{entity.nonLocked}"
+                        filterMatchMode="equals"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[4]}"
+                        style="width:10%"
+                        >
+                        <f:facet name="filter">
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneButton>
+                        </f:facet>
+                        <p:selectBooleanButton
+                            value="#{entity.nonLocked}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
                     </p:column>
 
                     <!--IsLdap-->
                     <p:column
-                        sortBy="#{account.isLdapUser()}"
-                        filterBy="#{account.isLdapUser()}"
-                        filterMatchMode="exact"
-                        style="width:18%"
-                        visible="#{mbUserAccount.columnVisibilityList[4]}"
+                        headerText="LDAP"
+                        filterBy="#{entity.isLdapUser()}"
+                        filterMatchMode="equals"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[5]}"
+                        style="width:10%"
                         >
-                        <f:facet name="header">
-                            <h:outputText value="LDAP" />
-                        </f:facet>
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('accountsTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox value="#{account.isLdapUser()}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{entity.isLdapUser()}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
                     </p:column>
 
                     <!--API-key enabled -->
                     <p:column
-                            sortBy="#{account.apiKeyEnabled}"
-                            filterBy="#{account.apiKeyEnabled}"
-                            filterMatchMode="exact"
-                            style="width:18%"
-                            visible="#{mbUserAccount.columnVisibilityList[5]}"
+                        headerText="#{msg.account_apiKeyEnabled}"
+                        filterBy="#{entity.apiKeyEnabled}"
+                        filterMatchMode="exact"
+                        visible="#{mbUserAccountLazy.columnVisibilityList[6]}"
+                        style="width:10%"
                         >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.account_apiKeyEnabled}" />
-                        </f:facet>
                         <f:facet name="filter">
-                            <p:selectOneMenu onchange="PF('accountsTable').filter()" >
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
                                 <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
                                 <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
-                            </p:selectOneMenu>
+                            </p:selectOneButton>
                         </f:facet>
-                        <h:selectBooleanCheckbox value="#{account.apiKeyEnabled}" disabled="true" />
+                        <p:selectBooleanButton
+                            value="#{entity.apiKeyEnabled}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
                     </p:column>
 
                     <!-- PrivilegesCount-->
-                    <p:column
-                        sortBy="#{account.privilegesCount}"
-                        style="width:5%"
-                        visible="#{mbUserAccount.columnVisibilityList[6]}"
-                        >
+                    <p:column visible="#{mbUserAccountLazy.columnVisibilityList[7]}" style="width:5%">
                         <f:facet name="header">
                             <h:outputText value="#{msg.account_privilegesCount}" />
                         </f:facet>
-                        <h:outputText value="#{account.privilegesCount}" style="float: left;" />
+                        <h:outputText value="#{entity.privilegesCount}" style="float: left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
                         headerText="#{msg.menu_commands}"
-                        style="width:17%"
                         exportable="false"
                         toggleable="false"
+                        style="width:15%"
                         >
                         <p:commandButton
                             title="#{msg.menu_edit}"
@@ -276,8 +294,8 @@
                             oncomplete="PF('accountDialog').show();"
                             >
                             <f:setPropertyActionListener
-                                    value="#{account}"
-                                    target="#{mbUserAccount.selectedEntity}"
+                                    value="#{entity}"
+                                    target="#{mbUserAccountLazy.selectedEntity}"
                                     />
                         </p:commandButton>
 
@@ -290,33 +308,38 @@
                                 process="@this"
                                 >
                             <f:setPropertyActionListener
-                                    value="#{account}"
-                                    target="#{mbUserAccount.selectedEntity}"
+                                    value="#{entity}"
+                                    target="#{mbUserAccountLazy.selectedEntity}"
                                     />
                         </p:commandButton>
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbUserAccount.entityList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbUserAccount.entityList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbUserAccountLazy.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbUserAccountLazy.size == 1}" />
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbUserAccount.entityList.size() > 1}"
+                                rendered="#{mbUserAccountLazy.size > 1}"
                                 >
-                            <f:param value="#{mbUserAccount.entityList.size()}" />
+                            <f:param value="#{mbUserAccountLazy.size}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
+                <!-- Block table -->
+                <p:blockUI trigger="btnAccountReload dtEntities" block="dtEntities">
+                    LOADING<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
+
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.account_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.account_plural}" />
                     </h:commandLink>
                 </p:panel>
@@ -339,7 +362,7 @@
                                 immediate="true"
                                 update=":newAccountRoleForm:newDisplayRole"
                                 process="@this"
-                                actionListener="#{mbUserAccount.prepareNewRoles}"
+                                actionListener="#{mbUserAccountLazy.prepareNewRoles}"
                                 />
                     </p:toolbarGroup>
 
@@ -347,7 +370,7 @@
                     <p:toolbarGroup align="right">
                         <p:commandButton
                             value="#{msg.menu_print}"
-                            title="#{msg.menu_print}"
+                            title="#{msg.role_print}"
                             icon="ui-icon-print"
                             >
                             <p:printer target="dtAccountRoles" />
@@ -366,7 +389,7 @@
                 <p:dataTable
                     id="dtAccountRoles"
                     var="accountRole"
-                    value="#{mbUserAccount.selectedEntity.roles}"
+                    value="#{mbUserAccountLazy.selectedEntity.roles}"
                     widgetVar="accountRolesTable"
                     resizableColumns="true"
                     draggableColumns="false"
@@ -384,21 +407,41 @@
                     disabledTextSelection="false"
                     >
 
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <h:outputText value="#{mbUserAccountLazy.selectedEntity.username}" style="float:left" />
+                        <p:commandButton id="btnAccountRolesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler datasource="dtAccountRoles" trigger=":form:tabView:dtAccountRoles:btnAccountRolesToggler">
+                            <p:ajax event="toggle" listener="#{mbRole.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
-                    <!-- Username -->
+                    <!-- Role Name -->
                     <p:column
-                            id="colRoleName"
-                            headerText="#{msg.role}"
-                            sortBy="#{accountRole.name}"
-                            filterBy="#{accountRole.name}"
-                            filterMatchMode="contains"
-                            style="width:78%"
-                            >
+                        id="colRoleName"
+                        headerText="#{msg.role}"
+                        sortBy="#{accountRole.name}"
+                        filterBy="#{accountRole.name}"
+                        visible="#{mbRole.columnVisibilityList[0]}"
+                        filterMatchMode="contains"
+                        style="width:47%"
+                        >
                         <h:outputText value="#{accountRole.name}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Role Description -->
+                    <p:column
+                        headerText="#{msg.role_description}"
+                        sortBy="#{accountRole.description}"
+                        visible="#{mbRole.columnVisibilityList[1]}"
+                        style="width:50%"
+                        >
+                        <h:outputText value="#{accountRole.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Commands -->
@@ -424,27 +467,33 @@
                         </p:commandButton>
                     </p:column>
 
+                    <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbUserAccount.selectedEntity.roles.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbUserAccount.selectedEntity.roles.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbUserAccountLazy.selectedEntity.roles.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbUserAccountLazy.selectedEntity.roles.size() == 1}" />
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbUserAccount.selectedEntity.roles.size() > 1}"
+                                rendered="#{mbUserAccountLazy.selectedEntity.roles.size() > 1}"
                                 >
-                            <f:param value="#{mbUserAccount.selectedEntity.roles.size()}" />
+                            <f:param value="#{mbUserAccountLazy.selectedEntity.roles.size()}" />
                         </h:outputFormat>
                     </f:facet>
 
                 </p:dataTable>
 
+                <!-- Block table -->
+                <p:blockUI trigger="dtAccountRoles" block="dtAccountRoles">
+                    LOADING<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
+
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
                         <p:dataExporter type="xls" target="dtAccountRoles" fileName="#{msg.account_roles}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtAccountRoles" fileName="#{msg.account_roles}" />
                     </h:commandLink>
                 </p:panel>
@@ -457,143 +506,163 @@
 
         <!-- New Account -->
         <p:dialog
-                id="dlgNewAccount"
-                header="#{msg.account_new}"
-                widgetVar="newAccountDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgNewAccount"
+            header="#{msg.account_new}"
+            widgetVar="newAccountDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="newAccountForm">
                 <p:panelGrid
-                        id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
+                    id="newDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- LDAP -->
+                    <h:outputLabel value="LDAP:#{msg.label_required_suffix}" for="chbIsLdapNew" />
+                    <p:selectBooleanButton
+                        id="chbIsLdapNew"
+                        value="#{mbUserAccountLazy.isLdapUserSource}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
                         >
-                    <h:outputLabel value="#{msg.account_username}: *" for="txtUsernameNew" />
-                    <p:inputText
-                            id="txtUsernameNew"
-                            value="#{mbUserAccount.newEntity.username}"
-                            required="true"
-                            requiredMessage="Please enter username, it is mandatory!"
-                            maxlength="255"
-                            />
-
-                    <h:outputLabel value="LDAP: *" for="chbIsLdapNew" />
-                    <p:inputSwitch id="chbIsLdapNew" value="#{mbUserAccount.isLdapUserSource}">
                         <p:ajax update=":newAccountForm, :growl" />
-                    </p:inputSwitch>
+                    </p:selectBooleanButton>
 
-                    <h:outputLabel value="#{msg.account_password}: *" for="txtPasswordNew" rendered="#{!mbUserAccount.isLdapUserSource}" />
-                    <h:inputSecret
-                            id="txtPasswordNew"
-                            value="#{mbUserAccount.newEntity.password}"
-                            required="true"
-                            requiredMessage="Please enter password, it is mandatory!"
-                            maxlength="255"
-                            rendered="#{!mbUserAccount.isLdapUserSource}"
-                            />
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.account_username}:#{msg.label_required_suffix}" for="txtUsernameNew" />
+                    <p:inputText
+                        id="txtUsernameNew"
+                        value="#{mbUserAccountLazy.newEntity.username}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.account_username} #{msg.validation_required}!"
+                        />
 
-                    <h:outputLabel value="Repeat #{msg.account_password}: *" for="txtPasswordRepeatNew" rendered="#{!mbUserAccount.isLdapUserSource}" />
-                    <h:inputSecret
-                            id="txtPasswordRepeatNew"
-                            value="#{mbUserAccount.newEntity.passwordCopy}"
-                            required="true"
-                            requiredMessage="Please repeat the password to ensure that there is no misstype!"
-                            maxlength="255"
-                            rendered="#{!mbUserAccount.isLdapUserSource}"
-                            />
+                    <!-- Password -->
+                    <h:outputLabel value="#{msg.account_password}:#{msg.label_required_suffix}" for="txtPasswordNew" rendered="#{!mbUserAccountLazy.isLdapUserSource}" />
+                    <p:password
+                        id="txtPasswordNew"
+                        value="#{mbUserAccountLazy.newEntity.password}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="#{msg.account_password} #{msg.validation_required}!"
+                        rendered="#{!mbUserAccountLazy.isLdapUserSource}"
+                        />
 
+                    <!-- Password repeat -->
+                    <h:outputLabel value="Repeat #{msg.account_password}: *" for="txtPasswordRepeatNew" rendered="#{!mbUserAccountLazy.isLdapUserSource}" />
+                    <p:password
+                        id="txtPasswordRepeatNew"
+                        value="#{mbUserAccountLazy.newEntity.passwordCopy}"
+                        maxlength="255"
+                        required="true"
+                        requiredMessage="Please repeat the password to ensure that there is no misstype!"
+                        rendered="#{!mbUserAccountLazy.isLdapUserSource}"
+                        />
+
+                    <!-- Email -->
                     <h:outputLabel value="#{msg.account_email}:" for="txtEmailNew" />
                     <p:inputText
-                            id="txtEmailNew"
-                            value="#{mbUserAccount.newEntity.email}"
-                            maxlength="255"
-                            validatorMessage="Invalid email format"
-                            >
-                        <f:validateRegex pattern="^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$" />
-                    </p:inputText>
+                        id="txtEmailNew"
+                        value="#{mbUserAccountLazy.newEntity.email}"
+                        maxlength="255"
+                        style="width:250px"
+                        />
 
                     <!-- IsEnabled -->
-                    <h:outputLabel value="#{msg.account_isEnabled}:" for="chbIsEnabledNew" />
-                    <p:inputSwitch id="chbIsEnabledNew" value="#{mbUserAccount.newEntity.isEnabled}">
-                        <p:ajax update=":newAccountForm, :growl" />
-                    </p:inputSwitch>
+                    <h:outputLabel value="#{msg.account_isEnabled}:#{msg.label_required_suffix}" for="chbIsEnabledNew" />
+                    <p:selectBooleanButton
+                        id="chbIsEnabledNew"
+                        value="#{mbUserAccountLazy.newEntity.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- Partner Site -->
-                    <h:outputLabel value="#{msg.account_partnerSite}:" for="ddlPartnerSiteNew" />
+                    <h:outputLabel value="#{msg.account_partnerSite}:#{msg.label_required_suffix}" for="ddlPartnerSiteNew" />
                     <p:selectOneMenu
-                            id="ddlPartnerSiteNew"
-                            value="#{mbUserAccount.newEntity.partnerSite}"
-                            converter="#{partnerSiteConverter}"
-                            filter="true"
-                            filterMatchMode="contains"
-                            var="partnerSiteNewIter"
-                            style="width:250px"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        id="ddlPartnerSiteNew"
+                        value="#{mbUserAccountLazy.newEntity.partnerSite}"
+                        required="true"
+                        requiredMessage="#{msg.account_partnerSite} #{msg.validation_required}!"
+                        converter="omnifaces.SelectItemsConverter"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="partnerSiteNewIter"
+                        style="width:250px"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems
-                                value="#{mbPartnerSite.entityList}"
-                                var="site"
-                                itemLabel="#{site.siteName}"
-                                itemValue="#{site}"
-                                itemDescription="#{site.description}"
-                                />
+                            value="#{mbPartnerSite.entityList}"
+                            var="site"
+                            itemLabel="#{site.name}"
+                            itemValue="#{site}"
+                            itemDescription="#{site.description}"
+                            />
                         <p:column>
-                            <h:outputText value="#{partnerSiteNewIter.siteName}" />
+                            <h:outputText value="[#{partnerSiteNewIter.identifier}]" />
+                        </p:column>
+                        <p:column>
+                            <h:outputText value="#{partnerSiteNewIter.name}" />
                         </p:column>
                     </p:selectOneMenu>
 
                     <!-- EDC username -->
-                    <h:outputLabel value="OpenClinica #{msg.account_username}: " for="txtOcUsernameNew" />
-                    <p:inputText
-                            id="txtOcUsernameNew"
-                            value="#{mbUserAccount.newEntity.ocUsername}"
-                            maxlength="255"
-                            />
+                    <h:outputLabel value="#{msg.edc} #{msg.account_username} (OpenClinica): " for="txtOcUsernameNew" />
+                    <p:inputText id="txtOcUsernameNew" value="#{mbUserAccountLazy.newEntity.ocUsername}" maxlength="255" />
 
                     <!-- ApiKey enabled -->
-                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledNew" />
-                    <p:inputSwitch id="chbIsApiKeyEnabledNew" value="#{mbUserAccount.newEntity.apiKeyEnabled}">
-                        <p:ajax update=":newAccountForm, :growl" />
-                    </p:inputSwitch>
+                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:#{msg.label_required_suffix}" for="chbIsApiKeyEnabledNew" />
+                    <p:selectBooleanButton
+                        id="chbIsApiKeyEnabledNew"
+                        value="#{mbUserAccountLazy.newEntity.apiKeyEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- ApiKey -->
                     <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKeyNew" />
-                    <p:inputText
+                    <h:panelGroup id="grpApiKeyNew">
+                        <p:inputText
                             id="txtApiKeyNew"
-                            value="#{mbUserAccount.newEntity.apiKey}"
-                            required="true"
-                            requiredMessage="Please generate API-key, it is mandatory!"
+                            value="#{mbUserAccountLazy.newEntity.apiKey}"
                             maxlength="255"
+                            style="width:250px"
                             />
+                    </h:panelGroup>
 
                     <!-- Generate ApiKey -->
                     <h:outputText value="" />
                     <p:commandButton
-                            value="Generate #{msg.account_apiKey}"
-                            update=":newAccountForm, :growl"
-                            actionListener="#{mbUserAccount.doGenerateApiKey(mbUserAccount.newEntity)}"
-                            process="@this newAccountForm"
-                            />
+                        value="Generate #{msg.account_apiKey}"
+                        update=":newAccountForm:grpApiKeyNew, :growl"
+                        actionListener="#{mbUserAccountLazy.doGenerateApiKey(mbUserAccountLazy.newEntity)}"
+                        process="@this"
+                        />
 
+                    <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":newAccountForm, :form:tabView:dtEntities, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbUserAccount.doCreateEntity}"
-                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAccount','newAccountForm');"
-                                process="@this newAccountForm"
-                                />
-                        <p:commandButton
-                                value="#{msg.menu_reset}"
-                                type="reset"
-                                icon="ui-icon-close"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":newAccountForm, :form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbUserAccountLazy.doCreateEntity}"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAccount','newAccountForm');"
+                            process="@this newAccountForm"
+                            />
+                        <p:commandButton value="#{msg.menu_reset}" type="reset" icon="ui-icon-close" />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -601,112 +670,144 @@
 
         <!-- Edit Account -->
         <p:dialog
-                id="dlgAccountDetails"
-                header="#{msg.account_edit}"
-                widgetVar="accountDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgAccountDetails"
+            header="#{msg.account_edit}"
+            widgetVar="accountDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="accountDetailsForm">
                 <p:panelGrid
-                        id="editDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-
-                    <!-- Username -->
-                    <h:outputLabel value="#{msg.account_username}:" for="txtUsernameEdit" />
-                    <h:outputText id="txtUsernameEdit" value="#{mbUserAccount.selectedEntity.username}" />
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- LDAP -->
                     <h:outputLabel value="LDAP:" for="chbIsLdapEdit" />
-                    <p:inputSwitch id="chbIsLdapEdit" value="#{mbUserAccount.selectedEntity.isLdapUser()}" disabled="true" />
+                    <p:selectBooleanButton
+                        id="chbIsLdapEdit"
+                        value="#{mbUserAccountLazy.selectedEntity.isLdapUser()}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
+
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.account_username}:" for="txtUsernameEdit" />
+                    <h:outputText id="txtUsernameEdit" value="#{mbUserAccountLazy.selectedEntity.username}" />
 
                     <!-- Email -->
                     <h:outputLabel value="#{msg.account_email}:" for="txtEmail" />
                     <p:inputText
                         id="txtEmail"
-                        value="#{mbUserAccount.selectedEntity.email}"
+                        value="#{mbUserAccountLazy.selectedEntity.email}"
                         maxlength="255"
-                        validatorMessage="Invalid email format"
-                        >
-                        <f:validateRegex pattern="^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$" />
-                    </p:inputText>
+                        style="width:250px"
+                        />
 
                     <!-- Enabled -->
-                    <h:outputLabel value="#{msg.account_isEnabled}:" for="chbIsEnabledEdit" />
-                    <p:inputSwitch id="chbIsEnabledEdit" value="#{mbUserAccount.selectedEntity.isEnabled}">
-                        <p:ajax update=":accountDetailsForm, :growl" />
-                    </p:inputSwitch>
+                    <h:outputLabel value="#{msg.account_isEnabled}:#{msg.label_required_suffix}" for="chbIsEnabledEdit" />
+                    <p:selectBooleanButton
+                        id="chbIsEnabledEdit"
+                        value="#{mbUserAccountLazy.selectedEntity.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
+
+                    <!-- NonLocked-->
+                    <h:outputLabel value="#{msg.account_nonLocked}:" for="chbAccountNonLockedEdit" />
+                    <p:selectBooleanButton
+                        id="chbAccountNonLockedEdit"
+                        value="#{mbUserAccountLazy.selectedEntity.nonLocked}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
                     <!-- PartnerSite -->
-                    <h:outputLabel value="#{msg.account_partnerSite}:" for="cmbPartnerSites" />
+                    <h:outputLabel value="#{msg.account_partnerSite}:#{msg.label_required_suffix}" for="cmbPartnerSites" />
                     <p:selectOneMenu
-                            id="cmbPartnerSites"
-                            value="#{mbUserAccount.selectedEntity.partnerSite}"
-                            converter="#{partnerSiteConverter}"
-                            filter="true"
-                            filterMatchMode="contains"
-                            var="partnerSiteEditIter"
-                            style="width:250px"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
+                        id="cmbPartnerSites"
+                        value="#{mbUserAccountLazy.selectedEntity.partnerSite}"
+                        required="true"
+                        requiredMessage="#{msg.account_partnerSite} #{msg.validation_required}!"
+                        converter="omnifaces.SelectItemsConverter"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="partnerSiteEditIter"
+                        style="width:250px"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems
-                                value="#{mbPartnerSite.entityList}"
-                                var="site"
-                                itemLabel="#{site.siteName}"
-                                itemValue="#{site}"
-                                itemDescription="#{site.description}"
-                                />
+                            value="#{mbPartnerSite.entityList}"
+                            var="site"
+                            itemLabel="#{site.name}"
+                            itemValue="#{site}"
+                            itemDescription="#{site.description}"
+                            />
                         <p:column>
-                            <h:outputText value="#{partnerSiteEditIter.siteName}" />
+                            <h:outputText value="[#{partnerSiteEditIter.identifier}]" />
+                        </p:column>
+                        <p:column>
+                            <h:outputText value="#{partnerSiteEditIter.name}" />
                         </p:column>
                     </p:selectOneMenu>
 
                     <!-- OC username -->
-                    <h:outputLabel value="OpenClinica #{msg.account_username}:" for="txtOcUsernameEdit" />
-                    <p:inputText
-                            id="txtOcUsernameEdit"
-                            value="#{mbUserAccount.selectedEntity.ocUsername}"
-                            maxlength="255"
-                            />
+                    <h:outputLabel value="#{msg.edc} #{msg.account_username} (OpenClinica):" for="txtOcUsernameEdit" />
+                    <p:inputText id="txtOcUsernameEdit" value="#{mbUserAccountLazy.selectedEntity.ocUsername}" maxlength="255" />
 
                     <!-- ApiKey enabled -->
-                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledEdit" />
-                    <p:inputSwitch id="chbIsApiKeyEnabledEdit" value="#{mbUserAccount.selectedEntity.apiKeyEnabled}">
-                        <p:ajax update=":accountDetailsForm, :growl" />
-                    </p:inputSwitch>
+                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:#{msg.label_required_suffix}" for="chbIsApiKeyEnabledEdit" />
+                    <p:selectBooleanButton
+                        id="chbIsApiKeyEnabledEdit"
+                        value="#{mbUserAccountLazy.selectedEntity.apiKeyEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
 
                     <!-- ApiKey -->
                     <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKeyEdit" />
-                    <p:inputText
+                    <h:panelGroup id="grpApiKeyEdit">
+                        <p:inputText
                             id="txtApiKeyEdit"
-                            value="#{mbUserAccount.selectedEntity.apiKey}"
+                            value="#{mbUserAccountLazy.selectedEntity.apiKey}"
                             maxlength="255"
+                            style="width:250px"
                             />
+                    </h:panelGroup>
 
                     <!-- Generate ApiKey -->
                     <h:outputText value="" />
                     <p:commandButton
-                            value="Generate #{msg.account_apiKey}"
-                            update=":accountDetailsForm, :growl"
-                            actionListener="#{mbUserAccount.doGenerateApiKey(mbUserAccount.selectedEntity)}"
-                            process="@this accountDetailsForm"
-                            />
+                        value="Generate #{msg.account_apiKey}"
+                        update=":accountDetailsForm:grpApiKeyEdit, :growl"
+                        actionListener="#{mbUserAccountLazy.doGenerateApiKey(mbUserAccountLazy.selectedEntity)}"
+                        process="@this"
+                        />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update="accountDetailsForm, :form:tabView:dtEntities, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAccountDetails','accountDetailsForm');"
-                                actionListener="#{mbUserAccount.doUpdateEntity}"
-                                process="@this accountDetailsForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update="accountDetailsForm, :form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAccountDetails','accountDetailsForm');"
+                            actionListener="#{mbUserAccountLazy.doUpdateEntity}"
+                            process="@this accountDetailsForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -730,37 +831,73 @@
                     style="margin:0 auto;"
                     >
 
-                    <!-- Username -->
-                    <h:outputLabel value="#{msg.account_username}:" for="txtAccountUsernameDelete" />
-                    <h:outputText id="txtAccountUsernameDelete" value="#{mbUserAccount.selectedEntity.username}" />
-
                     <!-- LDAP -->
                     <h:outputLabel value="LDAP:" for="chbIsLdapDelete" />
-                    <p:inputSwitch id="chbIsLdapDelete" value="#{mbUserAccount.selectedEntity.isLdapUser()}" disabled="true" />
+                    <p:selectBooleanButton
+                        id="chbIsLdapDelete"
+                        value="#{mbUserAccountLazy.selectedEntity.isLdapUser()}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
+
+                    <!-- Username -->
+                    <h:outputLabel value="#{msg.account_username}:" for="txtAccountUsernameDelete" />
+                    <h:outputText id="txtAccountUsernameDelete" value="#{mbUserAccountLazy.selectedEntity.username}" />
 
                     <!-- Email -->
                     <h:outputLabel value="#{msg.account_email}:" for="txtAccountEmailDelete" />
-                    <h:outputText id="txtAccountEmailDelete" value="#{mbUserAccount.selectedEntity.email}" />
+                    <h:outputText id="txtAccountEmailDelete" value="#{mbUserAccountLazy.selectedEntity.email}" />
 
                     <!-- IsEnabled -->
                     <h:outputLabel value="#{msg.account_isEnabled}:"  for="chbAccounIsEnabledDelete" />
-                    <p:inputSwitch id="chbAccounIsEnabledDelete" value="#{mbUserAccount.selectedEntity.isEnabled}" disabled="true" />
+                    <p:selectBooleanButton
+                        id="chbAccounIsEnabledDelete"
+                        value="#{mbUserAccountLazy.selectedEntity.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
+
+                    <!-- NonLocked-->
+                    <h:outputLabel value="#{msg.account_nonLocked}:" for="chbAccountNonLockedDelete" />
+                    <p:selectBooleanButton
+                        id="chbAccountNonLockedDelete"
+                        value="#{mbUserAccountLazy.selectedEntity.nonLocked}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
                     <!-- PartnerSite -->
                     <h:outputLabel value="#{msg.account_partnerSite}:" for="txtAccountSiteDelete" />
-                    <h:outputText id="txtAccountSiteDelete" value="#{mbUserAccount.selectedEntity.partnerSite.siteName}" title="#{mbUserAccount.selectedEntity.partnerSite.description}" />
+                    <h:outputText id="txtAccountSiteDelete" value="[#{mbUserAccountLazy.selectedEntity.partnerSite.identifier}] = #{mbUserAccountLazy.selectedEntity.partnerSite.name}" title="#{mbUserAccountLazy.selectedEntity.partnerSite.description}" />
 
                     <!-- EDC username -->
-                    <h:outputLabel value="OpenClinica #{msg.account_username}:" for="txtAccountOCusernameDelete" />
-                    <h:outputText id="txtAccountOCusernameDelete" value="#{mbUserAccount.selectedEntity.ocUsername}" />
+                    <h:outputLabel value="#{msg.edc} #{msg.account_username} (OpenClinica):" for="txtAccountOCusernameDelete" />
+                    <h:outputText id="txtAccountOCusernameDelete" value="#{mbUserAccountLazy.selectedEntity.ocUsername}" />
 
                     <!-- ApiKey enabled -->
                     <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledDelete" />
-                    <p:inputSwitch id="chbIsApiKeyEnabledDelete" value="#{mbUserAccount.selectedEntity.apiKeyEnabled}" disabled="true" />
+                    <p:selectBooleanButton
+                        id="chbIsApiKeyEnabledDelete"
+                        value="#{mbUserAccountLazy.selectedEntity.apiKeyEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
                     <!-- ApiKey -->
                     <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKeyDelete" />
-                    <h:outputText id="txtApiKeyDelete" value="#{mbUserAccount.selectedEntity.apiKey}" />
+                    <h:outputText id="txtApiKeyDelete" value="#{mbUserAccountLazy.selectedEntity.apiKey}" />
 
                     <!-- Footer -->
                     <f:facet name="footer">
@@ -769,7 +906,7 @@
                             update=":form:tabView:dtEntities, :growl"
                             icon="ui-icon-trash"
                             oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewAccount','viewAccountForm');"
-                            actionListener="#{mbUserAccount.doDeleteEntity}"
+                            actionListener="#{mbUserAccountLazy.doDeleteEntity}"
                             process="@this viewAccountForm"
                             />
                     </f:facet>
@@ -779,54 +916,54 @@
 
         <!-- New Role -->
         <p:dialog
-                id="dlgNewAccountRole"
-                header="Assign a role for selected user account"
-                widgetVar="newAccountRoleDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgNewAccountRole"
+            header="Assign a role for selected user account"
+            widgetVar="newAccountRoleDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="newAccountRoleForm">
                 <p:panelGrid
-                        id="newDisplayRole"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="newDisplayRole"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Selected User-->
                     <h:outputLabel value="#{msg.account_username}:" />
-                    <h:outputText value="#{mbUserAccount.selectedEntity.username}" />
+                    <h:outputText value="#{mbUserAccountLazy.selectedEntity.username}" />
 
                     <!-- Role -->
                     <h:outputLabel value="#{msg.role}:" for="ddlAccountRoleNew" />
                     <p:selectManyMenu
-                            id="ddlAccountRoleNew"
-                            value="#{mbUserAccount.assignedRoles}"
-                            converter="omnifaces.SelectItemsConverter"
-                            style="width:350px"
-                            required="true"
-                            requiredMessage="Role is mandatory!"
-                            filter="true"
-                            filterMatchMode="contains"
-                            showCheckbox="true"
-                            var="roleIterNew"
-                            scrollHeight="220"
-                            >
+                        id="ddlAccountRoleNew"
+                        value="#{mbUserAccountLazy.assignedRoles}"
+                        converter="omnifaces.SelectItemsConverter"
+                        style="width:350px"
+                        required="true"
+                        requiredMessage="#{msg.role} #{msg.validation_required}!"
+                        filter="true"
+                        filterMatchMode="contains"
+                        showCheckbox="true"
+                        var="roleIterNew"
+                        scrollHeight="220"
+                        >
                         <f:selectItems
-                                value="#{mbRole.entityList}"
-                                var="roleNew"
-                                itemLabel="#{roleNew.name}"
-                                itemValue="#{roleNew}"
-                                itemDescription="#{roleNew.description}"
-                                />
+                            value="#{mbRole.entityList}"
+                            var="roleNew"
+                            itemLabel="#{roleNew.name}"
+                            itemValue="#{roleNew}"
+                            itemDescription="#{roleNew.description}"
+                            />
                         <p:column style="width:10%">
                             <h:outputText
-                                    styleClass="ui-icon ui-icon-circle-check"
-                                    rendered="#{mbUserAccount.selectedEntity.hasRole(roleIterNew)}"
-                                    />
+                                styleClass="ui-icon ui-icon-circle-check"
+                                rendered="#{mbUserAccountLazy.selectedEntity.hasRole(roleIterNew)}"
+                                />
                         </p:column>
                         <p:column>
                             <h:outputText value="#{roleIterNew.name}" title="#{roleIterNew.description}" />
@@ -836,13 +973,13 @@
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtAccountRoles, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbUserAccount.doAddRoles(mbUserAccount.assignedRoles)}"
-                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAccountRole','newAccountRoleForm');"
-                                process="@this newAccountRoleForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtAccountRoles, :growl"
+                            icon="ui-icon-disk"
+                            actionListener="#{mbUserAccountLazy.doAddRoles(mbUserAccountLazy.assignedRoles)}"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewAccountRole','newAccountRoleForm');"
+                            process="@this newAccountRoleForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -850,39 +987,43 @@
 
         <!-- Delete Role -->
         <p:dialog
-                id="dlgViewAccountRole"
-                header="User Account Role"
-                widgetVar="viewAccountRoleDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgViewAccountRole"
+            header="User Account Role"
+            widgetVar="viewAccountRoleDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="viewAccountRoleForm">
                 <p:panelGrid
-                        id="deleteDisplayRole"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="deleteDisplayRole"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Selected User-->
                     <h:outputLabel value="#{msg.account_username}:" />
-                    <h:outputText value="#{mbUserAccount.selectedEntity.username}" />
+                    <h:outputText value="#{mbUserAccountLazy.selectedEntity.username}" />
 
-                    <!-- Role -->
+                    <!-- Role Name -->
                     <h:outputLabel value="#{msg.role}:" for="txtAccountRoleNameDelete" />
                     <h:outputText id="txtAccountRoleNameDelete" value="#{mbRole.selectedEntity.name}" />
 
+                    <!-- Role Description -->
+                    <h:outputLabel value="#{msg.role_description}" for="txtAccountRoleDescriptionDelete" />
+                    <h:outputText id="txtAccountRoleDescriptionDelete" value="#{mbRole.selectedEntity.description}" />
+
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_delete}"
-                                update=":form:tabView:dtAccountRoles, :growl"
-                                icon="ui-icon-trash"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewAccountRole','viewAccountRoleForm');"
-                                actionListener="#{mbUserAccount.doRemoveRole(mbRole.selectedEntity)}"
-                                process="@this viewAccountRoleForm"
-                                />
+                            value="#{msg.menu_delete}"
+                            update=":form:tabView:dtAccountRoles, :growl"
+                            icon="ui-icon-trash"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewAccountRole','viewAccountRoleForm');"
+                            actionListener="#{mbUserAccountLazy.doRemoveRole(mbRole.selectedEntity)}"
+                            process="@this viewAccountRoleForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>

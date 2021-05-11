@@ -62,9 +62,9 @@
         >
 		<!-- basic example with dynamic ordering support -->
 		<named-query name="Account.selectAll">
-			<query>from de.dkfz.portal.domain.admin.DefaultAccount</query>
+			<query>from de.dktk.dd.rpb.core.domain.admin.DefaultAccount</query>
 			<hint name="dynamic" value="true" />
-			<hint name="query" value="from de.dkfz.portal.domain.admin.DefaultAccount" />
+			<hint name="query" value="from de.dktk.dd.rpb.core.domain.admin.DefaultAccount" />
 			<hint name="org.hibernate.cacheable" value="true" />
 		</named-query>
 
@@ -73,7 +73,7 @@
 			<query>from de.dktk.dd.rpb.core.domain.admin.DefaultAccount as account
 			where account.id = :currentAccountId</query>
 			<hint name="dynamic" value="true" />
-			<hint name="query" value="from de.dkfz.portal.domain.admin.DefaultAccount as account where account.id = :currentUserId" />
+			<hint name="query" value="from de.dktk.dd.rpb.core.domain.admin.DefaultAccount as account where account.id = :currentUserId" />
 			<hint name="org.hibernate.cacheable" value="true" />
 		</named-query>
 		<named-native-query name="Account.selectAll.native" result-class="de.dktk.dd.rpb.core.domain.admin.DefaultAccount">

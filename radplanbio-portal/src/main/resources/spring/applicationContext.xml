@@ -35,9 +35,10 @@
         <property name="dataSource" ref="ocDataSource" />
     </bean>
 
-    <!-- Map returned view name "rssViewer" to bean id "rssViewer" -->
-    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" />
-    <bean id="rssViewer" class="de.dktk.dd.rpb.portal.web.views.CustomRssViewer" />
+    <!-- Inject to RPB data repository setter -->
+    <bean id="radPlanBioDataDao" class="de.dktk.dd.rpb.core.dao.rpb.RadPlanBioDataDao">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
 
     <!--..........................................SPRING SUPPORT FOR VIEW SCOPE....................................-->
     <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
@@ -53,7 +54,17 @@
     <!--..........................................................................................................-->
 
     <!-- Where the properties files are -->
-    <context:property-placeholder location="classpath*:database.properties,classpath*:hibernate.properties,classpath*:email.properties,classpath*:ldap.properties" />
+    <context:property-placeholder
+        location="classpath*:database.properties,
+            classpath*:hibernate.properties,
+            classpath*:email.properties,
+            classpath*:ldap.properties,
+            classpath*:file.properties,
+            classpath*:ctp.properties,
+            classpath*:iengine.properties,
+            classpath*:elastic.properties,
+            classpath*:app-version.properties"
+            />
 
     <!--..........................................SPRING SECURITY AUTHENTICATION.....................................-->
     <!-- Default authentication provider -->
@@ -69,7 +80,7 @@
     <!-- OpenClinica authentication provider -->
     <bean
         id="openClinicaAuthenticationProvider"
-        class="de.dktk.dd.rpb.core.security.OpenClinicaAuthenticationProvider"
+        class="de.dktk.dd.rpb.core.security.OpenClinicaRestApiAuthenticationProvider"
         >
         <property name="userDetailsService">
             <bean class="de.dktk.dd.rpb.core.security.OpenClinicaUserDetailsServiceImpl" />
@@ -120,7 +131,7 @@
         <security:authentication-provider ref="ldapAuthenticationProvider"/>
     </security:authentication-manager>
 
-    <!-- Where to go after authentication sucess -->
+    <!-- Where to go after authentication success -->
     <bean
         id="successHandler"
         class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
@@ -154,10 +165,10 @@
         id="myAuthenticationFilter"
         class="de.dktk.dd.rpb.core.security.MyAuthenticationFilter"
         >
+        <constructor-arg name="defaultFilterProcessesUrl" value="/logincheck.faces"/>
         <property name="authenticationManager" ref="authenticationManager"/>
         <property name="authenticationFailureHandler" ref="failureHandler"/>
         <property name="authenticationSuccessHandler" ref="successHandler"/>
-        <property name="filterProcessesUrl" value="/logincheck.faces"/>
     </bean>
 
     <!-- Configuring annotations to secure business logic in domain level -->
@@ -170,7 +181,15 @@
 	<!-- Enable the configuration of transactional behavior based on annotations -->
 	<tx:annotation-driven />
 
-    <!--...................................... TASK .................................................................-->
+    <!--...................................... CACHE.................................................................-->
+    <bean
+        id="ehCacheManager"
+        class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+        >
+        <property name="shared" value="true" />
+    </bean>
+
+    <!--...................................... TASK..................................................................-->
     <task:annotation-driven executor="myExecutor" scheduler="myScheduler" />
     <task:executor id="myExecutor" pool-size="5" />
     <task:scheduler id="myScheduler" pool-size="10" />
@@ -188,7 +207,7 @@
 		p:username="${rpb.jdbc.user}"
 		p:password="${rpb.jdbc.password}"
 		p:initialSize="1" 
-		p:maxActive="1" 
+		p:maxActive="50"
 		p:maxIdle="1" 
 		p:maxWait="5000"
 		p:poolPreparedStatements="true"
@@ -196,7 +215,7 @@
 		p:removeAbandoned="true" 
 		p:removeAbandonedTimeout="60">
 		<description>
-			Simple datasource. This is a direct access to the datasource that can be used for specific queries that need to bypass hibernate functionalities.
+			Simple datasource. This is a direct access to the datasource that can be used for specific queries that need to bypass hibernate.
 			However, if you need to use JDBC, please look at hibernate SQL-QUERIES, they would most probably be a more elegant way to solve your problem.
 		</description>
 	</bean>
@@ -212,17 +231,17 @@
         p:username="${oc.jdbc.user}"
         p:password="${oc.jdbc.password}"
         p:initialSize="1"
-        p:maxActive="1"
+        p:maxActive="50"
         p:maxIdle="1"
         p:maxWait="5000"
         p:poolPreparedStatements="true"
         p:defaultAutoCommit="true"
         p:removeAbandoned="true"
         p:removeAbandonedTimeout="60">
-    <description>
-        Simple datasourc. This is a dircect access to the OpenClinica datasource.
-        I am planning to use this for custom query builder on top of OpenClinica data.
-    </description>
+        <description>
+            Simple datasource. This is a direct access to the OpenClinica datasource.
+            I am planning to use this for custom query builder on top of OpenClinica data.
+        </description>
     </bean>
     <!--............................................................................,................................-->
 
@@ -231,7 +250,7 @@
 		<description>Enable exception translation for beans annotated with @Repository</description>
 	</bean>
 
-    <!-- transactionManager is using defined entityManagerFacotry-->
+    <!-- transactionManager is using defined entityManagerFactory-->
 	<bean
         id="transactionManager"
         class="org.springframework.orm.jpa.JpaTransactionManager"
@@ -251,7 +270,7 @@
     <!--p:persistenceXmlLocation="classpath:META-INF/spring-persistence.xml"-->
     <!-- Full control over EntityManagerFactory (or managing persistent entities objects) -->
     <!-- It is related to defined dataSource -->
-    <!-- It uses spring-persistence.xml to cerate a PersistanceUnitInfo - radplanbioPU -->
+    <!-- It uses spring-persistence.xml to create a PersistenceUnitInfo - radplanbioPU -->
     <!-- Use hibernate as a data access adapter -->
 	<bean
         id="entityManagerFactory"
@@ -266,7 +285,7 @@
     <!-- Hibernate specific session factory obtained from defined entityManagerFactory -->
 	<util:property-path id="sessionFactory" path="entityManagerFactory.sessionFactory" />
 
-	<!-- bean validation -->
+	<!-- Bean validation -->
 	<bean
         id="validator"
         class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
@@ -281,6 +300,7 @@
         class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
 		p:fallbackToSystemLocale="false"
 		p:useCodeAsDefaultMessage="true"
+        p:fileEncodings="UTF-8"
 		p:defaultEncoding="UTF-8"
         >
 		<description>Base message source to handle internationalization</description>
@@ -291,24 +311,41 @@
                 <value>classpath:/localization/messages</value>
                 <!-- domain resources -->
                 <value>classpath:/localization/domain/AbstractCriterion</value>
+                <value>classpath:/localization/domain/AnnotationType</value>
                 <value>classpath:/localization/domain/AuditLog</value>
+                <value>classpath:/localization/domain/Bio</value>
                 <value>classpath:/localization/domain/CrfFieldAnnotation</value>
                 <value>classpath:/localization/domain/CurriculumVitaeItem</value>
                 <value>classpath:/localization/domain/CurriculumVitaeItemType</value>
                 <value>classpath:/localization/domain/DefaultAccount</value>
+                <value>classpath:/localization/domain/DicomSeries</value>
+                <value>classpath:/localization/domain/DicomStudy</value>
                 <value>classpath:/localization/domain/DocType</value>
+                <value>classpath:/localization/domain/Edc</value>
                 <value>classpath:/localization/domain/EnumAuditEvent</value>
                 <value>classpath:/localization/domain/EnumProtocolType</value>
                 <value>classpath:/localization/domain/EventType</value>
+                <value>classpath:/localization/domain/FormEngine</value>
+                <value>classpath:/localization/domain/ItemData</value>
+                <value>classpath:/localization/domain/ItemDefinition</value>
+                <value>classpath:/localization/domain/Lab</value>
+                <value>classpath:/localization/domain/Mapping</value>
+                <value>classpath:/localization/domain/MappingRecord</value>
                 <value>classpath:/localization/domain/Organisation</value>
+                <value>classpath:/localization/domain/Pacs</value>
                 <value>classpath:/localization/domain/PartnerSite</value>
                 <value>classpath:/localization/domain/Person</value>
                 <value>classpath:/localization/domain/PersonStatus</value>
+                <value>classpath:/localization/domain/Pid</value>
+                <value>classpath:/localization/domain/Portal</value>
                 <value>classpath:/localization/domain/RandomisationConfiguration</value>
                 <value>classpath:/localization/domain/Role</value>
                 <value>classpath:/localization/domain/RtStruct</value>
                 <value>classpath:/localization/domain/RtStructType</value>
                 <value>classpath:/localization/domain/SampleContent</value>
+                <value>classpath:/localization/domain/Server</value>
+                <value>classpath:/localization/domain/Software</value>
+                <value>classpath:/localization/domain/Specimen</value>
                 <value>classpath:/localization/domain/SponsoringType</value>
                 <value>classpath:/localization/domain/Study</value>
                 <value>classpath:/localization/domain/StudyDoc</value>
@@ -320,7 +357,9 @@
                 <value>classpath:/localization/domain/StudyPhase</value>
                 <value>classpath:/localization/domain/StudyStatus</value>
                 <value>classpath:/localization/domain/StudySubject</value>
+                <value>classpath:/localization/domain/Subject</value>
                 <value>classpath:/localization/domain/TimeLineEvent</value>
+                <value>classpath:/localization/domain/TimePerspective</value>
                 <value>classpath:/localization/domain/TreatmentArm</value>
                 <value>classpath:/localization/domain/TumourEntity</value>
                 <!-- our bean validation messages -->
@@ -336,13 +375,13 @@
         <property name="cacheSeconds" value="1" />
     </bean>
 
-    <!--Email-->
+    <!-- Email -->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="server" />
-        <property name="port" value="25" />
-        <property name="username" value="RadPlanBioDD@med.tu-dresden.de" />
-        <property name="password" value="password" />
-        <property name="protocol"  value="smtp" />
+        <property name="host" value="${email.host}" />
+        <property name="port" value="${email.port}" />
+        <property name="username" value="${email.username}" />
+        <property name="password" value="${email.password}" />
+        <property name="protocol" value="smtp" />
         <property name="javaMailProperties">
             <props>
                 <prop key="mail.transport.protocol">smtp</prop>

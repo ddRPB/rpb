@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,21 +22,17 @@ package de.dktk.dd.rpb.portal.web.mb.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.Organisation;
 import de.dktk.dd.rpb.core.repository.ctms.IOrganisationRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.primefaces.model.TreeNode;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
-
-import javax.faces.context.FacesContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,18 +55,17 @@ public class OrganisationBean extends CrudEntityViewModel<Organisation, Integer>
     private IOrganisationRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get OrganisationRepository
+     * @return OrganisationRepository
      */
-    @SuppressWarnings("unused")
     @Override
     public IOrganisationRepository getRepository() {
         return this.repository;
     }
 
     /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
+     * Set OrganisationRepository
+     * @param repository OrganisationRepository
      */
     @SuppressWarnings("unused")
     public void setRepository(IOrganisationRepository repository) {
@@ -86,33 +81,13 @@ public class OrganisationBean extends CrudEntityViewModel<Organisation, Integer>
     @PostConstruct
     public void init() {
         this.setColumnVisibilityList(
-                this.buildColumnVisibilityList()
+            this.buildColumnVisibilityList()
         );
         this.setPreSortOrder(
-                this.buildSortOrder()
+            this.buildSortOrder()
         );
 
         this.load();
-    }
-
-    //endregion
-
-    //region Commands
-
-    public void loadTree() {
-        try {
-            this.root = new DefaultTreeNode();
-            List<Organisation> entitiesWithoutParent = new ArrayList<Organisation>();
-            for (Organisation o : getRepository().find()) {
-                if (o.getParent() == null) {
-                    entitiesWithoutParent.add(o);
-                }
-            }
-            this.buildChildrenNodes(root, entitiesWithoutParent);
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
     }
 
     //endregion
@@ -168,19 +143,12 @@ public class OrganisationBean extends CrudEntityViewModel<Organisation, Integer>
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colOrganisationName", "colOrganisationName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column1 = viewRoot.findComponent(":form:tabView:dtEntities:colOrganisationName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column1);
-        sm1.setSortField("colOrganisationName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     /**
@@ -188,7 +156,7 @@ public class OrganisationBean extends CrudEntityViewModel<Organisation, Integer>
      * @return list of booleans for visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         results.add(Boolean.TRUE); // Name
         results.add(Boolean.TRUE); // Parent
@@ -199,6 +167,25 @@ public class OrganisationBean extends CrudEntityViewModel<Organisation, Integer>
     //endregion
 
     //region Private
+
+    /**
+     * Load tree structure from entities (need to have parent -> children relationship)
+     */
+    private void loadTree() {
+        try {
+            this.root = new DefaultTreeNode();
+            List<Organisation> entitiesWithoutParent = new ArrayList<>();
+            for (Organisation o : getRepository().find()) {
+                if (o.getParent() == null) {
+                    entitiesWithoutParent.add(o);
+                }
+            }
+            this.buildChildrenNodes(root, entitiesWithoutParent);
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
 
     /**
      * Recursively build the tree structure

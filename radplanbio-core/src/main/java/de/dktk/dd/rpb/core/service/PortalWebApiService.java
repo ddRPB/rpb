@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,12 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.edc.Study;
+import de.dktk.dd.rpb.core.domain.pacs.EnumConquestMode;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import javax.inject.Named;
+import java.io.InputStream;
 
 /**
  * RPB Web-API service implementation (new working with portal API)
@@ -37,18 +40,24 @@ import javax.inject.Named;
 @Named
 public class PortalWebApiService implements IPortalWebApiService {
 
+    //region Finals
+
+    private static final Logger log = Logger.getLogger(PortalWebApiService.class);
+
+    //endregion
+
     //region Members
 
     private String url;
-    private String apiKey;
+
+    //TODO: it would make sense to setup apiKey as member and initialise...
 
     //endregion
 
     //region Init
 
-    public void setupConnection(String url, String apiKey) {
+    public void setupConnection(String url) {
         this.url = url;
-        this.apiKey = apiKey;
 
         if (!this.url.endsWith("/")) {
             this.url += "/";
@@ -59,7 +68,7 @@ public class PortalWebApiService implements IPortalWebApiService {
 
     //region DefaultAccount
 
-    public DefaultAccount loadDefaultAccount(String username) {
+    public DefaultAccount loadDefaultAccount(String username, String apiKey) {
         DefaultAccount result = null;
 
         try {
@@ -69,7 +78,7 @@ public class PortalWebApiService implements IPortalWebApiService {
 
             ClientResponse response = webResource
                     .accept("application/vnd.defaultaccount.v1+json")
-                    .header("X-Api-Key", this.apiKey)
+                    .header("X-Api-Key", apiKey)
                     .get(ClientResponse.class);
 
             if (response.getStatus() != 200) {
@@ -131,7 +140,7 @@ public class PortalWebApiService implements IPortalWebApiService {
 
     //region Study
 
-    public Study loadEdcStudy(String edcStudyIdentifier) {
+    public Study loadEdcStudy(String apiKey, String edcStudyIdentifier) {
         Study study = null;
 
         try {
@@ -141,7 +150,7 @@ public class PortalWebApiService implements IPortalWebApiService {
 
             ClientResponse response = webResource
                     .accept("application/vnd.edcstudy.v1+json")
-                    .header("X-Api-Key", this.apiKey)
+                    .header("X-Api-Key", apiKey)
                     .get(ClientResponse.class);
 
             if (response.getStatus() != 200) {
@@ -182,14 +191,14 @@ public class PortalWebApiService implements IPortalWebApiService {
         return study;
     }
 
-    public void changeActiveStudy(String username, Study newActiveStudy) {
+    public void changeActiveStudy(String username, String apiKey, Study newActiveStudy) {
         try {
             Client client = Client.create();
             WebResource webResource = client
                     .resource(this.url + "api/v1/defaultaccounts/" + username + "/activestudy/" + newActiveStudy.getUniqueIdentifier());
 
             ClientResponse response = webResource
-                    .header("X-Api-Key", this.apiKey)
+                    .header("X-Api-Key", apiKey)
                     .put(ClientResponse.class);
 
             if (response.getStatus() != 204) {
@@ -199,6 +208,72 @@ public class PortalWebApiService implements IPortalWebApiService {
         catch (Exception err) {
             err.printStackTrace();
         }
+    }
+
+    //endregion
+
+    //region Pacs
+
+    public InputStream pacsCreateStudyArchive(String patientId, String dicomUid, Integer verifyCount, String apiKey) {
+        InputStream result = null;
+
+        try {
+            String pacsObjectIdentifier = patientId + ":" + dicomUid;
+
+            Client client = Client.create();
+            WebResource webResource = client
+                    .resource(this.url + "api/v1/pacs/archive/" + pacsObjectIdentifier)
+                    .queryParam("mode", EnumConquestMode.ZIP_STUDY.toString())
+                    .queryParam("verifyCount", verifyCount.toString());
+
+            ClientResponse response = webResource
+                    .header("X-Api-Key", apiKey)
+                    .get(ClientResponse.class);
+
+            if (response.getStatus() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+            }
+
+            if (response.hasEntity()) {
+                result = response.getEntityInputStream();
+            }
+
+        } catch (Exception err) {
+            log.error(err);
+        }
+
+        return result;
+    }
+
+    public InputStream pacsCreateSeriesArchive(String patientId, String dicomStudyUid, String dicomSeriesUid, String apiKey) {
+        InputStream result = null;
+
+        try {
+            String pacsObjectIdentifier = patientId + ":" + dicomStudyUid + ":" + dicomSeriesUid;
+
+            Client client = Client.create();
+            WebResource webResource = client
+                    .resource(this.url + "api/v1/pacs/archive/" + pacsObjectIdentifier)
+                    .queryParam("mode", EnumConquestMode.ZIP_SERIES.toString())
+                    .queryParam("verifyCount", "-1");
+
+            ClientResponse response = webResource
+                    .header("X-Api-Key", apiKey)
+                    .get(ClientResponse.class);
+
+            if (response.getStatus() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+            }
+
+            if (response.hasEntity()) {
+                result = response.getEntityInputStream();
+            }
+
+        } catch (Exception err) {
+            log.error(err);
+        }
+
+        return result;
     }
 
     //endregion

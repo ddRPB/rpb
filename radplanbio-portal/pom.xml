@@ -27,11 +27,18 @@
 		<database.user>${project.name}</database.user>
 		<database.password>${project.name}</database.password>
 
-		<!-- Default values when no database profile is set -->
+		<!-- Default values when no database profile is set -->       
 		<!-- jdbc driver dependency -->
+
+		<!-- For old PG 8.4 -->
 		<jdbc.groupId>postgresql</jdbc.groupId>
 		<jdbc.artifactId>postgresql</jdbc.artifactId>
 		<jdbc.version>8.2-504.jdbc3</jdbc.version>
+
+		<!-- For PG11 - development -->
+		<!--<groupId>org.postgresql</groupId>-->
+		<!--<artifactId>postgresql</artifactId>-->
+		<!--<jdbc.version>9.4-1211-jdbc42</jdbc.version>-->
 
 		<!-- jdbc settings -->
 		<jdbc.type>postgresql</jdbc.type>
@@ -52,30 +59,37 @@
 		<!-- Version dependencies when used in multiple dependencies -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<maven-celerio-plugin.outputDir>${project.basedir}</maven-celerio-plugin.outputDir>
-	        <hibernate.version>4.3.10.Final</hibernate.version>
-		<spring.version>4.3.18.RELEASE</spring.version><!--old 4.1.6.RELEASE-->
-		<spring-security.version>3.2.7.RELEASE</spring-security.version>
-		<jsf-api.version>2.1.24</jsf-api.version>
-		<primefaces.version>6.1</primefaces.version>
-		<omnifaces.version>1.8.1</omnifaces.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
+		<spring.version>4.3.18.RELEASE</spring.version><!--old 4.1.6.RELEASE new 4.3.18.RELEASE-->
+		<spring-security.version>4.1.5.RELEASE</spring-security.version><!--old 3.2.7.RELEASE new 4.1.1.RELEASE-->
+		<spring-ldap.version>1.3.2.RELEASE</spring-ldap.version>
+		<jsf-api.version>2.1.24</jsf-api.version> <!-- 2.1.24 -> 2.2.16 -->
+		<primefaces.version>6.1</primefaces.version> <!-- 6.1 -> 6.2 -->
+		<omnifaces.version>1.8.1</omnifaces.version> <!-- 1.8.1 -> 2.6.9 -->
 		<slf4j.version>1.5.10</slf4j.version>
+
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- Variables substituted in resources file at build time -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<application.name>${project.name}</application.name>
 		<application.version>${project.version}</application.version>
 		<application.description>${project.description}</application.description>
+
 		<!-- host port where the application will be deployed -->
 		<application.host>localhost</application.host>
 		<application.port>8080</application.port>
-		<application.contextpath>/radplanbio</application.contextpath>
-		<log4j.level>DEBUG</log4j.level>
-		<!-- hibernate, see by src/main/resource/hibernate.properties -->
-		<hibernate.show.sql>true</hibernate.show.sql>
-		<hibernate.format.sql>true</hibernate.format.sql>
-		<hibernate.generate_statistics>true</hibernate.generate_statistics>
-		<hibernate.use_sql_comments>true</hibernate.use_sql_comments>
-		<!-- Control hibernate 2d level caching -->
+		<application.contextpath>/</application.contextpath>
+
+		<!-- Logging (set WARN for production) -->
+		<log4j.level>WARN</log4j.level>
+
+		<!-- Hibernate, see by src/main/resource/hibernate.properties (set false for production) -->
+		<hibernate.show.sql>false</hibernate.show.sql>
+		<hibernate.format.sql>false</hibernate.format.sql>
+		<hibernate.use_sql_comments>false</hibernate.use_sql_comments>
+		<hibernate.generate_statistics>false</hibernate.generate_statistics>
+
+		<!-- Control Hibernate 2d level caching -->
 		<hibernate.ehcache.configuration.file>ehcache.xml</hibernate.ehcache.configuration.file>
 		<hibernate.use.second.level.cache>true</hibernate.use.second.level.cache>
 		<hibernate.use.query.cache>true</hibernate.use.query.cache>
@@ -218,7 +232,7 @@
 	<!-- REPORTING -->
 	<!-- ~~~~~~~~~ -->
 	<reporting />
-
+	
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- DEPENDENCIES -->
 	<!-- ~~~~~~~~~~~~ -->
@@ -227,7 +241,6 @@
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- List specific dependencies below -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>radplanbio-core</artifactId>
@@ -262,6 +275,13 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
 			<version>${hibernate.version}</version>
+			<!--TODO: hibernate embeds Ehcache 2.4.3 we want to exclude it because we have separate dependency for it -->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<groupId>net.sf.ehcache</groupId>-->
+					<!--<artifactId>ehcache-core</artifactId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -278,6 +298,12 @@
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<!-- jdbc driver depends on the database profile used -->
+			<groupId>${jdbc.groupId}</groupId>
+			<artifactId>${jdbc.artifactId}</artifactId>
+			<version>${jdbc.version}</version>
 		</dependency>
 
 		<!-- ~~~~~~~~~~~~~~~~ -->
@@ -310,13 +336,12 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>4.3.2.Final</version>
+			<version>4.3.2.Final</version><!--old 4.3.2.Final new -->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
-			<version>4.2.0.Final</version>
-			<scope>provided</scope>
+			<version>4.3.2.Final</version><!--old 4.3.2.Final new -->
 		</dependency>
 		<dependency> <!-- validation html -->
 			<groupId>org.jsoup</groupId>
@@ -324,9 +349,9 @@
 			<version>1.7.2</version>
 		</dependency>
 
-        <!-- ~~~~~~ -->
+        <!-- ~~~~~~~~~ -->
         <!-- Exporting -->
-        <!-- ~~~~~~ -->
+        <!-- ~~~~~~~~~ -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
@@ -419,7 +444,7 @@
             <version>20070829</version>
         </dependency>
 
-		<!-- ~~~~~~ -->
+	    <!-- ~~~~~~ -->
 		<!-- SPRING -->
 		<!-- ~~~~~~ -->
 		<dependency>
@@ -485,27 +510,27 @@
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core-tiger</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-odm</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-ldif-core</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-ldif-batch</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -552,18 +577,18 @@
             <version>${spring-security.version}</version>
         </dependency>
 
-        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- ~~~ -->
         <!-- RSS -->
-        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- ~~~ -->
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
 			<version>1.5.0</version>
 		</dependency>
 
-        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-		<!-- JSF                         -->
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- ~~~ -->
+		<!-- JSF -->
+		<!-- ~~~ -->
 		<dependency>
 			<groupId>org.jboss.el</groupId>
 			<artifactId>jboss-el</artifactId>
@@ -585,36 +610,40 @@
 			<artifactId>jsf-impl</artifactId>
 			<version>${jsf-api.version}</version>
 		</dependency>
-		<!--<dependency>-->
-			<!--<groupId>org.primefaces</groupId>-->
-			<!--<artifactId>primefaces</artifactId>-->
-			<!--<version>${primefaces.version}</version>-->
-		<!--</dependency>-->
+
 		<dependency>
-			<groupId>org.primefaces.extensions</groupId>
-			<artifactId>primefaces-extensions</artifactId>
-			<version>${primefaces-extensions.version}</version>
+			<groupId>org.primefaces</groupId>
+			<artifactId>primefaces</artifactId>
+			<version>${primefaces.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.omnifaces</groupId>
 		    <artifactId>omnifaces</artifactId>
-		    <version>1.3</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-web</artifactId>
-			<version>2.0.4</version>
-		</dependency>
-		<dependency><!-- optional theme (see also web.xml to enable it) -->
-			<groupId>org.primefaces.themes</groupId>
-			<artifactId>bootstrap</artifactId>
-			<version>${primefaces-themes.version}</version>
+		    <version>${omnifaces.version}</version>
 		</dependency>
 
-        <!-- ~~~ -->
-        <!-- ~~~ -->
+		<!-- ~~~~~ -->
+		<!-- CACHE -->
+		<!-- ~~~~~ -->
+		<!--TODO: only extra dependency if excluded from hibernate -->
+		<!--<dependency>-->
+			<!--<groupId>net.sf.ehcache</groupId>-->
+			<!--<artifactId>ehcache</artifactId>-->
+			<!--<version>2.9.0</version>-->
+		<!--</dependency>-->
+
+		<!-- ~~~~~ -->
+		<!-- XSLT  -->
+		<!-- ~~~~~ -->
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+			<version>9.5.1-5</version>
+		</dependency>
+
+        <!-- ~~~~~~~~~~~~~~~~~ -->
         <!-- SOAP WEB SERVICES - exclude spring framework and javax.servlet api because it was already added-->
-        <!-- ~~~ -->
+        <!-- ~~~~~~~~~~~~~~~~~ -->
         <dependency>
             <groupId>org.jvnet.jax-ws-commons.spring</groupId>
             <artifactId>jaxws-spring</artifactId>
@@ -651,10 +680,9 @@
 			<version>1.0</version>
 		</dependency>
 
-		<!-- ~~~ -->
-        <!-- ~~~ -->
+        <!-- ~~~~~~~~~~~~~~~~~ -->
         <!-- REST WEB SERVICES -->
-        <!-- ~~~ -->
+        <!-- ~~~~~~~~~~~~~~~~~ -->
 		<dependency>
 			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
@@ -713,7 +741,6 @@
 			</exclusions>
 		</dependency>
 
-        <!-- ~~~ -->
 		<!-- ~~~ -->
 		<!-- WEB -->
 		<!-- ~~~ -->
@@ -771,39 +798,41 @@
             <version>2.3.1</version>
         </dependency>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~ -->
 		<!-- DICOM -->
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~ -->
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-core</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-image</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-net</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 
-		<!-- Postgres JDBC driver -->
+		<!-- ~~~~~~ -->
+		<!-- WEBDAV -->
+		<!-- ~~~~~~ -->
 		<dependency>
-			<!-- jdbc driver depends on the database profile used -->
-			<groupId>${jdbc.groupId}</groupId>
-			<artifactId>${jdbc.artifactId}</artifactId>
-			<version>${jdbc.version}</version>
-			<scope>runtime</scope>
+			<groupId>net.java.dev.webdav</groupId>
+			<artifactId>webdav-jaxrs</artifactId>
+			<version>1.2.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-site-plugin</artifactId>
 			<version>3.0</version>
 		</dependency>
-	</dependencies>
+
+    </dependencies>
 
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- REPOSITORIES -->
@@ -819,10 +848,18 @@
 			<url>http://repository.primefaces.org</url>
 			<layout>default</layout>
 		</repository>
-        <repository>
+        
+		<!-- <repository>
             <id>spring-release</id>
             <url>https://repo.springsource.org/libs-release/</url>
-        </repository>
+        </repository> -->
+		
+		<repository> 
+			<id>repository.spring.release</id> 
+			<name>Spring GA Repository</name> 
+			<url>http://repo.spring.io/release</url> 
+		</repository>
+		
 		<repository>
 			<id>jboss</id>
 			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
@@ -1037,10 +1074,10 @@
 				<!-- http://maven.apache.org/plugins/maven-surefire-plugin/ -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12</version>
+                <version>3.0.0-M3</version>
 				<configuration>
 					<!-- surefire uses a new jvm, MAVEN_OPTS are ignored, so you better set the memory options here -->
-					<argLine>-Xmx512m -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx512m -XX:MaxPermSize=256m -Dlog4j.warn</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -14,7 +14,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Study Status" title="Study Status" url="/admin/ctms/studyStatusCRUD.faces" />
+            <p:menuitem value="#{msg.study} #{msg.studyStatus_plural}" title="#{msg.study} #{msg.studyStatus_plural}" url="/admin/ctms/studyStatusCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbStudyStatus.tab.activeIndex}">
 
             <!-- Studies -->
-            <p:tab title="Study Statuses" titletip="Study Statuses">
+            <p:tab title="#{msg.study} #{msg.studyStatus_plural}">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -32,57 +32,40 @@
                     <!-- Left -->
                     <p:toolbarGroup align="left">
                         <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="Define a new Study Status [ctrl+shift+n]"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newEntityDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbStudyStatus.prepareNewEntity}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbStudyStatus.prepareNewEntity}"
-                                rendered="#{mbStudyStatus.tab.activeIndex == 0}"
-                                />
+                            value="#{msg.menu_new}"
+                            title="#{msg.studyStatus_new}"
+                            icon="ui-icon-document"
+                            oncomplete="PF('newEntityDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":newEntityForm:newDisplay"
+                            process="@this"
+                            actionListener="#{mbStudyStatus.prepareNewEntity}"
+                            />
                         <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="Rolead Study Statuses [ctrl+shift+r]"
-                                icon="ui-icon-refresh"
-                                style="float: left;"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStudyStatus.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStudyStatus.load}"
-                                rendered="#{mbStudyStatus.tab.activeIndex == 0}"
-                                />
+                            value="#{msg.menu_reload}"
+                            title="#{msg.studyStatus_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbStudyStatus.load}"
+                            />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print Study Statuses table"
+                                title="#{msg.studyStatus_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -134,11 +117,11 @@
                             sortBy="#{entity.name}"
                             filterBy="#{entity.name}"
                             filterMatchMode="contains"
-                            style="width:20%"
                             visible="#{mbStudyStatus.columnVisibilityList[0]}"
+                            style="width:25%"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.studyStatus_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
@@ -148,34 +131,34 @@
                             sortBy="#{entity.description}"
                             filterBy="#{entity.description}"
                             filterMatchMode="contains"
-                            style="width:20%"
                             visible="#{mbStudyStatus.columnVisibilityList[1]}"
+                            style="width:55%"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.studyStatus_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            style="width:17%"
-                            toggleable="false"
-                            >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
                         <p:commandButton
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update=":entityDetailsForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editEntityDialog').show();"
-                                >
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":entityDetailsForm:editDisplay"
+                            immediate="true"
+                            process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
                             <f:setPropertyActionListener
-                                    value="#{entity}"
-                                    target="#{mbStudyStatus.selectedEntity}"
-                                    />
+                                value="#{entity}"
+                                target="#{mbStudyStatus.selectedEntity}"
+                                />
                         </p:commandButton>
                     </p:column>
 
@@ -193,14 +176,14 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtEntities" fileName="StudyStatuses" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.study}#{msg.studyStatus_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtEntities" fileName="StudyStatuses" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.study}#{msg.studyStatus_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -212,37 +195,37 @@
 
         <!-- New StudyStatus -->
         <p:dialog
-                id="dlgNewEntity"
-                header="New Study Status"
-                widgetVar="newEntityDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgNewEntity"
+            header="#{msg.studyStatus_new}"
+            widgetVar="newEntityDialog"
+            resizable="false"
+            ajax="true"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="newEntityForm">
                 <p:panelGrid
-                        id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="newDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtStudyStatusNameNew" />
+                    <h:outputLabel value="#{msg.studyStatus_name}: #{msg.label_required_suffix}" for="txtStudyStatusNameNew" />
                     <p:inputText
                             id="txtStudyStatusNameNew"
                             value="#{mbStudyStatus.newEntity.name}"
                             required="true"
-                            requiredMessage="Study Status name is mandatory!"
+                            requiredMessage="#{msg.studyStatus_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtStudyStatusDescriptionNew" />
+                    <h:outputLabel value="#{msg.studyStatus_description}:" for="txtStudyStatusDescriptionNew" />
                     <p:inputTextarea
                             id="txtStudyStatusDescriptionNew"
                             value="#{mbStudyStatus.newEntity.description}"
@@ -272,14 +255,14 @@
 
         <!-- Edit StudyStatus -->
         <p:dialog
-                id="dlgEntityDetails"
-                header="Edit Study Status details"
-                widgetVar="editEntityDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgEntityDetails"
+            header="#{msg.studyStatus_edit}"
+            widgetVar="editEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
 
             <!-- Form -->
             <h:form id="entityDetailsForm">
@@ -291,17 +274,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtStudyStatusNameEdit" />
+                    <h:outputLabel value="#{msg.studyStatus_name}: #{msg.label_required_suffix}" for="txtStudyStatusNameEdit" />
                     <p:inputText
                             id="txtStudyStatusNameEdit"
                             value="#{mbStudyStatus.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Study Status name is mandatory!"
+                            requiredMessage="#{msg.studyStatus_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtStudyStatusDescriptionEdit" />
+                    <h:outputLabel value="#{msg.studyStatus_description}:" for="txtStudyStatusDescriptionEdit" />
                     <p:inputTextarea
                             id="txtStudyStatusDescriptionEdit"
                             value="#{mbStudyStatus.selectedEntity.description}"

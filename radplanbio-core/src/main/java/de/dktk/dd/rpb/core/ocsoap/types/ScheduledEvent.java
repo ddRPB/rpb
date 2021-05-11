@@ -18,6 +18,10 @@
 
 package de.dktk.dd.rpb.core.ocsoap.types;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -26,10 +30,14 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+
+import de.dktk.dd.rpb.core.util.Constants;
 import org.openclinica.ws.beans.EventType;
 
 /**
  * Simple representation of a Scheduled Event
+ *
  * @author Arjan van der Velde (a.vandervelde (at) xs4all.nl)
  * @author tomas@skripcak.net - enhanced
  * @since 23 Oct 2014
@@ -40,10 +48,11 @@ public class ScheduledEvent extends Event {
 
 	/** XML Data type factory */
 	private DatatypeFactory dataTypeFactory;
-	/** event start date */
+
 	private XMLGregorianCalendar startDate;
-	/** event end date */
+	private XMLGregorianCalendar startTime;
 	private XMLGregorianCalendar endDate;
+	private XMLGregorianCalendar endTime;
 
     private String status;
     private int studyEventRepeatKey;
@@ -53,8 +62,9 @@ public class ScheduledEvent extends Event {
     //region Constructors
 
 	/**
-	 * create a new event
-	 * @throws DatatypeConfigurationException
+	 * Create a new event
+	 *
+	 * @throws DatatypeConfigurationException DatatypeConfigurationException
 	 */
 	public ScheduledEvent() throws DatatypeConfigurationException {
 		super();
@@ -64,21 +74,54 @@ public class ScheduledEvent extends Event {
 	}
 
 	/**
-	 * create a new event from an Event (not scheduled).
+	 * Create a new event from an Event (not scheduled)
+	 *
 	 * @param event event
-	 * @throws DatatypeConfigurationException
+	 * @throws DatatypeConfigurationException DatatypeConfigurationException
 	 */
-	@SuppressWarnings("unused")
 	public ScheduledEvent(Event event) throws DatatypeConfigurationException {
 		this();
 		this.eventOID = event.getEventOID();
 		this.eventName = event.getEventName();
 	}
+
+	/**
+	 * Create a new event from and EventData (not scheduled)
+	 * @param eventData eventData
+	 * @throws DatatypeConfigurationException DatatypeConfigurationException
+	 */
+	public ScheduledEvent(EventData eventData) throws DatatypeConfigurationException {
+		this();
+
+		// Event OID is mandatory
+		this.eventOID= eventData.getStudyEventOid();
+
+		// When even repeat key is available use it
+		if (eventData.getStudyEventRepeatKey() != null && !eventData.getStudyEventRepeatKey().isEmpty()) {
+			this.studyEventRepeatKey = Integer.parseInt(eventData.getStudyEventRepeatKey());
+		}
+
+		// Event start date is mandatory
+		GregorianCalendar c = new GregorianCalendar();
+
+		// When event start date is available use it
+		if (eventData.getStartDate() != null && !eventData.getStartDate().isEmpty()) {
+			c.setTime(eventData.getComparableStartDate());
+		}
+		// Otherwise it will be current date
+		else {
+			c.setTime(new Date());
+		}
+
+		// Use a setter to execute logic to get rid of timezone
+		this.setStartDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(c));
+	}
 	
 	/**
 	 * Create a new event from an OC EventType event
+	 *
 	 * @param event the OC event to initialize from
-	 * @throws DatatypeConfigurationException
+	 * @throws DatatypeConfigurationException DatatypeConfigurationException
 	 */
 	public ScheduledEvent(EventType event) throws DatatypeConfigurationException {
 		this();
@@ -91,12 +134,14 @@ public class ScheduledEvent extends Event {
 
     //region Properties
 
+	//region StartDate
+
 	/**
 	 * Get event start date
 	 * @return event start date
 	 */
 	public XMLGregorianCalendar getStartDate() {
-		return startDate;
+		return this.startDate;
 	}
 
 	/**
@@ -115,7 +160,33 @@ public class ScheduledEvent extends Event {
 	 * @param startDate event start date as String (yyyy-mm-dd)
 	 */
 	public void setStartDate(String startDate) {
-		setStartDate(dataTypeFactory.newXMLGregorianCalendar(startDate));
+
+		DateFormat dateFormat = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+		Date date = null;
+		try {
+			date = dateFormat.parse(startDate);
+		}
+		catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		GregorianCalendar cal = new GregorianCalendar();
+		if (date != null) {
+			cal.setTime(date);
+		}
+
+		this.setStartDate(
+				dataTypeFactory.newXMLGregorianCalendar(
+						cal.get(Calendar.YEAR),
+						cal.get(Calendar.MONTH)+1,
+						cal.get(Calendar.DAY_OF_MONTH),
+						DatatypeConstants.FIELD_UNDEFINED,
+						DatatypeConstants.FIELD_UNDEFINED,
+						DatatypeConstants.FIELD_UNDEFINED,
+						DatatypeConstants.FIELD_UNDEFINED,
+						DatatypeConstants.FIELD_UNDEFINED
+				)
+		);
 	}
 
 	/**
@@ -125,12 +196,61 @@ public class ScheduledEvent extends Event {
 		return this.startDate != null ? this.startDate.toGregorianCalendar().getTime() : null;
 	}
 
+	//endregion
+
+	//region StartTime
+
+	public XMLGregorianCalendar getStartTime() {
+		return this.startTime;
+	}
+
+	public void setStartTime(XMLGregorianCalendar startTime) {
+		this.startTime = startTime;
+		if (this.startTime != null) {
+			this.startTime.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
+		}
+	}
+
+	public void setStartTime(String startTime) {
+
+		DateFormat dateFormat = new SimpleDateFormat(Constants.OC_TIMEFORMAT);
+		Date date = null;
+		try {
+			date = dateFormat.parse(startTime);
+		}
+		catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		GregorianCalendar cal = new GregorianCalendar();
+		if (date != null) {
+			cal.setTime(date);
+		}
+
+		this.setStartTime(
+			dataTypeFactory.newXMLGregorianCalendar(
+				this.startDate.getYear(),
+				this.startDate.getMonth(),
+				this.startDate.getDay(),
+				cal.get(Calendar.HOUR_OF_DAY),
+				cal.get(Calendar.MINUTE),
+				0, // seconds
+				DatatypeConstants.FIELD_UNDEFINED,
+				DatatypeConstants.FIELD_UNDEFINED
+			)
+		);
+	}
+
+	//endregion
+
+	//region EndDate
+
 	/**
 	 * Get event end date
 	 * @return end date
 	 */
 	public XMLGregorianCalendar getEndDate() {
-		return endDate;
+		return this.endDate;
 	}
 
 	/**
@@ -149,16 +269,38 @@ public class ScheduledEvent extends Event {
 	 * @param endDate event end date as String (yyyy-mm-dd)
 	 */
 	public void setEndDate(String endDate) {
-		setEndDate(dataTypeFactory.newXMLGregorianCalendar(endDate));
+		this.setEndDate(dataTypeFactory.newXMLGregorianCalendar(endDate));
 	}
 
 	/**
 	 * Converts XMLGregorianCalendar to java.util.Date in Java
 	 */
-	@SuppressWarnings("unused")
 	public Date getComparableEndDate(){
 		return this.endDate != null ? this.endDate.toGregorianCalendar().getTime() : null;
 	}
+
+	//endregion
+
+	//region EndTime
+
+	public XMLGregorianCalendar getEndTime() {
+		return this.endTime;
+	}
+
+	public void setEndTime(XMLGregorianCalendar endTime) {
+		this.endTime = endTime;
+		if (this.endTime != null) {
+			this.endTime.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
+		}
+	}
+
+	public void setEndTime(String endTime) {
+		this.setEndTime(dataTypeFactory.newXMLGregorianCalendar(endTime));
+	}
+
+	//endregion
+
+	//region RepeatKey
 
     public int getStudyEventRepeatKey() {
         return this.studyEventRepeatKey;
@@ -170,6 +312,10 @@ public class ScheduledEvent extends Event {
         }
     }
 
+    //endregion
+
+    //region Status
+
     public String getStatus() {
         return this.status;
     }
@@ -177,6 +323,8 @@ public class ScheduledEvent extends Event {
     public void setStatus(String value) {
         this.status = value;
     }
+
+    //endregion
 
     //endregion
 

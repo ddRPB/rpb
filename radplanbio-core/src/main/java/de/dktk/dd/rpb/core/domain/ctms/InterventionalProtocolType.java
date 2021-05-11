@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ import javax.persistence.Entity;
 public class InterventionalProtocolType extends AbstractProtocolType {
 
     // Purpose: Treatment, Prevention, Diagnosis, Supportive Care, Screening, Health Service Research, Basic Science, Other
-    // Allocation: Nonrandomised trial, Randomised trial, N/A
+    // Allocation: Non-randomised trial, Randomised trial, N/A
     // Masking: Open, Single Blind, Double Blind,
     // Control: Placebo, Active, Uncontrolled, Historical, Dose Comparison
     // Interventional Model: Single Group, Parallel, Cross-over, Factorial, Expanded Access

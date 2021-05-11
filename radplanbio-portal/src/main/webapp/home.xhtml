@@ -14,101 +14,83 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
         </p:breadCrumb>
     </ui:define>
+
     <!-- Definition of content place holder content -->
 	<ui:define name="content">
         <!-- Main Homepage Panel-->
 		<p:panel header="#{msg.welcome}">
 			<p>
                 <!-- Logged user display -->
-				<h:outputFormat
-                    value="#{msg.you_are_connected_to}"
-                    rendered="#{userContext.isLoggedIn()}"
-                    >
+				<h:outputFormat value="#{msg.you_are_connected_to}" rendered="#{userContext.isLoggedIn()}">
 					<f:param value="#{userContext.username}" />
-					<f:param value="RadPlanBio"/>
+					<f:param value="RPB-portal"/>
 				</h:outputFormat>
                 <!-- Anonymous user display -->
 				<p:outputPanel rendered="#{userContext.isAnonymousUser()}">
                     <p style="text-align:justify;">
-                        The <b>RadPlanBio</b> platform is a web-based solution which supports collection and exchange of radiotherapy specific research data in large scale multi-centre clinical and pre-clinical studies.
+                        The <b>RadPlanBio</b> (RPB) platform is a web-based solution which supports collection and exchange of radiotherapy specific research data in large scale multi-centre clinical and pre-clinical studies.
                         It delivers a study management and electronic data capture system with special extensions dedicated to secure upload of medical imaging and treatment plans in DICOM format.
                     </p>
                     <p style="text-align:justify;">
-                        The RPB-Portal requirements:
+                        The RPB-portal requirements:
                     </p>
                     <ul>
-                        <li>recommended browsers: Firefox >= 21, Chrome/Chromium >= 21, Internet Explorer >= 11</li>
-                        <li>enabled <em>JavaScript</em> </li>
-                        <li>optional: Java Runtime Environment (JRE) >= 7.0</li>
+                        <li>Web browsers: Firefox >= 60, Chrome/Chromium >= 70, Internet Explorer = 11</li>
+                        <li>DICOM viewer: Java Runtime Environment (JRE) >= 8.0</li>
                     </ul>
                     <p style="text-align:justify;">
-                        The RPB-Desktop-Client requirements (for DICOM data de-identification and upload):
+                        The RPB-client requirements (for DICOM data de-identification and upload):
                     </p>
                     <ul>
-                        <li>modest 64-bit desktop computer running Windows 7 or Linux</li>
+                        <li>64-bit desktop computer (Windows 7, Windows 10, Linux)</li>
                     </ul>
                     <p style="text-align:justify;">
-                        The connection to the RadPlanBio platform is only open for <h:outputLink value="collaboration.faces">colaborating partner sites</h:outputLink>. If you can access this webpage your institute is one of them.
-                        Please <h:outputLink value="login.faces">login first</h:outputLink> in order to access the application content.
+                        The connection to the RPB platform is only allowed for registered <h:outputLink value="collaboration.faces">partner sites</h:outputLink>.
                     </p>
 				</p:outputPanel>
 			</p>
 		</p:panel>
-        <!-- TODO: find a way of monitoring the main service (portal, EDC, PACS, PIDG, DICOM UPLOAD)-->
-        <!--<p:panel header="Platform health">-->
 
-        <!--</p:panel>-->
         <!-- RSS panel -->
-        <p:panel header="RadPlanBio - #{msg.news}">
+        <p:panel header="RPB - #{msg.news}">
             <!--RSS toolbar-->
             <p:toolbar>
                 <!-- Left -->
                 <p:toolbarGroup align="left">
                     <p:commandButton
-                            value="#{msg.menu_reload}"
-                            title="#{msg.rss_reload}"
-                            icon="ui-icon-refresh"
-                            style="float: left;"
-                            immediate="true"
-                            process="@this"
-                            update=":form:dlArticles, :growl"
-                            actionListener="#{mbHome.loadRssContent}"
-                            />
-                    <p:hotkey
-                            bind="ctrl+shift+r"
-                            immediate="true"
-                            process="@this"
-                            update=":form:dlArticles, :growl"
-                            actionListener="#{mbHome.loadRssContent}"
-                            />
+                        id="btnReload"
+                        value="#{msg.menu_reload}"
+                        title="#{msg.rss_reload}"
+                        icon="ui-icon-refresh"
+                        style="float: left;"
+                        immediate="true"
+                        process="@this"
+                        update=":form:dlArticles, :growl"
+                        actionListener="#{mbHome.loadRssContent}"
+                        />
                 </p:toolbarGroup>
 
                 <!-- Right -->
                 <p:toolbarGroup align="right">
                     <p:commandButton
-                            value="#{msg.menu_print}"
-                            title="#{msg.rss_print}"
-                            icon="ui-icon-print"
-                            >
+                        value="#{msg.menu_print}"
+                        title="#{msg.rss_print}"
+                        icon="ui-icon-print"
+                        >
                         <p:printer target="dlArticles" />
                     </p:commandButton>
                     <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="#{msg.menu_help}"
-                            icon="ui-icon-help"
-                            onclick="target='_blank'"
-                            ajax="false"
-                            immediate="true"
-                            action="#{mbMain.navigateToHelpFromRoot('x1-60001.1.3')}"
-                            />
-                    <p:hotkey
-                            bind="ctrl+shift+h"
-                            onsuccess="target='_blank'"
-                            ajax="false"
-                            action="#{mbMain.navigateToHelpFromRoot('x1-60001.1.3')}"
-                            />
+                        value="#{msg.menu_help}"
+                        title="#{msg.menu_help}"
+                        icon="ui-icon-help"
+                        onclick="target='_blank'"
+                        ajax="false"
+                        immediate="true"
+                        action="#{mbMain.navigateToHelpFromRoot('x1-60001.1.3')}"
+                        />
                 </p:toolbarGroup>
             </p:toolbar>
+
             <!-- RSS data list -->
             <p:dataList
                 id="dlArticles"
@@ -124,19 +106,20 @@
                 <h:outputText value=" #{msg.rss_createdDate}: " />
                 [
                 <h:outputText value="#{content.createdDate}">
-                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="Europe/Berlin"  />
+                    <f:convertDateTime type="date" pattern="dd.MM.yyyy" />
                 </h:outputText>
                 ]
                 <br />
                 <br />
-                <h:outputText
-                    escape="false"
-                    value="#{content.summary}"
-                    style="text-align:justify;"
-                    />
+                <h:outputText value="#{content.summary}" escape="false" style="text-align:justify;" />
                 <br />
                 <hr />
             </p:dataList>
+
+            <!-- Block table -->
+            <p:blockUI trigger="dlArticles btnReload" block="dlArticles" >
+                #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
+            </p:blockUI>
         </p:panel>
 	</ui:define>
 </ui:composition>

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -179,7 +179,7 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
 
     @Column(name = "ISENABLED", length = 1)
     public Boolean getIsEnabled() {
-        return isEnabled;
+        return this.isEnabled;
     }
 
     public void setIsEnabled(Boolean isEnabled) {
@@ -436,14 +436,27 @@ public class DefaultAccount implements Identifiable<Integer>, Serializable {
     }
 
     /**
-     * Determine whether user have assigned authority with given role name
+     * Determine whether user have assigned authority with given role
      * @param role role to compare
-     * @return true when user have assigner authorithe with given role name
+     * @return true when user have assigned authority with given role
      */
     public Boolean hasRole(Role role) {
-        if (role != null && this.roles != null) {
-            for (Role r : this.roles) {
-                if (r.getName().equals(role.getName())) {
+        if (role != null) {
+            return this.hasRoleName(role.getName());
+        }
+
+        return Boolean.FALSE;
+    }
+
+    /**
+     * Determine whether user have assigned authority with given roleName
+     * @param roleName roleName to compare
+     * @return true when user have assigned authority with given roleName
+     */
+    public Boolean hasRoleName(String roleName) {
+        if (!"".equals(roleName) && this.roles != null) {
+            for (Role r : this .roles) {
+                if (r.getName().equals(roleName)) {
                     return Boolean.TRUE;
                 }
             }

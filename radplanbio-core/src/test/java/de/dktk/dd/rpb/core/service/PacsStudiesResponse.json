@@ -1,0 +1,61 @@
+{
+  "Studies": [
+    {
+      "StudyInstanceUID": "1.2.826.0.1.3680043.9.7275.0.1",
+      "StudyDescription": "dummyStudyDescription",
+      "StudyDate": "20131011",
+      "StudyTime": "100853.937000",
+      "Series": [
+        {
+          "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.2",
+          "SeriesNumber": "2",
+          "SeriesDescription": "CT SeriesDescription",
+          "SeriesDate": "20131011",
+          "SeriesTime": "101153.953000",
+          "Modality": "CT"
+        },
+        {
+          "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.3",
+          "SeriesNumber": "1",
+          "SeriesDescription": "RTIMAGE SeriesDescription",
+          "RTImageLabel": "RTIMAGE RTImageLabel",
+          "RTImageName": "RTIMAGE RTImageName",
+          "RTImageDescription": "RTIMAGE RTImageDescription",
+          "InstanceCreationDate": "20140811",
+          "Modality": "RTIMAGE"
+        },
+        {
+          "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.4",
+          "SeriesNumber": "1",
+          "SeriesDescription": "RTPLAN SeriesDescription",
+          "RTPlanLabel": "RTPLAN RTPlanLabel",
+          "RTPlanName": "RTPLAN RTPlanName",
+          "RTPlanDate": "20140812",
+          "RTPlanDescription": "RTPLAN RTPlanDescription",
+          "Modality": "RTPLAN"
+        },
+        {
+          "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.5",
+          "SeriesNumber": "1",
+          "SeriesDescription": "RTDOSE SeriesDescription",
+          "DoseUnits": "RTDOSE DoseUnits",
+          "DoseType": "RTDOSE DoseType",
+          "DoseComment": "RTDOSE DoseComment",
+          "DoseSummationType": "RTDOSE DoseSummationType",
+          "InstanceCreationDate": "20140811",
+          "Modality": "RTDOSE"
+        },
+        {
+          "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.6",
+          "SeriesNumber": "1",
+          "SeriesDescription": "RTSTRUCT SeriesDescription",
+          "StructureSetLabel": "RTSTRUCT StructureSetLabel",
+          "StructureSetName": "RTSTRUCT StructureSetName",
+          "StructureSetDescription": "RTSTRUCT StructureSetDescription",
+          "StructureSetDate": "20140821",
+          "Modality": "RTSTRUCT"
+        }
+      ]
+    }
+  ]
+}

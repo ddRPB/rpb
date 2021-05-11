@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@ import javax.persistence.PreUpdate;
  */
 public class AuditTemplate {
 
+    private final boolean auditing;
+    private final String username;
+
     public interface AuditCallback<T> {
         T doInAudit() throws Exception;
     }
-
-    final boolean auditing;
-    final String username;
 
     /**
      * Enable or not audit

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@ import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 
+import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -33,6 +35,7 @@ import org.hibernate.annotations.LazyCollectionOption;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -95,11 +98,11 @@ public class Mapping implements Identifiable<Integer>, Named, Serializable {
         this.study = anotherMapping.getStudy();
 
         //for (AbstractMappedItem ami : anotherMapping.getSourceItemDefinitions()) {
-        // TODO: need to implement cloning
+            // TODO: need to implement cloning
         //}
 
         //for (AbstractMappedItem ami : anotherMapping.getTargetItemDefinitions()) {
-        // TODO: need to implement cloning
+            // TODO: need to implement cloning
         //}
 
         for (MappingRecord mr : anotherMapping.getMappingRecords()) {
@@ -277,11 +280,13 @@ public class Mapping implements Identifiable<Integer>, Named, Serializable {
 
     //region Methods
 
-    public Boolean recordForTargetExists(AbstractMappedItem target) {
+    //region Source
+
+    public Boolean recordForSourceExists(AbstractMappedItem source) {
         Boolean result = false;
 
         for (MappingRecord mr : this.mappingRecords) {
-            if (mr.getTarget().equals(target)) {
+            if (mr.getSource().equals(source)) {
                 result = true;
                 break;
             }
@@ -290,11 +295,15 @@ public class Mapping implements Identifiable<Integer>, Named, Serializable {
         return result;
     }
 
-    public Boolean recordForSourceExists(AbstractMappedItem source) {
+    //endregion
+
+    //region Target
+
+    public Boolean recordForTargetExists(AbstractMappedItem target) {
         Boolean result = false;
 
         for (MappingRecord mr : this.mappingRecords) {
-            if (mr.getSource().equals(source)) {
+            if (mr.getTarget().equals(target)) {
                 result = true;
                 break;
             }
@@ -324,6 +333,35 @@ public class Mapping implements Identifiable<Integer>, Named, Serializable {
 
         return result;
     }
+
+    public void addTargetEventOccurrence(EventDefinition event) {
+        if (event != null) {
+            // For import the target is always ODM
+            if (this.type.equals(MappingTypeEnum.IMPORT)) {
+
+                // By default first event occurrence is added
+                int occurrenceNumber = 1;
+                if (this.targetItemDefinitions == null) {
+                    this.targetItemDefinitions = new ArrayList<>();
+                }
+                // Detect the even occurrence number
+                else {
+                    for (AbstractMappedItem odmItem : this.targetItemDefinitions) {
+                        if (((MappedOdmItem) odmItem).getLabel().startsWith(Constants.SE_STARTDATE + "_" + event.getOid() + "_")) {
+                            occurrenceNumber++;
+                        }
+                    }
+                }
+
+                // Add Event related elements necessary for even scheduling
+                this.targetItemDefinitions.add(
+                        new MappedOdmItem(Constants.SE_STARTDATE + "_" + event.getOid() + "_" + Integer.toString(occurrenceNumber))
+                );
+            }
+        }
+    }
+
+    //endregion
 
     //endregion
 

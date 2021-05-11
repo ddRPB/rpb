@@ -6,11 +6,11 @@
 
     <entry key="studyPerson">Studieperson</entry>
     <entry key="studyPerson_plural">Studienpersonal</entry>
-    <entry key="studyPerson_reload">Neu laden vorhandenen Studienpersonal</entry>
-    <entry key="studyPerson_print">Drucken Tabelle Studienpersonal</entry>
-    <entry key="studyPerson_new">Definieren Sie eine neue Studienpersonal</entry>
-    <entry key="studyPerson_edit">Bearbeiten Sie ausgewählte Studienpersonal</entry>
-    <entry key="studyPerson_delete">Löschen ausgewählten Studienpersonal</entry>
+    <entry key="studyPerson_reload">Vorhandenen Studienpersonal neu laden</entry>
+    <entry key="studyPerson_print">Tabelle Studienpersonal drucken</entry>
+    <entry key="studyPerson_new">Neue Studienpersonal definieren</entry>
+    <entry key="studyPerson_edit">Ausgewählte Studienpersonal bearbeiten</entry>
+    <entry key="studyPerson_delete">Ausgewählten Studienpersonal löschen</entry>
 
     <!-- attributes -->
     <entry key="studyPerson_id">Id</entry>

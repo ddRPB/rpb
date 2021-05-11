@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ public class ItemGroupDataMatch implements Serializable {
 
                             // Create a match object for item data - propagate the creation of rest down
                             this.getItemDataMatchesList().add(
-                                    new ItemDataMatch(sid, tid)
+                                new ItemDataMatch(sid, tid)
                             );
 
                             // Check if the last added item data matches

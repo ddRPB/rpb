@@ -22,19 +22,16 @@ package de.dktk.dd.rpb.portal.web.mb.admin;
 import de.dktk.dd.rpb.core.domain.edc.AnnotationType;
 import de.dktk.dd.rpb.core.repository.admin.AnnotationTypeRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
 
-import javax.faces.context.FacesContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,19 +105,12 @@ public class AnnotationTypeBean extends CrudEntityViewModel<AnnotationType, Inte
     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colName", "colName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<SortMeta>();
     }
 
     //endregion

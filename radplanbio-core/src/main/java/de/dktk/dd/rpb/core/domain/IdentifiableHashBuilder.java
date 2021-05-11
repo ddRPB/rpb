@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ public class IdentifiableHashBuilder implements Serializable {
             else {
                 technicalId = new java.rmi.dgc.VMID();
                 log.warn("DEVELOPER: hashCode is not safe." //
-                        + "If you encounter this message you should take the time to carefuly " //
+                        + "If you encounter this message you should take the time to carefully " //
                         + "review the equals/hashCode methods for: " + identifiable.getClass().getCanonicalName() + " "//
                         + "You may consider using a business key.");
             }

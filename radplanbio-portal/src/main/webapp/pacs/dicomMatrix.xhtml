@@ -72,7 +72,7 @@
 
                                     <f:selectItem itemLabel="#{msg.search_select_one}" noSelectionOption="true" />
                                     <f:selectItems
-                                        value="#{mbDicomMatrix.rpbStudy.getAnnotatedEventDefinitions('DICOM_STUDY_INSTANCE_UID')}"
+                                        value="#{mbDicomMatrix.rpbStudy.findAnnotatedEventDefinitions('DICOM_STUDY_INSTANCE_UID')}"
                                         var="rtEventDef"
                                         itemValue="#{rtEventDef}"
                                         itemLabel="#{rtEventDef.name}"
@@ -108,7 +108,7 @@
 
                                     <f:selectItem itemLabel="#{msg.search_select_one}" noSelectionOption="true" />
                                     <f:selectItems
-                                        value="#{mbDicomMatrix.rpbStudy.getAnnotatedItemDefinitionsForEventDef('DICOM_STUDY_INSTANCE_UID', mbDicomMatrix.selectedEventDef)}"
+                                        value="#{mbDicomMatrix.rpbStudy.findAnnotatedItemDefinitionsForEventDef('DICOM_STUDY_INSTANCE_UID', mbDicomMatrix.selectedEventDef)}"
                                         var="rtItemDef"
                                         itemValue="#{rtItemDef}"
                                         itemLabel="#{rtItemDef.oid}"
@@ -132,15 +132,15 @@
                                     ajax="false"
                                     update=":form:tabView:dtEntities, :growl"
                                     />
-                            <p:hotkey
-                                    bind="ctrl+shift+r"
-                                    immediate="true"
-                                    process="@this"
-                                    update=":form:tabView:dtEntities, :growl"
-                                    actionListener="#{mbDicomMatrix.load}"
-                                    />
                         </p:toolbarGroup>
                         <p:toolbarGroup align="right">
+                            <p:commandButton
+                                value="#{msg.menu_print}"
+                                title="#{msg.studySubject_print}"
+                                icon="ui-icon-print"
+                                >
+                                <p:printer target="dtEntities" />
+                            </p:commandButton>
                             <p:commandButton
                                     value="#{msg.menu_help}"
                                     title="#{msg.menu_help}"
@@ -163,7 +163,7 @@
                             paginator="true"
                             draggableColumns="false"
                             rows="15"
-                            rowsPerPageTemplate="15,25,50"
+                            rowsPerPageTemplate="15,25,50,100,200,500,1000"
                             emptyMessage="#{msg.search_empty}"
                             filteredValue="#{mbDicomMatrix.filteredEntities}"
                             selection="#{mbDicomMatrix.selectedEntity}"
@@ -255,7 +255,7 @@
 
                         <!-- All DICOM annotated events -->
                         <p:columns
-                                value="#{mbDicomMatrix.rpbStudy.getAnnotatedEventDefinitions('DICOM_STUDY_INSTANCE_UID')}"
+                                value="#{mbDicomMatrix.rpbStudy.findAnnotatedEventDefinitions('DICOM_STUDY_INSTANCE_UID')}"
                                 var="dicomStudyEvent"
                                 style="width:30%"
                                 columnIndexVar="colIndex"
@@ -283,7 +283,7 @@
 
                                 <!-- All DICOM instance UIDs in EventDef -->
                                 <p:columns
-                                        value="#{mbDicomMatrix.rpbStudy.getAnnotatedItemDefinitionsForEventDef('DICOM_STUDY_INSTANCE_UID', dicomStudyEvent)}"
+                                        value="#{mbDicomMatrix.rpbStudy.findAnnotatedItemDefinitionsForEventDef('DICOM_STUDY_INSTANCE_UID', dicomStudyEvent)}"
                                         var="dicomStudyItemDefinition"
                                         style="width:10%"
                                         columnIndexVar="col2Index"
@@ -304,9 +304,10 @@
                                         outcome="/pacs/studyView.faces"
                                         target="_blank"
                                         rendered="#{mbDicomMatrix.loadDicomStudyStatus(studySubject, event, dicomStudyItemDefinition) == 'SUCCESS'}"
+                                        disabled="#{!userContext.hasRole('ROLE_PACS_VIEW')}"
                                         >
                                         <f:param name="mode" value="rpbweasisstudyview" />
-                                        <f:param name="patientId" value="#{mbDicomMatrix.selectedEntity.pid}" />
+                                        <f:param name="patientId" value="#{studySubject.pid}" />
                                         <f:param name="studyUid" value="#{mbDicomMatrix.loadDicomStudyUid(studySubject, event, dicomStudyItemDefinition)}" />
                                     </h:link>
                                 </p:columns>
@@ -318,13 +319,32 @@
                             <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomMatrix.entityList.size() == 0}" />
                             <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomMatrix.entityList.size() == 1}" />
                             <h:outputFormat
-                                    value="#{msg.search_results_status_n}"
-                                    rendered="#{mbDicomMatrix.entityList.size() > 1}"
-                                    >
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbDicomMatrix.entityList.size() > 1}"
+                                >
                                 <f:param value="#{mbDicomMatrix.entityList.size()}" />
                             </h:outputFormat>
                         </f:facet>
                     </p:dataTable>
+
+                    <!-- Block table -->
+                    <p:blockUI block="dtEntities" trigger="dtEntities">
+                        LOADING<br />
+                        <p:graphicImage name="icons/ajaxloading.gif" />
+                    </p:blockUI>
+
+                    <!-- Export -->
+                    <p:panel header="#{msg.menu_export}" rendered="#{mbDicomMatrix.viewType == 'DICOM'}"
+                             style="width: auto">
+                        <h:commandLink>
+                            <p:graphicImage library="img" name="excel.png" title="xls"/>
+                            <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.studySubject_plural}" />
+                        </h:commandLink>
+                        <h:commandLink>
+                            <p:graphicImage library="img" name="csv.png" title="csv"/>
+                            <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.studySubject_plural}" />
+                        </h:commandLink>
+                    </p:panel>
 
                     <!-- DICOM-RT view -->
                     <!-- Toolbar -->

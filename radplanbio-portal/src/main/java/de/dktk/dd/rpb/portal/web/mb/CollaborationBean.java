@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import javax.inject.Named;
 import javax.annotation.PostConstruct;
 
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-import de.dktk.dd.rpb.core.repository.admin.PartnerSiteRepository;
+import de.dktk.dd.rpb.core.repository.admin.IPartnerSiteRepository;
 import de.dktk.dd.rpb.core.util.ResourcesUtil;
 
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
@@ -76,7 +76,7 @@ public class CollaborationBean implements Serializable {
     //region PartnerSite repository
 
     @Inject
-    private PartnerSiteRepository partnerSiteRepository;
+    private IPartnerSiteRepository partnerSiteRepository;
 
     /**
      * Set StudyRepository
@@ -84,7 +84,7 @@ public class CollaborationBean implements Serializable {
      * @param value - StudyRepository
      */
     @SuppressWarnings("unused")
-    public void setPartnerSiteRepositoryRepository(PartnerSiteRepository value) {
+    public void setPartnerSiteRepositoryRepository(IPartnerSiteRepository value) {
         this.partnerSiteRepository = value;
     }
 
@@ -129,7 +129,12 @@ public class CollaborationBean implements Serializable {
                 }
 
                 if (coord != null) {
-                    simpleModel.addOverlay(new Marker(coord, site.getDescription()));
+                    simpleModel.addOverlay(
+                            new Marker(
+                                coord,
+                                "[" + site.getIdentifier() + "] = " + site.getName() + ": " + site.getDescription()
+                            )
+                    );
                 }
             }
         }

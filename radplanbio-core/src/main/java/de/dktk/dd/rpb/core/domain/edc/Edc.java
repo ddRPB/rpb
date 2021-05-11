@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,11 @@ public class Edc implements Identifiable<Integer>, Serializable {
     private Integer edcId; // pk
     private String edcBaseUrl; // not null
     private String soapBaseUrl; // not null
+    private String edcPublicUrl;
+    private String soapPublicUrl;
+    private String dataPath;
     private Boolean isEnabled;
+    private Boolean isValidated;
     private String version;
 
     //endregion
@@ -123,6 +127,48 @@ public class Edc implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region EdcPublicUrl
+
+    @Size(max = 255)
+    @Column(name = "EDCPUBLICURL")
+    public String getEdcPublicUrl() {
+        return this.edcPublicUrl;
+    }
+
+    public void setEdcPublicUrl(String value) {
+        this.edcPublicUrl = value;
+    }
+
+    //endregion
+
+    //region SoapPublicUrl
+
+    @Size(max = 255)
+    @Column(name = "SOAPPUBLICURL")
+    public String getSoapPublicUrl() {
+        return this.soapPublicUrl;
+    }
+
+    public void setSoapPublicUrl(String value) {
+        this.soapPublicUrl = value;
+    }
+
+    //endregion
+
+    //region DataPath
+
+    @Size(max = 255)
+    @Column(name = "DATAPATH")
+    public String getDataPath() {
+        return this.dataPath;
+    }
+
+    public void setDataPath(String value) {
+        this.dataPath = value;
+    }
+
+    //endregion
+
     //region IsEnabled
 
     @Column(name = "ISENABLED")
@@ -132,6 +178,19 @@ public class Edc implements Identifiable<Integer>, Serializable {
 
     public void setIsEnabled(Boolean value) {
         this.isEnabled = value;
+    }
+
+    //endregion
+
+    //region IsValidated
+
+    @Column(name = "ISVALIDATED")
+    public Boolean getIsValidated() {
+        return this.isValidated;
+    }
+
+    public void setIsValidated(Boolean value) {
+        this.isValidated = value;
     }
 
     //endregion
@@ -157,8 +216,7 @@ public class Edc implements Identifiable<Integer>, Serializable {
     /**
      * Set the default values.
      */
-    public void initDefaultValues()
-    {
+    public void initDefaultValues() {
         // NOOP
     }
 
@@ -188,10 +246,13 @@ public class Edc implements Identifiable<Integer>, Serializable {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", getId())
-                .add("edcbaseurl", getEdcBaseUrl())
-                .add("soapbaseurl", getSoapBaseUrl())
-                .add("isenabled", getIsEnabled())
+                .add("id", this.edcId)
+                .add("edcbaseurl", this.edcBaseUrl)
+                .add("soapbaseurl", this.soapBaseUrl)
+                .add("edcpublicurl", this.edcPublicUrl)
+                .add("soappublicurl", this.soapPublicUrl)
+                .add("isenabled", this.isEnabled)
+                .add("isvalidated", this.isValidated)
                 .toString();
     }
 

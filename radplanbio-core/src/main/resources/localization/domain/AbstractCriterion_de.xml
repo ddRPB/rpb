@@ -6,11 +6,11 @@
 
     <entry key="abstractCriterion">Kriterium</entry>
     <entry key="abstractCriterion_plural">Kriterien</entry>
-    <entry key="abstractCriterion_reload">Neu laden vorhandenen Kriterien</entry>
-    <entry key="abstractCriterion_print">Drucken Tabelle Kriterien</entry>
-    <entry key="abstractCriterion_new">Definieren Sie eine neues Kriterium</entry>
-    <entry key="abstractCriterion_edit">Bearbeiten Sie ausgewähltes Kriterium</entry>
-    <entry key="abstractCriterion_delete">Löschen ausgewählten Kriterium</entry>
+    <entry key="abstractCriterion_reload">Vorhandenen Kriterien neu laden</entry>
+    <entry key="abstractCriterion_print">Tabelle Kriterien drucken</entry>
+    <entry key="abstractCriterion_new">Neues Kriterium definieren</entry>
+    <entry key="abstractCriterion_edit">Ausgewähltes Kriterium bearbeiten</entry>
+    <entry key="abstractCriterion_delete">Ausgewähltes Kriterium löschen</entry>
 
     <!-- attributes -->
     <entry key="abstractCriterion_id">Id</entry>

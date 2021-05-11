@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Bio</comment>
+
+    <entry key="bio">BIO</entry>
+    <entry key="bio_plural">BIOs</entry>
+    <entry key="bio_reload">Vorhandenen BIOs neu laden</entry>
+    <entry key="bio_print">Tabelle BIOs drucken</entry>
+    <entry key="bio_new">Neue BIO definieren</entry>
+    <entry key="bio_edit">Ausgewählten BIO bearbeiten</entry>
+    <entry key="bio_delete">Ausgewählten BIO löschen</entry>
+
+    <!-- attributes -->
+    <entry key="bio_id">ID</entry>
+    <entry key="bio_baseUrl">Base URL</entry>
+    <entry key="bio_publicUrl">Public URL</entry>
+    <entry key="bio_isEnabled">Aktiviert</entry>
+    <entry key="bio_version">Version</entry>
+    <entry key="bio_userName">Benutzername</entry>
+    <entry key="bio_password">Passwort</entry>
+
+</properties>

@@ -3,74 +3,100 @@
 <!-- Spring Security configuration for restriction of user access -->
 <!-- For definition of security mechanism and algorithms go to src/main/resources/spring/applicationContext.xml -->
 <beans:beans
-    xmlns="http://www.springframework.org/schema/security"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="
+        xmlns="http://www.springframework.org/schema/security"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd"
+>
+
+    <!-- Configure Spring Security -->
+    <!-- use-expressions - allows restrictions like permitAll(), etc. -->
+    <http
+            auto-config="false"
+            entry-point-ref="loginUrlAuthenticationEntryPoint"
+            use-expressions="true"
     >
 
-	<!-- Configure Spring Security -->
-    <!-- use-expressions - allows restrictions like permitAll(), etc. -->
-	<http
-        auto-config="false"
-        entry-point-ref="loginUrlAuthenticationEntryPoint"
-        use-expressions="true"
-        >
+        <csrf disabled="true"/>
 
         <!--Define logout pages (.faces -> .xhtml)-->
-		<logout logout-url="/logout.faces" logout-success-url="/home.faces" />
+        <logout logout-url="/logout.faces" logout-success-url="/home.faces"/>
 
         <!-- Define rules for the user access -->
 
         <!-- Only the admin has access to domain web sites for data administration-->
-        <intercept-url pattern="/admin/**/*" access="hasRole('ROLE_ADMIN')" />
+        <intercept-url pattern="/admin/**/*" access="hasRole('ROLE_ADMIN')"/>
 
         <!-- RPB users -->
-        <intercept-url pattern="/logout*" access="isAuthenticated()" />
-        <intercept-url pattern="/rpb/profile.faces*" access="isAuthenticated()" />
-
-        <intercept-url pattern="/rpb/customQuery.faces*" access="hasRole('ROLE_QUERY')" />
-        <intercept-url pattern="/rpb/importData.faces*" access="hasRole('ROLE_IMPORT')" />
+        <intercept-url pattern="/logout*" access="isAuthenticated()"/>
+        <intercept-url pattern="/rpb/profile.faces*" access="isAuthenticated()"/>
 
         <!-- CTMS users -->
-        <intercept-url pattern="/ctms/**/*" access="hasRole('ROLE_CTMS_USER')" />
+        <intercept-url pattern="/ctms/**/*" access="hasRole('ROLE_CTMS_USER')"/>
 
         <!-- EDC users -->
-        <intercept-url pattern="/edc/ecrfStudies.faces*" access="hasRole('ROLE_EDC_USER')" />
-        <intercept-url pattern="/edc/randomisedSubjects.faces*" access="hasRole('ROLE_EDC_RANDOMISE')" />
-        <intercept-url pattern="/edc/openElectronicDataCapture.faces*" access="hasRole('ROLE_EDC_OPEN')" />
+        <intercept-url pattern="/edc/edcMatrix.faces*" access="hasRole('ROLE_EDC_MATRIX')"/>
+        <intercept-url pattern="/edc/edcLookup.faces*" access="hasRole('ROLE_EDC_LOOKUP')"/>
+        <intercept-url pattern="/edc/studyMetadata.faces*" access="hasRole('ROLE_EDC_METADATA')"/>
 
-        <!-- PID users -->
-        <intercept-url pattern="/pid/*" access="hasRole('ROLE_PID_USER')" />
+        <intercept-url pattern="/edc/studyDataQuery.faces*" access="hasRole('ROLE_QUERY')"/>
+        <!--<intercept-url pattern="/edc/studyDataMigrate.faces*" access="hasRole('ROLE_ADMIN')" />-->
+        <intercept-url pattern="/edc/studyDataExport.faces*" access="hasRole('ROLE_EXPORT')"/>
+        <intercept-url pattern="/edc/studyDataImport.faces*" access="hasRole('ROLE_IMPORT')"/>
+
+        <intercept-url pattern="/edc/ecrfStudies.faces*" access="hasRole('ROLE_EDC_USER')"/>
+        <intercept-url pattern="/edc/randomisedSubjects.faces*" access="hasRole('ROLE_EDC_USER')"/>
+
+        <intercept-url pattern="/edc/openEdc.faces*" access="hasRole('ROLE_EDC_OPEN')"/>
+        <intercept-url pattern="/edc/openMobile.faces*" access="hasRole('ROLE_EDC_PARTICIPATE')"/>
+
+        <!-- LAB users -->
+        <intercept-url pattern="/lab/openLab.faces*" access="hasRole('ROLE_LAB_OPEN')"/>
 
         <!-- PACS users-->
-        <intercept-url pattern="/pacs/dicomMatrix.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/dicomLookup.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/dicomDownload.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/dicomImage.faces*" access="hasRole('ROLE_PACS_USER')" />
         <intercept-url pattern="/pacs/dicomPatientStudies.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/dicomSeriesDownload.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/dicomStudyDownload.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/studySubjectView.faces*" access="hasRole('ROLE_PACS_USER')" />
-        <intercept-url pattern="/pacs/studyView.faces*" access="hasRole('ROLE_PACS_USER')" />
+        <intercept-url pattern="/pacs/dicomMatrix.faces*" access="hasRole('ROLE_PACS_MATRIX')" />
+        <intercept-url pattern="/pacs/dicomLookup.faces*" access="hasRole('ROLE_PACS_LOOKUP')" />
 
-        <!-- Vissible for all-->
-		<intercept-url pattern="/resource/*" access="permitAll()" />
-		<intercept-url pattern="/javax.*/**" access="permitAll()" />
-		<intercept-url pattern="/login.faces*" access="permitAll()" />
-		<intercept-url pattern="/home.faces*" access="permitAll()" />
-		<intercept-url pattern="/error/*" access="permitAll()" />
+<!--        <intercept-url pattern="/pacs/dicomDownload.faces*" access="hasRole('ROLE_PACS_USER')" />-->
+<!--        <intercept-url pattern="/pacs/dicomImage.faces*" access="hasRole('ROLE_PACS_USER')" />-->
+<!--        <intercept-url pattern="/pacs/dicomSeriesDownload.faces*" access="hasRole('ROLE_PACS_USER')" />-->
+<!--        <intercept-url pattern="/pacs/dicomStudyDownload.faces*" access="hasRole('ROLE_PACS_USER')" />-->
+<!--        <intercept-url pattern="/pacs/studySubjectView.faces*" access="hasRole('ROLE_PACS_USER')" />-->
+<!--        <intercept-url pattern="/pacs/studyView.faces*" access="hasRole('ROLE_PACS_USER')" />-->
+<!--        <intercept-url pattern="/pacs/studyUpload.faxes*" access="hasRole('ROLE_PACS_UPLOAD')" />-->
 
-        <!-- Weasis needs to access this page without authentication -->
-        <intercept-url pattern="/pacs/viewXml.faces*" access="permitAll()" />
-        <intercept-url pattern="/pacs/wado.faces*" access="permitAll()" />
+        <!-- BIO users -->
+        <intercept-url pattern="/bio/bioMatrix.faces*" access="hasRole('ROLE_BIO_MATRIX')"/>
+        <intercept-url pattern="/bio/bioLookup.faces*" access="hasRole('ROLE_BIO_LOOKUP')"/>
+        <intercept-url pattern="/bio/bioPatientSpecimens.faces*" access="hasRole('ROLE_BIO_USER')"/>
+        <intercept-url pattern="/bio/openBio.faces*" access="hasRole('ROLE_BIO_OPEN')"/>
 
-        <!-- Define where to look for error page when access denied event occure -->
-		<access-denied-handler error-page="/error/accessdenied.faces" />
+        <!-- PID users -->
+        <intercept-url pattern="/pid/*" access="hasRole('ROLE_PID_USER')"/>
 
-        <!-- Declare the ussage of myAuthentificationf filter which is defined in /src/main/resources/spring/applicationContext.xml-->
-        <custom-filter position="FORM_LOGIN_FILTER" ref="myAuthenticationFilter" />
-	</http>
+        <!-- CMS users -->
+        <intercept-url pattern="/cms/contentCRUD.faces*" access="hasRole('ROLE_CMS_USER')"/>
+
+        <!-- Visible for all-->
+        <intercept-url pattern="/resource/*" access="permitAll()"/>
+        <intercept-url pattern="/javax.*/**" access="permitAll()"/>
+        <intercept-url pattern="/login.faces*" access="permitAll()"/>
+        <intercept-url pattern="/home.faces*" access="permitAll()"/>
+        <intercept-url pattern="/error/*" access="permitAll()"/>
+
+        <!-- Weasis and CTP needs to access this pages without authentication -->
+<!--        <intercept-url pattern="/pacs/viewXml.faces*" access="permitAll()" />-->
+<!--        <intercept-url pattern="/pacs/wado.faces*" access="permitAll()" />-->
+<!--        <intercept-url pattern="/pacs/apiKey.faces*" access="permitAll()" />-->
+
+        <!-- Define where to look for error page when access denied event occurs -->
+        <access-denied-handler error-page="/error/accessdenied.faces"/>
+        <session-management invalid-session-url="/login.faces"/>
+
+        <!-- Declare the usage of myAuthentication filter which is defined in /src/main/resources/spring/applicationContext.xml -->
+        <custom-filter position="FORM_LOGIN_FILTER" ref="myAuthenticationFilter"/>
+    </http>
 </beans:beans>

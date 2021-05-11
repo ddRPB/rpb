@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 
 package de.dktk.dd.rpb.core.domain.criteria;
+
 import de.dktk.dd.rpb.core.domain.criteria.constraints.DichotomousConstraint;
 
 import org.apache.log4j.Logger;
@@ -28,6 +29,7 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -106,14 +108,16 @@ public class DichotomousCriterion extends AbstractCriterion<String, DichotomousC
 
     @Override
     public void isValueCorrect(String value) throws Exception {
-        if (!(option1.equals(value) || option2.equals(value))) {
-            throw new Exception();
+        if (this.option1 != null && this.option2 != null && value != null) {
+            if (!Arrays.asList(this.option1, this.option2).contains(value)) {
+                throw new Exception();
+            }
         }
     }
 
     @Override
     @Transient
-    public Class<DichotomousConstraint> getContstraintType() {
+    public Class<DichotomousConstraint> getConstraintType() {
         return DichotomousConstraint.class;
     }
 

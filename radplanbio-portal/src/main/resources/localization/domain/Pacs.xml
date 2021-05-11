@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Pacs</comment>
+
+    <entry key="pacs">PACS</entry>
+    <entry key="pacs_plural">PACSs</entry>
+    <entry key="pacs_reload">Reload existing PACSs</entry>
+    <entry key="pacs_print">Print PACSs table</entry>
+    <entry key="pacs_new">Define a new PACS</entry>
+    <entry key="pacs_edit">Edit selected PACS</entry>
+    <entry key="pacs_delete">Delete selected PACS</entry>
+
+    <!-- attributes -->
+    <entry key="pacs_id">ID</entry>
+    <entry key="pacs_baseUrl">Base URL</entry>
+    <entry key="pacs_isEnabled">Enabled</entry>
+    <entry key="pacs_version">Version</entry>
+
+</properties>

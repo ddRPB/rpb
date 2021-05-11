@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
 
 import de.dktk.dd.rpb.core.util.Constants;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Logger;
 
 import javax.persistence.*;
@@ -61,6 +62,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     private String defaultValue;
     private String multiValueSeparator;
     private String dateFormatString;
+    private String calculationString;
     private Integer priority;
 
     // Repeating keys (specific for CDISC ODM mapping)
@@ -168,6 +170,20 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region Calculation
+
+    @Size(max = 255)
+    @Column(name = "CALCULATIONSTRING")
+    public String getCalculationString() {
+        return this.calculationString;
+    }
+
+    public void setCalculationString(String value) {
+        this.calculationString = value;
+    }
+
+    //endregion
+
     //region Priority
 
     @Column(name = "PRIORITY")
@@ -268,6 +284,58 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
     public String process(String sourceValue, ItemDefinition itemMetaData) {
         String result = this.defaultValue;
 
+        // Should any calculations be performed on source data
+        // TODO: this is just quick an dirty, later implement parsing according to shunting-yard algorithm
+        if (this.calculationString != null && !this.calculationString.isEmpty()) {
+
+            Stack<String> operators = new Stack<>();
+            Stack<String> output = new Stack<>();
+
+            for (String token : calculationString.split(" ")) {
+                if (token.equals("+")) {
+                    operators.push(token);
+                } else if (token.equals("-")) {
+                    operators.push(token);
+                } else if (token.equals("*")) {
+                    operators.push(token);
+                } else if (token.equals("/")) {
+                    operators.push(token);
+                } else if (NumberUtils.isNumber(token)) {
+                    output.push(token);
+                }
+            }
+
+            if (!operators.isEmpty() && !output.isEmpty()) {
+                String operator = operators.pop();
+                switch (operator) {
+                    case "+": {
+                        BigDecimal number1 = new BigDecimal(output.pop());
+                        BigDecimal number = new BigDecimal(sourceValue);
+                        sourceValue = number.add(number1).stripTrailingZeros().toPlainString();
+                        break;
+                    }
+                    case "-": {
+                        BigDecimal number1 = new BigDecimal(output.pop());
+                        BigDecimal number = new BigDecimal(sourceValue);
+                        sourceValue = number.subtract(number1).stripTrailingZeros().toPlainString();
+                        break;
+                    }
+                    case "*": {
+                        BigDecimal number1 = new BigDecimal(output.pop());
+                        BigDecimal number = new BigDecimal(sourceValue);
+                        sourceValue = number.multiply(number1).stripTrailingZeros().toPlainString();
+                        break;
+                    }
+                    case "/": {
+                        BigDecimal number1 = new BigDecimal(output.pop());
+                        BigDecimal number = new BigDecimal(sourceValue);
+                        sourceValue = number.divide(number1).stripTrailingZeros().toPlainString();
+                        break;
+                    }
+                }
+            }
+        }
+
         // Nothing special use the data types in metadata to decide how to transform source value
         if (itemMetaData.getCodeListDef() == null && itemMetaData.getMultiSelectListDef() == null) {
 
@@ -280,7 +348,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
                         result = Integer.valueOf(sourceValue).toString();
                     }
                     catch (NumberFormatException err) {
-                        err.printStackTrace();
+                        log.error("Cannot covert the source value to integer target value according to mapping", err);
                     }
                     break;
                 case Constants.OC_DECIMAL:
@@ -289,7 +357,7 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
                         result = number.stripTrailingZeros().toPlainString();
                     }
                     catch (NumberFormatException err) {
-                        err.printStackTrace();
+                        log.error("Cannot convert the source value to decimal target value according to mapping", err);
                     }
                     break;
                 case Constants.OC_STRING:
@@ -320,25 +388,28 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
                         log.info("Processing unknown PDATE type format: skipping");
                     }
                     break;
-                case "file":
+                case Constants.OC_FILE:
                     log.info("Processing FILE type: skipping");
+                    break;
+                default:
+                    log.info("Processing unknown type: skipping");
                     break;
             }
         }
         else {
             // Code lists, if there is mapping defined use the mapping
-            if (this.canPerformMapping(this.mapping)) {
+            if (this.mapping != null && !this.mapping.isEmpty()) {
                 if (itemMetaData.getCodeListDef() != null) {
                     String oneResult = this.mapping.get(sourceValue.trim());
                     if (itemMetaData.isCodeValid(oneResult)) {
-                        result = oneResult;
+                         result = oneResult;
                     }
                 }
                 else if (itemMetaData.getMultiSelectListDef() != null) {
                     for (String oneValue: sourceValue.trim().split(this.multiValueSeparator)) {
                         String oneResult = this.mapping.get(oneValue.trim());
                         if (itemMetaData.isCodeValid(oneResult)) {
-                            if (result.equals(defaultValue) || result.equals("")) {
+                            if (result.equals(defaultValue) || "".equals(result)) {
                                 result = oneResult;
                             }
                             else {
@@ -347,6 +418,10 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
                         }
                     }
                 }
+            }
+            // When default value was defined it is already in result so do nothing
+            else if (this.defaultValue != null && !this.defaultValue.isEmpty()) {
+                // NOOP
             }
             // Otherwise use the codes directly (they should match) = no mapping specified
             else {
@@ -428,14 +503,14 @@ public class MappingRecord implements Identifiable<Integer>, Serializable {
 
     private String parseDate(String sourceDate) {
         // optionally change the separator
-        sourceDate = sourceDate.replaceAll("\\D+", "/");
+        String newSourceDate = sourceDate.replaceAll("\\D+", "/");
 
         for (String formats : "dd/MM/yy,yyyy/MM/dd,dd/MM/yyyy".split(",")) {
             try {
                 SimpleDateFormat sourceFormat = new SimpleDateFormat(formats);
                 sourceFormat.setLenient(false);
                 SimpleDateFormat ocFormat = new SimpleDateFormat("yyyy-MM-dd");
-                return ocFormat.format(sourceFormat.parse(sourceDate));
+                return ocFormat.format(sourceFormat.parse(newSourceDate));
             }
             catch (ParseException ignored) {
                 // NOOP

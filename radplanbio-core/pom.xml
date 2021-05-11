@@ -30,9 +30,10 @@
 		<!-- Version dependencies when used in multiple dependencies -->
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<maven-celerio-plugin.outputDir>${project.basedir}</maven-celerio-plugin.outputDir>
-        	<hibernate.version>4.3.10.Final</hibernate.version>
-		<spring.version>4.3.18.RELEASE</spring.version><!--old 4.1.6.RELEASE-->
-		<spring-security.version>3.2.7.RELEASE</spring-security.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
+		<spring.version>4.3.18.RELEASE</spring.version><!--old 4.1.6.RELEASE new 4.3.18.RELEASE-->
+		<spring-security.version>4.1.5.RELEASE</spring-security.version><!--old 3.2.7.RELEASE new 4.1.1.RELEASE-->
+		<spring-ldap.version>1.3.2.RELEASE</spring-ldap.version>
 		<slf4j.version>1.5.10</slf4j.version>
 	</properties>
 
@@ -40,9 +41,9 @@
 	<!-- DEPENDENCIES -->
 	<!-- ~~~~~~~~~~~~ -->
 	<dependencies>
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 		<!-- List specific dependencies below -->
-		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
 		<!-- Better Date and Timestamp support -->
@@ -56,9 +57,9 @@
 			<groupId>org.jadira.usertype</groupId>
 			<artifactId>usertype.core</artifactId>
 			<version>3.0.0.CR3</version>
-		</dependency>
+        </dependency>
 
-		<!-- ~~~~~~~~~~~ -->
+        <!-- ~~~~~~~~~~~ -->
 		<!-- PERSISTENCE -->
 		<!-- ~~~~~~~~~~~ -->
         <dependency>
@@ -70,16 +71,49 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate.version}</version>
+
+			<!--TODO: Mirko's exclusions ???-->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging-annotations</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
+		
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
 			<version>${hibernate.version}</version>
+			<!--TODO: hibernate embeds Ehcache 2.4.3 we want to exclude it because we have separate dependency for it -->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<groupId>net.sf.ehcache</groupId>-->
+					<!--<artifactId>ehcache-core</artifactId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate.version}</version>
+
+			<!--TODO: Mirko's exclusions ???-->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging-annotations</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
+			
 		</dependency>
 		<dependency>
 			<groupId>cglib</groupId>
@@ -96,16 +130,40 @@
 		<!-- ~~~~~~~~~~~~~~~~ -->
 		<!-- HIBERNATE SEARCH -->
 		<!-- ~~~~~~~~~~~~~~~~ -->
+
+		<!-- Original for hibernate 4-->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-search</artifactId>
-			<version>4.4.0.Final</version>
+			<version>4.4.0.Final</version><!--old 4.4.0.Final new -->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-search-analyzers</artifactId>
 			<version>4.1.1.Final</version>
 		</dependency>
+
+		<!--TODO: Mirko's dependency uses hibernate 5??? -->
+		<!--<dependency>-->
+			<!--<groupId>org.hibernate</groupId>-->
+			<!--<artifactId>hibernate-search</artifactId>-->
+			<!--<version>5.10.3.Final</version>-->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging-annotations</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+				<!--<exclusion>-->
+					<!--<artifactId>jboss-logging-processor</artifactId>-->
+					<!--<groupId>org.jboss.logging</groupId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
+		<!--</dependency>-->
+		
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
@@ -115,11 +173,12 @@
 		<!-- ~~~~~ -->
 		<!-- CACHE -->
 		<!-- ~~~~~ -->
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-			<version>2.9.0</version>
-		</dependency>
+		<!--TODO: only extra dependency if excluded form hibernate -->
+		<!--<dependency>-->
+			<!--<groupId>net.sf.ehcache</groupId>-->
+			<!--<artifactId>ehcache</artifactId>-->
+			<!--<version>2.9.0</version>-->
+		<!--</dependency>-->
 
 		<!-- ~~~~~~~~~~ -->
 		<!-- VALIDATION -->
@@ -132,13 +191,12 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>4.3.2.Final</version>
+			<version>4.3.2.Final</version><!--old 4.3.2.Final new -->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
-			<version>4.3.2.Final</version>
-			<scope>provided</scope>
+			<version>4.3.2.Final</version><!--old 4.3.2.Final new -->
 		</dependency>
 		<dependency> <!-- validation html -->
 			<groupId>org.jsoup</groupId>
@@ -240,7 +298,37 @@
             <artifactId>json</artifactId>
             <version>20070829</version>
         </dependency>
-
+		
+		<!-- ~~~~~~~~~~~~~ -->
+		<!-- ElasticSearch -->
+		<!-- ~~~~~~~~~~~~~ -->
+		<!-- TODO: requires to switch to java 8 -->
+		<!--<dependency>-->
+			<!--<groupId>org.elasticsearch</groupId>-->
+			<!--<artifactId>elasticsearch</artifactId>-->
+			<!--<version>5.5.1</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.elasticsearch.client</groupId>-->
+			<!--<artifactId>transport</artifactId>-->
+			<!--<version>5.5.1</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.apache.lucene</groupId>-->
+			<!--<artifactId>lucene-core</artifactId>-->
+			<!--<version>6.6.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+		    <!--<groupId>org.eclipse.persistence</groupId>-->
+			<!--<artifactId>eclipselink</artifactId>-->
+			<!--<version>2.7.3</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.glassfish</groupId>-->
+			<!--<artifactId>javax.json</artifactId>-->
+			<!--<version>1.1</version>-->
+		<!--</dependency>-->
+		
 		<!-- ~~~~~~ -->
 		<!-- SPRING -->
 		<!-- ~~~~~~ -->
@@ -307,27 +395,27 @@
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core-tiger</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-odm</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-ldif-core</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-ldif-batch</artifactId>
-            <version>1.3.2.RELEASE</version>
+			<version>${spring-ldap.version}</version>
         </dependency>
 
         <!-- ~~~~~~~~~~~~~~~ -->
@@ -388,15 +476,25 @@
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-context</artifactId>
                 </exclusion>
+				<exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-impl</artifactId>
+                </exclusion>
+				<exclusion>
+                    <groupId>javax.xml.soap</groupId>
+                    <artifactId>saaj-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
-        <!-- This is necessary for web service to work also (somehow this library was missing in the deploy environment) -->
-        <dependency>
+
+		<!-- This is necessary for web service to work also (somehow this library was missing in the deploy environment) -->
+       <!-- maybe not needed anymore -->
+		<!--<dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
             <version>2.1.3</version>
             <scope>compile</scope>
-        </dependency>
+        </dependency> -->
 
 		<!-- ~~~~~~~~~~~~~~~~~ -->
 		<!-- REST WEB SERVICES -->
@@ -485,31 +583,53 @@
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-core</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-image</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dcm4che</groupId>
 			<artifactId>dcm4che-net</artifactId>
-			<version>3.3.4</version>
+			<version>5.13.0</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-exec</artifactId>
-			<version>1.1</version>
-		</dependency>
+		
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-exec</artifactId>
+            <version>1.1</version>
+        </dependency>
 
 		<dependency>
 			<groupId>javax.vecmath</groupId>
 			<artifactId>vecmath</artifactId>
 			<version>1.5.2</version>
 		</dependency>
-	</dependencies>
 
+		<!--TODO: Mirko's dependency-->
+		<!--<dependency>-->
+            <!--<groupId>org.jboss.logging</groupId>-->
+            <!--<artifactId>jboss-logging-annotations</artifactId>-->
+            <!--<version>2.1.0.Final</version>-->
+            <!--&lt;!&ndash;3.3.2 Only required during compile of the current module &ndash;&gt;-->
+            <!--<scope>provided</scope>-->
+            <!--<optional>true</optional>-->
+        <!--</dependency>-->
+
+		<!--TODO: Mirko's dependency-->
+		<!--<dependency>-->
+            <!--<groupId>org.jboss.logging</groupId>-->
+            <!--<artifactId>jboss-logging-processor</artifactId>-->
+            <!--<version>2.1.0.Final</version>-->
+            <!--&lt;!&ndash; Only required during compile of the current module &ndash;&gt;-->
+            <!--<scope>provided</scope>-->
+            <!--<optional>true</optional>-->
+        <!--</dependency>-->
+		
+    </dependencies>	
+	
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- REPOSITORIES -->
 	<!-- ~~~~~~~~~~~~ -->
@@ -517,12 +637,20 @@
 		<repository>
 			<id>dcm4che</id>
 			<name>dcm4che Repository</name>
-			<url>http://www.dcm4che.org/maven2</url>
+            <url>https://www.dcm4che.org/maven2</url>
 		</repository>
-        <repository>
+       
+	   <!-- <repository>
             <id>spring-release</id>
             <url>https://repo.springsource.org/libs-release/</url>
-        </repository>
+        </repository> -->
+		
+		<repository> 
+			<id>repository.spring.release</id> 
+			<name>Spring GA Repository</name> 
+			<url>http://repo.spring.io/release</url> 
+		</repository>
+		
 		<repository>
 			<id>jboss</id>
 			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
@@ -542,6 +670,18 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+
+				<!--TODO: something what Mirko was using?-->
+				<!--
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<compilerArgument>-proc:none</compilerArgument>
+					</configuration>
+				</plugin>
+				-->
+			
 				<plugin>
 					<!-- http://maven.apache.org/plugins/maven-idea-plugin/ -->
 					<groupId>org.apache.maven.plugins</groupId>

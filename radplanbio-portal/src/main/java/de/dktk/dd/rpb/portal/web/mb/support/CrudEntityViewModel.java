@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package de.dktk.dd.rpb.portal.web.mb.support;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.Named;
+import de.dktk.dd.rpb.core.domain.Personed;
 import de.dktk.dd.rpb.core.repository.support.Repository;
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
 import de.dktk.dd.rpb.portal.web.util.TabBean;
@@ -67,9 +68,12 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
 
     protected List<E> entityList;
     protected List<E> filteredEntities;
+
     protected E selectedEntity;
     protected List<E> selectedEntities;
+
     protected E newEntity;
+    protected E editMultiEntity;
 
     protected List<Boolean> columnVisibilityList;
     protected List<SortMeta> preSortOrder;
@@ -99,20 +103,42 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
     /**
      * Get Entity List
      * List is sorted according to name when E implements Named interface
-     * This is useful when loading entities into simple UI element like combobox
+     * List is sorted according to surname and firstname when E implements Personed interface
+     * Sorting is useful when loading entities into simple UI element like combobox
      * @return List - Entity List
      */
-    @SuppressWarnings("unused")
     public List<E> getEntityList() {
         if (this.entityList != null && this.entityList.size() > 0) {
             E entity = this.entityList.get(0);
+
+            // Named entities sort by name
             if (entity instanceof Named) {
                 Collections.sort(this.entityList, new Comparator<E>() {
                     public int compare(E s1, E s2) {
-                        String sortProperty1 = ((Named)s1).getName();
-                        String sortProperty2 = ((Named)s2).getName();
+                        String name1 = ((Named) s1).getName() != null ? ((Named) s1).getName() : "";
+                        String name2 = ((Named) s2).getName() != null ? ((Named) s2).getName() : "";
 
-                        return (sortProperty1.compareToIgnoreCase(sortProperty2));
+                        return (name1.compareToIgnoreCase(name2));
+                    }
+                });
+            }
+            // Personed entities sort by surname and firstname
+            else if (entity instanceof Personed) {
+                Collections.sort(this.entityList, new Comparator<E>() {
+                    public int compare(E s1, E s2) {
+                        String surname1 = ((Personed) s1).getSurname() != null ? ((Personed) s1).getSurname() : "";
+                        String surname2 = ((Personed) s2).getSurname() != null ? ((Personed) s2).getSurname() : "";
+                        int surnameComp = surname1.compareTo(surname2);
+
+                        if (surnameComp != 0) {
+                            return surnameComp;
+                        }
+                        else {
+                            String firstname1 = ((Personed) s1).getFirstname() != null ? ((Personed) s1).getFirstname() : "";
+                            String firstname2 = ((Personed) s2).getFirstname() != null ? ((Personed) s2).getFirstname() : "";
+
+                            return firstname1.compareTo(firstname2);
+                        }
                     }
                 });
             }
@@ -125,7 +151,6 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
      * Set Entity List
      * @param list - Entity List
      */
-    @SuppressWarnings("unused")
     public void setEntityList(List<E> list) {
         this.entityList = list;
     }
@@ -138,7 +163,6 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
      * Get Filtered Entities List
      * @return List - Entities List
      */
-    @SuppressWarnings("unused")
     public List<E> getFilteredEntities() {
         return this.filteredEntities;
     }
@@ -147,7 +171,6 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
      * Set Filtered Entities List
      * @param list - Entities List
      */
-    @SuppressWarnings("unused")
     public void setFilteredEntities(List<E> list) {
         this.filteredEntities = list;
     }
@@ -192,7 +215,6 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
      * Get New Entity
      * @return NewRole - Entity
      */
-    @SuppressWarnings("unused")
     public E getNewEntity() {
         return this.newEntity;
     }
@@ -201,9 +223,20 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
      * Set New Entity
      * @param entity - Entity
      */
-    @SuppressWarnings("unused")
     public void setNewEntity(E entity) {
         this.newEntity = entity;
+    }
+
+    //endregion
+
+    // region Edit MultiEntity
+
+    public E getEditMultiEntity() {
+        return this.editMultiEntity;
+    }
+
+    public void setEditMultiEntity(E entity) {
+        this.editMultiEntity = entity;
     }
 
     //endregion
@@ -300,9 +333,8 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
     public void doUpdateEntity() {
         try {
             // Commit changes
-            this.selectedEntity = this.getRepository().merge(
-                    this.selectedEntity
-            );
+            this.selectedEntity = this.getRepository().merge(this.selectedEntity);
+            
             this.messageUtil.infoEntity("status_saved_ok", this.selectedEntity);
 
             // Reload
@@ -362,17 +394,17 @@ public abstract class CrudEntityViewModel<E extends Identifiable<PK>, PK extends
      * Get Repository
      * @return repository
      */
-    abstract protected Repository<E, PK> getRepository();
+    protected abstract Repository<E, PK> getRepository();
 
     /**
      * Prepare new entity
      */
-    abstract public void prepareNewEntity();
+    public abstract void prepareNewEntity();
 
     /**
      * Need to build an initial sort order for data table multi sort
      */
-    abstract protected List<SortMeta> buildSortOrder();
+    protected abstract List<SortMeta> buildSortOrder();
 
     //endregion
 

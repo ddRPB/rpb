@@ -43,14 +43,6 @@
                                 process="@this"
                                 actionListener="#{mbCrfAnnotation.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newAnnotationDialog').show();"
-                                immediate="true"
-                                update=":newAnnotationForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbCrfAnnotation.prepareNewEntity}"
-                                />
 
                         <!-- Reload -->
                         <p:commandButton
@@ -61,12 +53,6 @@
                                 process="@this"
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbCrfAnnotation.loadCrfFieldAnnotations}"
-                                />
-                        <p:hotkey bind="ctrl+shift+r"
-                                  immediate="true"
-                                  process="@this"
-                                  update=":form:tabView:dtEntities, :growl"
-                                  actionListener="#{mbCrfAnnotation.loadCrfFieldAnnotations}"
                                 />
                     </p:toolbarGroup>
 
@@ -111,32 +97,70 @@
                         disabledTextSelection="false"
                         >
 
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtEntities"
+                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbCrfAnnotation.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
                     <!-- Row -->
                     <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
-                    <!-- event OID -->
+                    <!-- EventDefinition OID -->
                     <p:column
-                            id="colCrfAnnotationEventDefOid"
-                            sortBy="#{annotation.eventDefinitionOid}"
-                            filterBy="#{annotation.eventDefinitionOid}"
-                            filterMatchMode="contains"
-                            >
+                        id="colCrfAnnotationEventDefOid"
+                        sortBy="#{annotation.eventDefinitionOid}"
+                        filterBy="#{annotation.eventDefinitionOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[0]}"
+                        >
                         <f:facet name="header">
                             <h:outputText value="#{msg.crfFieldAnnotation_eventDefinitionOid}" />
                         </f:facet>
                         <h:outputText value="#{annotation.eventDefinitionOid}" style="float: left;" />
                     </p:column>
 
-                    <!-- itemGroup OID -->
+                    <!-- FormDefinition OID -->
+                    <p:column
+                        sortBy="#{annotation.formOid}"
+                        filterBy="#{annotation.formOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[1]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.crfFieldAnnotation_formOid}" />
+                        </f:facet>
+                        <h:outputText value="#{annotation.formOid}" style="float: left;" />
+                    </p:column>
 
-                    <!-- eCRF item OID -->
+                    <!-- ItemGroup OID -->
+                    <p:column
+                        sortBy="#{annotation.groupOid}"
+                        filterBy="#{annotation.groupOid}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[2]}"
+                        >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.crfFieldAnnotation_groupOid}" />
+                        </f:facet>
+                        <h:outputText value="#{annotation.groupOid}" style="float: left;" />
+                    </p:column>
+
+                    <!-- ItemDefinition OID -->
                     <p:column
                             id="colCrfAnnotationItemDefOid"
                             sortBy="#{annotation.crfItemOid}"
                             filterBy="#{annotation.crfItemOid}"
                             filterMatchMode="contains"
+                            visible="#{mbCrfAnnotation.columnVisibilityList[3]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.crfFieldAnnotation_crfItemOid}" />
@@ -146,10 +170,11 @@
 
                     <!-- eCRF annotation type -->
                     <p:column
-                            sortBy="#{annotation.annotationType.name}"
-                            filterBy="#{annotation.annotationType.name}"
-                            filterMatchMode="contains"
-                            >
+                        sortBy="#{annotation.annotationType.name}"
+                        filterBy="#{annotation.annotationType.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbCrfAnnotation.columnVisibilityList[4]}"
+                        >
                         <f:facet name="header">
                             <h:outputText value="#{msg.crfFieldAnnotation_annotationType}" />
                         </f:facet>
@@ -158,11 +183,11 @@
 
                     <!-- Commands -->
                     <p:column
-                            headerText="#{msg.menu_commands}"
-                            exportable="false"
-                            toggleable="false"
-                            style="width:17%"
-                            >
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:17%"
+                        >
                         <!-- Edit -->
                         <p:commandButton
                                 title="#{msg.menu_edit}"
@@ -238,10 +263,10 @@
 
             <h:form id="newAnnotationForm">
                 <p:panelGrid id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- OpenClinica active study -->
                     <h:outputLabel value="#{msg.study}: *" for="txtStudyNew" />
@@ -292,11 +317,11 @@
                     <!-- eCRF item group -->
                     <h:outputLabel value="#{msg.crfFieldAnnotation_groupOid}: *" for="cmbItemGroupDefinitions" />
                     <p:selectOneMenu id="cmbItemGroupDefinitions"
-                            value="#{mbCrfAnnotation.newEntity.groupOid}"
-                            required="true"
-                            requiredMessage="You have to choose item group definition, it is mandatory!"
-                            style="width:250px"
-                            >
+                        value="#{mbCrfAnnotation.newEntity.groupOid}"
+                        required="true"
+                        requiredMessage="You have to choose item group definition, it is mandatory!"
+                        style="width:250px"
+                        >
                         <p:ajax update=":newAnnotationForm:newDisplay" listener="#{mbCrfAnnotation.reloadGroupItems}" />
                         <p:ajax update=":newAnnotationForm:plItemDefinitions" listener="#{mbCrfAnnotation.reloadItems}" />
                         <f:selectItem
@@ -311,39 +336,44 @@
                                 />
                     </p:selectOneMenu>
 
-                    <!-- eCRF annotation type-->
+                    <!-- eCRF annotation type -->
                     <h:outputLabel value="#{msg.crfFieldAnnotation_annotationType}: *" for="cmbAnnotationTypes" />
                     <p:selectOneMenu id="cmbAnnotationTypes"
-                            value="#{mbCrfAnnotation.newEntity.annotationType}"
-                            converter="#{annotationTypeConverter}"
-                            required="true"
-                            requiredMessage="You have to choose type of annotation, it is mandatory!"
-                            style="width:250px"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        value="#{mbCrfAnnotation.newEntity.annotationType}"
+                        converter="omnifaces.SelectItemsConverter"
+                        required="true"
+                        requiredMessage="You have to choose type of annotation, it is mandatory!"
+                        filter="true"
+                        filterMatchMode="contains"
+                        var="annotationTypeIter"
+                        style="width:280px"
+                        >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems
-                                value="#{mbAnnotationType.entityList}"
-                                var="annotationType"
-                                itemLabel="#{annotationType.name}"
-                                itemDescription="#{annotationType.description}"
-                                itemValue="#{annotationType}"
-                                />
+                            value="#{mbAnnotationType.entityList}"
+                            var="annotationType"
+                            itemValue="#{annotationType}"
+                            itemLabel="#{annotationType.name}"
+                            />
+                        <p:column>
+                            <h:outputText value="#{annotationTypeIter.name}" title="#{annotationTypeIter.description}" />
+                        </p:column>
                     </p:selectOneMenu>
 
                     <!-- eCRF item -->
                     <h:outputLabel value="#{msg.crfFieldAnnotation_crfItemOid}: *" for="plItemDefinitions" />
                     <p:pickList id="plItemDefinitions"
-                                value="#{mbCrfAnnotation.itemDefinitions}"
-                                var="itemDef"
-                                itemValue="#{itemDef}"
-                                itemLabel="#{itemDef.name}"
-                                showSourceFilter="true"
-                                showTargetFilter="true"
-                                filterMatchMode="contains"
-                                converter="#{transientConverter}"
-                                rendered="#{mbCrfAnnotation.selectedItemGroupDefinition != null}"
-                                required="true"
-                                requiredMessage="You have to choose item definitions which should be annotated!"
+                            value="#{mbCrfAnnotation.itemDefinitions}"
+                            var="itemDef"
+                            itemValue="#{itemDef}"
+                            itemLabel="#{itemDef.name}"
+                            showSourceFilter="true"
+                            showTargetFilter="true"
+                            filterMatchMode="contains"
+                            converter="#{transientConverter}"
+                            rendered="#{mbCrfAnnotation.selectedItemGroupDefinition != null}"
+                            required="true"
+                            requiredMessage="You have to choose item definitions which should be annotated!"
                             >
                         <f:facet name="sourceCaption">Available</f:facet>
                         <f:facet name="targetCaption">Selected</f:facet>
@@ -374,21 +404,21 @@
 
         <!-- Edit -->
         <p:dialog
-                id="dlgAnnotationEdit"
-                header="#{msg.crfFieldAnnotation_edit}"
-                widgetVar="editAnnotationDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgAnnotationEdit"
+            header="#{msg.crfFieldAnnotation_edit}"
+            widgetVar="editAnnotationDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="editAnnotationForm">
                 <p:panelGrid
-                        id="editDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- OpenClinica active study -->
                     <h:outputLabel value="#{msg.study}:" for="txtStudyEdit" />
@@ -415,31 +445,36 @@
                     <p:selectOneMenu
                             id="cmbAnnotationType"
                             value="#{mbCrfAnnotation.selectedEntity.annotationType}"
-                            converter="#{annotationTypeConverter}"
-                            style="width:250px"
+                            converter="omnifaces.SelectItemsConverter"
                             required="true"
                             requiredMessage="You have to choose type of annotation, it is mandatory!"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="annotationTypeIter"
+                            style="width:280px"
                             >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems
-                                value="#{mbAnnotationType.entityList}"
-                                var="annotationType"
-                                itemLabel="#{annotationType.name}"
-                                itemDescription="#{annotationType.description}"
-                                itemValue="#{annotationType}"
-                                />
+                            value="#{mbAnnotationType.entityList}"
+                            var="annotationType"
+                            itemValue="#{annotationType}"
+                            itemLabel="#{annotationType.name}"
+                            />
+                        <p:column>
+                            <h:outputText value="#{annotationTypeIter.name}" title="#{annotationTypeIter.description}" />
+                        </p:column>
                     </p:selectOneMenu>
 
                     <!-- Commands -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtEntities, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAnnotationEdit','editAnnotationForm');"
-                                actionListener="#{mbCrfAnnotation.doUpdateAnnotation}"
-                                process="@this editAnnotationForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgAnnotationEdit','editAnnotationForm');"
+                            actionListener="#{mbCrfAnnotation.doUpdateAnnotation}"
+                            process="@this editAnnotationForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -447,21 +482,21 @@
 
         <!-- Delete -->
         <p:dialog
-                id="dlgDeleteAnnotation"
-                header="#{msg.crfFieldAnnotation_delete}"
-                widgetVar="deleteAnnotationDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgDeleteAnnotation"
+            header="#{msg.crfFieldAnnotation_delete}"
+            widgetVar="deleteAnnotationDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="deleteAnnotationForm">
                 <p:panelGrid
-                        id="deleteDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="deleteDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
 
                     <!-- OpenClinica active study -->
                     <h:outputLabel value="#{msg.study}:" for="txtStudy" />

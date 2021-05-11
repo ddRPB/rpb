@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,18 +19,15 @@
 
 package de.dktk.dd.rpb.portal.web.mb.pacs;
 
-import de.dktk.dd.rpb.core.domain.pacs.DicomSerie;
-import de.dktk.dd.rpb.core.repository.pacs.IDicomSerieRepository;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
+import de.dktk.dd.rpb.core.repository.pacs.IDicomSeriesRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
@@ -38,20 +35,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for DicomStudy
+ * Bean for DicomSeries
  *
  * @author tomas@skripcak.net
  * @since 02 Nov 2015
  */
 @Named("mbDicomSerie")
 @Scope(value="view")
-public class DicomSeriesBean extends CrudEntityViewModel<DicomSerie, Integer> {
+public class DicomSeriesBean extends CrudEntityViewModel<DicomSeries, Integer> {
 
     //region Injects
 
     //region Repository - Dummy
 
-    private IDicomSerieRepository repository;
+    private IDicomSeriesRepository repository;
 
     /**
      * Get StructTypeRepository
@@ -59,7 +56,7 @@ public class DicomSeriesBean extends CrudEntityViewModel<DicomSerie, Integer> {
      */
     @SuppressWarnings("unused")
     @Override
-    public IDicomSerieRepository getRepository() {
+    public IDicomSeriesRepository getRepository() {
         return this.repository;
     }
 
@@ -68,7 +65,7 @@ public class DicomSeriesBean extends CrudEntityViewModel<DicomSerie, Integer> {
      * @param repository StructTypeRepository
      */
     @SuppressWarnings("unused")
-    public void setRepository(IDicomSerieRepository repository) {
+    public void setRepository(IDicomSeriesRepository repository) {
         this.repository = repository;
     }
 
@@ -111,29 +108,23 @@ public class DicomSeriesBean extends CrudEntityViewModel<DicomSerie, Integer> {
     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results =  DataTableUtil.buildSortOrder(":form:tabView:dtDicomStudies:dtDicomSeries:colDicomSerieUid", "colDicomSerieUid", SortOrder.ASCENDING);
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtDicomStudies:dtDicomSeries:colDicomSerieUid");
+        if (results != null) {
+            return results;
+        }
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colDicomSerieUid");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         // Initial visibility of columns
         results.add(Boolean.TRUE); // UID
         results.add(Boolean.TRUE); // Description
         results.add(Boolean.TRUE); // Modality
-        results.add(Boolean.FALSE); // Time
+        results.add(Boolean.TRUE); // Time
 
         return results;
     }

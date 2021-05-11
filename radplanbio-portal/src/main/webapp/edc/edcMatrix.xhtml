@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="EDC" title="EDC - data capture" url="#" />
+            <p:menuitem value="EDC Matrix" title="EDC Matrix" url="/edc/edcMatrix.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of the page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView">
+            <p:tab title="EDC Matrix">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="#{msg.studySubject_reload}"
+                            icon="ui-icon-refresh"
+                            action="#{mbEdcMatrix.load}"
+                            ajax="false"
+                            update=":form:tabView:dtEntities, :growl"
+                            />
+                    </p:toolbarGroup>
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.studySubject_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            onclick="target='_blank'"
+                            ajax="false"
+                            immediate="true"
+                            action="#{mbMain.navigateToHelp('x1-240003')}"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- EDC Study Subjects Matrix -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="studySubject"
+                    value="#{mbEdcMatrix.entityList}"
+                    widgetVar="studySubjectsTable"
+                    resizableColumns="true"
+                    paginator="true"
+                    draggableColumns="false"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100,200,500,1000"
+                    emptyMessage="#{msg.search_empty}"
+                    filteredValue="#{mbEdcMatrix.filteredEntities}"
+                    selection="#{mbEdcMatrix.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{studySubject.studySubjectId}"
+                    rowIndexVar="rowIndex"
+                    sortMode="multiple"
+                    sortBy="#{mbEdcMatrix.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbEdcMatrix.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column exportable="false" toggleable="false" style="width:5%">
+                        <f:facet name="header">
+                            <h:outputText value="#" />
+                        </f:facet>
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- StudySubject ID -->
+                    <p:column
+                        id="colStudySubjectId"
+                        headerText="#{msg.studySubject_studySubjectId}"
+                        sortBy="#{studySubject.studySubjectId}"
+                        filterBy="#{studySubject.studySubjectId}"
+                        visible="#{mbEdcMatrix.columnVisibilityList[0]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{studySubject.studySubjectId}" style="float: left;" />
+                    </p:column>
+
+                    <!-- PID -->
+                    <p:column
+                        headerText="#{msg.studySubject_personId}"
+                        sortBy="#{studySubject.pid}"
+                        filterBy="#{studySubject.pid}"
+                        visible="#{mbEdcMatrix.columnVisibilityList[1]}"
+                        style="width:10%"
+                        >
+                        <h:outputText style="font-family:consolas, courier new,monospace;float: left;" value="#{studySubject.pid}" />
+                    </p:column>
+
+                    <!-- Secondary ID -->
+                    <p:column
+                        headerText="#{msg.studySubject_secondaryId}"
+                        sortBy="#{studySubject.secondaryId}"
+                        filterBy="#{studySubject.secondaryId}"
+                        visible="#{mbEdcMatrix.columnVisibilityList[2]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{studySubject.secondaryId}"  style="float: left;" />
+                    </p:column>
+
+                    <!-- Gender -->
+                    <p:column
+                        headerText="#{msg.studySubject_gender}"
+                        sortBy="#{studySubject.sex}"
+                        filterBy="#{studySubject.sex}"
+                        filterMatchMode="in"
+                        visible="#{mbEdcMatrix.columnVisibilityList[3]}"
+                        style="width:5%"
+                        >
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                label="Options"
+                                onchange="PF('studySubjectsTable').filter()"
+                                panelStyle="width:50px"
+                                scrollHeight="50"
+                                >
+                                <f:selectItem itemLabel="m" itemValue="m" />
+                                <f:selectItem itemLabel="f" itemValue="f" />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{studySubject.sex}" />
+                    </p:column>
+
+                    <!-- All event definitions -->
+                    <p:columns
+                        value="#{mbEdcMatrix.rpbStudy.findEventDefinitions()}"
+                        var="eventDefinition"
+                        style="width:65%"
+                        columnIndexVar="colIndex"
+                        >
+
+                        <!-- Subtable header -->
+                        <f:facet name="header">
+                            <h:outputText value="#{eventDefinition.name}" title="#{eventDefinition.description}" />
+                        </f:facet>
+
+                        <!-- All event occurences for subject -->
+                        <p:dataTable
+                            id="dtEvents"
+                            var="eventData"
+                            value="#{studySubject.getEventOccurrencesForEventDef(eventDefinition)}"
+                            widgetVar="subjectEventsTable"
+                            emptyMessage="#{msg.search_empty}"
+                            rowKey="#{eventData.studyEventRepeatKey}"
+                            rowIndexVar="subjectEventRowIndex"
+                            disabledTextSelection="false"
+                            >
+
+                            <!-- Row -->
+                            <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                                <h:outputText value="#{subjectEventRowIndex + 1}" />
+                            </p:column>
+
+                            <!-- All FormDefs in EventDefinition -->
+                            <p:columns
+                                value="#{eventDefinition.findVisibleFormDefinitions()}"
+                                var="formDefinition"
+                                style="width:10%"
+                                columnIndexVar="col2Index"
+                                >
+
+                                <!-- Subsubtable header-->
+                                <f:facet name="header">
+                                    <h:outputText value="#{formDefinition.name}" title="#{formDefinition.oid}" />
+                                </f:facet>
+
+                                <!-- Form data for subject event data-->
+                                <h:inputText
+                                    value="#{mbEdcMatrix.loadFormDataStatus(eventData, formDefinition.oid)}"
+                                    title="#{mbEdcMatrix.loadFormDataLegend(eventData, formDefinition.oid)}"
+                                    styleClass="#{mbEdcMatrix.loadFormDataColourStatus(eventData, formDefinition.oid)}"
+                                    readonly="true"
+                                    />
+
+                            </p:columns>
+                        </p:dataTable>
+                    </p:columns>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbDicomMatrix.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbDicomMatrix.entityList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbDicomMatrix.entityList.size() > 1}"
+                        >
+                            <f:param value="#{mbDicomMatrix.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Block table -->
+                <p:blockUI block="dtEntities" trigger="dtEntities">
+                    LOADING<br />
+                    <p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}" style="width: 100%">
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.studySubject_plural}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.studySubject_plural}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+</ui:composition>

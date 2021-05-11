@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
@@ -22,12 +22,18 @@
             <p>
                 <p:outputPanel>
                     <p style="text-align:justify;">
-                        Welcome! The RadPlanBio manual provides comprehensive user and technical reference information, which provide first level of support while using RadPlanBio platform. We hope you'll find it useful.
+                        Welcome! The RPB manual provides comprehensive user and technical reference information, which provide first level of support while using RPB platform. We hope you'll find it useful.
                     </p>
+                    Links to manuals (Read the Docs):
+                    <ul>
+                         <li>
+                             <h:outputLink target="_blank" value="http://rpb-doc.readthedocs.io/">[EN] Reference Documentation [RPB - platform]</h:outputLink>
+                         </li>
+                    </ul>
                     Links to manuals (user):
                     <ul>
                         <li>
-                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual.html">[EN] User manual [RadPlanBio - portal]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual.html">[EN] User manual [RPB - portal]</h:outputLink>
                             <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual.pdf">
                                 <h:graphicImage
                                         width="15"
@@ -39,7 +45,7 @@
                             </h:outputLink>
                         </li>
                         <li>
-                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual_de.html">[DE] Benutzer Handbuch [RadPlanBio - portal]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual_de.html">[DE] Benutzer Handbuch [RPB - portal]</h:outputLink>
                             <h:outputLink target="_blank" value="${request.contextPath}/help/user/usermanual_de.pdf">
                                 <h:graphicImage
                                         width="15"
@@ -51,7 +57,7 @@
                             </h:outputLink>
                         </li>
                         <li>
-                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual.html">[EN] User manual [RadPlanBio - desktop upload client]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual.html">[EN] User manual [RPB - desktop upload client]</h:outputLink>
                             <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual.pdf">
                                 <h:graphicImage
                                         width="15"
@@ -63,7 +69,7 @@
                             </h:outputLink>
                         </li>
                         <li>
-                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual_de.html">[DE] Benutzer Handbuch [RadPlanBio - desktop upload client]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual_de.html">[DE] Benutzer Handbuch [RPB - desktop upload client]</h:outputLink>
                             <h:outputLink target="_blank" value="${request.contextPath}/help/client/clientmanual_de.pdf">
                                 <h:graphicImage
                                         width="15"
@@ -78,7 +84,7 @@
                     Links to manuals (admin):
                     <ul>
                         <li>
-                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual.html">[EN] Admin manual [RadPlanBio - platform]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual.html">[EN] Admin manual [RPB - platform]</h:outputLink>
                             <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual.pdf">
                                 <h:graphicImage
                                         width="15"
@@ -90,7 +96,7 @@
                             </h:outputLink>
                         </li>
                         <li>
-                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual_de.html">[DE] Admin Handbuch [RadPlanBio - platform]</h:outputLink>
+                            <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual_de.html">[DE] Admin Handbuch [RPB - platform]</h:outputLink>
                             <h:outputLink target="_blank" value="${request.contextPath}/help/admin/adminmanual_de.pdf">
                                 <h:graphicImage
                                         width="15"
@@ -102,10 +108,10 @@
                             </h:outputLink>
                         </li>
                     </ul>
-                    Links to official manuals (supporting systems):
+                    Links to official manuals (third-party systems):
                     <ul>
                         <li><h:outputLink target="_blank" value="https://docs.openclinica.com/">[EN] Reference Guide [OpenClinica - EDC]</h:outputLink></li>
-                        <!--<li><h:outputLink target="_blank" value="https://catissueplus.atlassian.net/wiki/display/CAT/Home">[EN] Support Center [caTissue - BIObank]</h:outputLink></li>-->
+                        <li><h:outputLink target="_blank" value="https://www.labkey.org/">[EN] Support [LabKey - LAB]</h:outputLink></li>
                     </ul>
                 </p:outputPanel>
             </p>

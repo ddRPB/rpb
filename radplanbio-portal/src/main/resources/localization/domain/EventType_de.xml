@@ -6,11 +6,11 @@
 
     <entry key="eventType">Typ</entry>
     <entry key="eventType_plural">Typen</entry>
-    <entry key="eventType_reload">Neu laden vorhandenen Timeline Ereignis Typen</entry>
-    <entry key="eventType_print">Drucken Tabelle Timeline Ereignis Typen</entry>
-    <entry key="eventType_new">Definieren Sie eine neue Timeline Ereignis Typen</entry>
-    <entry key="eventType_edit">Bearbeiten Sie ausgewählte Timeline Ereignis Typ</entry>
-    <entry key="eventType_delete">Löschen ausgewählten Timeline Ereignis Typ</entry>
+    <entry key="eventType_reload">Vorhandenen Timeline Ereignis Typen neu laden</entry>
+    <entry key="eventType_print">Tabelle Timeline Ereignis Typen drucken</entry>
+    <entry key="eventType_new">Neuen Timeline Ereignis Typ definieren</entry>
+    <entry key="eventType_edit">Ausgewählten Timeline Ereignis Typ bearbeiten</entry>
+    <entry key="eventType_delete">Ausgewählten Timeline Ereignis Typ löschen</entry>
 
     <!-- attributes -->
     <entry key="eventType_id">Id</entry>

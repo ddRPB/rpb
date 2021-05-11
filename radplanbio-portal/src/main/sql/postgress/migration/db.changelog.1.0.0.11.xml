@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+    >
+
+    <!-- New annotation types -->
+    <changeSet id="insert-annotation-inprovid" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="INPROVID" />
+            <column name="description" value="Health insurance provider number" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotation-inprovname" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="INPROVNAME" />
+            <column name="description" value="Health insurance provider name" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotation-inverdat" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="INVERDAT" />
+            <column name="description" value="Health insurance verification date" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-annotation-invertim" author="Tomas Skripcak">
+        <insert tableName="ANNOTATIONTYPE">
+            <column name="name" value="INVERTIM" />
+            <column name="description" value="Health insurance verification time" />
+        </insert>
+    </changeSet>
+
+    <!-- New user roles -->
+    <changeSet id="insert-role-labuser" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_LAB_USER" />
+            <column name="description" value="Access to LAB module" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-role-labopen" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_LAB_OPEN" />
+            <column name="description" value="Can open and login into LAB system" />
+        </insert>
+    </changeSet>
+
+    <!-- New Lab table -->
+    <changeSet id="create-table-lab" author="Tomas Skripcak">
+        <createTable tableName="LAB">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="baseurl" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="publicurl" type="varchar(255)" />
+            <column name="isenabled" type="boolean" defaultValueBoolean="true" />
+            <column name="version" type="varchar(15)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Alter PartnerSite table -->
+    <changeSet id="alter-table-partnersite-labid" author="Tomas Skripcak">
+        <addColumn tableName="PARTNERSITE">
+            <column name="labid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-partnersite-labid" author="Tomas Skripcak" >
+        <addForeignKeyConstraint
+            baseColumnNames="labid"
+            baseTableName="PARTNERSITE"
+            constraintName="partnersite_lab_fk7"
+            referencedColumnNames="id"
+            referencedTableName="LAB"
+            />
+    </changeSet>
+
+    <!-- TimePerspective -->
+    <changeSet id="create-table-timeperspective" author="Tomas Skripcak">
+        <createTable tableName="TIMEPERSPECTIVE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="varchar(4000)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Study -> Timing reference -->
+    <changeSet id="alter-table-study-timeperspectiveid" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="timeperspectiveid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-study-timeperspectiveid" author="Tomas Skripcak">
+        <addForeignKeyConstraint
+            baseTableName="STUDY"
+            baseColumnNames="timeperspectiveid"
+            constraintName="study_fk7"
+            referencedTableName="TIMEPERSPECTIVE"
+            referencedColumnNames="id"
+            />
+    </changeSet>
+
+    <!-- TimePerspective records -->
+    <changeSet id="insert-timeperspective-retrospective" author="Tomas Skripcak">
+        <insert tableName="TIMEPERSPECTIVE">
+            <column name="id"  valueSequenceNext="timeperspective_id_seq" />
+            <column name="name" value="Retrospective"  />
+            <column name="description" value="Look back using observations collected predominantly prior to subject selection and enrollment" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-timeperspective-prospective" author="Tomas Skripcak">
+        <insert tableName="TIMEPERSPECTIVE">
+            <column name="id"  valueSequenceNext="timeperspective_id_seq" />
+            <column name="name" value="Prospective" />
+            <column name="description" value="Look forward using periodic observations collected predominantly following subject enrollment" />
+        </insert>
+    </changeSet>
+    <changeSet id="insert-timeperspective-na" author="Tomas Skripcak">
+        <insert tableName="TIMEPERSPECTIVE">
+            <column name="id"  valueSequenceNext="timeperspective_id_seq" />
+            <column name="name" value="N/A" />
+            <column name="description" value="N/A" />
+        </insert>
+    </changeSet>
+
+    <!-- Portal add dataPath attribute -->
+    <changeSet id="alter-table-portal-datapath" author="Tomas Skripcak">
+        <addColumn tableName="PORTAL">
+            <column name="datapath" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+    <!-- Edc add publicUrl, soapPublicUrl, dataPath, isValidated attributes -->
+    <changeSet id="alter-table-edc-purl-spurl-datapath-isvalidated" author="Tomas Skripcak">
+        <addColumn tableName="EDC">
+            <column name="edcpublicurl" type="varchar(255)" />
+            <column name="soappublicurl" type="varchar(255)" />
+            <column name="datapath" type="varchar(255)" />
+            <column name="isvalidated" type="boolean" defaultValueBoolean="false" />
+        </addColumn>
+    </changeSet>
+
+    <!-- New FormEngine table -->
+    <changeSet id="create-table-formengine" author="Tomas Skripcak">
+        <createTable tableName="FORMENGINE">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="baseurl" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="publicurl" type="varchar(255)" />
+            <column name="isenabled" type="boolean" defaultValueBoolean="true" />
+            <column name="version" type="varchar(15)" />
+        </createTable>
+    </changeSet>
+
+    <!-- Alter PartnerSite table -->
+    <changeSet id="alter-table-partnersite-formengineid" author="Tomas Skripcak">
+        <addColumn tableName="PARTNERSITE">
+            <column name="formengineid" type="int" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="alter-key-partnersite-formengineid" author="Tomas Skripcak" >
+        <addForeignKeyConstraint
+            baseColumnNames="formengineid"
+            baseTableName="PARTNERSITE"
+            constraintName="partnersite_formengine_fk8"
+            referencedColumnNames="id"
+            referencedTableName="FORMENGINE"
+            />
+    </changeSet>
+
+    <!-- Drop unused tables -->
+    <changeSet id="drop-table-dataexport" author="Tomas Skripcak">
+        <dropTable tableName="DATAEXPORT"/>
+    </changeSet>
+    <changeSet id="drop-table-dataimport" author="Tomas Skripcak">
+        <dropTable tableName="DATAIMPORT"/>
+    </changeSet>
+    <changeSet id="drop-table-pulldatarequest" author="Tomas Skripcak">
+        <dropTable tableName="PULLDATAREQUEST"/>
+    </changeSet>
+    <changeSet id="drop-table-pushdataresponse" author="Tomas Skripcak">
+        <dropTable tableName="PUSHDATARESPONSE"/>
+    </changeSet>
+
+    <!-- New user roles -->
+    <changeSet id="insert-role-bioopen" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_BIO_OPEN" />
+            <column name="description" value="Can open and login into BIObank system" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

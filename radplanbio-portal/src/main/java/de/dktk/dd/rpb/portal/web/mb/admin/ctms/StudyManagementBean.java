@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,35 +20,32 @@
 package de.dktk.dd.rpb.portal.web.mb.admin.ctms;
 
 import de.dktk.dd.rpb.core.domain.ctms.Study;
+import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.mapping.Mapping;
+import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
 
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
+import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
 
-import org.primefaces.component.api.UIColumn;
+import org.primefaces.model.DualListModel;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.faces.context.FacesContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for RadPlanBio study management.
- *
- * This is basically the implementation of ViewModel from MVVM architecture
- * It abstract model to properties which are used to hold View data and
- * and functional part of domain model is accessed via commands which are
- * mapped to action in UI View.
+ * Bean for EDC study management.
  *
  * @author tomas@skripcak.net
  * @since 13 Sep 2013
@@ -61,24 +58,12 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
 
     //region Main bean
 
-    @Inject
     private MainBean mainBean;
-
-    /**
-     * Set MainBean
-     *
-     * @param bean MainBean
-     */
-    @SuppressWarnings("unused")
-    public void setMainBean(MainBean bean) {
-        this.mainBean = bean;
-    }
 
     //endregion
 
     //region Repository
 
-    @Inject
     private IStudyRepository repository;
 
     /**
@@ -89,23 +74,29 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
         return this.repository;
     }
 
-    /**
-     * Set StudyRepository
-     * @param value - StudyRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IStudyRepository value) {
-        this.repository = value;
-    }
+    //endregion
 
     //endregion
+
+    //region Constructors
+
+    @Inject
+    public StudyManagementBean(IStudyRepository repository, MainBean mainBean) {
+        this.repository = repository;
+        this.mainBean = mainBean;
+    }
 
     //endregion
 
     //region Members
 
-    private List<StudyType> studyTypeList; // OC studies
-    private String selectedStudyName;
+    private List<StudyType> studyTypeList; // EDC studies
+    private EventDefinition selectedEventDefinition;
+    private FormDefinition selectedFormDefinition;
+    private ItemGroupDefinition selectedItemGroupDefinition;
+    private ItemDefinition selectedItemDefinition;
+
+    private Odm odm;
 
     //endregion
 
@@ -122,26 +113,64 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
         return this.studyTypeList;
     }
 
-    /**
-     * Set Study Type List
-     *
-     * @param value - Study Type List
-     */
-    @SuppressWarnings("unused")
-    public void setStudyType(List<StudyType> value) {
-        this.studyTypeList = value;
+    //endregion
+
+    //region SelectedEventDefinition
+
+    public EventDefinition getSelectedEventDefinition() {
+        return this.selectedEventDefinition;
+    }
+
+    public void setSelectedEventDefinition(EventDefinition value) {
+        this.selectedEventDefinition = value;
     }
 
     //endregion
 
-    //region SelectedStudyName
+    //region SelectedFormDefinition
 
-    public String getSelectedStudyName() {
-        return this.selectedStudyName;
+    public FormDefinition getSelectedFormDefinition() {
+        return this.selectedFormDefinition;
     }
 
-    public void setSelectedStudyName(String value) {
-        this.selectedStudyName = value;
+    public void setSelectedFormDefinition(FormDefinition value) {
+        this.selectedFormDefinition = value;
+    }
+
+    //endregion
+
+    //region SelectedItemGroupDefinition
+
+    public ItemGroupDefinition getSelectedItemGroupDefinition() {
+        return this.selectedItemGroupDefinition;
+    }
+
+    public void setSelectedItemGroupDefinition(ItemGroupDefinition selectedItemGroupDefinition) {
+        this.selectedItemGroupDefinition = selectedItemGroupDefinition;
+    }
+
+    //endregion
+
+    //region SelectedItemDefinition
+
+    public ItemDefinition getSelectedItemDefinition() {
+        return this.selectedItemDefinition;
+    }
+
+    public void setSelectedItemDefinition(ItemDefinition selectedItemDefinition) {
+        this.selectedItemDefinition = selectedItemDefinition;
+    }
+
+    //endregion
+
+    //region Odm
+
+    public Odm getOdm() {
+        return this.odm;
+    }
+
+    public void setOdm(Odm odm) {
+        this.odm = odm;
     }
 
     //endregion
@@ -151,15 +180,13 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
     //region Init
 
     @PostConstruct
-    /**
-     * Load data from injected dependencies which are not available in bean constructor
-     */
     public void init() {
+        this.setColumnVisibilityList(
+                this.buildColumnVisibilityList()
+        );
         this.setPreSortOrder(
                 this.buildSortOrder()
         );
-
-        // Preparation ready now you can execute reload command
         this.reload();
     }
 
@@ -167,16 +194,16 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
 
     //region Commands
 
+    //region Study
+
     /**
-     * Reload fresh data which should be presented in this view
-     * from data storage repository
+     * Reload fresh data from EDC
      */
     public void reload() {
         try {
             // Load study entities
             super.load();
-
-            // Reload from web service
+            // Reload available EDC studies via web service
             this.studyTypeList = this.mainBean.getOpenClinicaService().listAllStudies();
         }
         catch (Exception err) {
@@ -185,40 +212,109 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
     }
 
     /**
-     * Create new RadPlanBio study with association to OpenClinica study
+     * Reload study metadata from EDC OpenClinica
      */
-    public void doCreateStudy() {
+    public void loadStudyMetadata() {
         try {
-            if (this.selectedStudyName != null) {
-                for (StudyType st : this.getStudyTypeList()) {
-                    if (st.getName().equals(this.selectedStudyName)) {
-                        de.dktk.dd.rpb.core.ocsoap.types.Study study = new de.dktk.dd.rpb.core.ocsoap.types.Study(st);
-                        this.newEntity.setOcStudyIdentifier(study.getStudyIdentifier());
+            // Get ODM metadata for user's active study
+            MetadataODM metadata =  this.mainBean
+                    .getOpenClinicaService()
+                    .getStudyMetadata(this.selectedEntity.getOcStudyIdentifier());
+
+            // XML to DomainObjects
+            this.odm = metadata.unmarshallOdm();
+            this.odm.updateHierarchy();
+        }
+        catch (Exception err) {
+            messageUtil.error(err);
+        }
+    }
+    
+    public void refreshStudyMetadata(Study study) {
+
+        try {
+            // Reload study metadata for parent and all children
+            if (this.studyTypeList != null) {
+                for (StudyType st : this.studyTypeList) {
+                    if (st.getIdentifier().equalsIgnoreCase(study.getOcStudyIdentifier())) {
+
+                        this.mainBean
+                                .getOpenClinicaService()
+                                .refreshStudyMetadataCache(study.getOcStudyIdentifier());
+
+                        if (st.getSites() != null && st.getSites().getSite() != null) {
+                            for (SiteType siteType : st.getSites().getSite()) {
+
+                                this.mainBean
+                                        .getOpenClinicaService()
+                                        .refreshStudyMetadataCache(siteType.getIdentifier());
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
-            else {
-                throw new Exception("You have to choose OC identifier if you want to create a new RadPlanBio study.");
+
+            messageUtil.infoText("Study metadata cache refreshed.");
+        }
+        catch (Exception err) {
+            messageUtil.error(err);
+        }
+    }
+
+    //endregion
+
+    //region DataMapping
+
+    public void doAddDataMapping(Mapping mapping) {
+        this.selectedEntity.addDataMapping(mapping);
+        this.doUpdateEntity();
+    }
+
+    public void doRemoveDataMapping(Mapping mapping) {
+        this.selectedEntity.removeDataMapping(mapping);
+        this.doUpdateEntity();
+    }
+
+    //endregion
+
+    //region CrfAnnotation
+
+    /**
+     * Create a new eCRF field annotation for a study
+     */
+    public void doCreateAnnotation(CrfFieldAnnotation annotation, DualListModel<ItemDefinition> itemDefinitions) {
+        try {
+            // Collect pick list selection
+            for (ItemDefinition selectedItem : itemDefinitions.getTarget()) {
+
+                CrfFieldAnnotation newAnnotation = new CrfFieldAnnotation(annotation);
+                newAnnotation.setCrfItemOid(selectedItem.getOid());
+                this.selectedEntity.addCrfFieldAnnotation(newAnnotation);
             }
 
-            // Create a BusinessRulesValidator which will be checking business rules which need database
-            Study existing = this.repository.getByOcStudyIdentifier(this.newEntity.getOcStudyIdentifier());
-            if (existing != null) {
-                throw new Exception("RadPlanBiostudy with this OC identifier: " + existing.getOcStudyIdentifier() + " already exists!");
-            }
-
-            // Business rules OK so persist the entity
-            this.repository.save(this.newEntity);
-
-            this.messageUtil.info("status_saved_ok", this.newEntity);
-
-            // Reload and prepare new
-            this.reload();
+            this.doUpdateEntity();
         }
         catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
+
+    /**
+     * Delete existing eCRF field annotation
+     */
+    public void doRemoveAnnotation(CrfFieldAnnotation annotation) {
+        try {
+            this.selectedEntity.removeCrfFieldAnnotation(annotation);
+            this.doUpdateEntity();
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    //endregion
 
     //endregion
 
@@ -232,24 +328,32 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
         this.newEntity = this.repository.getNew();
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtStudies:colStudyName", "colStudyName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtStudies:colStudyOcIdentifier");
+        return new ArrayList<>();
+    }
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStudyOcIdentifier");
-        sm1.setSortOrder(SortOrder.ASCENDING);
+    /**
+     * Create column visibility list
+     * @return List of Boolean values determining column visibility
+     */
+    protected List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> result = new ArrayList<>();
 
-        results.add(sm1);
+        result.add(Boolean.FALSE); // EDC Identifier
+        result.add(Boolean.TRUE); // Study short label
+        result.add(Boolean.FALSE); // Principal site
+        result.add(Boolean.FALSE); // Stratify site
 
-        return results;
+        return result;
     }
 
     //endregion

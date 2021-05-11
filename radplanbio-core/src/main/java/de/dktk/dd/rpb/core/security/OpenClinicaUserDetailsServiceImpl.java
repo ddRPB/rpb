@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
 import org.apache.log4j.Logger;
 
 import org.springframework.dao.DataAccessException;
@@ -40,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import de.dktk.dd.rpb.core.context.UserWithId;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.repository.admin.DefaultAccountRepository;
 
 /**
  * Our OpenClinica implementation of Spring Security's UserDetailsService.
@@ -60,15 +60,15 @@ public class OpenClinicaUserDetailsServiceImpl implements UserDetailsService {
 
     //region Members
 
-    private DefaultAccountRepository defaultAccountRepository;
+    private IDefaultAccountRepository IDefaultAccountRepository;
 
     //endregion
 
     //region Constructors
 
     @Inject
-    public OpenClinicaUserDetailsServiceImpl(DefaultAccountRepository defaultAccountRepository) {
-        this.defaultAccountRepository = defaultAccountRepository;
+    public OpenClinicaUserDetailsServiceImpl(IDefaultAccountRepository IDefaultAccountRepository) {
+        this.IDefaultAccountRepository = IDefaultAccountRepository;
     }
 
     //endregion
@@ -97,7 +97,7 @@ public class OpenClinicaUserDetailsServiceImpl implements UserDetailsService {
         }
 
         // Get the default account according to OC user name from local DB
-        DefaultAccount defaultAccount = defaultAccountRepository.getByOcUsername(ocUserName);
+        DefaultAccount defaultAccount = IDefaultAccountRepository.getByOcUsername(ocUserName);
 
         // The account could not be located
         if (defaultAccount == null) {
@@ -110,13 +110,14 @@ public class OpenClinicaUserDetailsServiceImpl implements UserDetailsService {
 
         // Return the Spring security user details which match with the DB account
         return new UserWithId (
-                    ocUserName,
+                    defaultAccount.getOcUsername(),
                     "", // password
                     "", // clearPassword
+                    defaultAccount.getEmail(),
                     defaultAccount.getIsEnabled(),
                     true, // accountNonExpired
                     true, // credentialsNonExpired
-                    true, // accountNonLocked
+                    defaultAccount.getNonLocked() != null ? defaultAccount.getNonLocked() : true,
                     this.toGrantedAuthorities(defaultAccount.getRoleNames()),
                     defaultAccount.getId()
                 );

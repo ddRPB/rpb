@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+    >
+
+    <!-- Alter MappingRecord table -->
+    <changeSet id="alter-table-mappingrecord-calculationstring" author="Tomas Skripcak">
+        <addColumn tableName="MAPPINGRECORD">
+            <column name="calculationstring" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- Alter TREATMENTARM table -->
+    <changeSet id="alter-table-treatmentarm-isenabled" author="Tomas Skripcak">
+        <addColumn tableName="TREATMENTARM">
+            <column name="isenabled" type="boolean" />
+        </addColumn>
+    </changeSet>
+
+    <!-- Alter STUDY table -->
+    <changeSet id="alter-table-study-enrollmentarmrequired" author="Tomas Skripcak">
+        <addColumn tableName="STUDY">
+            <column name="enrollmentarmrequired" type="boolean" />
+        </addColumn>
+    </changeSet>
+
+    <!-- New user roles -->
+    <changeSet id="insert-role-pacsupload" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PACS_UPLOAD" />
+            <column name="description" value="Can upload DICOM data to PACS" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-role-pacsdownload" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PACS_DOWNLOAD" />
+            <column name="description" value="Can download DICOM data from PACS" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="insert-role-pacsview" author="Tomas Skripcak">
+        <insert tableName="ROLE">
+            <column name="id"  valueSequenceNext="role_id_seq" />
+            <column name="rolename" value="ROLE_PACS_VIEW" />
+            <column name="description" value="Can view DICOM data from PACS in viewer" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

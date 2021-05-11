@@ -12,4 +12,10 @@
     <include file="db.changelog.1.0.0.4.xml" />
     <include file="db.changelog.1.0.0.5.xml" />
     <include file="db.changelog.1.0.0.6.xml" />
+    <include file="db.changelog.1.0.0.7.xml" />
+    <include file="db.changelog.1.0.0.8.xml" />
+    <include file="db.changelog.1.0.0.9.xml" />
+    <include file="db.changelog.1.0.0.10.xml" />
+    <include file="db.changelog.1.0.0.11.xml" />
+    <include file="db.changelog.1.0.0.12.xml" />
 </databaseChangeLog>

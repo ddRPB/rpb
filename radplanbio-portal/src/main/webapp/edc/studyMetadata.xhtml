@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="EDC" title="EDC - data capture" url="#" />
+            <p:menuitem value="#{msg.active_study_metadata}" title="#{msg.active_study_metadata}" url="/edc/studyMetadata.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+        <p:tabView id="tabView">
+
+            <!-- CDISC ODM study metadata -->
+            <p:tab title="Metadata">
+
+                <!-- Metadata toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            icon="ui-icon-refresh"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbMetadata.reload}"
+                            />
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            disabled="true"
+                            />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- RadPlanBio subjects table -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbMetadata.entityList}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    paginator="true"
+                    draggableColumns="false"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
+                    emptyMessage="#{msg.search_empty}"
+                    selection="#{mbMetadata.selectedEntity}"
+                    selectionMode="single"
+                    rowKey="#{entity.oid}"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbMetadata.filteredEntities}"
+                    sortMode="multiple"
+                    sortBy="#{mbMetadata.preSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbMetadata.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- ItemDefinitionOID -->
+                    <p:column
+                        id="colItemDefinitionOid"
+                        headerText="#{msg.itemDefinition_oid}"
+                        sortBy="#{entity.oid}"
+                        filterBy="#{entity.oid}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[0]}"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{entity.oid}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Name -->
+                    <p:column
+                        headerText="#{msg.itemDefinition_name}"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[1]}"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{entity.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Description -->
+                    <p:column
+                        headerText="Description"
+                        sortBy="#{entity.description}"
+                        filterBy="#{entity.description}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[2]}"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{entity.description}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Units -->
+                    <p:column
+                        headerText="Units"
+                        sortBy="#{entity.units}"
+                        visible="#{mbMetadata.columnVisibilityList[3]}"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.units}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Label-->
+                    <p:column
+                        headerText="Label"
+                        sortBy="#{entity.itemDetails.itemPresentInForm.leftItemText}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm.leftItemText}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[4]}"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.leftItemText}" style="float:left;" />
+                    </p:column>
+
+                    <!-- DataType -->
+                    <p:column
+                        headerText="Type"
+                        sortBy="#{entity.dataType}"
+                        filterBy="#{entity.dataType}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[5]}"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.dataType}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Length -->
+                    <p:column
+                        headerText="Length"
+                        sortBy="#{entity.length}"
+                        visible="#{mbMetadata.columnVisibilityList[6]}"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.length}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Response Type -->
+                    <p:column
+                        headerText="Kind"
+                        sortBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseType}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseType}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[7]}"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.itemResponse.responseType}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Response Layout -->
+                    <p:column
+                        headerText="Layout"
+                        sortBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseLayout}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseLayout}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[8]}"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.itemResponse.responseLayout}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Response -->
+                    <p:column
+                        headerText="Response"
+                        visible="#{mbMetadata.columnVisibilityList[9]}"
+                        style="width:40%"
+                        >
+                        <!-- ResponseItems-->
+                        <p:dataTable
+                            id="dtResponseItems"
+                            var="responseItem"
+                            value="#{entity.listItems}"
+                            widgetVar="responseItemsTable"
+                            emptyMessage="#{msg.search_empty}"
+                            rowKey="#{responseItem.code}"
+                            disabledTextSelection="false"
+                            >
+
+                            <!-- Code-->
+                            <p:column headerText="Code" style="width:10%">
+                                <h:outputText value="#{responseItem.codedValue}" style="float:left;" />
+                            </p:column>
+
+                            <!-- Decode -->
+                            <p:column headerText="Decoded" style="width:90%">
+                                <h:outputText value="#{responseItem.decodedText}" style="float:left;" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:column>
+
+                    <!-- Default Value -->
+                    <p:column
+                        headerText="Default"
+                        sortBy="#{entity.itemDetails.itemPresentInForm.defaultValue}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm.defaultValue}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[10]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.defaultValue}" style="float:left;" />
+                    </p:column>
+
+                    <!-- PHI -->
+                    <p:column
+                        headerText="PHI"
+                        sortBy="#{entity.isPhi}"
+                        visible="#{mbMetadata.columnVisibilityList[11]}"
+                        style="width:5%"
+                        >
+                        <h:selectBooleanCheckbox value="#{entity.isPhi}" style="float:left;" disabled="true" />
+                    </p:column>
+
+                    <!-- ShowItem -->
+                    <p:column
+                        headerText="Shown"
+                        sortBy="#{entity.getIsShown()}"
+                        visible="#{mbMetadata.columnVisibilityList[12]}"
+                        style="width:5%"
+                        >
+                        <h:selectBooleanCheckbox value="#{entity.getIsShown()}" style="float:left;" disabled="true" />
+                    </p:column>
+
+                    <!-- ItemGroupDefinition -->
+                    <p:column
+                        headerText="Group"
+                        sortBy="#{entity.itemGroupDefinition.name}"
+                        filterBy="#{entity.itemGroupDefinition.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[13]}"
+                        style="width:20%"
+                        >
+                        <h:outputText value="#{entity.itemGroupDefinition.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- FormDefinition -->
+                    <p:column
+                        headerText="Form"
+                        sortBy="#{entity.itemGroupDefinition.formDefinition.name}"
+                        filterBy="#{entity.itemGroupDefinition.formDefinition.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[14]}"
+                        style="width:15%"
+                        >
+                        <h:outputText value="#{entity.itemGroupDefinition.formDefinition.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- EventDefinition -->
+                    <p:column
+                        headerText="Event"
+                        sortBy="#{entity.itemGroupDefinition.formDefinition.eventDefinition.name}"
+                        filterBy="#{entity.itemGroupDefinition.formDefinition.eventDefinition.name}"
+                        filterMatchMode="contains"
+                        visible="#{mbMetadata.columnVisibilityList[15]}"
+                        style="width:15%"
+                        >
+                        <h:outputText value="#{entity.itemGroupDefinition.formDefinition.eventDefinition.name}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Table footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbMetadata.entityList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbMetadata.entityList.size() == 1}" />
+                        <h:outputFormat
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbMetadata.entityList.size() > 1}"
+                            >
+                            <f:param value="#{mbMetadata.entityList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export Datatable-->
+                <p:panel header="#{msg.menu_export}" style="width: auto">
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.active_study_metadata}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.active_study_metadata}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+</ui:composition>

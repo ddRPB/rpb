@@ -59,7 +59,7 @@ public class MetadataODM extends AbstractODM {
     @SuppressWarnings("unused")
 	public MetadataODM(Document odm) throws ODMException, ParserConfigurationException {
 		super(odm);
-	}
+    }
 
 	/**
 	 * Construct a new MetadataODM from String XML representation
@@ -92,7 +92,7 @@ public class MetadataODM extends AbstractODM {
     /**
      * Determine whether the subject person id (PID )is configured as mandatory for the study
      *
-     * @return String representing the mandatority of subject person ID (PID) for study
+     * @return String representing the necessity of subject person ID (PID) for study
      * @throws ODMException
      */
     public String getSubjectPersonIdRequiredStudyParameter() throws ODMException {
@@ -102,23 +102,22 @@ public class MetadataODM extends AbstractODM {
 
     /**
      * Determine whether the study is configured to collect patient day of birth property
-     *
-     * @return true if study subjects are stored with day of birth
+     * @return Configured option of date of birth collection (from enum)
      * @throws ODMException
      */
-    public Boolean getCollectDobStudyParameter() throws ODMException {
+    public EnumCollectSubjectDob getCollectDobStudyParameter() throws ODMException {
         try {
-            boolean collectDoB = false;
+            EnumCollectSubjectDob collectDob = EnumCollectSubjectDob.NO;
             Node collectBoDNode = (Node) xPath.compile("/cdisc:ODM/cdisc:Study/cdisc:MetaDataVersion/OpenClinica:StudyDetails/OpenClinica:StudyParameterConfiguration/OpenClinica:StudyParameterListRef[@StudyParameterListID='SPL_collectDob']").evaluate(odm, XPathConstants.NODE);
             if (collectBoDNode != null) {
                 for (int i = 0; i < collectBoDNode.getAttributes().getLength(); i++) {
                     if (collectBoDNode.getAttributes().item(i).getNodeName().equals("Value")){
-                       collectDoB = collectBoDNode.getAttributes().item(i).getNodeValue().equals("1");
+                        collectDob = EnumCollectSubjectDob.fromString(collectBoDNode.getAttributes().item(i).getNodeValue());
                     }
                 }
             }
 
-            return collectDoB;
+            return collectDob;
         }
         catch (XPathExpressionException e) {
             throw new ODMException(e);
@@ -165,6 +164,10 @@ public class MetadataODM extends AbstractODM {
 
     //endregion
 
+    /**
+     * Create CDISC ODM object graph from XML encoded data
+     * @return ODM object graph
+     */
     public Odm unmarshallOdm() {
         Odm result = null;
 
@@ -190,7 +193,7 @@ public class MetadataODM extends AbstractODM {
      */
     @SuppressWarnings("unused")
     public List<EventDefinition> getStudyEventDefs() throws ODMException {
-        List<EventDefinition> eventDefs = new ArrayList<EventDefinition>();
+        List<EventDefinition> eventDefs = new ArrayList<>();
 
         try {
             // StudyEventDef
@@ -200,7 +203,7 @@ public class MetadataODM extends AbstractODM {
 
             for (int i = 0; i < nodeList.getLength(); i++) {
                 EventDefinition eventDef = new EventDefinition();
-                List<String> formRefs = new ArrayList<String>();
+                List<String> formRefs = new ArrayList<>();
 
                 eventDef.setOid(nodeList.item(i).getAttributes().getNamedItem("OID").getNodeValue());
                 eventDef.setName(nodeList.item(i).getAttributes().getNamedItem("Name").getNodeValue());
@@ -223,7 +226,7 @@ public class MetadataODM extends AbstractODM {
                     if (formDefNode != null) {
 
                         FormDefinition formDef = new FormDefinition();
-                        List<String> itemGroupRefs = new ArrayList<String>();
+                        List<String> itemGroupRefs = new ArrayList<>();
 
                         formDef.setOid(formDefNode.getAttributes().getNamedItem("OID").getNodeValue());
                         formDef.setName(formDefNode.getAttributes().getNamedItem("Name").getNodeValue());
@@ -244,7 +247,7 @@ public class MetadataODM extends AbstractODM {
                             if (itemGroupDefNode != null) {
 
                                 ItemGroupDefinition itemGroupDef = new ItemGroupDefinition();
-                                List<String> itemRefs = new ArrayList<String>();
+                                List<String> itemRefs = new ArrayList<>();
 
                                 itemGroupDef.setOid(itemGroupDefNode.getAttributes().getNamedItem("OID").getNodeValue());
                                 itemGroupDef.setName(itemGroupDefNode.getAttributes().getNamedItem("Name").getNodeValue());

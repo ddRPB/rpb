@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,26 @@ package de.dktk.dd.rpb.core.service;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.edc.Study;
 
+import java.io.InputStream;
+
 /**
- * Created by root on 11/20/15.
+ * RPB Web-API service interface (new working with portal API)
+ *
+ * @author tomas@skripcak.net
+ * @since 19 Nov 2015
  */
 public interface IPortalWebApiService {
 
-    void setupConnection(String url, String apiKey);
+    void setupConnection(String url);
 
-    DefaultAccount loadDefaultAccount(String username);
+    DefaultAccount loadDefaultAccount(String username, String apiKey);
 
-    Study loadEdcStudy(String edcStudyIdentifier);
+    Study loadEdcStudy(String apiKey, String edcStudyIdentifier);
 
-    void changeActiveStudy(String username, Study studyId);
+    void changeActiveStudy(String username, String apiKey, Study studyId);
+
+    InputStream pacsCreateStudyArchive(String patientId, String dicomUid, Integer verifyCount, String apiKey);
+
+    InputStream pacsCreateSeriesArchive(String patientId, String dicomStudyUid, String dicomSeriesUid, String apiKey);
 
 }

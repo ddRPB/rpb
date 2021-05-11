@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import de.dktk.dd.rpb.core.context.UserContext;
 import de.dktk.dd.rpb.core.domain.admin.AuditLog;
 
+//TODO: It looks like this Singleton exist twice - it may be that there are two spring IoC contexts
 /**
  * AuditLogService
  *

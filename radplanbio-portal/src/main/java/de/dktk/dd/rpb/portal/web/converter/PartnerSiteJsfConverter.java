@@ -21,7 +21,7 @@ package de.dktk.dd.rpb.portal.web.converter;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-import de.dktk.dd.rpb.core.repository.admin.PartnerSiteRepository;
+import de.dktk.dd.rpb.core.repository.admin.IPartnerSiteRepository;
 import org.springframework.core.convert.support.DefaultConversionService;
 
 import javax.faces.component.UIComponent;
@@ -46,10 +46,10 @@ public class PartnerSiteJsfConverter implements Converter, Serializable {
     //region Injects
 
     @Inject
-    private PartnerSiteRepository partnerSiteRepository;
+    private IPartnerSiteRepository IPartnerSiteRepository;
 
-    public PartnerSiteRepository getPartnerSiteRepository() {
-        return this.partnerSiteRepository;
+    public IPartnerSiteRepository getIPartnerSiteRepository() {
+        return this.IPartnerSiteRepository;
     }
 
     //endregion
@@ -82,7 +82,7 @@ public class PartnerSiteJsfConverter implements Converter, Serializable {
             return null;
         }
 
-        return this.getPartnerSiteRepository().getById(toPk(value));
+        return this.getIPartnerSiteRepository().getById(toPk(value));
     }
 
     @SuppressWarnings("unchecked")

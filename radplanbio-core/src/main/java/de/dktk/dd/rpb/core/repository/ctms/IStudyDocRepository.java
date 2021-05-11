@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import de.dktk.dd.rpb.core.repository.support.Repository;
  * @author tomas@skripcak.net
  * @since 17 Sep 2013
  */
-public interface IStudyDocRepository  extends Repository<StudyDoc, Integer> {
+public interface IStudyDocRepository extends Repository<StudyDoc, Integer> {
 
     /**
      * Return the persistent instance of {@link DocType} with the given unique property value name,

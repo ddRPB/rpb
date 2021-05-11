@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.data_privacy}" title="#{msg.data_privacy}" url="/dataPrivacyProtection.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of content place holder content -->
+    <ui:define name="content">
+        <p:panel header="#{msg.data_privacy}">
+            <p:outputPanel>
+                <h:outputText value="#{msg.data_privacy_text}" escape="false" />
+            </p:outputPanel>
+            <!-- Give focus to first link to ease keyboard navigation -->
+            <script type="text/javascript">
+                $(function() {
+                    setTimeout(function() {
+                        APP.focusTo('form:logo_link');
+                    }, 200);
+                });
+            </script>
+        </p:panel>
+    </ui:define>
+</ui:composition>

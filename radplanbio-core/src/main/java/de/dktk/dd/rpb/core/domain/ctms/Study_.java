@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ public class Study_ {
 
     // Raw attributes
     public static volatile SingularAttribute<Study, Integer> id;
+    public static volatile SingularAttribute<Study, String> protocolId;
     public static volatile SingularAttribute<Study, String> name;
     public static volatile SingularAttribute<Study, String> title;
     public static volatile SingularAttribute<Study, String> description;
@@ -51,6 +52,7 @@ public class Study_ {
     //TODO: should be moved to tags later
     public static volatile SingularAttribute<Study, String> ocStudyIdentifier;
     public static volatile SingularAttribute<Study, Boolean> isStratifyTrialSite;
+    public static volatile SingularAttribute<Study, Boolean> isEnrollmentArmAssignmentRequired;
 
     // One to one
     public static volatile SingularAttribute<Study, AbstractRandomisationConfiguration> randomisationConfiguration;
@@ -61,6 +63,7 @@ public class Study_ {
     public static volatile SingularAttribute<Study, StudyPhase> phase;
     public static volatile SingularAttribute<Study, StudyStatus> status;
     public static volatile SingularAttribute<Study, SponsoringType> sponsoringType;
+    public static volatile SingularAttribute<Study, TimePerspective> timing;
 
     // One to many
     public static volatile ListAttribute<Study, StudyDoc> studyDocs;

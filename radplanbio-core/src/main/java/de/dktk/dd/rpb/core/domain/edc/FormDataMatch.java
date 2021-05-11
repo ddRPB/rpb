@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,7 @@ public class FormDataMatch implements Serializable {
                 for (ItemGroupData sigd : sourceFormData.getItemGroupDataList()) {
                     for (ItemGroupData tigd : targetFormData.getItemGroupDataList()) {
                         if (sigd.getItemGroupOid().equals(tigd.getItemGroupOid())) {
+                            // Repeating grid
                             if (sigd.getItemGroupRepeatKey() != null && tigd.getItemGroupRepeatKey() != null) {
                                 if (sigd.getItemGroupRepeatKey().equals(tigd.getItemGroupRepeatKey())) {
                                     // Create a match object for item group data - propagate the creation of rest down
@@ -80,6 +81,7 @@ public class FormDataMatch implements Serializable {
                                     break;
                                 }
                             }
+                            // Single group
                             else {
                                 // Create a match object for item group data - propagate the creation of rest down
                                 this.getItemGroupDataMatchList().add(

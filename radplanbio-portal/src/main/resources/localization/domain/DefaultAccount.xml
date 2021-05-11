@@ -18,6 +18,7 @@
     <entry key="account_password">Password</entry>
     <entry key="account_email">E-mail</entry>
     <entry key="account_isEnabled">Enabled</entry>
+    <entry key="account_nonLocked">Unlocked</entry>
     <entry key="account_privilegesCount">Privileges</entry>
     <entry key="account_apiKey">API-key</entry>
     <entry key="account_apiKeyEnabled">API-key enabled</entry>

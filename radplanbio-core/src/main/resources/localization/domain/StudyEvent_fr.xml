@@ -13,7 +13,7 @@
     <entry key="studyEvent_delete">Delete selected Event</entry>
 
     <!-- attributes -->
-    <entry key="studyEvent_oid">Oid</entry>
+    <entry key="studyEvent_oid">OID</entry>
     <entry key="studyEvent_name">Name</entry>
     <entry key="studyEvent_description">Description</entry>
     <entry key="studyEvent_category">Category</entry>

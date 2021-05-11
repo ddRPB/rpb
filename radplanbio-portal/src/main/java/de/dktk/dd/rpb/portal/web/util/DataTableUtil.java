@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,18 +38,19 @@ import java.util.List;
 public class DataTableUtil {
 
     public static List<SortMeta> buildSortOrder(String colPath, String colId, SortOrder sortOrder) {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = new ArrayList<>();
 
         UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
 
         UIComponent column = viewRoot.findComponent(colPath);
         if (column != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column);
-            sm1.setSortField(colId);
-            sm1.setSortOrder(sortOrder);
-
-            results.add(sm1);
+            results.add(
+                DataTableUtil.buildSortMeta(
+                    column,
+                    colId,
+                    sortOrder
+                )
+            );
 
             return results;
         }
@@ -57,4 +58,34 @@ public class DataTableUtil {
         return null;
     }
 
+    public static List<SortMeta> addSortOrder(List<SortMeta> existingSortOrder, String colPath, String colId, SortOrder sortOrder) {
+        if (existingSortOrder != null) {
+            UIViewRoot viewRoot = FacesContext.getCurrentInstance().getViewRoot();
+
+            UIComponent column = viewRoot.findComponent(colPath);
+            if (column != null) {
+                existingSortOrder.add(
+                    DataTableUtil.buildSortMeta(
+                        column,
+                        colId,
+                        sortOrder
+                    )
+                );
+
+                return existingSortOrder;
+            }
+        }
+
+        return null;
+    }
+
+    private static SortMeta buildSortMeta(UIComponent column, String colId, SortOrder sortOrder) {
+        
+        SortMeta result = new SortMeta();
+        result.setSortBy((UIColumn) column);
+        result.setSortField(colId);
+        result.setSortOrder(sortOrder);
+
+        return result;
+    }
 }

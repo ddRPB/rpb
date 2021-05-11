@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,16 +25,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 /**
- * Dummy service (is api working?)
+ * Dummy REST service (is API working?)
  */
 @Path("/hello")
 public class HelloWorldService {
 
     @GET
     @Path("/{param}")
-    public Response getMsg(@PathParam("param") String msg) {
-        msg = msg.equalsIgnoreCase("ping") ? "pong" : msg;
-        String output = "RPB Web-API says: " + msg;
+    public Response getHelloMessage(@PathParam("param") String message) {
+        message = message.equalsIgnoreCase("ping") ? "pong" : message;
+        String output = "RPB Web-API says: " + message;
         return Response.status(200).entity(output).build();
     }
 

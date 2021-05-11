@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,11 @@ import de.dktk.dd.rpb.core.domain.admin.RtStruct;
 import de.dktk.dd.rpb.core.repository.admin.RtStructRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -39,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for administration of RtStruct
+ * Bean for administration of RadPlanBio RtStruct domain entities
  *
  * @author tomas@skripcak.net
  * @since 27 Nov 2014
@@ -63,15 +60,6 @@ public class StructBean extends CrudEntityViewModel<RtStruct, Integer> {
     @Override
     public RtStructRepository getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set StructRepository
-     * @param repository StructRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(RtStructRepository repository) {
-        this.repository = repository;
     }
 
     //endregion
@@ -108,19 +96,12 @@ public class StructBean extends CrudEntityViewModel<RtStruct, Integer> {
     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStructIdentifier", "colStructIdentifier", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colStructIdentifier");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStructIdentifier");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     /**
@@ -128,7 +109,7 @@ public class StructBean extends CrudEntityViewModel<RtStruct, Integer> {
      * @return List of Boolean values determining column visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> result = new ArrayList<Boolean>();
+        List<Boolean> result = new ArrayList<>();
         result.add(Boolean.TRUE); // Identifier
         result.add(Boolean.TRUE); // Name
         result.add(Boolean.FALSE); // Description

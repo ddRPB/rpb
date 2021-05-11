@@ -4,25 +4,28 @@
 <properties>
     <comment>Domain resources for StudySubject</comment>
 
-    <entry key="studySubject">Proband</entry>
-    <entry key="studySubject_plural">Probanden</entry>
-    <entry key="studySubject_reload">Neu laden vorhandenen Studie Probanden</entry>
-    <entry key="studySubject_print">Drucken Tabelle Studie Probanden </entry>
-    <entry key="studySubject_new">Definieren Sie einen neuen Studie Proband</entry>
-    <entry key="studySubject_edit">Bearbeiten Sie ausgewählten Studie Proband</entry>
-    <entry key="studySubject_delete">Löschen ausgewählten Studie Proband</entry>
+    <entry key="studySubject">Studienteilnehmer</entry>
+    <entry key="studySubject_plural">Studienteilnehmer</entry>
+    <entry key="studySubject_reload">Vorhandenen Studienteilnehmer neu laden</entry>
+    <entry key="studySubject_print">Tabelle Studienteilnehmer drucken</entry>
+    <entry key="studySubject_new">Neuen Studienteilnehmer anlegen</entry>
+    <entry key="studySubject_edit">Ausgewählten Studienteilnehmer bearbeiten</entry>
+    <entry key="studySubject_delete">Ausgewählten Studienteilnehmer löschen</entry>
 
     <!-- attributes -->
     <entry key="studySubject_id">Id</entry>
-    <entry key="studySubject_oid">Oid</entry>
+    <entry key="studySubject_oid">OID</entry>
     <entry key="studySubject_studySubjectId">StudySubjectID</entry>
     <entry key="studySubject_secondaryId">SecondaryID</entry>
     <entry key="studySubject_personId">PID</entry>
+    <entry key="studySubject_subjectKey">Key</entry>
     <entry key="studySubject_gender">Geschlecht</entry>
-    <entry key="studySubject_enrollmentDate">Eintritt</entry>
-    <entry key="studySubject_dateOfBirth">Geburtsdatum</entry>
     <entry key="studySubject_yearOfBirth">Geburtsjahr</entry>
+    <entry key="studySubject_dateOfBirth">Geburtsdatum</entry>
+    <entry key="studySubject_enrollmentDate">Eintritt</entry>
+    <entry key="studySubject_status">Status</entry>
 
-    <entry key="studySubject_person">Persone</entry>
+    <!-- one-to-one -->
+    <entry key="studySubject_person">Person</entry>
     <entry key="studySubject_arm">Studienarm</entry>
 </properties>

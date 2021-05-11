@@ -18,101 +18,405 @@
 
     <!-- Definition of content place holder content -->
     <ui:define name="content">
-        <!-- Toolbar -->
-        <p:toolbar>
-            <p:toolbarGroup  align="left">
-                <p:commandButton
-                        value="#{msg.account_password}"
-                        title="#{msg.account_password}"
-                        icon="ui-icon-key"
-                        oncomplete="PF('passwordDialog').show();"
-                        style="float: left;"
-                        immediate="true"
-                        update=":passwordForm:passwordDisplay"
-                        process="@this"
-                        rendered="#{!userContext.hasRole('ROLE_EDC_OPEN')}"
+        <p:tabView id="tabView">
+
+            <!-- Account -->
+            <p:tab title="#{msg.account}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <p:toolbarGroup  align="left">
+                        <p:commandButton
+                            value="#{msg.account_password}"
+                            title="#{msg.account_password}"
+                            icon="ui-icon-key"
+                            oncomplete="PF('passwordDialog').show();"
+                            style="float: left;"
+                            immediate="true"
+                            update=":passwordForm:passwordDisplay"
+                            process="@this"
+                            rendered="#{!userContext.hasRole('ROLE_EDC_OPEN')}"
+                            />
+                    </p:toolbarGroup>
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            onclick="target='_blank'"
+                            ajax="false"
+                            immediate="true"
+                            action="#{mbMain.navigateToHelp('x1-250004')}"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Panel -->
+                <p:panelGrid
+                    id="displayProfile"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;width: 100%"
+                    >
+
+                    <!-- RPB user name-->
+                    <h:outputLabel value="RPB #{msg.account_username}:" for="txtRpbUserName" />
+                    <h:outputText id="txtRpbUserName" value="#{mbMain.myAccount.username}" />
+
+                    <!-- OC username -->
+                    <h:outputLabel value="EDC #{msg.account_username} (OpenClinica):" for="txtOcUserName" rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}" />
+                    <h:outputText id="txtOcUserName" value="#{mbMain.myAccount.ocUsername}" rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}" />
+
+                    <!-- Enabled -->
+                    <h:outputLabel value="#{msg.account_isEnabled}:" for="chbIsEnabled" />
+                    <p:selectBooleanButton
+                        id="chbIsEnabled"
+                        value="#{mbMain.myAccount.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
                         />
-            </p:toolbarGroup>
-            <p:toolbarGroup align="right">
-                <p:commandButton
-                        value="#{msg.menu_help}"
-                        title="#{msg.menu_help}"
-                        icon="ui-icon-help"
-                        disabled="True"
+
+                    <!-- Non locked -->
+                    <h:outputLabel value="#{msg.account_nonLocked}:" for="chNonLocked" />
+                    <p:selectBooleanButton
+                        id="chNonLocked"
+                        value="#{mbMain.myAccount.nonLocked}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
                         />
-            </p:toolbarGroup>
-        </p:toolbar>
 
-        <p:panelGrid
-                id="displayProfile"
-                columns="2"
-                cellpadding="4"
-                style="margin:0 auto;float: left;width: 100%"
-                >
+                    <!-- Partner Site -->
+                    <h:outputLabel value="#{msg.account_partnerSite}:" for="txtUserSite" />
+                    <h:outputText id="txtUserSite" value="[#{mbMain.myAccount.partnerSite.identifier}] = #{mbMain.myAccount.partnerSite.name}" title="#{mbMain.myAccount.partnerSite.description}" />
 
-            <!-- Header -->
-            <f:facet name="header">#{msg.account}</f:facet>
+                    <!-- Email -->
+                    <h:outputLabel value="#{msg.account_email}:" for="txtUserEmail" />
+                    <h:outputText id="txtUserEmail" value="#{mbMain.myAccount.email}" />
 
-            <h:outputText value="RPB #{msg.account_username}:" for="txtRpbUserName" />
-            <h:outputText id="txtRpbUserName" value="#{mbMain.myAccount.username}" />
+                    <!-- LDAP -->
+                    <h:outputLabel value="LDAP:" for="chbIsLdap" />
+                    <p:selectBooleanButton
+                        id="chbIsLdap"
+                        value="#{mbMain.myAccount.isLdapUser()}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
-            <h:outputLabel value="OC #{msg.account_username}:" for="txtOcUserName" rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}" />
-            <h:outputText id="txtOcUserName" value="#{mbMain.myAccount.ocUsername}" rendered="#{userContext.hasRole('ROLE_EDC_OPEN')}" />
+                    <!-- ApiKey enabled -->
+                    <h:outputLabel value="#{msg.account_apiKeyEnabled}:" for="chbIsApiKeyEnabledEdit" />
+                    <p:selectBooleanButton
+                        id="chbIsApiKeyEnabledEdit"
+                        value="#{mbMain.myAccount.apiKeyEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        />
 
-            <h:outputLabel value="#{msg.account_partnerSite}:" for="txtUserSite" />
-            <h:outputText
-                    id="txtUserSite"
-                    value="#{mbMain.myAccount.partnerSite.siteName}"
-                    title="#{mbMain.myAccount.partnerSite.description}"
-                    />
+                    <!-- ApiKey -->
+                    <h:outputLabel value="#{msg.account_apiKey}:" for="txtApiKey" />
+                    <h:outputText id="txtApiKey" value="#{mbMain.myAccount.apiKey}" />
 
-            <h:outputText value="#{msg.account_email}:" for="txtUserEmail" />
-            <h:inputText
-                    id="txtUserEmail"
-                    value="#{mbMain.myAccount.email}"
-                    maxlength="255"
-                    size="50"
-                    disabled="true"
-                    />
+                </p:panelGrid>
+            </p:tab>
 
-            <!-- RPB roles -->
-            <h:outputLabel value="RPB #{msg.role_plural}:" for="dtEntities" />
-            <p:dataTable
+            <!-- Roles -->
+            <p:tab title="#{msg.account_roles}">
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.menu_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            onclick="target='_blank'"
+                            ajax="false"
+                            immediate="true"
+                            action="#{mbMain.navigateToHelp('x1-250004')}"
+                            />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- User Account Roles datatable -->
+                <p:dataTable
                     id="dtEntities"
                     var="userRole"
                     value="#{mbMain.myAccount.roles}"
                     widgetVar="userRolesTables"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
                     emptyMessage="#{msg.search_empty}"
                     rowKey="#{userRole.id}"
                     selection="#{mbRole.selectedEntity}"
                     selectionMode="single"
                     rowIndexVar="rowIndex"
                     filteredValue="#{mbRole.filteredEntities}"
-                    style="width:400px"
                     sortBy="#{userRole.name}"
                     disabledTextSelection="false"
                     >
 
-                <!-- Row -->
-                <p:column exportable="false" toggleable="false" style="width:3%">
+                    <!-- Table header -->
                     <f:facet name="header">
-                        <h:outputText value="#" />
+                        <h:outputText value="#{mbMain.myAccount.username}" style="float:left" />
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtEntities"
+                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbRole.onEntityToggle}" />
+                        </p:columnToggler>
                     </f:facet>
-                    <h:outputText value="#{rowIndex + 1}" />
-                </p:column>
 
-                <!-- Role Name -->
-                <p:column
+                    <!-- Row -->
+                    <p:column exportable="false" toggleable="false" headerText="#" style="width:3%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Role Name -->
+                    <p:column
                         id="colRoleName"
                         sortBy="#{userRole.name}"
+                        visible="#{mbRole.columnVisibilityList[0]}"
                         headerText="#{msg.role_roleName}"
+                        style="width:47%"
                         >
-                    <h:outputText value="#{userRole.name}" title="#{userRole.description}" style="float:left;" />
-                </p:column>
-            </p:dataTable>
+                        <h:outputText value="#{userRole.name}" style="float:left;" />
+                    </p:column>
 
-            <!-- TODO: Audit log : last activity, login from, at time, etc. -->
-        </p:panelGrid>
+                    <!-- Role Description -->
+                    <p:column
+                        headerText="#{msg.role_description}"
+                        sortBy="#{userRole.description}"
+                        visible="#{mbRole.columnVisibilityList[1]}"
+                        style="width:50%"
+                        >
+                        <h:outputText value="#{userRole.description}" style="float:left;" />
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbMain.myAccount.roles.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbMain.myAccount.roles.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbMain.myAccount.roles.size() > 1}"
+                                >
+                            <f:param value="#{mbMain.myAccount.roles.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}">
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.account_roles}" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.account_roles}" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Audit Logs -->
+            <p:tab title="#{msg.auditLog_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-250004')}"
+                        />
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                        id="dtAuditLogs"
+                        var="entity"
+                        value="#{mbAuditLogLazy}"
+                        widgetVar="auditLogEntitiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50,100"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbAuditLogLazy.selectedEntity}"
+                        selectionMode="single"
+                        rowIndexVar="rowIndex"
+                        lazy="true"
+                        disabledTextSelection="false"
+                        >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <h:outputText value="#{mbMain.myAccount.username}" style="float:left" />
+                        <p:commandButton id="btnAuditLogEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                                datasource="dtAuditLogs"
+                                trigger=":form:tabView:dtAuditLogs:btnAuditLogEntitiesToggler"
+                                style="width:450px"
+                                >
+                            <p:ajax event="toggle" listener="#{mbAuditLogLazy.onEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:9%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- Event date -->
+                    <p:column
+                            id="colAuditEventDate"
+                            sortBy="#{entity.eventDate}"
+                            visible="#{mbAuditLogLazy.columnVisibilityList[0]}"
+                            style="width:23%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_eventDate}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.eventDate}" style="float: left;">
+                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss" type="date" timeZone="GMT+2" />
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- Username -->
+                    <p:column
+                            sortBy="#{entity.username}"
+                            filterBy="#{entity.username}"
+                            visible="#{mbAuditLogLazy.columnVisibilityList[1]}"
+                            filterMatchMode="exact"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_username}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <!-- Automatically apply non changable filter accoring to current user -->
+                            <p:selectOneButton
+                                    onchange="PF('auditLogEntitiesTable').filter()"
+                                    value="#{mbMain.myAccount.username}"
+                                    >
+                                <f:selectItem itemLabel="#{mbMain.myAccount.username}" itemValue="#{mbMain.myAccount.username}" />
+                            </p:selectOneButton>
+                        </f:facet>
+                        <h:outputText value="#{entity.username}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Event -->
+                    <p:column
+                            sortBy="#{entity.event}"
+                            filterBy="#{entity.event}"
+                            visible="#{mbAuditLogLazy.columnVisibilityList[2]}"
+                            filterMatchMode="exact"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_event}" />
+                        </f:facet>
+                        <f:facet name="filter">
+                            <!-- Only single select filter supported in query by example model -->
+                            <p:selectOneMenu
+                                    label="#{msg.enumAuditEvent}"
+                                    onchange="PF('auditLogEntitiesTable').filter()"
+                                    >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems
+                                        value="#{mbAuditLogLazy.auditEvents}"
+                                        var="enumAuditEvent"
+                                        itemLabel="#{enumAuditEvent.label}"
+                                        itemValue="#{enumAuditEvent.toString()}"
+                                        />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.event}" style="float: left;" />
+                    </p:column>
+
+                    <!-- String1 -->
+                    <p:column
+                            sortBy="#{entity.stringAttribute1}"
+                            filterBy="#{entity.stringAttribute1}"
+                            visible="#{mbAuditLogLazy.columnVisibilityList[3]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_stringAttribute1}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.stringAttribute1}" style="float: left;" />
+                    </p:column>
+
+                    <!-- String2 -->
+                    <p:column
+                            sortBy="#{entity.stringAttribute2}"
+                            filterBy="#{entity.stringAttribute2}"
+                            visible="#{mbAuditLogLazy.columnVisibilityList[4]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_stringAttribute2}" style="float: left;" />
+                        </f:facet>
+                        <h:outputText value="#{entity.stringAttribute2}" />
+                    </p:column>
+
+                    <!-- String3 -->
+                    <p:column
+                            sortBy="#{entity.stringAttribute3}"
+                            filterBy="#{entity.stringAttribute3}"
+                            visible="#{mbAuditLogLazy.columnVisibilityList[5]}"
+                            filterMatchMode="contains"
+                            style="width:20%"
+                            >
+                        <f:facet name="header">
+                            <h:outputText value="#{msg.auditLog_stringAttribute3}" />
+                        </f:facet>
+                        <h:outputText value="#{entity.stringAttribute3}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbAuditLogLazy.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbAuditLogLazy.size == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbAuditLogLazy.size > 1}"
+                                >
+                            <f:param value="#{mbAuditLogLazy.size}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+            </p:tab>
+        </p:tabView>
     </ui:define>
 
     <ui:define name="dialogs">
@@ -176,6 +480,10 @@
 
         <!-- Submit from dialog -->
         <script type="text/javascript">
+            jQuery(document).ready(function() {
+                PF('auditLogEntitiesTable').filter()
+            });
+
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
                 dialog = jQuery('#'+dialogName);
                 if(args.validationFailed) {

@@ -1,56 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ui:composition
-        xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:ui="http://java.sun.com/jsf/facelets"
-        xmlns:p="http://primefaces.org/ui"
-        template="/WEB-INF/layouts/main.xhtml"
-        >
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="Software" title="Software" url="/software.faces" />
+            <p:menuitem value="#{msg.software}" title="#{msg.software}" url="/software.faces" />
         </p:breadCrumb>
     </ui:define>
 
     <!-- Definition of content place holder content -->
     <ui:define name="content">
-        <p:panel header="Software">
+        <p:panel header="#{msg.software_plural}">
             <p>
-            <!--Software toolbar-->
-            <p:toolbar>
-                <!-- Right -->
-                <p:toolbarGroup align="right">
-                    <p:commandButton
-                            value="#{msg.menu_print}"
-                            title="Print software"
-                            icon="ui-icon-print"
-                            >
-                        <p:printer target="dlSoftware" />
-                    </p:commandButton>
-                    <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="Help Software [ctrl+shift+h]"
-                            icon="ui-icon-help"
-                            onclick="target='_blank'"
-                            ajax="false"
-                            immediate="true"
-                            disabled="true"
-                            />
-                    <p:hotkey
-                            bind="ctrl+shift+h"
-                            onsuccess="target='_blank'"
-                            ajax="false"
-                            disabled="true"
-                            />
-                </p:toolbarGroup>
-                <!-- Left -->
-                <p:toolbarGroup align="left">
-                    <p:commandButton value="#{msg.menu_reload}"
-                            title="Roload available software [ctrl+shift+r]"
+                <!--Software toolbar-->
+                <p:toolbar>
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <p:commandButton
+                            id="btnSoftwareReload"
+                            value="#{msg.menu_reload}"
+                            title="#{msg.software_reload}"
                             icon="ui-icon-refresh"
                             style="float: left;"
                             immediate="true"
@@ -58,16 +35,31 @@
                             update=":form:dlSoftware, :growl"
                             actionListener="#{mbSoftware.loadSoftware}"
                             />
-                    <p:hotkey bind="ctrl+shift+r"
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.software_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dlSoftware" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            onclick="target='_blank'"
+                            ajax="false"
                             immediate="true"
-                            process="@this"
-                            update=":form:dlSoftware, :growl"
-                            actionListener="#{mbSoftware.loadSoftware}"
+                            action="#{mbMain.navigateToHelpFromRoot('x1-60001.1.3')}"
                             />
-                </p:toolbarGroup>
-            </p:toolbar>
-            <!-- Software data list -->
-            <p:dataList
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+                <!-- Software data list -->
+                <p:dataList
                     id="dlSoftware"
                     value="#{mbSoftware.entityList}"
                     var="software"
@@ -78,17 +70,18 @@
                     itemType="square"
                     type="none"
                     >
-                <h:outputText value="#{software.name} "
-                        escape="false"
-                        style="font-weight:bold"
-                        />
-                <h:outputText value=" version: " />
-                [<h:outputText value="#{software.version}" />]
-                (<h:outputText value="#{software.platform}" />)
-                <a href="#{facesContext.externalContext.requestContextPath}/software/#{software.filename}">Download</a>
-                <br />
-                <hr />
-            </p:dataList>
+                    <h:outputText value="#{software.name} " escape="false" style="font-weight:bold" />
+                    <h:outputText value=" #{msg.software_version}: " />
+                    [<h:outputText value="#{software.version}" />]
+                    (<h:outputText value="#{software.platform}" />)
+                    <a href="#{facesContext.externalContext.requestContextPath}/software/#{software.filename}">#{msg.menu_download}</a>
+                    <br />
+                    <hr />
+                </p:dataList>
+                <!-- Block table -->
+                <p:blockUI trigger="btnSoftwareReload, dlSoftware" block="dlSoftware" >
+                    #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
             </p>
         </p:panel>
 

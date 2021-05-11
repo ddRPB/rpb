@@ -20,7 +20,7 @@
 
     <!-- Definition of page content place holder -->
     <ui:define name="content">
-        <p:tabView id="tabView" activeIndex="#{mbRole.tab.activeIndex}">
+        <p:tabView id="tabView" activeIndex="#{mbRoleLazy.tab.activeIndex}">
 
             <!-- User roles -->
             <p:tab title="#{msg.role_plural}">
@@ -30,41 +30,16 @@
                     <!-- Left -->
                     <p:toolbarGroup align="left">
                         <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="#{msg.role_new}"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newEntityDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbRole.prepareNewEntity}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbRole.prepareNewEntity}"
-                                />
-                        <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="#{msg.role_reload}"
-                                icon="ui-icon-refresh"
-                                style="float: left;"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbRole.load}"
-                                />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbRole.load}"
-                                />
+                            id="btnReload"
+                            value="#{msg.menu_reload}"
+                            title="#{msg.role_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            oncomplete="PF('entitiesTable').filter()"
+                            />
                     </p:toolbarGroup>
 
                     <!-- Right -->
@@ -78,7 +53,7 @@
                         </p:commandButton>
                         <p:commandButton
                             value="#{msg.menu_help}"
-                            title="To be implemented [ctrl+shift+h]"
+                            title="#{msg.menu_help}"
                             icon="ui-icon-help"
                             disabled="True"
                             />
@@ -88,22 +63,18 @@
                 <!-- Roles table -->
                 <p:dataTable
                     id="dtEntities"
-                    var="role"
-                    value="#{mbRole.entityList}"
-                    widgetVar="rolesTable"
-                    resizableColumns="false"
+                    var="entity"
+                    value="#{mbRoleLazy}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
                     draggableColumns="false"
                     paginator="true"
                     rows="15"
-                    rowsPerPageTemplate="15,25,50"
+                    rowsPerPageTemplate="15,25,50,100"
                     emptyMessage="#{msg.search_empty}"
-                    selection="#{mbRole.selectedEntity}"
                     selectionMode="single"
-                    rowKey="#{role.id}"
                     rowIndexVar="rowIndex"
-                    filteredValue="#{mbRole.filteredEntities}"
-                    sortMode="multiple"
-                    sortBy="#{mbRole.preSortOrder}"
+                    lazy="true"
                     disabledTextSelection="false"
                     >
 
@@ -111,11 +82,11 @@
                     <f:facet name="header">
                         <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
                         <p:columnToggler
-                                datasource="dtEntities"
-                                trigger=":form:tabView:dtEntities:btnEntitiesToggler"
-                                style="width:450px"
-                                >
-                            <p:ajax event="toggle" listener="#{mbRole.onEntityToggle}" />
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbRoleLazy.onEntityToggle}" />
                         </p:columnToggler>
                     </f:facet>
 
@@ -124,27 +95,41 @@
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
+                    <!-- Id -->
+                    <p:column
+                        headerText="#{msg.role_id}"
+                        sortBy="#{entity.id}"
+                        filterBy="#{entity.id}"
+                        visible="#{mbRoleLazy.columnVisibilityList[0]}"
+                        filterMatchMode="equals"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.id}" style="float: left;" />
+                    </p:column>
+
                     <!-- Name -->
                     <p:column
-                            id="colRoleName"
-                            headerText="#{msg.role_roleName}"
-                            sortBy="#{role.name}"
-                            filterBy="#{role.name}"
-                            visible="#{mbRole.columnVisibilityList[0]}"
-                            filterMatchMode="contains"
-                            style="width:39%"
-                            >
-                        <h:outputText value="#{role.name}" style="float: left;" />
+                        id="colRoleName"
+                        headerText="#{msg.role_roleName}"
+                        sortBy="#{entity.name}"
+                        filterBy="#{entity.name}"
+                        visible="#{mbRoleLazy.columnVisibilityList[1]}"
+                        filterMatchMode="contains"
+                        style="width:30%"
+                        >
+                        <h:outputText value="#{entity.name}" style="float: left;" />
                     </p:column>
 
                     <!-- Description-->
                     <p:column
-                            headerText="#{msg.role_description}"
-                            sortBy="#{role.description}"
-                            visible="#{mbRole.columnVisibilityList[1]}"
-                            style="width:39%"
-                            >
-                        <h:outputText value="#{role.description}" style="float: left;" />
+                        headerText="#{msg.role_description}"
+                        sortBy="#{entity.description}"
+                        filterBy="#{entity.description}"
+                        visible="#{mbRoleLazy.columnVisibilityList[2]}"
+                        filterMatchMode="contains"
+                        style="width:55%"
+                        >
+                        <h:outputText value="#{entity.description}" style="float: left;" />
                     </p:column>
 
                     <!-- Commands -->
@@ -152,60 +137,50 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:17%"
+                        style="width:10%"
                         >
                         <!-- Edit -->
                         <p:commandButton
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update=":editEntityForm:editDisplay"
-                                immediate="true"
-                                process="@this"
-                                oncomplete="PF('editEntityDialog').show();"
-                                >
-                            <f:setPropertyActionListener
-                                    value="#{role}"
-                                    target="#{mbRole.selectedEntity}"
-                                    />
-                        </p:commandButton>
-
-                        <!-- Delete -->
-                        <p:commandButton
-                            title="#{msg.menu_delete}"
-                            icon="ui-icon-trash"
-                            update=":deleteEntityForm:deleteDisplay"
-                            oncomplete="PF('deleteEntityDialog').show();"
+                            icon="ui-icon-contact"
+                            title="#{msg.menu_edit}"
+                            update=":editEntityForm:editDisplay"
                             immediate="true"
                             process="@this"
+                            oncomplete="PF('editEntityDialog').show();"
                             >
                             <f:setPropertyActionListener
-                                value="#{role}"
-                                target="#{mbRole.selectedEntity}"
+                                value="#{entity}"
+                                target="#{mbRoleLazy.selectedEntity}"
                                 />
                         </p:commandButton>
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbRole.entityList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbRole.entityList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbRoleLazy.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbRoleLazy.size == 1}" />
                         <h:outputFormat
-                                value="#{msg.search_results_status_n}"
-                                rendered="#{mbRole.entityList.size() > 1}"
-                                >
-                            <f:param value="#{mbRole.entityList.size()}" />
+                            value="#{msg.search_results_status_n}"
+                            rendered="#{mbRoleLazy.size > 1}"
+                            >
+                            <f:param value="#{mbRoleLazy.size}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
 
+                <!-- Block table -->
+                <p:blockUI trigger="btnReload dtEntities" block="dtEntities">
+                    LOADING<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                </p:blockUI>
+
                 <!-- Export -->
                 <p:panel header="#{msg.menu_export}">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
+                        <p:graphicImage value="${request.contextPath}/resources/img/excel.png" title="xls" />
                         <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.role_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
+                        <p:graphicImage value="${request.contextPath}/resources/img/csv.png" title="csv" />
                         <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.role_plural}" />
                     </h:commandLink>
                 </p:panel>
@@ -216,138 +191,59 @@
     <!-- Definition of dialogs place holder -->
     <ui:define name="dialogs">
 
-        <!-- New -->
-        <p:dialog
-                id="dlgNewRole"
-                header="#{msg.role_new}"
-                widgetVar="newEntityDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
-            <h:form id="newEntityForm">
-                <p:panelGrid
-                        id="newDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-
-                    <!-- Name -->
-                    <h:outputLabel value="#{msg.role_roleName}: *" for="txtRoleNameNew" />
-                    <p:inputText
-                        id="txtRoleNameNew"
-                        value="#{mbRole.newEntity.name}"
-                        required="true"
-                        requiredMessage="Please enter the role name, it is mandatory!"
-                        maxlength="255"
-                        />
-
-                    <!-- Description -->
-                    <h:outputLabel value="#{msg.role_description}:" for="txtRoleDescriptionNew" />
-                    <p:inputTextarea
-                        id="txtRoleDescriptionNew"
-                        value="#{mbRole.newEntity.description}"
-                        />
-                    <f:facet name="footer">
-                        <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtEntities, :newEntityForm, :growl"
-                                icon="ui-icon-disk"
-                                actionListener="#{mbRole.doCreateEntity}"
-                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewRole','newEntityForm');"
-                                process="@this newEntityForm"
-                                />
-                        <p:commandButton
-                                type="reset"
-                                value="#{msg.menu_reset}"
-                                icon="ui-icon-close"
-                                />
-                    </f:facet>
-                </p:panelGrid>
-            </h:form>
-        </p:dialog>
-
         <!-- Edit -->
         <p:dialog
-                id="dlgRoleEdit"
-                header="#{msg.role_edit}"
-                widgetVar="editEntityDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
+            id="dlgRoleEdit"
+            header="#{msg.role_edit}"
+            widgetVar="editEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
             <h:form id="editEntityForm">
                 <p:panelGrid
-                        id="editDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- ID -->
+                    <h:outputLabel value="#{msg.role_id}:" for="txtRoleIdEdit" />
+                    <h:outputText id="txtRoleIdEdit" value="#{mbRoleLazy.selectedEntity.id}" />
+
                     <!-- Name -->
                     <h:outputLabel value="#{msg.role_roleName}:" for="txtRoleNameEdit" />
-                    <h:outputText id="txtRoleNameEdit" value="#{mbRole.selectedEntity.name}" />
+                    <h:outputText id="txtRoleNameEdit" value="#{mbRoleLazy.selectedEntity.name}" />
 
                     <!-- Description -->
                     <h:outputLabel value="#{msg.role_description}:" for="txtRoleDescriptionEdit" />
                     <p:inputTextarea
-                            id="txtRoleDescriptionEdit"
-                            value="#{mbRole.selectedEntity.description}"
-                            />
-                    <f:facet name="footer">
-                        <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtEntities, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgRoleEdit','editEntityForm');"
-                                actionListener="#{mbRole.doUpdateEntity}"
-                                process="@this editEntityForm"
-                                />
-                    </f:facet>
-                </p:panelGrid>
-            </h:form>
-        </p:dialog>
-
-        <!-- Delete -->
-        <p:dialog
-                id="dlgViewRole"
-                header="#{msg.role_delete}"
-                widgetVar="deleteEntityDialog"
-                resizable="false"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
-            <h:form id="deleteEntityForm">
-                <p:panelGrid
-                        id="deleteDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-                    <!-- Name -->
-                    <h:outputLabel value="#{msg.role_roleName}:" for="txtRoleNameDelete" />
-                    <h:outputText id="txtRoleNameDelete" value="#{mbRole.selectedEntity.name}" />
-
-                    <!-- Description -->
-                    <h:outputLabel value="#{msg.role_description}:" for="txtRoleDescriptionDelete" />
-                    <p:inputTextarea
-                        id="txtRoleDescriptionDelete"
-                        value="#{mbRole.selectedEntity.description}"
-                        readonly="true"
+                        id="txtRoleDescriptionEdit"
+                        value="#{mbRoleLazy.selectedEntity.description}"
+                        maxlength="4000"
+                        rows="5"
+                        cols="30"
+                        counter="txtDescriptionTextCounterEdit"
+                        counterTemplate="{0} characters remaining"
+                        autoResize="false"
                         />
+
+                    <!-- Description text counter -->
+                    <h:outputLabel for="txtDescriptionTextCounterEdit" />
+                    <h:outputText id="txtDescriptionTextCounterEdit" />
+
+                    <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                                value="#{msg.menu_delete}"
-                                update=":form:tabView:dtEntities, :growl"
-                                icon="ui-icon-trash"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgViewRole','deleteEntityForm');"
-                                actionListener="#{mbRole.doDeleteEntity}"
-                                process="@this deleteEntityForm"
-                                />
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete="handleSubmitRequest(xhr, status, args, 'dlgRoleEdit','editEntityForm');"
+                            actionListener="#{mbRoleLazy.doUpdateEntity}"
+                            process="@this editEntityForm"
+                            />
                     </f:facet>
                 </p:panelGrid>
             </h:form>
@@ -359,11 +255,10 @@
                 dialog = jQuery('#'+dialogName);
                 if(args.validationFailed) {
                     dialog.effect("shake", { times:3 }, 100);
-                } else {
+                }
+                else {
                     clearForm(formName);
-                    PF('newEntityDialog').hide();
                     PF('editEntityDialog').hide();
-                    PF('deleteEntityDialog').hide();
                 }
             }
             function clearForm(formName) {

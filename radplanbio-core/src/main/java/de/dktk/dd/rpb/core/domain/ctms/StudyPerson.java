@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ public class StudyPerson implements Identifiable<Integer>, Serializable {
 
     @Transient
     public boolean isIdSet() {
-        return id != null;
+        return this.id != null;
     }
 
     //endregion
@@ -171,8 +171,8 @@ public class StudyPerson implements Identifiable<Integer>, Serializable {
 
     //region Many-to-One
 
-    @ManyToOne
-    @JoinColumn(name = "studyid", nullable = false)
+    @ManyToOne()
+    @JoinColumn(name = "STUDYID", nullable = false)
     public Study getStudy() {
         return this.study;
     }
@@ -182,7 +182,7 @@ public class StudyPerson implements Identifiable<Integer>, Serializable {
     }
 
     @ManyToOne
-    @JoinColumn(name = "personid", nullable = false)
+    @JoinColumn(name = "PERSONID", nullable = false)
     public Person getPerson() {
         return this.person;
     }
@@ -192,7 +192,7 @@ public class StudyPerson implements Identifiable<Integer>, Serializable {
     }
 
     @ManyToOne
-    @JoinColumn(name = "studypersonroleid", nullable = false)
+    @JoinColumn(name = "STUDYPERSONROLEID", nullable = false)
     public StudyPersonRole getRole() {
         return this.role;
     }

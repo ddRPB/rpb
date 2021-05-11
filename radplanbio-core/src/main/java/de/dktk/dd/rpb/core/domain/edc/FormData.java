@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ package de.dktk.dd.rpb.core.domain.edc;
 import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
@@ -399,6 +400,94 @@ public class FormData implements Identifiable<Integer>, Serializable {
         return null;
     }
 
+    /**
+     * Sort ItemGroupData elements so that the repeating groups are the last
+     */
+    public void sortItemGroupData() {
+        if (this.itemGroupDataList != null && this.itemGroupDataList.size() > 0) {
+
+            // First locate how many different group OID exists
+            List<String> itemGroups = new ArrayList<>();
+            for (ItemGroupData igd : this.itemGroupDataList) {
+                if (!itemGroups.contains(igd.getItemGroupOid())) {
+                    itemGroups.add(igd.getItemGroupOid());
+                }
+            }
+
+            // Than cluster item groups (in n lists)
+            List<List<ItemGroupData>> masterList = new ArrayList<>();
+            for (String groupOid : itemGroups) {
+
+                List<ItemGroupData> groupList = new ArrayList<>();
+                for (ItemGroupData igd : this.itemGroupDataList) {
+                    if (igd.getItemGroupOid().equals(groupOid)) {
+                        groupList.add(igd);
+                    }
+                }
+
+                // Sort each list according to ItemGroupRepeatKey
+                Collections.sort(groupList, new Comparator<ItemGroupData>() {
+                    public int compare(ItemGroupData groupData1, ItemGroupData groupData2) {
+                    int result = 0;
+
+                    // Both are repeating
+                    if (groupData1.getItemGroupRepeatKey() != null && !groupData1.getItemGroupRepeatKey().isEmpty() &&
+                        groupData2.getItemGroupRepeatKey() != null && !groupData2.getItemGroupRepeatKey().isEmpty()) {
+
+                        result = Integer.compare(Integer.parseInt(groupData1.getItemGroupRepeatKey()), Integer.parseInt(groupData2.getItemGroupRepeatKey()));
+                    }
+
+                    return result;
+                    }
+                });
+
+                masterList.add(groupList);
+            }
+
+            // Sort lists in master list according to how many elements they have
+            Collections.sort(masterList, new Comparator<List<ItemGroupData>>() {
+                public int compare(List<ItemGroupData> list1, List<ItemGroupData> list2) {
+                    return Integer.compare(list1.size(), list2.size());
+                }
+            });
+
+            // Add all sorted ItemGroupData into new itemGroupDataList
+            List<ItemGroupData> newList = new ArrayList<>();
+            for (List<ItemGroupData> igdl : masterList) {
+                newList.addAll(igdl);
+            }
+
+            this.itemGroupDataList = newList;
+
+            // Make un-grouped groups go first
+            Collections.sort(this.itemGroupDataList, new Comparator<ItemGroupData>() {
+                public int compare(ItemGroupData groupData1, ItemGroupData groupData2) {
+                int result = 0;
+
+                // Un-grouped always first
+                if (groupData1.getItemGroupOid() != null && groupData1.getItemGroupOid().contains(Constants.OC_IG_UNGROUPED)) {
+                    result = -1;
+                }
+                else if (groupData2.getItemGroupOid() != null && groupData2.getItemGroupOid().contains(Constants.OC_IG_UNGROUPED)) {
+                    result = 1;
+                }
+                else {
+                    // First is repeating group
+                    if (groupData1.getItemGroupRepeatKey() != null && !groupData1.getItemGroupRepeatKey().isEmpty()) {
+                        result = 1;
+                    }
+                    // Second is repeating group
+                    else if (groupData2.getItemGroupRepeatKey() != null && !groupData2.getItemGroupRepeatKey().isEmpty()) {
+                        result = -1;
+                    }
+                }
+
+                return result;
+                }
+            });
+        }
+    }
+
     //endregion
 
     //region ItemData
@@ -406,13 +495,20 @@ public class FormData implements Identifiable<Integer>, Serializable {
     public List<ItemData> getAllItemData() {
         List<ItemData> results = new ArrayList<>();
 
+        boolean sort = true;
         if (this.itemGroupDataList != null) {
             for (ItemGroupData igd : this.itemGroupDataList) {
                 if (igd.getItemDataList() != null) {
                     for (ItemData id : igd.getItemDataList()) {
                         // Ignore items that have data but have been removed from study (Definition is not in metadata)
-                        if (!EnumItemDataStatus.INVALID.toString().equals(id.getStatus())) {
+                        if (id.getStatus() != null) {
+                            if (!EnumItemDataStatus.INVALID.toString().equals(id.getStatus())) {
+                                results.add(id);
+                            }
+                        }
+                        else {
                             results.add(id);
+                            sort = false;
                         }
                     }
                 }
@@ -420,14 +516,30 @@ public class FormData implements Identifiable<Integer>, Serializable {
         }
 
         // TODO: I have put sorting here but, I would like to have this handled in UI normally
-        Collections.sort(results, new Comparator<ItemData>() {
-            @Override
-            public int compare(ItemData data2, ItemData data1) {
-                return  data2.getOrderInForm().compareTo(data1.getOrderInForm());
-            }
-        });
+        if (sort) {
+            Collections.sort(results, new Comparator<ItemData>() {
+                @Override
+                public int compare(ItemData data2, ItemData data1) {
+                    return data2.getOrderInForm().compareTo(data1.getOrderInForm());
+                }
+            });
+        }
 
         return results;
+    }
+
+    public List<ItemData> findAnnotatedItemData(CrfFieldAnnotation annotation) {
+        List<ItemData> result = new ArrayList<>();
+
+        if (annotation != null && this.formOid.equals(annotation.getFormOid())) {
+            if (this.itemGroupDataList != null) {
+                for (ItemGroupData itemGroupData : this.itemGroupDataList) {
+                    result.addAll(itemGroupData.findAnnotatedItemData(annotation));
+                }
+            }
+        }
+
+        return result;
     }
 
     //endregion

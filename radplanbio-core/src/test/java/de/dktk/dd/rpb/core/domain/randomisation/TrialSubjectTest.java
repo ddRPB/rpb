@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,18 +19,22 @@
 
 package de.dktk.dd.rpb.core.domain.randomisation;
 
-import static junit.framework.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import de.dktk.dd.rpb.core.domain.criteria.DichotomousCriterion;
 import de.dktk.dd.rpb.core.domain.criteria.constraints.DichotomousConstraint;
-
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 /**
  * Trial subject
@@ -41,31 +45,34 @@ import java.util.List;
  * Inspired by RANDI2 <http://www.gnu.org/licenses/>
  * http://dschrimpf.github.io/randi3/
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({TrialSubjectTest.class, Logger.class})
 public class TrialSubjectTest {
 
     private int id = 0;
 
     @Before
     public void setUp() {
-
-
+        mockStatic(Logger.class);
+        Logger logger = mock(Logger.class);
+        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
     }
 
     @Test
     public void testGetStratum1() {
         // every entry grouped the members of one group
-        List<List<TrialSubject>> subjects = new ArrayList<List<TrialSubject>>();
+        List<List<TrialSubject>> subjects = new ArrayList<>();
 
         for (int i = 1; i <= 2; i++) {
             for (int j = 1; j <= 2; j++) {
                 for (int k = 1; k <= 2; k++) {
 
-                    List<TrialSubject> subjectsGroup = new ArrayList<TrialSubject>();
+                    List<TrialSubject> subjectsGroup = new ArrayList<>();
 
                     // generate objects with same group
                     for (int l = 0; l < 3; l++) {
                         TrialSubject subject = new TrialSubject();
-                        List<PrognosticVariable<?>> variables = new ArrayList<PrognosticVariable<?>>();
+                        List<PrognosticVariable<?>> variables = new ArrayList<>();
                         PrognosticVariable<String> v1 = getEmptyDichotomProperty1();
                         variables.add(v1);
 //                        PrognosticVariable<String> v2 = getEmptyDichotomProperty2();
@@ -94,9 +101,7 @@ public class TrialSubjectTest {
     }
 
     private void testStratification(List<List<TrialSubject>> subjects) {
-        for (int i = 0; i < subjects.size(); i++) {
-            List<TrialSubject> subs = subjects.get(i);
-
+        for (List<TrialSubject> subs : subjects) {
             // Test getStratum in one group
             for (int k = 0; k < subs.size() - 1; k++) {
                 for (int l = k + 1; l < subs.size(); l++) {
@@ -125,7 +130,7 @@ public class TrialSubjectTest {
 
             try {
 
-                List<String> value = new ArrayList<String>();
+                List<String> value = new ArrayList<>();
                 value.add(dCriterion1.getOption1());
 
                 // Setup constraints for criterion
@@ -149,7 +154,7 @@ public class TrialSubjectTest {
             }
         }
 
-        return new PrognosticVariable<String>(dCriterion1);
+        return new PrognosticVariable<>(dCriterion1);
 
     }
 

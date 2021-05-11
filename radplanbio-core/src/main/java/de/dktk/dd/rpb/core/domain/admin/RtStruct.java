@@ -21,6 +21,7 @@ package de.dktk.dd.rpb.core.domain.admin;
 
 import com.google.common.base.Objects;
 
+import de.dktk.dd.rpb.core.domain.rpb.Software;
 import org.apache.log4j.Logger;
 
 import org.hibernate.validator.constraints.NotEmpty;

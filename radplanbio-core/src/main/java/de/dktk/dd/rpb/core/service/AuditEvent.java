@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,18 +43,26 @@ public enum AuditEvent {
     PIDLoad("PIDLoad"),
     PIDSearch("PIDSearch"),
     PIDDepseudonymisation("PIDDepseudonymisation"),
+    PIDUnsure("PIDUnsure"),
 
     EDCStudySubjectEnrollment("EDCStudySubjectEnrollment"),
-    EDCStudyEventScheduled("EDCStudyEventScheduled"),
-    EDCDataQuery("EDCDataQuery"),
+    EDCStudyEventSchedule("EDCStudyEventSchedule"),
+    EDCDataCreation("EDCDataCreation"),
+    EDCDataModification("EDCDataModification"),
+    EDCDataImport("EDCDataImport"),
 
     EDCParticipateNewForm("EDCParticipateNewForm"),
     EDCParticipateEditableForm("EDCParticipateEditableForm"),
 
-    PACSStudyView("PACSStudyView"),
-    PACSSeriesView("PACSSeriesView"),
-    PACSStudyDownload("PACSStudyDownload"),
-    PACSSeriesDownload("PACSSeriesDownload");
+    PACSDataUpload("PACSDataUpload"),
+    PACSDataView("PACSDataView"),
+    PACSDataDownload("PACSDataDownload"),
+    PACSDataCreation("PACSDataCreation"),
+    PACSDataDeletion("PACSDataDeletion"),
+    PACSDataModification("PACSDataModification"),
+
+    BIOPatientCreation("BIOPatientCreation"),
+    BIOPatientLoad("BIOPatientLoad");
 
     private String label;
 

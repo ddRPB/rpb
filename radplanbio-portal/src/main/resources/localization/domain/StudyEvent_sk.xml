@@ -15,9 +15,9 @@
     <!-- attributes -->
     <entry key="studyEvent_oid">OID</entry>
     <entry key="studyEvent_name">Name</entry>
-    <entry key="studyEvent_description">Description</entry>
+    <entry key="studyEvent_description">Popis</entry>
     <entry key="studyEvent_category">Category</entry>
-    <entry key="studyEvent_type">Type</entry>
+    <entry key="studyEvent_type">Typ</entry>
     <entry key="studyEvent_repeating">Repeating</entry>
     <entry key="studyEvent_startDate">Start</entry>
     <entry key="studyEvent_status">Status</entry>

@@ -1,0 +1,1579 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:o="http://omnifaces.org/ui"
+    template="/WEB-INF/layouts/main.xhtml"
+    >
+
+    <!-- Definition of bradcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
+            <p:menuitem value="#{msg.data}" title="#{msg.data}" url="#" />
+            <p:menuitem value="#{msg.study} #{msg.data} Import" title="#{msg.study} #{msg.data} Import" url="/edc/studyDataImport.faces" />
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- Enums -->
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob" />
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration" />
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumRequired" />
+
+        <p:tabView id="tabView">
+
+            <!-- Import source data -->
+            <p:tab title="#{msg.study} #{msg.data} Import Setup">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- Form -->
+                <p:panelGrid
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;float: left;"
+                    >
+
+                    <!-- Show user the active study -->
+                    <h:outputLabel value="#{msg.study}:" for="txtStudyIdentifier" />
+                    <h:outputText id="txtStudyIdentifier" value="#{mbImportData.mainBean.activeStudy.uniqueIdentifier}" />
+
+                    <!-- StudySubjectID generation method -->
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_studySubjectId}:" />
+                    <p:selectOneButton value="#{mbImportData.metadataOdm.studyDetails.studyParameterConfiguration.studySubjectIdGeneration}">
+                        <p:ajax />
+                        <f:selectItem itemLabel="Manual" itemValue="#{EnumStudySubjectIdGeneration.MANUAL}" />
+                        <f:selectItem itemLabel="Automatic (editable)" itemValue="#{EnumStudySubjectIdGeneration.AUTO_EDITABLE}" />
+                        <f:selectItem itemLabel="Automatic (non-editable)" itemValue="#{EnumStudySubjectIdGeneration.AUTO_NONEDITABLE}" />
+                        <f:selectItem itemLabel="Automatic" itemValue="#{EnumStudySubjectIdGeneration.AUTO}" />
+                    </p:selectOneButton>
+
+                    <!-- PersonID is required -->
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_personId}:" />
+                    <p:selectOneButton value="#{mbImportData.metadataOdm.studyDetails.studyParameterConfiguration.personIdRequired}"
+                        disabled="true"
+                        >
+                        <f:selectItem itemLabel="Required" itemValue="#{EnumRequired.REQUIRED}" />
+                        <f:selectItem itemLabel="Optional" itemValue="#{EnumRequired.OPTIONAL}" />
+                        <f:selectItem itemLabel="Not Used" itemValue="#{EnumRequired.NOT_USED}" />
+                    </p:selectOneButton>
+
+                    <!-- SecondaryID is used -->
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_secondaryId}:" />
+                    <p:selectBooleanButton
+                        value="#{mbImportData.metadataOdm.studyDetails.studyParameterConfiguration.secondaryLabelViewable}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        style="width:60px"
+                        />
+
+                    <!-- Collect Subject DOB -->
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_dateOfBirth}:" />
+                    <p:selectOneButton value="#{mbImportData.metadataOdm.studyDetails.studyParameterConfiguration.collectSubjectDob}"
+                       disabled="true"
+                        >
+                        <f:selectItem itemLabel="Yes" itemValue="#{EnumCollectSubjectDob.YES}" />
+                        <f:selectItem itemLabel="Only year" itemValue="#{EnumCollectSubjectDob.ONLY_YEAR}" />
+                        <f:selectItem itemLabel="No" itemValue="#{EnumCollectSubjectDob.NO}" />
+                    </p:selectOneButton>
+
+                    <!-- Collect Subject Gender -->
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_gender}:" />
+                    <p:selectBooleanButton
+                        value="#{mbImportData.metadataOdm.studyDetails.studyParameterConfiguration.sexRequired}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        disabled="true"
+                        style="width:60px"
+                        />
+
+                    <!-- Upload input data file -->
+                    <h:outputLabel value="Source: #{msg.label_required_suffix}" for="uploadImportFile" title="(.xml [CDISC ODM], .csv)" />
+                    <p:fileUpload id="uploadImportFile"
+                            fileUploadListener="#{mbImportData.handleUpload}"
+                            rendered="#{mbImportData.uploadedFile == null}"
+                            mode="advanced"
+                            update=":growl, :form:tabView:txtFileName, :form:tabView:btnTransformData"
+                            label="Choose a file or drag and drop it here:"
+                            sizeLimit="10048576"
+                            auto="false"
+                            allowTypes="/(\.|\/)(xml|csv)$/"
+                            invalidSizeMessage="The maximum file size allowed is 10 Megabyte!"
+                            invalidFileMessage="You are allowed to upload only (xml, csv files)!"
+                            dragDropSupport="true"
+                            fileLimit="1"
+                            />
+
+                    <!-- Filename -->
+                    <h:outputLabel value="Filename: #{msg.label_required_suffix}" for="txtFileName" />
+                    <p:inputText
+                        id="txtFileName"
+                        value="#{mbImportData.uploadedFile.fileName}"
+                        style="width:500px"
+                        disabled="true"
+                        />
+
+                    <!-- Import mapping definition -->
+                    <h:outputLabel value="#{msg.mapping}: #{msg.label_required_suffix}" for="ddlImportMapping" />
+                    <p:selectOneMenu
+                        id="ddlImportMapping"
+                        value="#{mbImportData.selectedMapping}"
+                        converter="omnifaces.SelectItemsConverter"
+                        required="true"
+                        requiredMessage="#{msg.mapping} is mandatory!"
+                        filter="true"
+                        filterMatchMode="contains"
+                        style="width:500px"
+                        >
+                        <!-- AJAX update of selected item -->
+                        <p:ajax update=":growl"/>
+
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                            value="#{mbImportData.study.dataMappings}"
+                            var="mapping"
+                            itemValue="#{mapping}"
+                            itemLabel="#{mapping.name}"
+                            itemDescription="#{mapping.description}"
+                            />
+                    </p:selectOneMenu>
+
+                    <!-- Transformed ODM data model -->
+                    <h:outputLabel value="Target: #{msg.label_required_suffix}" for="txtOdmModel" title=".xml [CDISC ODM]" />
+                    <p:inputText
+                        id="txtOdmModel"
+                        value="#{mbImportData.importDataOdm.description}"
+                        style="width:500px"
+                        disabled="true"
+                        />
+
+                    <!-- Subjects per import data set -->
+                    <h:outputLabel value="# of subjects in one import dataset file: #{msg.label_required_suffix}" for="txtNrOfSubjects" />
+                    <p:inputText id="txtNrOfSubjects" value="#{mbImportData.subjectPerDataset}" />
+                    <p:slider for="txtNrOfSubjects" minValue="1" maxValue="50" />
+
+                    <!-- Other options, enabled validation, enabled rule validation etc... -->
+
+                    <!-- Data transformation process -->
+                    <p:commandButton
+                        id="btnTransformData"
+                        value="Transform"
+                        title="Transform input data into target format"
+                        icon="ui-icon-play"
+                        immediate="true"
+                        process="@this"
+                        disabled="#{mbImportData.uploadedFile == null}"
+                        actionListener="#{mbImportData.transformData}"
+                        update=":growl, :form:tabView:txtOdmModel, :form:tabView:dtEntities"
+                        />
+
+                </p:panelGrid>
+            </p:tab>
+
+            <!-- Subjects detected for import -->
+            <p:tab title="#{msg.studySubject_plural}">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- Reload subject enrolled in OC -->
+                        <p:commandButton
+                            value="#{msg.menu_reload}"
+                            title="#{msg.studySubject_reload}"
+                            icon="ui-icon-refresh"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbImportData.reloadSubjects}"
+                            />
+
+                        <!-- Generate pseudonyms for all subjects -->
+                        <p:commandButton
+                            value="PIDs"
+                            title="Generate pseudonyms for all subjects"
+                            icon="ui-icon-person"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbImportData.generatePseudonyms}"
+                            />
+
+                        <!-- Enrol all subjects -->
+                        <p:commandButton
+                            value="Enrol"
+                            title="Enrol all subjects into an active study"
+                            icon="ui-icon-bookmark"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbImportData.enrolSubjects}"
+                            />
+
+                        <!-- Schedule all events -->
+                        <p:commandButton
+                            value="Schedule"
+                            title="Schedule all events for all subjects"
+                            icon="ui-icon-document"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":form:tabView:dtEntities, :growl"
+                            actionListener="#{mbImportData.scheduleEvents}"
+                            />
+
+                        <!-- Compare all data -->
+                        <p:commandButton
+                            value="Compare"
+                            title="Compare source and target data of all subjects"
+                            icon="ui-icon-transferthick-e-w"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            actionListener="#{mbImportData.compareData()}"
+                            update=":growl"
+                            />
+
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_print}"
+                            title="#{msg.studySubject_print}"
+                            icon="ui-icon-print"
+                            >
+                            <p:printer target="dtEntities" />
+                        </p:commandButton>
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+
+                <!-- Data table -->
+                <p:dataTable
+                    id="dtEntities"
+                    var="entity"
+                    value="#{mbImportData.subjectList}"
+                    widgetVar="entitiesTable"
+                    resizableColumns="true"
+                    draggableColumns="false"
+                    paginator="true"
+                    rows="15"
+                    rowsPerPageTemplate="15,25,50,100"
+                    emptyMessage="#{msg.search_empty}"
+                    rowKey="#{entity.studySubjectId}"
+                    selection="#{mbImportData.selectedSubject}"
+                    selectionMode="single"
+                    rowIndexVar="rowIndex"
+                    filteredValue="#{mbImportData.filteredSubjects}"
+                    sortMode="multiple"
+                    sortOrder="ASCENDING"
+                    sortBy="#{mbImportData.subjectsPreSortOrder}"
+                    disabledTextSelection="false"
+                    >
+
+                    <!-- Table header -->
+                    <f:facet name="header">
+                        <h:outputText value="#{mbImportData.mainBean.activeStudy.uniqueIdentifier} / #{mbImportData.selectedMapping.name}" style="float:left" />
+                        <p:commandButton id="btnEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <p:columnToggler
+                            datasource="dtEntities"
+                            trigger=":form:tabView:dtEntities:btnEntitiesToggler"
+                            style="width:450px"
+                            >
+                            <p:ajax event="toggle" listener="#{mbImportData.onSubjectEntityToggle}" />
+                        </p:columnToggler>
+                    </f:facet>
+
+                    <!-- Row expansion -->
+                    <p:column toggleable="false" exportable="false" style="width:10px">
+                        <p:rowToggler />
+                    </p:column>
+
+                    <!-- Row -->
+                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                        <h:outputText value="#{rowIndex + 1}" />
+                    </p:column>
+
+                    <!-- IsEnabled -->
+                    <p:column
+                        headerText="Enabled"
+                        sortBy="#{entity.isEnabled}"
+                        filterBy="#{entity.isEnabled}"
+                        filterMatchMode="exact"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[0]}"
+                        style="width:10%"
+                        >
+                        <f:facet name="filter">
+                            <p:selectOneButton onchange="PF('entitiesTable').filter()">
+                                <f:converter converterId="javax.faces.Boolean" />
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                            </p:selectOneButton>
+                        </f:facet>
+                        <p:selectBooleanButton
+                            value="#{entity.isEnabled}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            />
+                    </p:column>
+
+                    <!-- StudySubjectID -->
+                    <p:column
+                        id="colStudySubjectId"
+                        headerText="#{msg.studySubject_studySubjectId}"
+                        sortBy="#{entity.studySubjectId}"
+                        filterBy="#{entity.studySubjectId}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[1]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.studySubjectId}" style="float: left;" />
+                    </p:column>
+
+                    <!-- PID -->
+                    <p:column
+                        headerText="#{msg.studySubject_personId}"
+                        sortBy="#{entity.pid}"
+                        filterBy="#{entity.pid}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[2]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.pid}" style="font-family:consolas, courier new,monospace;float: left;" />
+                    </p:column>
+                    
+                    <!--OID aka SubjectKey -->
+                    <p:column
+                        headerText="#{msg.studySubject_oid}"
+                        sortBy="#{entity.subjectKey}"
+                        filterBy="#{entity.subjectKey}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[3]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.subjectKey}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Gender -->
+                    <p:column
+                        headerText="#{msg.studySubject_gender}"
+                        sortBy="#{entity.sex}"
+                        filterBy="#{entity.sex}"
+                        filterMatchMode="in"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[4]}"
+                        style="width:10%"
+                        >
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu
+                                label="Options"
+                                onchange="PF('studySubjectsTable').filter()"
+                                panelStyle="width:50px"
+                                scrollHeight="50"
+                                >
+                                <f:selectItem itemLabel="m" itemValue="m" />
+                                <f:selectItem itemLabel="f" itemValue="f" />
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{entity.sex}" />
+                    </p:column>
+
+                    <!-- Firstname -->
+                    <p:column
+                        headerText="#{msg.person_firstname}"
+                        sortBy="#{entity.person.firstname}"
+                        filterBy="#{entity.person.firstname}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[5]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.person.firstname}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Surname -->
+                    <p:column
+                        headerText="#{msg.person_surname}"
+                        sortBy="#{entity.person.surname}"
+                        filterBy="#{entity.person.surname}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[6]}"
+                        style="width:13%"
+                        >
+                        <h:outputText value="#{entity.person.surname}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Birthdate -->
+                    <p:column
+                        headerText="#{msg.person_birthdate}"
+                        sortBy="#{entity.person.birthdate}"
+                        filterBy="#{entity.person.birthdateString}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[7]}"
+                        style="width:9%"
+                        >
+                        <h:outputText value="#{entity.person.birthdateString}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Birthname -->
+                    <p:column
+                        headerText="#{msg.person_birthname}"
+                        sortBy="#{entity.person.birthname}"
+                        filterBy="#{entity.person.birthname}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[8]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.person.birthname}" style="float: left;" />
+                    </p:column>
+
+                    <!-- City -->
+                    <p:column
+                        headerText="#{msg.person_city}"
+                        sortBy="#{entity.person.city}"
+                        filterBy="#{entity.person.city}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[9]}"
+                        style="width:10%"
+                        >
+                        <h:outputText value="#{entity.person.city}" style="float: left;" />
+                    </p:column>
+
+                    <!-- ZIP -->
+                    <p:column
+                        headerText="#{msg.person_zip}"
+                        sortBy="#{entity.person.zipcode}"
+                        filterBy="#{entity.person.zipcode}"
+                        filterMatchMode="contains"
+                        visible="#{mbImportData.subjectsColumnVisibilityList[10]}"
+                        style="width:5%"
+                        >
+                        <h:outputText value="#{entity.person.zipcode}" style="float: left;" />
+                    </p:column>
+
+                    <!-- Commands -->
+                    <p:column
+                        headerText="#{msg.menu_commands}"
+                        exportable="false"
+                        toggleable="false"
+                        style="width:13%"
+                        >
+                        <!-- Edit -->
+                        <p:commandButton
+                            title="#{msg.menu_edit}"
+                            icon="ui-icon-contact"
+                            immediate="true"
+                            process="@this"
+                            update=":entityDetailsForm:editDisplay"
+                            oncomplete="PF('editEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbImportData.selectedSubject}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Compare -->
+                        <p:commandButton
+                            title="Compare"
+                            icon="ui-icon-transferthick-e-w"
+                            immediate="true"
+                            process="@this"
+                            update=":entityCompareForm:compareDisplay"
+                            oncomplete="PF('compareEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbImportData.selectedSubject}"
+                                />
+                        </p:commandButton>
+
+                        <!-- Import -->
+                        <p:commandButton
+                            title="Import"
+                            icon="ui-icon-play"
+                            immediate="true"
+                            process="@this"
+                            update=":entityImportForm:importDisplay"
+                            oncomplete="PF('importEntityDialog').show();"
+                            >
+                            <f:setPropertyActionListener
+                                value="#{entity}"
+                                target="#{mbImportData.selectedSubject}"
+                                />
+                        </p:commandButton>
+
+                    </p:column>
+
+                    <!-- StudyEventData -->
+                    <p:rowExpansion>
+
+                        <p:dataTable
+                            id="dtStudyEventData"
+                            var="studyEventData"
+                            value="#{entity.studyEventDataList}"
+                            widgetVar="studyEventDataTable"
+                            resizableColumns="true"
+                            draggableColumns="false"
+                            paginator="true"
+                            rows="15"
+                            rowsPerPageTemplate="15,25,50"
+                            emptyMessage="#{msg.search_empty}"
+                            rowIndexVar="subRowIndex"
+                            disabledTextSelection="false"
+                            >
+
+                            <!-- Table header -->
+                            <f:facet name="header">
+                                <h:outputText value="EventData" style="float:left" />
+                            </f:facet>
+
+                            <!-- Row expansion -->
+                            <p:column toggleable="false" exportable="false" style="width:16px">
+                                <p:rowToggler />
+                            </p:column>
+
+                            <!-- Row -->
+                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                <h:outputText value="#{subRowIndex + 1}" />
+                            </p:column>
+
+                            <!-- Event OID -->
+                            <p:column
+                                filterBy="#{studyEventData.studyEventOid}"
+                                sortBy="#{studyEventData.studyEventOid}"
+                                filterMatchMode="contains"
+                                headerText="OID"
+                                >
+                                <h:outputText value="#{studyEventData.studyEventOid}" style="float: left;" />
+                            </p:column>
+
+                            <!-- Repeat Key -->
+                            <p:column
+                                filterBy="#{studyEventData.studyEventRepeatKey}"
+                                sortBy="#{studyEventData.studyEventRepeatKey}"
+                                filterMatchMode="contains"
+                                headerText="Key"
+                                >
+                                <h:outputText value="#{studyEventData.studyEventRepeatKey}" style="float: left;" />
+                            </p:column>
+
+                            <!-- FormData -->
+                            <p:rowExpansion>
+
+                                <p:dataTable
+                                    id="dtFormData"
+                                    var="formData"
+                                    value="#{studyEventData.formDataList}"
+                                    widgetVar="formDataTable"
+                                    resizableColumns="true"
+                                    draggableColumns="false"
+                                    paginator="true"
+                                    rows="15"
+                                    rowsPerPageTemplate="15,25,50"
+                                    emptyMessage="#{msg.search_empty}"
+                                    rowIndexVar="subsubRowIndex"
+                                    disabledTextSelection="false"
+                                    >
+
+                                    <!-- Table header -->
+                                    <f:facet name="header">
+                                        <h:outputText value="FormData" style="float:left" />
+                                    </f:facet>
+
+                                    <!-- Row expansion -->
+                                    <p:column toggleable="false" exportable="false" style="width:16px">
+                                        <p:rowToggler />
+                                    </p:column>
+
+                                    <!-- Row -->
+                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                        <h:outputText value="#{subsubRowIndex + 1}" />
+                                    </p:column>
+
+                                    <!-- Form OID -->
+                                    <p:column
+                                        filterBy="#{formData.formOid}"
+                                        sortBy="#{formData.formOid}"
+                                        filterMatchMode="contains"
+                                        headerText="OID"
+                                        >
+                                        <h:outputText value="#{formData.formOid}" style="float: left;" />
+                                    </p:column>
+
+                                    <!-- ItemGroupData -->
+                                    <p:rowExpansion>
+
+                                        <p:dataTable
+                                            id="dtItemGroupData"
+                                            var="itemGroupData"
+                                            value="#{formData.itemGroupDataList}"
+                                            widgetVar="itemGroupDataTable"
+                                            resizableColumns="true"
+                                            draggableColumns="false"
+                                            paginator="true"
+                                            rows="15"
+                                            rowsPerPageTemplate="15,25,50"
+                                            emptyMessage="#{msg.search_empty}"
+                                            rowIndexVar="subsubsubRowIndex"
+                                            disabledTextSelection="false"
+                                            >
+
+                                            <!-- Table header -->
+                                            <f:facet name="header">
+                                                <h:outputText value="ItemGroupData" style="float:left" />
+                                            </f:facet>
+
+                                            <!-- Row expansion -->
+                                            <p:column toggleable="false" exportable="false" style="width:16px">
+                                                <p:rowToggler />
+                                            </p:column>
+
+                                            <!-- Row -->
+                                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                <h:outputText value="#{subsubsubRowIndex + 1}" />
+                                            </p:column>
+
+                                            <!-- ItemGroup OID -->
+                                            <p:column
+                                                filterBy="#{itemGroupData.itemGroupOid}"
+                                                sortBy="#{itemGroupData.itemGroupOid}"
+                                                filterMatchMode="contains"
+                                                headerText="OID"
+                                                >
+                                                <h:outputText value="#{itemGroupData.itemGroupOid}" style="float: left;" />
+                                            </p:column>
+
+                                            <!-- Repeat Key -->
+                                            <p:column
+                                                filterBy="#{itemGroupData.itemGroupRepeatKey}"
+                                                sortBy="#{itemGroupData.itemGroupRepeatKey}"
+                                                filterMatchMode="contains"
+                                                headerText="Key"
+                                                >
+                                                <h:outputText value="#{itemGroupData.itemGroupRepeatKey}" style="float: left;" />
+                                            </p:column>
+
+                                            <!-- ItemData -->
+                                            <p:rowExpansion>
+
+                                                <p:dataTable
+                                                    id="dtItemData"
+                                                    var="itemData"
+                                                    value="#{itemGroupData.itemDataList}"
+                                                    widgetVar="itemDataTable"
+                                                    resizableColumns="true"
+                                                    draggableColumns="false"
+                                                    paginator="true"
+                                                    rows="15"
+                                                    rowsPerPageTemplate="15,25,50,100"
+                                                    emptyMessage="#{msg.search_empty}"
+                                                    rowIndexVar="subsubsubsubRowIndex"
+                                                    disabledTextSelection="false"
+                                                    >
+
+                                                    <!-- Table header -->
+                                                    <f:facet name="header">
+                                                        <h:outputText value="ItemData" style="float:left" />
+                                                    </f:facet>
+
+                                                    <!-- Row -->
+                                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                        <h:outputText value="#{subsubsubsubRowIndex + 1}" />
+                                                    </p:column>
+
+                                                    <!-- Item OID -->
+                                                    <p:column
+                                                        filterBy="#{itemData.itemOid}"
+                                                        sortBy="#{itemData.itemOid}"
+                                                        filterMatchMode="contains"
+                                                        headerText="OID"
+                                                        >
+                                                        <h:outputText value="#{itemData.itemOid}" style="float: left;" />
+                                                    </p:column>
+
+                                                    <!-- Value -->
+                                                    <p:column
+                                                        filterBy="#{itemData.value}"
+                                                        sortBy="#{itemData.value}"
+                                                        filterMatchMode="contains"
+                                                        headerText="Value"
+                                                        >
+                                                        <h:outputText value="#{itemData.value}" style="float: left;" />
+                                                    </p:column>
+
+                                                    <!-- Footer -->
+                                                    <f:facet name="footer">
+                                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{itemGroupData.itemDataList.size() == 0}" />
+                                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{itemGroupData.itemDataList.size() == 1}" />
+                                                        <h:outputFormat
+                                                            value="#{msg.search_results_status_n}"
+                                                            rendered="#{itemGroupData.itemDataList.size() > 1}"
+                                                            >
+                                                            <f:param value="#{itemGroupData.itemDataList.size()}" />
+                                                        </h:outputFormat>
+                                                    </f:facet>
+                                                </p:dataTable>
+                                            </p:rowExpansion>
+
+                                            <!-- Footer -->
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{msg.search_results_status_0}" rendered="#{formData.itemGroupDataList.size() == 0}" />
+                                                <h:outputText value="#{msg.search_results_status_1}" rendered="#{formData.itemGroupDataList.size() == 1}" />
+                                                <h:outputFormat
+                                                    value="#{msg.search_results_status_n}"
+                                                    rendered="#{formData.itemGroupDataList.size() > 1}"
+                                                    >
+                                                    <f:param value="#{formData.itemGroupDataList.size()}" />
+                                                </h:outputFormat>
+                                            </f:facet>
+                                        </p:dataTable>
+                                    </p:rowExpansion>
+
+                                    <!-- Footer -->
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{studyEventData.formDataList.size() == 0}" />
+                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{studyEventData.formDataList.size() == 1}" />
+                                        <h:outputFormat
+                                            value="#{msg.search_results_status_n}"
+                                            rendered="#{studyEventData.formDataList.size() > 1}"
+                                            >
+                                            <f:param value="#{studyEventData.formDataList.size()}" />
+                                        </h:outputFormat>
+                                    </f:facet>
+                                </p:dataTable>
+                            </p:rowExpansion>
+
+                            <!-- Footer -->
+                            <f:facet name="footer">
+                                <h:outputText value="#{msg.search_results_status_0}" rendered="#{entity.studyEventDataList.size() == 0}" />
+                                <h:outputText value="#{msg.search_results_status_1}" rendered="#{entity.studyEventDataList.size() == 1}" />
+                                <h:outputFormat
+                                    value="#{msg.search_results_status_n}"
+                                    rendered="#{entity.studyEventDataList.size() > 1}"
+                                    >
+                                    <f:param value="#{entity.studyEventDataList.size()}" />
+                                </h:outputFormat>
+                            </f:facet>
+                        </p:dataTable>
+                    </p:rowExpansion>
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbImportData.subjectList.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbImportData.subjectList.size() == 1}" />
+                        <h:outputFormat
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbImportData.subjectList.size() > 1}"
+                                >
+                            <f:param value="#{mbImportData.subjectList.size()}" />
+                        </h:outputFormat>
+                    </f:facet>
+                </p:dataTable>
+
+                <!-- Export -->
+                <p:panel header="#{msg.menu_export}" style="width: auto">
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.studySubject_plural}-import" />
+                    </h:commandLink>
+                    <h:commandLink>
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.studySubject_plural}-import" />
+                    </h:commandLink>
+                </p:panel>
+            </p:tab>
+
+            <!-- Import Summary -->
+            <p:tab title="Summary">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+
+                        <!-- Import data into OC -->
+                        <p:commandButton
+                            value="Import"
+                            title="Import data into EDC"
+                            icon="ui-icon-play"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            update=":growl"
+                            actionListener="#{mbImportData.importData}"
+                            />
+
+                        <!-- Import data into OC -->
+                        <p:commandButton
+                            value="Download"
+                            title="Download import data files"
+                            icon="ui-icon-arrowthick-1-s"
+                            style="float: left;"
+                            ajax="false"
+                            update=":growl"
+                            actionListener="#{mbImportData.downloadData}"
+                            >
+                            <p:fileDownload value="#{mbImportData.zippedImportDataFile}" />
+                        </p:commandButton>
+
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                        <p:commandButton
+                            value="#{msg.menu_help}"
+                            title="#{msg.menu_help}"
+                            icon="ui-icon-help"
+                            disabled="True"
+                            />
+                    </p:toolbarGroup>
+
+                </p:toolbar>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- Edit -->
+        <p:dialog
+            id="dlgEntityDetails"
+            header="#{msg.studySubject_edit}"
+            widgetVar="editEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="entityDetailsForm">
+                <p:panelGrid
+                    id="editDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- IsEnabled-->
+                    <h:outputLabel value="Enabled for import:" for="chbStudySubjectEnabled" />
+                    <p:selectBooleanButton
+                        id="chbStudySubjectEnabled"
+                        value="#{mbImportData.selectedSubject.isEnabled}"
+                        onLabel="#{msg.yes}"
+                        offLabel="#{msg.no}"
+                        onIcon="ui-icon-check"
+                        offIcon="ui-icon-close"
+                        />
+                    
+                    <!-- PID -->
+                    <h:outputLabel value="#{msg.studySubject_personId}:" for="txtPid" />
+                    <h:outputText id="txtPid" value="#{mbImportData.selectedSubject.pid}" />
+
+                    <!-- StudySubjectID -->
+                    <h:outputLabel value="#{msg.studySubject_studySubjectId}:" for="txtStudySubjectId" />
+                    <h:outputText id="txtStudySubjectId" value="#{mbImportData.selectedSubject.studySubjectId}" />
+
+                    <!-- SubjectKey -->
+                    <h:outputLabel value="SubjectKey:" for="txtSubjectKey" />
+                    <h:outputText id="txtSubjectKey" value="#{mbImportData.selectedSubject.subjectKey}" />
+
+                    <!-- Gender -->
+                    <h:outputLabel value="#{msg.studySubject_gender}:" for="rbtnGenderNew" />
+                    <p:selectOneRadio id="rbtnGenderNew" value="#{mbImportData.selectedSubject.sex}">
+                        <f:selectItems value="#{mbImportData.genderValues}" />
+                    </p:selectOneRadio>
+
+                    <!-- First name -->
+                    <h:outputLabel value="#{msg.person_firstname}:" for="txtFirstName" />
+                    <h:outputText id="txtFirstName" value="#{mbImportData.selectedSubject.person.firstname}" />
+
+                    <!-- Last name -->
+                    <h:outputLabel value="#{msg.person_surname}:" for="txtLastName" />
+                    <h:outputText id="txtLastName" value="#{mbImportData.selectedSubject.person.surname}" />
+
+                    <!-- Birth name -->
+                    <h:outputLabel value="#{msg.person_birthname}:" for="txtBirthName" />
+                    <h:outputText id="txtBirthName" value="#{mbImportData.selectedSubject.person.birthname}" />
+
+                    <!-- Birthdate -->
+                    <h:outputLabel value="#{msg.person_birthdate}:" for="calBirthDate" />
+                    <p:calendar
+                        id="calBirthDate"
+                        pattern="dd.MM.yyyy"
+                        value="#{mbImportData.selectedSubject.person.birthdate}"
+                        disabled="true"
+                        />
+
+                    <!-- City -->
+                    <h:outputLabel value="#{msg.person_city}:" for="txtCity" />
+                    <p:inputText id="txtCity" value="#{mbImportData.selectedSubject.person.city}" />
+
+                    <!-- Zip code -->
+                    <h:outputLabel value="#{msg.person_zip}:" for="txtZip" />
+                    <p:inputText id="txtZip" value="#{mbImportData.selectedSubject.person.zipcode}" />
+
+                    <!-- Force new PID (sureness of new patient record) -->
+                    <h:outputLabel value="I am sure that patient data is correct and I want to create a new PID:" />
+                    <h:selectBooleanCheckbox value="#{mbImportData.isSure}" />
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                            value="#{msg.menu_save}"
+                            update=":form:tabView:dtEntities, :growl"
+                            icon="ui-icon-disk"
+                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
+                            actionListener="#{mbImportData.doUpdateSubject}"
+                            process="@this entityDetailsForm"
+                            />
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Compare -->
+        <p:dialog
+            id="dlgEntityCompare"
+            header="Source/Target Data Matching"
+            widgetVar="compareEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            height="600"
+            >
+
+            <!-- Form -->
+            <h:form id="entityCompareForm">
+
+                <p:messages id="messagesEntityCompare" showDetail="true" autoUpdate="true" />
+
+                <!-- Wizard -->
+                <p:wizard widgetVar="wizEntityCompare">
+
+                    <p:tab title="Result">
+                        <p:panelGrid
+                            id="compareDisplay"
+                            columns="2"
+                            cellpadding="4"
+                            style="margin:0 auto;"
+                            >
+
+                            <!-- Study -->
+                            <h:outputLabel value="#{msg.study}:" for="txtStudyCompare" />
+                            <h:outputText id="txtStudyCompare" value="#{mbImportData.study.ocStudyIdentifier}" />
+
+                            <!-- StudySubjectID-->
+                            <h:outputLabel value="#{msg.studySubject_studySubjectId}:" for="txtStudySubjectIdCompare" />
+                            <h:outputText id="txtStudySubjectIdCompare" value="#{mbImportData.selectedSubject.studySubjectId}" />
+
+                            <!-- PID -->
+                            <h:outputText value="#{msg.studySubject_personId}:" for="txtStudySubjectPersonIdCompare" />
+                            <h:outputText id="txtStudySubjectPersonIdCompare" value="#{mbImportData.selectedSubject.pid}" />
+
+                            <!-- OID aka SubjectKey -->
+                            <h:outputLabel value="#{msg.studySubject_oid}:" for="txtSubjectKeyCompare" />
+                            <h:outputText id="txtSubjectKeyCompare" value="#{mbImportData.selectedSubject.subjectKey}" />
+
+                            <!-- Commands -->
+                            <h:outputLabel value="#{msg.menu_commands}:" />
+                            <p:commandButton
+                                id="btnCompareData"
+                                value="Compare"
+                                icon="ui-icon-play"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{mbImportData.compareSubjectData(mbImportData.selectedSubject)}"
+                                update=":entityCompareForm:compareDisplay, :growl"
+                                />
+
+                            <!-- Complete match -->
+                            <h:outputLabel value="Match:" />
+                            <p:selectBooleanButton
+                                value="#{mbImportData.selectedSubjectOdmMatch.match}"
+                                onLabel="#{msg.yes}"
+                                offLabel="#{msg.no}"
+                                onIcon="ui-icon-check"
+                                offIcon="ui-icon-close"
+                                disabled="true"
+                                style="width:60px"
+                                />
+
+                        </p:panelGrid>
+                    </p:tab>
+
+                    <p:tab title="Details">
+                        <p:dataTable
+                            id="dtClinicalDataMatchResult"
+                            var="clinicalDataMatch"
+                            value="#{mbImportData.selectedSubjectOdmMatch.clinicalDataMatchList}"
+                            widgetVar="clinicalDataMatchTable"
+                            resizableColumns="true"
+                            draggableColumns="false"
+                            paginator="true"
+                            rows="15"
+                            rowsPerPageTemplate="15,25,50"
+                            emptyMessage="#{msg.search_empty}"
+                            rowKey="#{clinicalDataMatch.studyOid}"
+                            rowIndexVar="rowIndex"
+                            disabledTextSelection="false"
+                            style="width:520px"
+                            >
+
+                            <!-- Data table header -->
+                            <f:facet name="header">
+                                <h:outputText value="#{mbImportData.study.ocStudyIdentifier} / #{mbImportData.selectedSubject.subjectKey}" style="float:left" />
+                            </f:facet>
+
+                            <!-- Row expansion -->
+                            <p:column toggleable="false" exportable="false" style="width:16px">
+                                <p:rowToggler />
+                            </p:column>
+
+                            <!-- Row -->
+                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                <h:outputText value="#{rowIndex + 1}" />
+                            </p:column>
+
+                            <!-- Study OID -->
+                            <p:column
+                                headerText="OID"
+                                >
+                                <h:outputText value="#{clinicalDataMatch.studyOid}" style="float: left;" />
+                            </p:column>
+
+                            <!-- ODM match -->
+                            <p:column
+                                headerText="Match"
+                                style="width:20%"
+                                >
+                                <p:selectBooleanButton
+                                    value="#{clinicalDataMatch.match}"
+                                    onLabel="#{msg.yes}"
+                                    offLabel="#{msg.no}"
+                                    onIcon="ui-icon-check"
+                                    offIcon="ui-icon-close"
+                                    disabled="true"
+                                    style="width:60px"
+                                    />
+                            </p:column>
+
+                            <!-- SubjectDataMatch -->
+                            <p:rowExpansion>
+
+                                <p:dataTable
+                                    id="dtSubjectDataMatchResult"
+                                    var="subjectDataMatch"
+                                    value="#{clinicalDataMatch.subjectDataMatchList}"
+                                    widgetVar="subjectDataMatchTable"
+                                    resizableColumns="true"
+                                    draggableColumns="false"
+                                    paginator="true"
+                                    rows="15"
+                                    rowsPerPageTemplate="15,25,50,100"
+                                    emptyMessage="#{msg.search_empty}"
+                                    rowKey="#{subjectDataMatch.subjectKey}"
+                                    rowIndexVar="subRowIndex"
+                                    disabledTextSelection="false"
+                                    style="width:490px"
+                                    >
+
+                                    <!-- Table header -->
+                                    <f:facet name="header">
+                                        <h:outputText value="SubjectData" style="float:left" />
+                                    </f:facet>
+
+                                    <!-- Row expansion -->
+                                    <p:column toggleable="false" exportable="false" style="width:16px">
+                                        <p:rowToggler />
+                                    </p:column>
+
+                                    <!-- Row -->
+                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                        <h:outputText value="#{subRowIndex + 1}" />
+                                    </p:column>
+
+                                    <!-- Subject OID -->
+                                    <p:column
+                                        headerText="OID"
+                                        >
+                                        <h:outputText value="#{subjectDataMatch.subjectKey}" style="float: left;" />
+                                    </p:column>
+
+                                    <!-- ClinicalData match -->
+                                    <p:column
+                                        headerText="Match"
+                                        style="width:20%"
+                                        >
+                                        <p:selectBooleanButton
+                                            value="#{subjectDataMatch.match}"
+                                            onLabel="#{msg.yes}"
+                                            offLabel="#{msg.no}"
+                                            onIcon="ui-icon-check"
+                                            offIcon="ui-icon-close"
+                                            disabled="true"
+                                            style="width:60px"
+                                            />
+                                    </p:column>
+
+                                    <!-- EventData match -->
+                                    <p:rowExpansion>
+                                        <p:dataTable
+                                            id="dtEventDataMatchResult"
+                                            var="eventDataMatch"
+                                            value="#{subjectDataMatch.eventDataMatchList}"
+                                            widgetVar="eventDataMatchTable"
+                                            resizableColumns="true"
+                                            draggableColumns="false"
+                                            paginator="true"
+                                            rows="15"
+                                            rowsPerPageTemplate="15,25,50"
+                                            emptyMessage="#{msg.search_empty}"
+                                            rowIndexVar="subsubRowIndex"
+                                            disabledTextSelection="false"
+                                            style="width:460px"
+                                            >
+
+                                            <!-- Table header -->
+                                            <f:facet name="header">
+                                                <h:outputText value="EventData" style="float:left" />
+                                            </f:facet>
+
+                                            <!-- Row expansion -->
+                                            <p:column toggleable="false" exportable="false" style="width:16px">
+                                                <p:rowToggler />
+                                            </p:column>
+
+                                            <!-- Row -->
+                                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                <h:outputText value="#{subsubRowIndex + 1}" />
+                                            </p:column>
+
+                                            <!-- EventDefinition OID -->
+                                            <p:column
+                                                headerText="#{msg.studyEvent_oid}"
+                                                >
+                                                <h:outputText value="#{eventDataMatch.studyEventOid}" style="float: left;" />
+                                            </p:column>
+
+                                            <!-- Event repeat key -->
+                                            <p:column
+                                                headerText="Key"
+                                                style="width:5%"
+                                                >
+                                                <h:outputText value="#{eventDataMatch.studyEventRepeatKey}" style="float: left;" />
+                                            </p:column>
+
+                                            <!-- EventData match -->
+                                            <p:column
+                                                headerText="Match"
+                                                style="width:20%"
+                                                >
+                                                <p:selectBooleanButton
+                                                    value="#{eventDataMatch.match}"
+                                                    onLabel="#{msg.yes}"
+                                                    offLabel="#{msg.no}"
+                                                    onIcon="ui-icon-check"
+                                                    offIcon="ui-icon-close"
+                                                    disabled="true"
+                                                    style="width:60px"
+                                                    />
+                                            </p:column>
+
+                                            <!-- FormData match -->
+                                            <p:rowExpansion>
+
+                                                <p:dataTable
+                                                    id="dtFormDataMatchResult"
+                                                    var="formDataMatch"
+                                                    value="#{eventDataMatch.formDataMatchList}"
+                                                    widgetVar="formDataMatchTable"
+                                                    resizableColumns="true"
+                                                    draggableColumns="false"
+                                                    paginator="true"
+                                                    rows="15"
+                                                    rowsPerPageTemplate="15,25,50"
+                                                    emptyMessage="#{msg.search_empty}"
+                                                    rowKey="#{formDataMatch.formOid}"
+                                                    rowIndexVar="subsubsubRowIndex"
+                                                    disabledTextSelection="false"
+                                                    style="width:430px"
+                                                    >
+
+                                                    <!-- Table header -->
+                                                    <f:facet name="header">
+                                                        <h:outputText value="FormData" style="float:left" />
+                                                    </f:facet>
+
+                                                    <!-- Row expansion -->
+                                                    <p:column toggleable="false" exportable="false" style="width:16px">
+                                                        <p:rowToggler />
+                                                    </p:column>
+
+                                                    <!-- Row -->
+                                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                        <h:outputText value="#{subsubsubRowIndex + 1}" />
+                                                    </p:column>
+
+                                                    <!-- FormDefinition OID -->
+                                                    <p:column
+                                                        headerText="OID"
+                                                        >
+                                                        <h:outputText value="#{formDataMatch.formOid}" style="float: left;" />
+                                                    </p:column>
+
+                                                    <!-- FormData match -->
+                                                    <p:column
+                                                        headerText="Match"
+                                                        style="width:20%"
+                                                        >
+                                                        <p:selectBooleanButton
+                                                            value="#{formDataMatch.match}"
+                                                            onLabel="#{msg.yes}"
+                                                            offLabel="#{msg.no}"
+                                                            onIcon="ui-icon-check"
+                                                            offIcon="ui-icon-close"
+                                                            disabled="true"
+                                                            style="width:60px"
+                                                            />
+                                                    </p:column>
+
+                                                    <!-- ItemGroupData match -->
+                                                    <p:rowExpansion>
+
+                                                        <p:dataTable
+                                                            id="dtItemGroupDataMatchResult"
+                                                            var="itemGroupDataMatch"
+                                                            value="#{formDataMatch.itemGroupDataMatchList}"
+                                                            widgetVar="itemGroupDataMatchTable"
+                                                            resizableColumns="true"
+                                                            draggableColumns="false"
+                                                            paginator="true"
+                                                            rows="15"
+                                                            rowsPerPageTemplate="15,25,50"
+                                                            emptyMessage="#{msg.search_empty}"
+                                                            rowIndexVar="subsubsubsubRowIndex"
+                                                            disabledTextSelection="false"
+                                                            style="width:400px"
+                                                            >
+
+                                                            <!-- Table header -->
+                                                            <f:facet name="header">
+                                                                <h:outputText value="ItemGroupData" style="float:left" />
+                                                            </f:facet>
+
+                                                            <!-- Row expansion -->
+                                                            <p:column toggleable="false" exportable="false" style="width:16px">
+                                                                <p:rowToggler />
+                                                            </p:column>
+
+                                                            <!-- Row -->
+                                                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                                <h:outputText value="#{subsubsubsubRowIndex + 1}" />
+                                                            </p:column>
+
+                                                            <!-- ItemGroupDefinition OID -->
+                                                            <p:column
+                                                                headerText="OID"
+                                                                >
+                                                                <h:outputText value="#{itemGroupDataMatch.itemGroupOid}" style="float: left;" />
+                                                            </p:column>
+
+                                                            <!-- ItemGroupData repeat key -->
+                                                            <p:column
+                                                                headerText="Key"
+                                                                style="width:5%"
+                                                                >
+                                                                <h:outputText value="#{itemGroupDataMatch.itemGroupRepeatKey}" style="float: left;" />
+                                                            </p:column>
+
+                                                            <!-- ItemGroupData match -->
+                                                            <p:column
+                                                                headerText="Match"
+                                                                style="width:20%"
+                                                                >
+                                                                <p:selectBooleanButton
+                                                                    value="#{itemGroupDataMatch.match}"
+                                                                    onLabel="#{msg.yes}"
+                                                                    offLabel="#{msg.no}"
+                                                                    onIcon="ui-icon-check"
+                                                                    offIcon="ui-icon-close"
+                                                                    disabled="true"
+                                                                    style="width:60px"
+                                                                    />
+                                                            </p:column>
+
+                                                            <!-- ItemData match -->
+                                                            <p:rowExpansion>
+
+                                                                <p:dataTable
+                                                                    id="dtIteDataMatchResult"
+                                                                    var="itemDataMatch"
+                                                                    value="#{itemGroupDataMatch.itemDataMatchesList}"
+                                                                    widgetVar="itemDataMatchTable"
+                                                                    resizableColumns="true"
+                                                                    draggableColumns="false"
+                                                                    paginator="true"
+                                                                    rows="15"
+                                                                    rowsPerPageTemplate="15,25,50,100"
+                                                                    emptyMessage="#{msg.search_empty}"
+                                                                    rowIndexVar="subsubsubsubsubRowIndex"
+                                                                    filteredValue="#{mbItemDataMatch.filteredEntities}"
+                                                                    rowKey="#{itemDataMatch.itemOid}"
+                                                                    disabledTextSelection="false"
+                                                                    style="width:370px"
+                                                                    >
+
+                                                                    <!-- Table header -->
+                                                                    <f:facet name="header">
+                                                                        <h:outputText value="ItemData" style="float:left" />
+                                                                    </f:facet>
+
+                                                                    <!-- Row -->
+                                                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                                        <h:outputText value="#{subsubsubsubsubRowIndex + 1}" />
+                                                                    </p:column>
+
+                                                                    <!-- Item OID -->
+                                                                    <p:column
+                                                                        filterBy="#{itemDataMatch.itemOid}"
+                                                                        sortBy="#{itemDataMatch.itemOid}"
+                                                                        filterMatchMode="contains"
+                                                                        headerText="OID"
+                                                                        >
+                                                                        <h:outputText value="#{itemDataMatch.itemOid}" style="float: left;" />
+                                                                    </p:column>
+
+                                                                    <!-- ItemData match -->
+                                                                    <p:column
+                                                                        filterBy="#{itemDataMatch.match}"
+                                                                        sortBy="#{itemDataMatch.match}"
+                                                                        filterMatchMode="exact"
+                                                                        style="width:20%"
+                                                                        >
+                                                                        <f:facet name="header">
+                                                                            <h:outputText value="Match" />
+                                                                        </f:facet>
+                                                                        <f:facet name="filter">
+                                                                            <p:selectOneMenu onchange="PF('itemDataMatchTable').filter()">
+                                                                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                                                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
+                                                                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                                                                            </p:selectOneMenu>
+                                                                        </f:facet>
+                                                                        <p:selectBooleanButton
+                                                                            value="#{itemDataMatch.match}"
+                                                                            onLabel="#{msg.yes}"
+                                                                            offLabel="#{msg.no}"
+                                                                            onIcon="ui-icon-check"
+                                                                            offIcon="ui-icon-close"
+                                                                            disabled="true"
+                                                                            style="width:60px"
+                                                                            />
+                                                                    </p:column>
+
+                                                                    <!-- Footer -->
+                                                                    <f:facet name="footer">
+                                                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{itemGroupDataMatch.itemDataMatchesList.size() == 0}" />
+                                                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{itemGroupDataMatch.itemDataMatchesList.size() == 1}" />
+                                                                        <h:outputFormat
+                                                                            value="#{msg.search_results_status_n}"
+                                                                            rendered="#{itemGroupDataMatch.itemDataMatchesList.size() > 1}"
+                                                                            >
+                                                                            <f:param value="#{itemGroupDataMatch.itemDataMatchesList.size()}" />
+                                                                        </h:outputFormat>
+                                                                    </f:facet>
+                                                                </p:dataTable>
+
+                                                            </p:rowExpansion>
+
+                                                            <!-- Footer -->
+                                                            <f:facet name="footer">
+                                                                <h:outputText value="#{msg.search_results_status_0}" rendered="#{formDataMatch.itemGroupDataMatchList.size() == 0}" />
+                                                                <h:outputText value="#{msg.search_results_status_1}" rendered="#{formDataMatch.itemGroupDataMatchList.size() == 1}" />
+                                                                <h:outputFormat
+                                                                    value="#{msg.search_results_status_n}"
+                                                                    rendered="#{formDataMatch.itemGroupDataMatchList.size() > 1}"
+                                                                    >
+                                                                    <f:param value="#{formDataMatch.itemGroupDataMatchList.size()}" />
+                                                                </h:outputFormat>
+                                                            </f:facet>
+                                                        </p:dataTable>
+
+                                                    </p:rowExpansion>
+
+                                                    <!-- Footer -->
+                                                    <f:facet name="footer">
+                                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{eventDataMatch.formDataMatchList.size() == 0}" />
+                                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{eventDataMatch.formDataMatchList.size() == 1}" />
+                                                        <h:outputFormat
+                                                            value="#{msg.search_results_status_n}"
+                                                            rendered="#{eventDataMatch.formDataMatchList.size() > 1}"
+                                                            >
+                                                            <f:param value="#{eventDataMatch.formDataMatchList.size()}" />
+                                                        </h:outputFormat>
+                                                    </f:facet>
+                                                </p:dataTable>
+                                            </p:rowExpansion>
+
+                                            <!-- Footer -->
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{msg.search_results_status_0}" rendered="#{subjectDataMatch.eventDataMatchList.size() == 0}" />
+                                                <h:outputText value="#{msg.search_results_status_1}" rendered="#{subjectDataMatch.eventDataMatchList.size() == 1}" />
+                                                <h:outputFormat
+                                                    value="#{msg.search_results_status_n}"
+                                                    rendered="#{subjectDataMatch.eventDataMatchList.size() > 1}"
+                                                    >
+                                                    <f:param value="#{subjectDataMatch.eventDataMatchList.size()}" />
+                                                </h:outputFormat>
+                                            </f:facet>
+                                        </p:dataTable>
+                                    </p:rowExpansion>
+
+                                    <!-- Footer -->
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{clinicalDataMatch.subjectDataMatchList.size() == 0}" />
+                                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{clinicalDataMatch.subjectDataMatchList.size() == 1}" />
+                                        <h:outputFormat
+                                            value="#{msg.search_results_status_n}"
+                                            rendered="#{clinicalDataMatch.subjectDataMatchList.size() > 1}"
+                                            >
+                                            <f:param value="#{clinicalDataMatch.subjectDataMatchList.size()}" />
+                                        </h:outputFormat>
+                                    </f:facet>
+                                </p:dataTable>
+                            </p:rowExpansion>
+
+                            <!-- Footer -->
+                            <f:facet name="footer">
+                                <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbImportData.selectedSubjectOdmMatch.clinicalDataMatchList.size() == 0}" />
+                                <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbImportData.selectedSubjectOdmMatch.clinicalDataMatchList.size() == 1}" />
+                                <h:outputFormat
+                                    value="#{msg.search_results_status_n}"
+                                    rendered="#{mbImportData.selectedSubjectOdmMatch.clinicalDataMatchList.size() > 1}"
+                                    >
+                                    <f:param value="#{mbImportData.selectedSubjectOdmMatch.clinicalDataMatchList.size()}" />
+                                </h:outputFormat>
+                            </f:facet>
+                        </p:dataTable>
+                    </p:tab>
+                </p:wizard>
+            </h:form>
+        </p:dialog>
+
+        <!-- Import -->
+        <p:dialog
+            id="dlgEntityImport"
+            header="Import"
+            widgetVar="importEntityDialog"
+            resizable="false"
+            appendToBody="true"
+            modal="true"
+            closeOnEscape="true"
+            >
+
+            <!-- Form -->
+            <h:form id="entityImportForm">
+
+                <p:panelGrid
+                    id="importDisplay"
+                    columns="2"
+                    cellpadding="4"
+                    style="margin:0 auto;"
+                    >
+
+                    <!-- Study -->
+                    <h:outputLabel value="#{msg.study}:" for="txtStudyImport" />
+                    <h:outputText id="txtStudyImport" value="#{mbImportData.study.ocStudyIdentifier}" />
+
+                    <!-- StudySubjectID-->
+                    <h:outputLabel value="#{msg.studySubject_studySubjectId}:" for="txtStudySubjectIdImport" />
+                    <h:outputText id="txtStudySubjectIdImport" value="#{mbImportData.selectedSubject.studySubjectId}" />
+
+                    <!-- PID -->
+                    <h:outputText value="#{msg.studySubject_personId}:" for="txtStudySubjectPersonIdImport" />
+                    <h:outputText id="txtStudySubjectPersonIdImport" value="#{mbImportData.selectedSubject.pid}" />
+
+                    <!-- OID aka SubjectKey -->
+                    <h:outputLabel value="#{msg.studySubject_oid}:" for="txtSubjectKeyImport" />
+                    <h:outputText id="txtSubjectKeyImport" value="#{mbImportData.selectedSubject.subjectKey}" />
+
+                    <!-- Commands -->
+                    <h:outputLabel value="#{msg.menu_commands}:" />
+                    <p:commandButton
+                        value="Import"
+                        icon="ui-icon-play"
+                        immediate="true"
+                        process="@this"
+                        actionListener="#{mbImportData.importSubjectData(mbImportData.selectedSubject)}"
+                        update=":entityImportForm:importDisplay, :growl"
+                        />
+
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#'+dialogName);
+                if(args.validationFailed) {
+                    dialog.effect("shake", { times:3 }, 100);
+                }
+                else {
+                    PF('editEntityDialog').hide();
+                    PF('compareEntityDialog').hide();
+                    PF('importEntityDialog').hide();
+                }
+            }
+            function clearForm(formName) {
+                jQuery('#'+formName).each(function() {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+
+</ui:composition>

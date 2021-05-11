@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ViewModel bean for study centric patient DICOM matrix view
+ * ViewModel bean for study centric patient DICOM matrix view for monitoring of DICOM data collection progress
  *
  * @author tomas@skripcak.net
  * @since 22 September 2015
@@ -72,27 +72,12 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
     @Inject
     private MainBean mainBean;
 
-    /**
-     * Set MainBean
-     *
-     * @param bean MainBean
-     */
-    @SuppressWarnings("unused")
-    public void setMainBean(MainBean bean) {
-        this.mainBean = bean;
-    }
-
     //endregion
 
     //region Study integration facade
 
     @Inject
     private StudyIntegrationFacade studyIntegrationFacade;
-
-    @SuppressWarnings("unused")
-    public void setStudyIntegrationFacade(StudyIntegrationFacade value) {
-        this.studyIntegrationFacade = value;
-    }
 
     //endregion
 
@@ -203,7 +188,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
     }
 
     public void reloadOccurrences() {
-        this.eventDataRepeatKeys = new ArrayList<Integer>();
+        this.eventDataRepeatKeys = new ArrayList<>();
 
         int max = -1;
         if (this.entityList != null && this.selectedEventDef != null) {
@@ -234,7 +219,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
             );
 
             // When the DICOM study was not loaded yet, load it from PACS
-            if (itemData != null && !ss.hasDicomStudyWithUid(itemData.getValue())) {
+            if (itemData != null && itemData.hasValue() && !ss.hasDicomStudyWithUid(itemData.getValue())) {
                 if  (this.mainBean.getPacsService() != null) {
                     DicomStudy dicomStudy = this.mainBean.getPacsService()
                             .loadPatientStudy(
@@ -255,7 +240,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
                 }
             }
             // Otherwise use preloaded
-            else if (itemData != null) {
+            else if (itemData != null && itemData.hasValue()) {
                 DicomStudy dicomStudy = ss.getDicomStudyWithUid(itemData.getValue());
                 result = dicomStudy.getStudyType() + " [" + dicomStudy.getStudyDate() + "]";
             }
@@ -270,13 +255,13 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
     public String loadDicomStudyLegend(StudySubject ss, EventData eventData, ItemDefinition dicomItemDef) {
         String result = "DICOM study does not exists in research PACS";
 
-        // Get value of Item
+        // Get item data for item definition
         ItemData itemData = ss.getItemDataForItemDef(
                 eventData,
                 dicomItemDef
         );
 
-        if (itemData != null) {
+        if (itemData != null && itemData.hasValue()) {
             for (DicomStudy ds : ss.getPerson().getDicomStudies()) {
                 if (ds.getCrfItemDefinition().equals(dicomItemDef)) {
                     result = ds.getStudyDescription();
@@ -306,7 +291,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
                 dicomItemDef
         );
 
-        if (itemData != null) {
+        if (itemData != null && itemData.hasValue()) {
             for (DicomStudy ds : ss.getPerson().getDicomStudies()) {
                 if (ds.getCrfItemDefinition().equals(dicomItemDef)) {
                     result = "SUCCESS";
@@ -375,7 +360,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
 
                             dicomStudy.setRtTreatmentCase(result);
                         }
-                        else {
+                        else if (dicomStudy != null) {
                             result = dicomStudy.getRtTreatmentCase();
                         }
                     }
@@ -400,7 +385,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
         try {
             // Init Facade to use service that are valid for logged user PartnerSite (from mainBean)
             this.studyIntegrationFacade.init(this.mainBean);
-            this.studyIntegrationFacade.setRetreiveStudySubjectOID(Boolean.FALSE);
+            this.studyIntegrationFacade.setRetrieveStudySubjectOID(Boolean.FALSE);
 
             this.rpbStudy = this.studyIntegrationFacade.loadStudyWithMetadata();
             this.entityList = this.studyIntegrationFacade.loadOdmStudySubjects();
@@ -429,7 +414,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
             return results;
         }
 
-        return new ArrayList<SortMeta>();
+        return new ArrayList<>();
     }
 
     /**
@@ -442,7 +427,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
             return results;
         }
 
-        return new ArrayList<SortMeta>();
+        return new ArrayList<>();
     }
 
     /**
@@ -450,7 +435,7 @@ public class DicomMatrixBean extends CrudEntityViewModel<StudySubject, Integer> 
      * @return List of Boolean values determining column visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> result = new ArrayList<Boolean>();
+        List<Boolean> result = new ArrayList<>();
 
         result.add(Boolean.TRUE); // StudySubjectID
         result.add(Boolean.FALSE); // PID

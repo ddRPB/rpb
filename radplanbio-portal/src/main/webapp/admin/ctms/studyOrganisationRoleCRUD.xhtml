@@ -14,7 +14,7 @@
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
             <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#" />
             <p:menuitem value="CTMS" title="Clinical Trial Management System" url="#" />
-            <p:menuitem value="Organisation Roles" title="Study Organisation Roles" url="/admin/ctms/studyOrganisationRoleCRUD.faces" />
+            <p:menuitem value="#{msg.organisation} #{msg.studyOrganisationRole_plural}" title="#{msg.organisation} #{msg.studyOrganisationRole_plural}" url="/admin/ctms/studyOrganisationRoleCRUD.faces" />
         </p:breadCrumb>
     </ui:define>
 
@@ -24,7 +24,7 @@
         <p:tabView id="tabView" activeIndex="#{mbStudyOrganisationRole.tab.activeIndex}">
 
             <!-- Studies -->
-            <p:tab title="Study Organisation Roles" titletip="Study Organisation Roles">
+            <p:tab title="#{msg.organisation} #{msg.studyOrganisationRole_plural}">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -33,7 +33,7 @@
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 value="#{msg.menu_new}"
-                                title="Define a new Study Organisation Role [ctrl+shift+n]"
+                                title="#{msg.studyOrganisationRole_new}"
                                 icon="ui-icon-document"
                                 oncomplete="PF('newEntityDialog').show();"
                                 style="float: left;"
@@ -42,18 +42,9 @@
                                 process="@this"
                                 actionListener="#{mbStudyOrganisationRole.prepareNewEntity}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+n"
-                                oncomplete="PF('newEntityDialog').show();"
-                                immediate="true"
-                                update=":newEntityForm:newDisplay"
-                                process="@this"
-                                actionListener="#{mbStudyOrganisationRole.prepareNewEntity}"
-                                rendered="#{mbStudyOrganisationRole.tab.activeIndex == 0}"
-                                />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
-                                title="Reload Study Organisation Roles [ctrl+shift+r]"
+                                title="#{msg.studyOrganisationRole_reload}"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 immediate="true"
@@ -61,28 +52,20 @@
                                 update=":form:tabView:dtEntities, :growl"
                                 actionListener="#{mbStudyPersonRole.load}"
                                 />
-                        <p:hotkey
-                                bind="ctrl+shift+r"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbStudyOrganisationRole.load}"
-                                rendered="#{mbStudyOrganisationRole.tab.activeIndex == 0}"
-                                />
                     </p:toolbarGroup>
 
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
                                 value="#{msg.menu_print}"
-                                title="Print Organisation Roles table"
+                                title="#{msg.studyOrganisationRole_print}"
                                 icon="ui-icon-print"
                                 >
                             <p:printer target="dtEntities" />
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
-                                title="To be implemented [ctrl+shift+h]"
+                                title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
                                 />
@@ -134,11 +117,11 @@
                             sortBy="#{entity.name}"
                             filterBy="#{entity.name}"
                             filterMatchMode="contains"
-                            style="width:20%"
                             visible="#{mbStudyOrganisationRole.columnVisibilityList[0]}"
+                            style="width:20%"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Name" />
+                            <h:outputText value="#{msg.studyOrganisationRole_name}" />
                         </f:facet>
                         <h:outputText value="#{entity.name}" style="float:left;" />
                     </p:column>
@@ -148,11 +131,11 @@
                             sortBy="#{entity.description}"
                             filterBy="#{entity.description}"
                             filterMatchMode="contains"
-                            style="width:20%"
                             visible="#{mbStudyOrganisationRole.columnVisibilityList[1]}"
+                            style="width:60%"
                             >
                         <f:facet name="header">
-                            <h:outputText value="Description" />
+                            <h:outputText value="#{msg.studyOrganisationRole_description}" />
                         </f:facet>
                         <h:outputText value="#{entity.description}" style="float:left;" />
                     </p:column>
@@ -161,8 +144,8 @@
                     <p:column
                             headerText="#{msg.menu_commands}"
                             exportable="false"
-                            style="width:17%"
                             toggleable="false"
+                            style="width:17%"
                             >
                         <p:commandButton
                                 icon="ui-icon-contact"
@@ -193,14 +176,14 @@
                 </p:dataTable>
 
                 <!-- Export -->
-                <p:panel header="#{msg.menu_export}">
+                <p:panel header="#{msg.menu_export}" style="width: auto;">
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/excel.png" title="xls" />
-                        <p:dataExporter type="xls" target="dtEntities" fileName="StudyOrganisationRoles" />
+                        <p:graphicImage library="img" name="excel.png" title="xls"/>
+                        <p:dataExporter type="xls" target="dtEntities" fileName="#{msg.organisation}#{msg.studyOrganisationRole_plural}" />
                     </h:commandLink>
                     <h:commandLink>
-                        <p:graphicImage value="/resources/img/csv.png" title="csv" />
-                        <p:dataExporter type="csv" target="dtEntities" fileName="StudyOrganisationRoles" />
+                        <p:graphicImage library="img" name="csv.png" title="csv"/>
+                        <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.organisation}#{msg.studyOrganisationRole_plural}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -213,7 +196,7 @@
         <!-- New Study Person Role -->
         <p:dialog
                 id="dlgNewEntity"
-                header="New Study Organisation Role"
+                header="#{msg.studyOrganisationRole_new}"
                 widgetVar="newEntityDialog"
                 resizable="false"
                 ajax="true"
@@ -232,17 +215,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtStudyOrganisationRoleNameNew" />
+                    <h:outputLabel value="#{msg.studyOrganisationRole_name}: #{msg.label_required_suffix}" for="txtStudyOrganisationRoleNameNew" />
                     <p:inputText
                             id="txtStudyOrganisationRoleNameNew"
                             value="#{mbStudyOrganisationRole.newEntity.name}"
                             required="true"
-                            requiredMessage="Study Organisation Role name is mandatory!"
+                            requiredMessage="#{msg.studyOrganisationRole_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtStudyOrganisationRoleDescriptionNew" />
+                    <h:outputLabel value="#{msg.studyOrganisationRole_description}:" for="txtStudyOrganisationRoleDescriptionNew" />
                     <p:inputTextarea
                             id="txtStudyOrganisationRoleDescriptionNew"
                             value="#{mbStudyOrganisationRole.newEntity.description}"
@@ -273,7 +256,7 @@
         <!-- Edit Study Person Role -->
         <p:dialog
                 id="dlgEntityDetails"
-                header="Edit Study Organisation Role details"
+                header="#{msg.studyOrganisationRole_edit}"
                 widgetVar="editEntityDialog"
                 resizable="false"
                 appendToBody="true"
@@ -291,17 +274,17 @@
                         >
 
                     <!-- Name -->
-                    <h:outputLabel value="Name: *" for="txtStudyOrganisationRoleNameEdit" />
+                    <h:outputLabel value="#{msg.studyOrganisationRole_name}: #{msg.label_required_suffix}" for="txtStudyOrganisationRoleNameEdit" />
                     <p:inputText
                             id="txtStudyOrganisationRoleNameEdit"
                             value="#{mbStudyOrganisationRole.selectedEntity.name}"
                             required="true"
-                            requiredMessage="Study Organisation Role name is mandatory!"
+                            requiredMessage="#{msg.studyOrganisationRole_name} is mandatory!"
                             maxlength="255"
                             />
 
                     <!-- Description -->
-                    <h:outputLabel value="Description:" for="txtStudyOrganisationRoleDescriptionEdit" />
+                    <h:outputLabel value="#{msg.studyOrganisationRole_description}:" for="txtStudyOrganisationRoleDescriptionEdit" />
                     <p:inputTextarea
                             id="txtStudyOrganisationRoleDescriptionEdit"
                             value="#{mbStudyOrganisationRole.selectedEntity.description}"

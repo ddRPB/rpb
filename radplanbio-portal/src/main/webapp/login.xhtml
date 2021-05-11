@@ -15,7 +15,7 @@
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="Login" title="Login" url="#" rendered="#{userContext.isAnonymousUser()}" />
+            <p:menuitem value="#{msg.login_submit}" title="#{msg.login_submit}" url="#" rendered="#{userContext.isAnonymousUser()}" />
         </p:breadCrumb>
     </ui:define>
 
@@ -44,7 +44,7 @@
             <!-- Login panel definition -->
             <p:panel
                 id="loginPanel"
-                header="Login"
+                header="#{msg.login_submit}"
                 styleClass="loginBox"
                 >
                 <!-- Give it a focus after load -->
@@ -63,7 +63,7 @@
                                     colspan="2"
                                     style="background-color: orange; text-align: center;"
                                     >
-                                        ${msg.login_error}
+                                    ${msg.login_error}
                                 </td>
                             </tr>
                         </c:if>
@@ -84,7 +84,7 @@
                                 </label>
                             </td>
                             <td>
-                                <!-- Username value automatically prefill the user name  it it is in param -->
+                                <!-- Username value automatically prefill the user name it it is in param -->
                                 <c:if test="${not empty param.login_error}">
                                     <c:set
                                         var="username"
@@ -93,7 +93,6 @@
                                 </c:if>
                                 <input
                                     id="j_username"
-                                    type="text"
                                     name="j_username"
                                     value="#{username}"
                                     />
@@ -103,7 +102,7 @@
                             <!-- Password label j_password is the standard way for Spring security framework -->
                             <td style="width: 100px;">
                                 <label for="j_password">
-                                        <strong>#{msg.login_password}</strong>
+                                    <strong>#{msg.login_password}</strong>
                                 </label>
                             </td>
                             <td>
@@ -114,35 +113,8 @@
                                     />
                             </td>
                         </tr>
-                        <tr>
-                            <!-- Option to choose authentication provider -->
-                            <td>
-                                <strong>
-                                    <label for="optAuthenticationType">${msg.login_authorisation}</label>
-                                </strong>
-                            </td>
-                            <td>
-                                <select id="optAuthenticationType" name="optAuthenticationType">
-                                    <option value="oc">OpenClinica</option>
-                                    <option value="default">RadPlanBio</option>
-                                </select>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
-                <!-- Remmember the user -->
-                <p>
-                    <!--<input-->
-                        <!--id="_spring_security_remember_me"-->
-                        <!--type="checkbox"-->
-                        <!--name="_spring_security_remember_me"-->
-                        <!--/>-->
-                    <!--<label-->
-                        <!--for="_spring_security_remember_me"-->
-                        <!-->-->
-                        <!--${msg.login_rememberme}-->
-                    <!--</label>-->
-                </p>
                 <!-- Login buttons-->
                 <input
                     name="submit"

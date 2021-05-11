@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,10 @@ import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.edc.Study;
 
 /**
- * RPB service Interfaces
+ * RPB Web-API service interface (old working with python server)
+ *
+ * @author tomas@skripcak.net
+ * @since 21 September 2015
  */
 public interface IRadPlanBioWebApiService {
 

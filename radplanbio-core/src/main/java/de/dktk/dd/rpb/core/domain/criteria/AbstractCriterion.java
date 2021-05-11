@@ -195,7 +195,7 @@ public abstract  class AbstractCriterion<T extends Serializable, C extends Abstr
 
     @Transient
     @SuppressWarnings("unused")
-    public abstract Class<C> getContstraintType();
+    public abstract Class<C> getConstraintType();
 
     @SuppressWarnings("unused")
     public C stratify(T value) throws Exception {

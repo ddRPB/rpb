@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -60,13 +61,10 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     private String studyInstanceUID;
     private String studyDescription;
     private String studyDate;
-    private List<DicomSerie> studySeries;
+    private List<DicomSeries> studySeries;
 
-    //TODO: it is maybe a good idea to reference the ItemDefinition from ODM that actually holds the DICOM study in RPB
+    // Details for CRF item that is referencing this DICOM study
     private ItemDefinition crfItemDefinition;
-
-    private String eCrfLabel;
-    private String eCrfDescription;
 
     // Details for treatment plans
     private RtTreatmentCase rtTreatmentCase;
@@ -78,7 +76,7 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     //region Constructors
 
     public DicomStudy() {
-        // NOOP
+       // NOOP
     }
 
     //endregion
@@ -142,16 +140,31 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     }
 
     public Date getDateStudy() {
-        if (this.studyDate != null && !this.studyDate.equals("")) {
+
+        Date result = null;
+
+        // Check whether DICOM study date is set
+        if (this.studyDate != null && !this.studyDate.isEmpty() &&
+            !this.studyDate.equals("00000000") &&
+            !this.studyDate.equals("Unknown")) {
             DateFormat format = new SimpleDateFormat(Constants.DICOM_DATEFORMAT);
             try {
-                return format.parse(this.studyDate);
-            } catch (ParseException e) {
-                e.printStackTrace();
+                result = format.parse(this.studyDate);
+            }
+            catch (ParseException e) {
+                log.error(e);
             }
         }
+        // Set the RPB default DICOM date 01.01.1900
+        else {
+            Calendar defaultCalendar = Calendar.getInstance();
+            defaultCalendar.set(Calendar.YEAR, 1900);
+            defaultCalendar.set(Calendar.MONTH, 0);
+            defaultCalendar.set(Calendar.DAY_OF_MONTH, 1);
+            result = defaultCalendar.getTime();
+        }
 
-        return null;
+        return result;
     }
 
     public String getDateStudyString() {
@@ -164,15 +177,17 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
 
     //region StudySeries
 
-    public List<DicomSerie> getStudySeries() {
+    public List<DicomSeries> getStudySeries() {
         return this.studySeries;
     }
 
-    public void setStudySeries(List<DicomSerie> values) {
+    public void setStudySeries(List<DicomSeries> values) {
         this.studySeries = values;
     }
 
     //endregion
+
+    //region CRF ItemDefinition
 
     public ItemDefinition getCrfItemDefinition() {
         return this.crfItemDefinition;
@@ -182,25 +197,9 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
         this.crfItemDefinition = crfItemDefinition;
     }
 
-    public String geteCrfLabel() {
-        return this.eCrfLabel;
-    }
+    //endregion
 
-    public void seteCrfLabel(String value) {
-        if (this.eCrfLabel == null || !this.eCrfLabel.equals(value)) {
-            this.eCrfLabel = value;
-        }
-    }
-
-    public String geteCrfDescription() {
-        return this.eCrfDescription;
-    }
-
-    public void seteCrfDescription(String value) {
-        if (this.eCrfDescription == null || !this.eCrfDescription.equals(value)) {
-            this.eCrfDescription = value;
-        }
-    }
+    //region RT TreatmentCase
 
     public RtTreatmentCase getRtTreatmentCase() {
         return this.rtTreatmentCase;
@@ -209,6 +208,8 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     public void setRtTreatmentCase(RtTreatmentCase treatmentCase) {
         this.rtTreatmentCase = treatmentCase;
     }
+
+    //endregion
 
     //endregion
 
@@ -252,46 +253,52 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     public String getStudyType() {
         String result;
 
-        if (this.hasModality("RTSTRUCT") &&
-                this.hasModality("RTPLAN") &&
-                this.hasModality("RTDOSE")) {
-            result = "TP";
+        if (this.hasModality(Constants.DICOM_CT) &&
+            this.hasModality(Constants.DICOM_RTSTRUCT) &&
+            !this.hasModality(Constants.DICOM_RTPLAN) &&
+            !this.hasModality(Constants.DICOM_RTDOSE)) {
+            result = Constants.RPB_CONTOURING;
         }
-        else if (this.hasModality("PT")) {
-            if (this.hasModality("CT")) {
-                result = "PET-CT";
+        else if (this.hasModality(Constants.DICOM_RTSTRUCT) &&
+            this.hasModality(Constants.DICOM_RTPLAN) &&
+            this.hasModality(Constants.DICOM_RTDOSE)) {
+            result = Constants.RPB_TREATMENTPLAN;
+        }
+        else if (this.hasModality(Constants.DICOM_PT)) {
+            if (this.hasModality(Constants.DICOM_CT)) {
+                result = Constants.RPB_PETCT;
             }
-            else if (this.hasModality("MR")) {
-                result = "PET-MRI";
+            else if (this.hasModality(Constants.DICOM_MR)) {
+                result = Constants.RPB_PETMRI;
             }
             else {
-                result = "PET";
+                result = Constants.RPB_PET;
             }
         }
-        else if (this.hasModality("MR")) {
-            result = "MRI";
+        else if (this.hasModality(Constants.DICOM_MR)) {
+            result = Constants.RPB_MRI;
         }
-        else if (this.hasModality("CT")) {
-            result = "CT";
+        else if (this.hasModality(Constants.DICOM_CT)) {
+            result = Constants.RPB_CT;
         }
-        else if (this.hasModality("US")) {
-            result = "US";
+        else if (this.hasModality(Constants.DICOM_US)) {
+            result = Constants.RPB_US;
         }
-        else if (this.hasModality("ST")) {
-            result = "SPECT";
+        else if (this.hasModality(Constants.DICOM_ST)) {
+            result = Constants.RPB_SPECT;
         }
         else {
-            result = "OTH";
+            result = Constants.RPB_OTH;
         }
 
         return result;
     }
 
-    public List<DicomSerie> getSeriesByModality(String modality) {
-        List<DicomSerie> results = new ArrayList<>();
+    public List<DicomSeries> getSeriesByModality(String modality) {
+        List<DicomSeries> results = new ArrayList<>();
 
         if (this.studySeries != null) {
-            for (DicomSerie ds : this.studySeries) {
+            for (DicomSeries ds : this.studySeries) {
                 if (ds.getSeriesModality() != null && ds.getSeriesModality().trim().equals(modality)) {
                     results.add(ds);
                 }
@@ -307,7 +314,7 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
 
     private boolean hasModality(String modality) {
         if (this.studySeries != null) {
-            for (DicomSerie ds : this.studySeries) {
+            for (DicomSeries ds : this.studySeries) {
                 if (ds.getSeriesModality() != null && ds.getSeriesModality().trim().equals(modality)) {
                     return true;
                 }

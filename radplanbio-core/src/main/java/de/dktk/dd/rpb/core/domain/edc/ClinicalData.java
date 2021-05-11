@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ import java.util.List;
  * @author tomas@skripcak.net
  * @since 24 Feb 2015
  */
+//@XmlRootElement TODO: Mirko added this as ROOT element for elastic search, but this is not compatible with EDC - solution?
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name="ClinicalData")
 public class ClinicalData implements Identifiable<Integer>, Serializable {
@@ -79,7 +80,7 @@ public class ClinicalData implements Identifiable<Integer>, Serializable {
     public ClinicalData(String studyOid, String metaDataVersionOid) {
         this.studyOid = studyOid;
         this.metaDataVersionOid = metaDataVersionOid;
-        this.studySubjects = new ArrayList<StudySubject>();
+        this.studySubjects = new ArrayList<>();
     }
 
     //endregion
@@ -138,6 +139,18 @@ public class ClinicalData implements Identifiable<Integer>, Serializable {
     }
 
     //endregion
+
+    //endregion
+
+    //region Methods
+
+    public void groupElementsByOid() {
+        if (this.studySubjects != null) {
+            for (StudySubject ss : this.getStudySubjects()) {
+                ss.groupElementsByOid();
+            }
+        }
+    }
 
     //endregion
 

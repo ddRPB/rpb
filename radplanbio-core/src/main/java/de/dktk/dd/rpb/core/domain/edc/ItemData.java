@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,21 @@ package de.dktk.dd.rpb.core.domain.edc;
 import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import de.dktk.dd.rpb.core.util.Constants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * ItemData domain entity (based on CDISC ODM ItemData)
@@ -59,6 +69,9 @@ public class ItemData implements Identifiable<Integer>, Serializable {
     private String value;
 
     @XmlTransient
+    private Boolean checkValueEquality;
+
+    @XmlTransient
     private ItemDefinition itemDefinition;
 
     @XmlTransient
@@ -72,7 +85,7 @@ public class ItemData implements Identifiable<Integer>, Serializable {
     //region Constructors
 
     public ItemData() {
-        // NOOP
+        this.checkValueEquality = Boolean.TRUE;
     }
 
     public ItemData(String itemOid) {
@@ -132,10 +145,22 @@ public class ItemData implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region CheckValueEquality
+
+    public Boolean getCheckValueEquality() {
+        return this.checkValueEquality;
+    }
+
+    public void setCheckValueEquality(Boolean valueEquality) {
+        this.checkValueEquality = valueEquality;
+    }
+
+    //endregion
+
     //region ItemDefinition
 
     public ItemDefinition getItemDefinition() {
-        return itemDefinition;
+        return this.itemDefinition;
     }
 
     public void setItemDefinition(ItemDefinition itemDefinition) {
@@ -179,7 +204,7 @@ public class ItemData implements Identifiable<Integer>, Serializable {
     //region Overrides
 
     /**
-     * Equals implementation using a business key.
+     * Equals implementation using a business key
      */
     @Override
     public boolean equals(Object other) {
@@ -192,7 +217,8 @@ public class ItemData implements Identifiable<Integer>, Serializable {
      */
     @Override
     public int hashCode() {
-        return identifiableHashBuilder.hash(log, this, this.itemOid);
+        String alternateIdentifier = this.checkValueEquality ? this.itemOid + "_" + this.value : this.itemOid;
+        return identifiableHashBuilder.hash(log, this, alternateIdentifier);
     }
 
     /**
@@ -237,7 +263,29 @@ public class ItemData implements Identifiable<Integer>, Serializable {
      * @return true if ItemData has not empty value
      */
     public boolean hasValue() {
-        return this.value != null && !this.value.equals("");
+        return !StringUtils.isEmpty(this.value);
+    }
+
+    /**
+     * Get value as XMLGregorianCalendar
+     * @return Item value as XMLGregorianCalendar
+     * @throws ParseException ParseException
+     * @throws DatatypeConfigurationException DatatypeConfigurationException
+     */
+    public XMLGregorianCalendar getDate() throws ParseException, DatatypeConfigurationException {
+        XMLGregorianCalendar result = null;
+
+        if (this.hasValue()) {
+            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+
+            Date date = format.parse(this.getValue());
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTime(date);
+
+            result = DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar);
+        }
+
+        return result;
     }
 
     //endregion

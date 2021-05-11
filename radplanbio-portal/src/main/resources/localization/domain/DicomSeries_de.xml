@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for DicomSeries</comment>
+
+    <entry key="dicomSeries">DICOM Serien</entry>
+    <entry key="dicomSeries_plural">DICOM Serien</entry>
+    <entry key="dicomSeries_reload">Vorhandenen DICOM Serien neu laden</entry>
+    <entry key="dicomSeries_print">Tabelle DICOM Serien drucken</entry>
+    <entry key="dicomSeries_new">Neue DICOM Serien definieren</entry>
+    <entry key="dicomSeries_edit">Ausgewählte DICOM Serien bearbeiten</entry>
+    <entry key="dicomSeries_delete">Ausgewählte DICOM Serien löschen</entry>
+
+    <!-- attributes -->
+    <entry key="dicomSeries_id">Id</entry>
+    <entry key="dicomSeries_seriesInstanceUID">UID</entry>
+    <entry key="dicomSeries_seriesDescription">Beschreibung</entry>
+    <entry key="dicomSeries_modality">Modalität</entry>
+    <entry key="dicomSeries_seriesTime">Zeit</entry>
+
+</properties>

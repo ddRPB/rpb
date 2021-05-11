@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,15 +23,12 @@ import de.dktk.dd.rpb.core.domain.criteria.DichotomousCriterion;
 import de.dktk.dd.rpb.core.repository.ctms.IDichotomousCriterionRepository;
 import de.dktk.dd.rpb.core.repository.support.Repository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -53,26 +50,15 @@ public class StratificationCriterionBean extends CrudEntityViewModel<Dichotomous
 
     //region Repository
 
-    @Inject
     private IDichotomousCriterionRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get DichotomousCriterionRepository
+     * @return DichotomousCriterionRepository
      */
-    @SuppressWarnings("unused")
     @Override
     public Repository<DichotomousCriterion, Integer> getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IDichotomousCriterionRepository repository) {
-        this.repository = repository;
     }
 
     //endregion
@@ -84,6 +70,15 @@ public class StratificationCriterionBean extends CrudEntityViewModel<Dichotomous
     private List<String> criteriaList;
     private String selectedCrit;
     private DichotomousCriterion dichotomousCriterion;
+
+    //endregion
+
+    //region Constructors
+
+    @Inject
+    public StratificationCriterionBean(IDichotomousCriterionRepository repository) {
+        this.repository = repository;
+    }
 
     //endregion
 
@@ -104,7 +99,7 @@ public class StratificationCriterionBean extends CrudEntityViewModel<Dichotomous
     public void setSelectedCrit(String crit) {
         this.selectedCrit = crit;
 
-        if (crit.equals("DichotomousConstraint")) {
+        if ("DichotomousConstraint".equals(crit)) {
             this.dichotomousCriterion = new DichotomousCriterion();
             this.newEntity = dichotomousCriterion;
         }
@@ -129,7 +124,7 @@ public class StratificationCriterionBean extends CrudEntityViewModel<Dichotomous
         );
 
         // Criteria list for binding (integer, double, string, date, option)
-        this.criteriaList = new ArrayList<String>();
+        this.criteriaList = new ArrayList<>();
         this.criteriaList.add("DichotomousConstraint");
 
         this.load();
@@ -146,24 +141,17 @@ public class StratificationCriterionBean extends CrudEntityViewModel<Dichotomous
         // NOOP
     }
 
-    /*
-    * Need to build an initial sort order for data table multi sort
-    */
+    /**
+     * Need to build an initial sort order for data table multi sort
+     */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtCriteria:colCritName", "colCritName", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtCriteria:colCritName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colCritName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return new ArrayList<>();
     }
 
     //endregion

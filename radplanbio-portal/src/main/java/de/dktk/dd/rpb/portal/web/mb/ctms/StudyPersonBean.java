@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import de.dktk.dd.rpb.core.domain.ctms.StudyPerson;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyPersonRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 
@@ -66,15 +66,6 @@ public class StudyPersonBean extends CrudEntityViewModel<StudyPerson, Integer> {
         return this.repository;
     }
 
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(IStudyPersonRepository repository) {
-        this.repository = repository;
-    }
-
     //endregion
 
     //endregion
@@ -99,6 +90,14 @@ public class StudyPersonBean extends CrudEntityViewModel<StudyPerson, Integer> {
 
     //endregion
 
+    //region Commands
+
+    public void prepareEditMultiEntity() {
+        this.editMultiEntity = this.repository.getNew();
+    }
+
+    //endregion
+
     //region Overrides
 
     /**
@@ -115,63 +114,44 @@ public class StudyPersonBean extends CrudEntityViewModel<StudyPerson, Integer> {
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
-
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
+        List<SortMeta> results;
 
         // Study Personnel View
-        UIComponent column1 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colPersonSurname");
-        if (column1 != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column1);
-            sm1.setSortField("colPersonSurname");
-            sm1.setSortOrder(SortOrder.ASCENDING);
+        results = DataTableUtil.buildSortOrder(":form:tabView:dtPersonnelEntities:colPersonSurname", "colPersonSurname", SortOrder.ASCENDING);
+        if (results != null) {
 
-            results.add(sm1);
+            List<SortMeta> results1 = DataTableUtil.buildSortOrder(":form:tabView:dtPersonnelEntities:colPersonFirstname", "colPersonFirstname", SortOrder.ASCENDING);
+            if (results1 != null) {
+                results.addAll(results1);
 
-            UIComponent column2 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colPersonFirstname");
+                List<SortMeta> results2 = DataTableUtil.buildSortOrder(":form:tabView:dtPersonnelEntities:colPersonRole", "colPersonRole", SortOrder.ASCENDING);
+                if (results2 != null) {
+                    results.addAll(results2);
+                }
+            }
 
-            SortMeta sm2 = new SortMeta();
-            sm2.setSortBy((UIColumn) column2);
-            sm2.setSortField("colPersonFirstname");
-            sm2.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm2);
-
-            UIComponent column3 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colPersonRole");
-
-            SortMeta sm3 = new SortMeta();
-            sm3.setSortBy((UIColumn) column3);
-            sm3.setSortField("colPersonRole");
-            sm3.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm3);
             return results;
         }
 
         // Person Studies View
-        column1 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colStudyTitle");
-        if (column1 != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column1);
-            sm1.setSortField("colStudyTitle");
-            sm1.setSortOrder(SortOrder.ASCENDING);
+        results = DataTableUtil.buildSortOrder(":form:tabView:dtPersonnelEntities:colStudyName", "colStudyName", SortOrder.ASCENDING);
+        if (results != null) {
 
-            results.add(sm1);
+            List<SortMeta> results1 = DataTableUtil.buildSortOrder(":form:tabView:dtPersonnelEntities:colPersonStudyStart", "colPersonStudyStart", SortOrder.ASCENDING);
+            if (results1 != null) {
+                results.addAll(results1);
 
-            UIComponent column2 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colPersonRole");
+                List<SortMeta> results2 = DataTableUtil.buildSortOrder(":form:tabView:dtPersonnelEntities:colPersonStudyEnd", "colPersonStudyEnd", SortOrder.ASCENDING);
 
-            SortMeta sm2 = new SortMeta();
-            sm2.setSortBy((UIColumn) column2);
-            sm2.setSortField("colPersonRole");
-            sm2.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm2);
+                if (results2 != null) {
+                    results.addAll(results2);
+                }
+            }
 
             return results;
         }
 
-        return results;
+        return new ArrayList<>();
     }
 
     /**
@@ -179,7 +159,7 @@ public class StudyPersonBean extends CrudEntityViewModel<StudyPerson, Integer> {
      * @return list of Boolean variables
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
 
@@ -197,9 +177,10 @@ public class StudyPersonBean extends CrudEntityViewModel<StudyPerson, Integer> {
         }
 
         // Person Studies View
-        column1 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colStudyTitle");
+        column1 = viewRoot.findComponent(":form:tabView:dtPersonnelEntities:colStudyName");
         if (column1 != null) {
-            results.add(Boolean.TRUE); // Study Title
+            results.add(Boolean.TRUE); // Study name
+            results.add(Boolean.TRUE); // Study status
             results.add(Boolean.TRUE); // Study person role
             results.add(Boolean.TRUE); // Can obtain informed consent
             results.add(Boolean.TRUE); // Start

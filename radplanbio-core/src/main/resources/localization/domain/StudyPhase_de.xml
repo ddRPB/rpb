@@ -6,11 +6,11 @@
 
     <entry key="studyPhase">Phase</entry>
     <entry key="studyPhase_plural">Phasen</entry>
-    <entry key="studyPhase_reload">Neu laden vorhandenen Phasen</entry>
-    <entry key="studyPhase_print">Drucken Tabelle Phasen</entry>
-    <entry key="studyPhase_new">Definieren Sie eine neue Phase</entry>
-    <entry key="studyPhase_edit">Bearbeiten ausgewählte Phase</entry>
-    <entry key="studyPhase_delete">Löschen ausgewählte Phase</entry>
+    <entry key="studyPhase_reload">Vorhandenen Phasen neu laden</entry>
+    <entry key="studyPhase_print">Tabelle Phasen drucken</entry>
+    <entry key="studyPhase_new">Neue Phase definieren</entry>
+    <entry key="studyPhase_edit">Ausgewählte Phase bearbeiten</entry>
+    <entry key="studyPhase_delete">Ausgewählte Phase löschen</entry>
 
     <!-- attributes -->
     <entry key="studyPhase_id">Id</entry>

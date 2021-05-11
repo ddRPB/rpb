@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,448 +19,184 @@
 
 package de.dktk.dd.rpb.portal.web.mb.pacs;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-import de.dktk.dd.rpb.core.domain.edc.CrfFieldAnnotation;
-import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
-import de.dktk.dd.rpb.core.domain.edc.Subject;
-
-import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
-
+import de.dktk.dd.rpb.core.domain.edc.*;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 
+import de.dktk.dd.rpb.core.repository.admin.IPartnerSiteRepository;
+import de.dktk.dd.rpb.core.repository.edc.IStudySubjectRepository;
+import de.dktk.dd.rpb.core.service.OpenClinicaService;
+import de.dktk.dd.rpb.core.util.Constants;
+import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
+
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
-import de.dktk.dd.rpb.portal.web.util.MessageUtil;
-import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
+import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 
-import org.apache.maven.artifact.versioning.ComparableVersion;
-
-import org.primefaces.component.api.UIColumn;
-import org.primefaces.event.ToggleEvent;
+import org.omnifaces.util.Faces;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
-import org.primefaces.model.Visibility;
 import org.springframework.context.annotation.Scope;
 
 /**
- * Bean for navigating RadPlanBio DICOM patient studies (OpenClinica EDC link to Conquest PACS)
+ * ViewModel bean for DICOM patient study subjects
  *
  * @author tomas@skripcak.net
  * @since 07 August 2013
  */
 @Named("mbDicomStudies")
 @Scope("view")
-public class DicomPatientStudyBean implements Serializable {
-
-    //region Finals
-
-    private static final long serialVersionUID = 1L;
-
-    //endregion
+public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Integer> {
 
     //region Injects
 
-    //region Main bean
+    //region Repository - Dummy
 
-    @Inject
-    private MainBean mainBean;
+    @SuppressWarnings("unused")
+    private IStudySubjectRepository repository;
 
     /**
-     * Set MainBean
-     *
-     * @param bean MainBean
+     * Get StudyRepository
+     * @return StudyRepository
      */
-    @SuppressWarnings("unused")
-    public void setMainBean(MainBean bean) {
-        this.mainBean = bean;
+    @Override
+    public IStudySubjectRepository getRepository() {
+        return this.repository;
     }
 
     //endregion
 
-    //region Study integration facade
-
-    @Inject
+    private MainBean mainBean;
     private StudyIntegrationFacade studyIntegrationFacade;
-
-    @SuppressWarnings("unused")
-    public void setStudyIntegrationFacade(StudyIntegrationFacade value) {
-        this.studyIntegrationFacade = value;
-    }
-
-    //endregion
-
-    //region Messages
-
-    @Inject
-    protected MessageUtil messageUtil;
-
-    //endregion
+    private IPartnerSiteRepository partnerSiteRepository;
 
     //endregion
 
     //region Members
 
-    private List<SortMeta> subjectsPreSortOrder;
-    private List<SortMeta> eventsPreSortOrder;
-    private List<SortMeta> dicomStudiesPreSortOrder;
+    private Study rpbStudy; // RPB study
+    private PartnerSite selectedSubjectSite; // RPB partner site
+    private List<EventDefinition> dicomEventDefinitions;
 
-    // StudySubjects Data Table
-    private List<Subject> studySubjectsList;
-    private List<Subject> filteredStudySubjects;
-    private Subject selectedStudySubject;
-    private List<Boolean> subjectsColumnVisibilityList;
+    private EventData selectedDicomEventData;
+    private List<DicomStudy> dicomStudyList;
 
-    // ScheduledEvents Data Table
-    private List<ScheduledEvent> scheduledEventList;
-    private List<ScheduledEvent> filteredScheduledEvents;
-    private ScheduledEvent selectedScheduledEvent;
-    private List<Boolean> eventsColumnVisibilityList;
-
-    // DICOM studies Data Table
-    private List<DicomStudy> studyList;
-    private List<DicomStudy> filteredStudies;
-    private DicomStudy selectedStudy;
     private List<Boolean> dicomStudyColumnVisibilityList;
 
-    private int activeTabIndex;
-    private String patientId;
+    private String newDicomViewType;
+    private ItemDefinition newDicomItem;
 
+    //endregion
+
+    //region Constructor
+
+    @Inject
+    public DicomPatientStudyBean(MainBean mainBean, StudyIntegrationFacade studyIntegrationFacade, IPartnerSiteRepository partnerSiteRepository) {
+        this.mainBean = mainBean;
+        this.studyIntegrationFacade = studyIntegrationFacade;
+        this.partnerSiteRepository = partnerSiteRepository;
+    }
+    
     //endregion
 
     //region Properties
 
-    //region ActiveTabIndex
+    //region RPB Study
 
-    public int getActiveTabIndex() {
-        return this.activeTabIndex;
+    public Study getRpbStudy() {
+        return this.rpbStudy;
     }
 
-    public void setActiveTabIndex(int value) {
-        this.activeTabIndex = value;
-    }
-
-    //endregion
-
-    //region DICOM Patient ID
-
-    public String getPatientId() {
-        return this.patientId;
-    }
-
-    public void setPatientId(String value) {
-        this.patientId = value;
+    public void setRpbStudy(Study rpbStudy) {
+        this.rpbStudy = rpbStudy;
     }
 
     //endregion
 
-    //region DICOM Subjects DataTable Properties
+    //region RPB PartnerSite
 
-    //region StudySubjectsList Property
-
-    /**
-     * Get Study Subjects List
-     *
-     * @return List - Study Subjects List
-     */
-    public List<Subject> getStudySubjectsList() {
-        return this.studySubjectsList;
+    public PartnerSite getSelectedSubjectSite() {
+        return this.selectedSubjectSite;
     }
 
-    /**
-     * Set Study Subjects List
-     *
-     * @param studySubjectsList - Study Subjects List
-     */
-    public void setStudySubjectsList(List<Subject> studySubjectsList) {
-        this.studySubjectsList = studySubjectsList;
+    public void setSelectedSubjectSite(PartnerSite selectedSubjectSite) {
+        this.selectedSubjectSite = selectedSubjectSite;
     }
 
     //endregion
 
-    //region FilteredStudySubjects Property
+    //region DICOM EventDefinitions
 
-    /**
-     * Get Filtered StudySubjects List
-     *
-     * @return List - StudySubjects List
-     */
-    public List<Subject> getFilteredStudySubjects() {
-        return this.filteredStudySubjects;
-    }
-
-    /**
-     * Set Filtered Study Subjects List
-     *
-     * @param filteredStudySubjects - Study Subjects List
-     */
-    public void setFilteredStudySubjects(List<Subject> filteredStudySubjects) {
-        this.filteredStudySubjects = filteredStudySubjects;
+    public List<EventDefinition> getDicomEventDefinitions() {
+        return this.dicomEventDefinitions;
     }
 
     //endregion
 
-    //region SelectedStudySubject Property
+    //region DICOM SelectedEventData
 
-    /**
-     * Get Selected Study Subject
-     * @return SelectedStudySubject - StudySubject
-     */
-    public Subject getSelectedStudySubject() {
-        return this.selectedStudySubject;
+    public EventData getSelectedDicomEventData() {
+        return selectedDicomEventData;
     }
 
-    /**
-     * Set Selected Study Subject
-     * @param subject - StudySubject
-     */
-    public void setSelectedStudySubject(Subject subject) {
-        // Nothing was selected before
-        if (this.selectedStudySubject == null && subject != null) {
-            this.selectedStudySubject = subject;
-
-            // Subject was selected so try to load scheduled events
-            this.reloadSubjectEvents();
-        }
-        // Different entity was selected before
-        else if (this.selectedStudySubject != null && !this.selectedStudySubject.equals(subject)) {
-           this.selectedStudySubject = subject;
-
-           // Subject was selected so try to load scheduled events
-           this.reloadSubjectEvents();
-        }
+    public void setSelectedDicomEventData(EventData selectedDicomEventData) {
+        this.selectedDicomEventData = selectedDicomEventData;
     }
 
     //endregion
 
-    //endregion
+    //region DICOM StudyList
 
-    //region SubjectsColumnVisibilityList
-
-    public List<Boolean> getSubjectColumnVisibilityList() {
-        return this.subjectsColumnVisibilityList;
+    public List<DicomStudy> getDicomStudyList() {
+        return dicomStudyList;
     }
 
-    public void setSubjectColumnVisibilityList(List<Boolean> columnVisibilityList) {
-        this.subjectsColumnVisibilityList = columnVisibilityList;
-    }
-
-    //endregion
-
-    //region DICOM Event DataTable Properties
-
-    //region ScheduledEventList Property
-
-    /**
-     * Get Scheduled Event List
-     *
-     * @return List - Scheduled Event List
-     */
-    public List<ScheduledEvent> getScheduledEventList() {
-        return this.scheduledEventList;
-    }
-
-    /**
-     * Set Scheduled Event List
-     *
-     * @param value - Scheduled Event List
-     */
-    public void setScheduledEventList(List<ScheduledEvent> value) {
-        this.scheduledEventList = value;
+    public void setDicomStudyList(List<DicomStudy> dicomStudyList) {
+        this.dicomStudyList = dicomStudyList;
     }
 
     //endregion
 
-    //region Filtered Scheduled Events Property
-
-    /**
-     * Get Filtered ScheduledEvent List
-     *
-     * @return List - Scheduled Even  List
-     */
-    public List<ScheduledEvent> getFilteredScheduledEvents() {
-        return this.filteredScheduledEvents;
-    }
-
-    /**
-     * Set Scheduled Filtered Event List
-     *
-     * @param value - Scheduled Event List
-     */
-    public void setFilteredScheduledEvents(List<ScheduledEvent> value) {
-        this.filteredScheduledEvents = value;
-    }
-
-    //endregion
-
-    //region SelectedScheduledEvent Property
-
-    /**
-     * Get Selected Scheduled Event
-     * @return SelectedScheduledEvent - ScheduledEvent
-     */
-    public ScheduledEvent getSelectedScheduledEvent() {
-        return this.selectedScheduledEvent;
-    }
-
-    /**
-     * Set Selected Scheduled Event
-     * @param event - ScheduledEvent
-     */
-    public void setSelectedScheduledEvent(ScheduledEvent event) {
-        // Nothing was selected before
-        if (this.selectedScheduledEvent == null && event != null) {
-            this.selectedScheduledEvent = event;
-
-            // Event was selected so try to load DICOM annotated study items
-            this.reloadDicomAnnotatedStudyItem();
-        }
-        // Different entity was selected before
-        if (this.selectedScheduledEvent != null && !this.selectedScheduledEvent.equals(event)) {
-            this.selectedScheduledEvent = event;
-
-            // Event was selected so try to load DICOM annotated study items
-            this.reloadDicomAnnotatedStudyItem();
-        }
-    }
-
-    //endregion
-
-    //endregion
-
-    //region EventsColumnVisibilityList
-
-    public List<Boolean> getEventsColumnVisibilityList() {
-        return this.eventsColumnVisibilityList;
-    }
-
-    public void setEventsColumnVisibilityList(List<Boolean> columnVisibilityList) {
-        this.eventsColumnVisibilityList = columnVisibilityList;
-    }
-
-    //endregion
-
-    //region DICOM Study DataTable Properties
-
-    //region StudyList Property
-
-    /**
-     * Get Study List
-     *
-     * @return List - Study List
-     */
-    public List<DicomStudy> getStudyList() {
-        return this.studyList;
-    }
-
-    /**
-     * Set Study List
-     *
-     * @param studyList - Study List
-     */
-    public void setStudyList(List<DicomStudy> studyList) {
-        this.studyList = studyList;
-    }
-
-    //endregion
-
-    //region FilteredStudies Property
-
-    /**
-     * Get Filtered Study List
-     *
-     * @return List - Study List
-     */
-    public List<DicomStudy> getFilteredStudies() {
-        return this.filteredStudies;
-    }
-
-    /**
-     * Set Filtered Study List
-     *
-     * @param filteredStudies - Study List
-     */
-    public void setFilteredStudies(List<DicomStudy> filteredStudies) {
-        this.filteredStudies = filteredStudies;
-    }
-
-    //endregion
-
-    //region SelectedStudy Property
-
-    /**
-     * Get Selected Study
-     * @return SelectedStudy - DicomStudy
-     */
-    public DicomStudy getSelectedStudy() {
-        return this.selectedStudy;
-    }
-
-    /**
-     * Set Selected Study
-     * @param study - DicomStudy
-     */
-    public void setSelectedStudy(DicomStudy study) {
-        // Nothing was selected before
-        if (this.selectedStudy == null && study != null) {
-            this.selectedStudy = study;
-        }
-        // Different entity was selected before
-        else if (this.selectedStudy != null && !this.selectedStudy.equals(study)) {
-            this.selectedStudy = study;
-        }
-    }
-
-    //endregion
-
-    //endregion
-
-    //region DicomStudyColumnVisibilityList
+    //region DICOM StudyColumnVisibilityList
 
     public List<Boolean> getDicomStudyColumnVisibilityList() {
-        return this.dicomStudyColumnVisibilityList;
+        return dicomStudyColumnVisibilityList;
     }
 
-    public void setDicomStudyColumnVisibilityList(List<Boolean> columnVisibilityList) {
-        this.dicomStudyColumnVisibilityList = columnVisibilityList;
+    public void setDicomStudyColumnVisibilityList(List<Boolean> dicomStudyColumnVisibilityList) {
+        this.dicomStudyColumnVisibilityList = dicomStudyColumnVisibilityList;
     }
 
     //endregion
 
-    //region Sorting
+    //region DICOM New
 
-    public List<SortMeta> getSubjectsPreSortOrder() {
-        return this.subjectsPreSortOrder;
+    public String getNewDicomViewType() {
+        return this.newDicomViewType;
     }
 
-    public void setSubjectsPreSortOrder(List<SortMeta> sortList) {
-        this.subjectsPreSortOrder = sortList;
+    public void setNewDicomViewType(String newDicomViewType) {
+        this.newDicomViewType = newDicomViewType;
     }
 
-    public List<SortMeta> getEventsPreSortOrder() {
-        return this.eventsPreSortOrder;
+    public ItemDefinition getNewDicomItem() {
+        return this.newDicomItem;
     }
 
-    public void setEventsPreSortOrder(List<SortMeta> sortList) {
-        this.eventsPreSortOrder = sortList;
-    }
-
-    public List<SortMeta> getDicomStudiesPreSortOrder() {
-        return this.dicomStudiesPreSortOrder;
-    }
-
-    public void setDicomStudiesPreSortOrder(List<SortMeta> sortList) {
-        this.dicomStudiesPreSortOrder = sortList;
+    public void setNewDicomItem(ItemDefinition newDicomItem) {
+        this.newDicomItem = newDicomItem;
     }
 
     //endregion
@@ -471,57 +207,25 @@ public class DicomPatientStudyBean implements Serializable {
 
     @PostConstruct
     public void init() {
-        this.setSubjectColumnVisibilityList(
-                this.buildSubjectsVisibilityList()
+        
+        this.newDicomViewType = "CLIENT";
+
+        this.setColumnVisibilityList(
+                this.buildColumnVisibilityList()
         );
-        this.setEventsColumnVisibilityList(
-                this.buildEventsVisibilityList()
+        this.setPreSortOrder(
+                this.buildSortOrder()
         );
+
         this.setDicomStudyColumnVisibilityList(
                 this.buildDicomStudiesVisibilityList()
         );
-        this.setSubjectsPreSortOrder(
-                this.buildSubjectsSortOrder()
-        );
-        this.setEventsPreSortOrder(
-                this.buildEventsSortOrder()
-        );
-        this.setDicomStudiesPreSortOrder(
-                this.buildDicomStudiesSortOrder()
-        );
-        // RadPlanBio study subjects
-        this.reloadSubjects();
-    }
 
-    //endregion
+        // Init Facade to use service that are valid for logged user PartnerSite (from mainBean)
+        this.studyIntegrationFacade.init(this.mainBean);
+        this.studyIntegrationFacade.setRetrieveStudySubjectOID(Boolean.FALSE);
 
-    //region EventHandlers
-
-    public void onSubjectEntityToggle(ToggleEvent e) {
-        try {
-            this.subjectsColumnVisibilityList.set(((Integer) e.getData() - 1), e.getVisibility() == Visibility.VISIBLE);
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    public void onEventEntityToggle(ToggleEvent e) {
-        try {
-            this.eventsColumnVisibilityList.set(((Integer) e.getData() - 1), e.getVisibility() == Visibility.VISIBLE);
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    public void onDicomStudyEntityToggle(ToggleEvent e) {
-        try {
-            this.dicomStudyColumnVisibilityList.set(((Integer) e.getData() - 1), e.getVisibility() == Visibility.VISIBLE);
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
+        this.load();
     }
 
     //endregion
@@ -531,33 +235,55 @@ public class DicomPatientStudyBean implements Serializable {
     //region Subjects
 
     public void resetSubjects() {
-        this.studySubjectsList = null;
-        this.selectedStudySubject = null;
+        this.entityList = null;
+        this.selectedEntity = null;
+        this.selectedSubjectSite = null;
+        this.selectedDicomEventData = null;
+        this.dicomStudyList = null;
     }
 
     /**
-     * Reload RadPlanBio subjects
+     * Load clinical data as well as metadata details about selected study subject
      */
-    public void reloadSubjects() {
-        this.resetSubjects();
+    public void loadSelectedSubjectDetails() {
+
+        // Clear loaded collections
         this.resetSubjectEvents();
-        this.resetDicomStudies();
+        this.resetSubjectDicomStudies();
 
         try {
-            this.studyIntegrationFacade.init(this.mainBean);
+            // Load ODM resource for selected study subject
+            String queryOdmXmlPath = this.mainBean.getActiveStudy().getOcoid() + "/" + this.selectedEntity.getStudySubjectId() + "/*/*";
+            Odm selectedStudySubjectOdm = this.mainBean.getOpenClinicaService().getStudyCasebookOdm(
+                OpenClinicaService.CasebookFormat.XML,
+                OpenClinicaService.CasebookMethod.VIEW,
+                queryOdmXmlPath
+            );
 
-            // Faster load with new OC REST APIs
-            if (new ComparableVersion(
-                        this.mainBean.getMyAccount().getPartnerSite().getEdc().getVersion()
-                   )
-                   .compareTo(
-                           new ComparableVersion("3.7")
-                   ) >= 0) {
+            // Create Defs from Refs
+            selectedStudySubjectOdm.updateHierarchy();
 
-                this.studyIntegrationFacade.setRetreiveStudySubjectOID(Boolean.FALSE);
-            }
+            // Load RPB partner site where the subject belong
+            this.selectedSubjectSite = this.determineSubjectPartnerSite(selectedStudySubjectOdm);
 
-            this.studySubjectsList = this.studyIntegrationFacade.loadSubjects();
+            // Replace selected SOAP subject with REST subject that has clinical data
+            this.selectedEntity = selectedStudySubjectOdm.findUniqueStudySubjectOrNone(
+                this.selectedEntity.getStudySubjectId()
+            );
+
+            // Add reference to study
+            ClinicalData cd = selectedStudySubjectOdm.findUniqueClinicalDataOrNone();
+            de.dktk.dd.rpb.core.domain.edc.Study study = selectedStudySubjectOdm.findUniqueStudyOrNone(cd.getStudyOid());
+            this.selectedEntity.setStudy(study);
+
+            // Link clinical data with definitions from ODM
+            this.selectedEntity.linkOdmDefinitions(selectedStudySubjectOdm);
+
+            this.messageUtil.infoText(
+            "Event data for " + this.selectedEntity.getStudySubjectId() +
+                Constants.RPB_IDENTIFIERSEP + "[" + this.selectedEntity.getPid() + "]" +
+                " loaded."
+            );
         }
         catch (Exception err) {
             this.messageUtil.error(err);
@@ -569,75 +295,205 @@ public class DicomPatientStudyBean implements Serializable {
     //region Events
 
     public void resetSubjectEvents() {
-        this.scheduledEventList = null;
-        this.selectedScheduledEvent = null;
-    }
-
-    /**
-     * Reload RadPlanBio subject events
-     */
-    public void reloadSubjectEvents() {
-        this.resetSubjectEvents();
-        this.resetDicomStudies();
-
-        try {
-            if (this.selectedStudySubject != null) {
-                this.studyIntegrationFacade.init(this.mainBean);
-                // Faster load with new OC REST APIs
-                if (new ComparableVersion(
-                        this.mainBean.getMyAccount().getPartnerSite().getEdc().getVersion()
-                        )
-                        .compareTo(
-                                new ComparableVersion("3.7")
-                        ) >= 0) {
-
-                    this.studyIntegrationFacade.setRetreiveStudySubjectOID(Boolean.FALSE);
-                }
-                this.scheduledEventList = this.studyIntegrationFacade.loadSubjectEvents(this.selectedStudySubject);
-            }
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
+        this.selectedDicomEventData = null;
     }
 
     //endregion
 
-    //region DICOM Studies
+    //region DICOM
 
-    public void resetDicomStudies() {
-        this.studyList = null;
-        this.selectedStudy = null;
+    public void resetSubjectDicomStudies() {
+        this.dicomStudyList = null;
     }
 
     /**
      * Reload DICOM studies in selected study/subject/event based on annotated CRF values
      */
-    public void reloadDicomAnnotatedStudyItem() {
-        this.resetDicomStudies();
+    public void loadDicomStudies() {
+        this.resetSubjectDicomStudies();
 
         try {
-            if (this.selectedScheduledEvent != null) {
-                this.studyIntegrationFacade.init(this.mainBean);
+            if (this.selectedDicomEventData != null) {
+                
+                // Just annotation concerning selected event
+                CrfFieldAnnotation eventExample = new CrfFieldAnnotation();
+                eventExample.setEventDefinitionOid(this.selectedDicomEventData.getStudyEventOid());
 
-                // Read PatientID and Studie UIDs from DICOM study CRFs
-                List<ItemDefinition> dicomCrfFields = this.prepareDicomUidForQuery();
-
-                List<ItemDefinition> dicomEcrfItemList = this.studyIntegrationFacade.getDicomStudyFields(this.selectedScheduledEvent.getEventOID(), dicomCrfFields);
+                // Load CRF items referencing DICOM studies
+                List<ItemData> dicomCrfItemData = this.selectedDicomEventData.findAnnotatedItemData(
+                    this.rpbStudy.findAnnotations("DICOM_STUDY_INSTANCE_UID", eventExample)
+                );
 
                 if (this.mainBean.getPacsService() != null) {
-                    this.studyList = this.mainBean.getPacsService().loadPatientStudies(this.patientId, dicomCrfFields);
 
-                    for (DicomStudy dcmStudy : this.studyList) {
-                        for (ItemDefinition itemDef : dicomEcrfItemList)
-                            if (dcmStudy.getStudyInstanceUID().equals(itemDef.getValue())) {
-                                dcmStudy.seteCrfLabel(itemDef.getLabel());
+                    // Load DICOM data from PACS
+                    this.dicomStudyList = this.mainBean.getPacsService().loadPatientStudies(
+                            this.selectedEntity.getPid(),
+                            dicomCrfItemData
+                    );
+
+                    // Extend DICOM study data about CRF field label
+                    for (DicomStudy dcmStudy : this.dicomStudyList) {
+                        for (ItemData itemData : dicomCrfItemData) {
+                            if (dcmStudy.getStudyInstanceUID().equals(itemData.getValue())) {
+                                dcmStudy.setCrfItemDefinition(itemData.getItemDefinition());
                             }
+                        }
+                    }
+                }
+
+                this.messageUtil.infoText(
+                    "DICOM data for " + this.selectedEntity.getStudySubjectId() +
+                    Constants.RPB_IDENTIFIERSEP + "[" + this.selectedEntity.getPid() + "]" +
+                    " loaded."
+                );
+            }
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    public List<ItemDefinition> loadUploadSlots() {
+
+        List<ItemDefinition> results = new ArrayList<>();
+
+        if (rpbStudy != null && this.selectedDicomEventData != null) {
+
+            List<ItemDefinition> dicomItemDefinitions = this.rpbStudy.findAnnotatedItemDefinitionsForEventDef(
+                    "DICOM_STUDY_INSTANCE_UID",
+                    this.selectedDicomEventData.getEventDefinition()
+            );
+
+            if (dicomItemDefinitions != null) {
+                for (ItemDefinition dicomItemDefinition : dicomItemDefinitions) {
+                    boolean hasValue = false;
+                    if (this.dicomStudyList != null) {
+                        for (DicomStudy dicomStudy : this.dicomStudyList) {
+                            if (dicomStudy.getCrfItemDefinition().getOid().equals(dicomItemDefinition.getOid())) {
+                                hasValue = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!hasValue) {
+                        results.add(dicomItemDefinition);
                     }
                 }
             }
         }
-        catch (Exception err) {
+
+         return results;
+    }
+
+    //TODO: we will be not supporting web start anymore, only rich client for upload
+    public void upload() throws IOException {
+
+        // Core attributes (pseudonym and salt for hashing)
+        String queryStrings = "?@PID=" + this.selectedEntity.getPid();
+
+        // Salt is PartnerSite identifier - EDC-code - StudySubjectID
+        String salt = this.selectedSubjectSite.getIdentifier() +
+                Constants.RPB_IDENTIFIERSEP +
+                this.rpbStudy.getTagValue("EDC-code") +
+                Constants.RPB_IDENTIFIERSEP +
+                this.selectedEntity.getStudySubjectId();
+        queryStrings += "&@SALT=" + salt;
+
+        // EDC attributes for import
+        queryStrings += "&studyOID=" + this.selectedEntity.getStudy().getOid();
+        queryStrings += "&subjectKey=" + this.selectedEntity.getSubjectKey();
+        queryStrings += "&studyEventOID=" + this.selectedDicomEventData.getStudyEventOid();
+        queryStrings += "&eventRepeatKey=" + this.selectedDicomEventData.getStudyEventRepeatKey();
+        queryStrings += "&formOID=" + this.newDicomItem.getItemGroupDefinition().getFormDefinition().getOid();
+        queryStrings += "&itemGroupOID=" + this.newDicomItem.getItemGroupDefinition().getOid();
+        queryStrings += "&dicomStudyItemOID=" + this.newDicomItem.getOid();
+
+        // Find corresponding PatientID annotation
+        CrfFieldAnnotation example = new CrfFieldAnnotation();
+        example.setEventDefinitionOid(this.selectedDicomEventData.getStudyEventOid());
+        example.setFormOid(this.newDicomItem.getItemGroupDefinition().getFormDefinition().getOid());
+        example.setGroupOid(this.newDicomItem.getItemGroupDefinition().getOid());
+
+        // Should be just one
+        List<CrfFieldAnnotation> patientIdAnnotations = this.rpbStudy.findAnnotations("DICOM_PATIENT_ID", example);
+        if (patientIdAnnotations != null && patientIdAnnotations.size() == 1) {
+            queryStrings += "&patientIDItemOID=" + patientIdAnnotations.get(0).getCrfItemOid();
+        }
+
+        // If gender is collected
+        if (this.selectedEntity.getSex() != null && !this.selectedEntity.getSex().isEmpty()) {
+            queryStrings += "&gender=" + this.selectedEntity.getSex();
+        }
+
+        // If full dob is collected
+        if (this.selectedEntity.getStudy().getMetaDataVersion().getStudyDetails().getStudyParameterConfiguration().getCollectSubjectDob().equals(EnumCollectSubjectDob.YES) &&
+            this.selectedEntity.getDateOfBirth() != null && !this.selectedEntity.getDateOfBirth().isEmpty()) {
+            queryStrings += "&birthDate=" + this.selectedEntity.getDateOfBirth();
+        }
+        // Otherwise if year of birth is collected
+        else if (this.selectedEntity.getStudy().getMetaDataVersion().getStudyDetails().getStudyParameterConfiguration().getCollectSubjectDob().equals(EnumCollectSubjectDob.YES) &&
+                 this.selectedEntity.getYearOfBirth() != null) {
+            queryStrings +=  "&birthDate=" + this.selectedEntity.getYearOfBirth().toString();
+        }
+
+        // TODO: First I need to create necessary DICOM study annotation types in database
+        //studyType=TreatmentPlan
+        //CrfFieldAnnotation dicomStudyItemAnnotation = new CrfFieldAnnotation();
+        //dicomStudyItemAnnotation.setEventDefinitionOid(this.selectedDicomEventData.getStudyEventOid());
+        //dicomStudyItemAnnotation.setFormOid(this.newDicomItem.getItemGroupDefinition().getFormDefinition().getOid());
+        //dicomStudyItemAnnotation.setGroupOid(this.newDicomItem.getItemGroupDefinition().getOid());
+        //dicomStudyItemAnnotation.setCrfItemOid(this.newDicomItem.getOid());
+        //List<AnnotationType> annotationTypes = this.rpbStudy.findAnnotationsTypes(dicomStudyItemAnnotation);
+        
+        // TODO: depends on partner site the idea was to have one client per partner site to allow customisations
+        queryStrings += "&app=" + "CTPClient";
+
+        // Reset for new upload
+        this.newDicomItem = null;
+
+        FacesContext.getCurrentInstance().getExternalContext().redirect("/pacs/studyUpload.faces" + queryStrings);
+    }
+
+    public void downloadDicomStudy(String dicomPatientId, String dicomStudyUid, Integer verifySeriesCount) {
+        try {
+            InputStream is = this.mainBean.getSvcWebApi().pacsCreateStudyArchive(
+                    dicomPatientId,
+                    dicomStudyUid,
+                    verifySeriesCount,
+                    mainBean.getMyAccount().getApiKey()
+            );
+
+            if (is != null) {
+                String filename = dicomPatientId + "-" + dicomStudyUid + ".zip";
+                Faces.sendFile(is, filename, true);
+            } else {
+                this.messageUtil.error("Download of DICOM study failed.");
+            }
+
+        } catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    public void downloadDicomSeries(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid) {
+        try {
+            InputStream is = this.mainBean.getSvcWebApi().pacsCreateSeriesArchive(
+                    dicomPatientId,
+                    dicomStudyUid,
+                    dicomSeriesUid,
+                    mainBean.getMyAccount().getApiKey()
+            );
+
+            if (is != null) {
+                String filename = dicomPatientId + "-" + dicomSeriesUid + ".zip";
+                Faces.sendFile(is, filename, true);
+            } else {
+                this.messageUtil.error("Download of DICOM series failed.");
+            }
+
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -646,101 +502,78 @@ public class DicomPatientStudyBean implements Serializable {
 
     //endregion
 
-    //region Private methods
+    //region Overrides
+
+    @Override
+    public void load() {
+        try {
+            this.rpbStudy = this.studyIntegrationFacade.loadStudyWithMetadata();
+
+            // Does this study involved DICOM sample data collection
+            if (Boolean.valueOf(this.rpbStudy.getTagValue("DICOM"))) {
+
+                // Look for event that are collecting DICOM data
+                String annotationTypeName = "DICOM_STUDY_INSTANCE_UID";
+                this.dicomEventDefinitions = this.rpbStudy.findAnnotatedEventDefinitions(annotationTypeName);
+
+                this.resetSubjects();
+                this.entityList = this.studyIntegrationFacade.loadStudySubjects();
+
+                this.messageUtil.infoText("Study subjects loaded.");
+            }
+            else {
+                this.messageUtil.infoText("To access RPB DICOM patient feature the active study have to be be tagged with DICOM study tag.");
+            }
+        }
+        catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
 
     /**
-     * Read DICOM patient ID and study UIDs from OpenClinica CRF
-     *
-     * @return list of DICOM study UIDs to load from PACS
-     * @throws Exception
+     * Prepare new transient entity object for UI binding
      */
-    private List<ItemDefinition> prepareDicomUidForQuery() throws Exception {
-        List<ItemDefinition> dcmCrfFields = new ArrayList<ItemDefinition>();
+    @Override
+    public void prepareNewEntity() {
+        // NOOP
+    }
 
-        this.studyIntegrationFacade.init(this.mainBean);
-        Study rpbStudy = this.studyIntegrationFacade.loadStudy();
-
-        if (rpbStudy == null) {
-            throw new Exception("There is no RadPlanBio study associated to your current active OpenClinica study!");
+    /**
+     * Need to build an initial sort order for data table multi sort
+     * @return list of sort meta elements for data table sorting
+     */
+    @Override
+    protected List<SortMeta> buildSortOrder() {
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtDicomSubjects:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
         }
 
-        for (CrfFieldAnnotation annotation : rpbStudy.getCrfFieldAnnotations()) {
-            // Collect associated DICOM patient ID from the CRF
-            if (annotation
-                    .getAnnotationType()
-                    .getName()
-                    .equals("DICOM_PATIENT_ID") &&
-                    annotation
-                            .getEventDefinitionOid()
-                            .equals(this.selectedScheduledEvent.getEventOID())
-                    ) {
-
-                this.patientId = this.mainBean.getSvcRpb().loadCrfItemValue(
-                        this.mainBean.getActiveStudy().getOcoid(),
-                        this.selectedStudySubject.getUniqueIdentifier(),
-                        annotation.getEventDefinitionOid(),
-                        this.selectedScheduledEvent.getStudyEventRepeatKey(),
-                        annotation.getFormOid(),
-                        annotation.getCrfItemOid()
-                );
-            }
-            // Collect associated DICOM study UID from the CRF
-            else if (annotation
-                    .getAnnotationType()
-                    .getName()
-                    .equals("DICOM_STUDY_INSTANCE_UID") &&
-                    annotation
-                            .getEventDefinitionOid()
-                            .equals(this.selectedScheduledEvent.getEventOID())
-                    ) {
-
-                String dicomStudyUid = this.mainBean.getSvcRpb().loadCrfItemValue(
-                        this.mainBean.getActiveStudy().getOcoid(),
-                        this.selectedStudySubject.getUniqueIdentifier(),
-                        annotation.getEventDefinitionOid(),
-                        this.selectedScheduledEvent.getStudyEventRepeatKey(),
-                        annotation.getFormOid(),
-                        annotation.getCrfItemOid()
-                );
-
-                ItemDefinition itemDef = new ItemDefinition();
-                itemDef.setOid(annotation.getCrfItemOid());
-                itemDef.setValue(dicomStudyUid);
-                dcmCrfFields.add(itemDef);
-            }
-        }
-
-        return dcmCrfFields;
+        return new ArrayList<>();
     }
 
-    private List<Boolean> buildSubjectsVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+    /**
+     * Create column visibility list
+     * @return List of Boolean values determining column visibility
+     */
+    protected List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> result = new ArrayList<>();
 
-        results.add(Boolean.TRUE); // StudySubjectID
-        results.add(Boolean.TRUE); // PID
-        results.add(Boolean.FALSE); // Secondary ID
-        results.add(Boolean.TRUE); // Gender
-        results.add(Boolean.TRUE); // Enrollment date
+        result.add(Boolean.TRUE); // StudySubjectID
+        result.add(Boolean.TRUE); // PID
+        result.add(Boolean.FALSE); // SecondaryID
+        result.add(Boolean.TRUE); // Gender
+        result.add(Boolean.TRUE); // Enrollment date
 
-        return results;
+        return result;
     }
 
-    private List<Boolean> buildEventsVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+    //endregion
 
-        results.add(Boolean.TRUE); // Name
-        results.add(Boolean.FALSE); // Description
-        results.add(Boolean.TRUE); // Category
-        results.add(Boolean.FALSE); // Type
-        results.add(Boolean.TRUE); // Repeating
-        results.add(Boolean.TRUE); // StartDate
-        results.add(Boolean.FALSE); // Status
-
-        return results;
-    }
+    //region Private methods
 
     private List<Boolean> buildDicomStudiesVisibilityList() {
-        List<Boolean> results = new ArrayList<Boolean>();
+        List<Boolean> results = new ArrayList<>();
 
         results.add(Boolean.TRUE); // eCRF Item label
         results.add(Boolean.FALSE); // DICOM Study Description
@@ -751,55 +584,43 @@ public class DicomPatientStudyBean implements Serializable {
         return results;
     }
 
-    private List<SortMeta> buildSubjectsSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+    // TODO: this functionality should be moved somewhere else
+    private PartnerSite determineSubjectPartnerSite(Odm studySubjectOdm) {
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtDicomSubjects:colStudySubjectId");
+        PartnerSite result;
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colStudySubjectId");
-        sm1.setSortOrder(SortOrder.ASCENDING);
+        // Query by example
+        String siteIdentifier;
+        PartnerSite example = new PartnerSite();
 
-        results.add(sm1);
+        // Active study is mono-centre or it is parent study in multi-centre setup
+        if (this.mainBean.getActiveStudy().getUniqueIdentifier().equals(this.rpbStudy.getOcStudyIdentifier())) {
 
-        return results;
-    }
+            String parentStudyProtocolId = this.rpbStudy.getOcStudyIdentifier();
+            ClinicalData cd = studySubjectOdm.findUniqueClinicalDataOrNone();
+            de.dktk.dd.rpb.core.domain.edc.Study studySite = studySubjectOdm.findUniqueStudyOrNone(cd.getStudyOid());
+            siteIdentifier = studySite.extractPartnerSiteIdentifier(parentStudyProtocolId);
+        }
+        // Otherwise it is site study in multi-centre setup
+        else {
+            String siteStudyProtocolId = this.mainBean.getActiveStudy().getUniqueIdentifier();
+            int index = siteStudyProtocolId.indexOf(Constants.RPB_IDENTIFIERSEP);
+            siteIdentifier = siteStudyProtocolId.substring(0, index);
+        }
 
-    private List<SortMeta> buildEventsSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
+        // Mono-centre get partner site from RPB study principal site
+        if (siteIdentifier.isEmpty()) {
+            result = this.rpbStudy.getPartnerSite();
+        }
+        // Multi-centre
+        else {
+            example.setIdentifier(siteIdentifier);
+            result = this.partnerSiteRepository.findUniqueOrNone(example);
+        }
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtDicomEvents:colEventName");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colEventName");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
-    }
-
-    private List<SortMeta> buildDicomStudiesSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
-
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtDicomStudies:colDicomStudyLabel");
-
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column);
-        sm1.setSortField("colDicomStudyLabel");
-        sm1.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm1);
-
-        return results;
+        return result;
     }
 
     //endregion
 
 }
-

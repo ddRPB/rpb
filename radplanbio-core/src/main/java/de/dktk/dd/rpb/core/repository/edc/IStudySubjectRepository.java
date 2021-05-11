@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import de.dktk.dd.rpb.core.repository.support.Repository;
  * @author tomas@skripcak.net
  * @since 22 September 2015
  */
-@SuppressWarnings("unused")
 public interface IStudySubjectRepository extends Repository<StudySubject, Integer> {
 
 }

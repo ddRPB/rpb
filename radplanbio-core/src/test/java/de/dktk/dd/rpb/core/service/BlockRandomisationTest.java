@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +19,32 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.criteria.DichotomousCriterion;
 import de.dktk.dd.rpb.core.domain.criteria.constraints.DichotomousConstraint;
+import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
+import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.randomisation.BlockRandomisationConfiguration;
 import de.dktk.dd.rpb.core.domain.randomisation.PrognosticVariable;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import de.dktk.dd.rpb.core.domain.randomisation.TrialSubject;
-
+import org.apache.log4j.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static junit.framework.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.*;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({Logger.class})
 public class BlockRandomisationTest {
 
     private int id = 0;
@@ -48,6 +54,9 @@ public class BlockRandomisationTest {
 
     @Before
     public void setUp() {
+        mockStatic(Logger.class);
+        Logger logger = mock(Logger.class);
+        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
         study = new Study();
         conf = new BlockRandomisationConfiguration();
         study.setRandomisationConfiguration(conf);
@@ -65,7 +74,7 @@ public class BlockRandomisationTest {
         site1.setIdentifier("SITE1");
         study.setIsStratifyTrialSite(true);
 
-        List<Study> studies = new ArrayList<Study>();
+        List<Study> studies = new ArrayList<>();
         studies.add(study);
         site1.setStudies(studies);
 
@@ -74,7 +83,7 @@ public class BlockRandomisationTest {
         // Planned subjects per arm (two arms)
         int patientsPerArm = 49;
 
-        List<TreatmentArm> arms = new ArrayList<TreatmentArm>();
+        List<TreatmentArm> arms = new ArrayList<>();
         for (int i = 0; i < numberOfTreatmentArms; i++) {
             TreatmentArm arm = new TreatmentArm();
             arm.setName("Dummy treatment arm: " + (i + 1));
@@ -108,6 +117,205 @@ public class BlockRandomisationTest {
     }
 
     @Test
+    public void testOneSiteTwoGroupsNoStrataUnequalAllocations() {
+        // Configuration
+        conf.setMinimumBlockSize(3);
+        conf.setMaximumBlockSize(6);
+        conf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
+
+        study.setIsStratifyTrialSite(false);
+        PartnerSite site1 = new PartnerSite();
+        site1.setIdentifier("SITE1");
+        study.setIsStratifyTrialSite(true);
+
+        List<Study> studies = new ArrayList<>();
+        studies.add(study);
+        site1.setStudies(studies);
+
+        // Two arms
+        int numberOfTreatmentArms = 2;
+        // Planned subjects per arm (two arms)
+        int patientsPerArm1 = 76;
+        int patientsPerArm2 = 38;
+
+        int patientsTotal = patientsPerArm1 + patientsPerArm2;
+
+        List<TreatmentArm> arms = new ArrayList<>();
+        TreatmentArm arm1 = new TreatmentArm();
+        arm1.setName("Dummy treatment arm: 1");
+        arm1.setPlannedSubjectsCount(patientsPerArm1);
+        arms.add(arm1);
+
+        TreatmentArm arm2 = new TreatmentArm();
+        arm2.setName("Dummy treatment arm: 2");
+        arm2.setPlannedSubjectsCount(patientsPerArm2);
+        arms.add(arm2);
+
+        study.setTreatmentArms(arms);
+
+        for (int i = 0; i < patientsTotal; i++) {
+            subject = new TrialSubject();
+            subject.setTrialSite(site1);
+
+            TreatmentArm assignedArm = study.getRandomisationConfiguration().getScheme().randomise(subject);
+
+            subject.setTreatmentArm(assignedArm);
+            assignedArm.addSubject(subject);
+        }
+
+
+        int skuska1treatment1 = 0;
+        int skuska1treatment2 = 0;
+
+        TreatmentArm resultArm1 = study.getTreatmentArms().get(0);
+        for (TrialSubject sub: resultArm1.getSubjects()) {
+            if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 1")) {
+                skuska1treatment1++;
+            }
+        }
+
+        // At least
+        assertTrue("Should be at least <" + (patientsPerArm1 - 1) + "> but was <" + resultArm1.getSubjects().size() +">", resultArm1.getSubjects().size() >= patientsPerArm1 - 1);
+
+        // At most
+        assertTrue("Should be at most <" + (patientsPerArm1 + 1) + "> but was <" + resultArm1.getSubjects().size() + ">", resultArm1.getSubjects().size() <= patientsPerArm1 + 1);
+
+        TreatmentArm resultArm2 = study.getTreatmentArms().get(1);
+        for (TrialSubject sub: resultArm2.getSubjects()) {
+            if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 2")) {
+                skuska1treatment2++;
+            }
+        }
+
+        // At least
+        assertTrue("Should be at least <" + (patientsPerArm2 - 1) + "> but was <" + resultArm2.getSubjects().size() +">", resultArm2.getSubjects().size() >= patientsPerArm2 - 1);
+
+        // At most
+        assertTrue("Should be at most <" + (patientsPerArm2 + 1) + "> but was <" + resultArm2.getSubjects().size() + ">", resultArm2.getSubjects().size() <= patientsPerArm2 + 1);
+
+
+        assertEquals(patientsPerArm1 + patientsPerArm2, skuska1treatment1 + skuska1treatment2);
+    }
+
+    @Test
+    public void testOneSiteTwoGroupsStrataUnequalAllocations() {
+        conf.setMinimumBlockSize(3);
+        conf.setMaximumBlockSize(6);
+        // set null for ABSOLUTE (not variable block size, when min and max are the same)
+        conf.setType(BlockRandomisationConfiguration.TYPE.MULTIPLY);
+
+        Random rndb = new Random();
+
+        // Two arms
+        int numberOfTreatmentArms = 2;
+        // Planned subjects per arm (two arms)
+        int patientsPerArm1 = 76;
+        int patientsPerArm2 = 38;
+        int patientsTotal = patientsPerArm1 + patientsPerArm2;
+
+        List<TreatmentArm> arms = new ArrayList<>();
+        TreatmentArm arm1 = new TreatmentArm();
+        arm1.setName("Dummy treatment arm: 1");
+        arm1.setPlannedSubjectsCount(patientsPerArm1);
+        arms.add(arm1);
+
+        TreatmentArm arm2 = new TreatmentArm();
+        arm2.setName("Dummy treatment arm: 2");
+        arm2.setPlannedSubjectsCount(patientsPerArm2);
+        arms.add(arm2);
+
+        study.setIsStratifyTrialSite(true);
+        study.setTreatmentArms(arms);
+
+        PartnerSite site1 = new PartnerSite();
+        site1.setIdentifier("SITE1");
+
+        List<Study> studies = new ArrayList<>();
+        studies.add(study);
+        site1.setStudies(studies);
+
+        boolean isYes = rndb.nextBoolean();
+
+        for (int i = 0; i < patientsTotal; i++) {
+            subject = new TrialSubject();
+            subject.setTrialSite(site1);
+
+            List<PrognosticVariable<?>> variables = new ArrayList<>();
+
+            // First prognostic variable definition is exclusive yes/no property
+            PrognosticVariable<String> v1 = getEmptyDichotomProperty1();
+            variables.add(v1);
+
+            try {
+                v1.setValue(isYes ? "yes" : "no");
+            } catch (Exception err) {
+                fail(err.getMessage());
+            }
+            subject.setPrognosticVariables(variables);
+
+            TreatmentArm assignedArm = study.getRandomisationConfiguration().getScheme().randomise(subject);
+
+            subject.setTreatmentArm(assignedArm);
+            assignedArm.addSubject(subject);
+
+            isYes = rndb.nextBoolean();
+        }
+
+        int skuska1yestreatment1 = 0;
+        int skuska1yestreatment2 = 0;
+        int skuska1notreatment1 = 0;
+        int skuska1notreatment2 = 0;
+
+        TreatmentArm resultArm1 = study.getTreatmentArms().get(0);
+        for (TrialSubject sub: resultArm1.getSubjects()) {
+            if (sub.getTrialSite().getIdentifier().equals("SITE1")) {
+                if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 1")) {
+                    for (PrognosticVariable pv : sub.getPrognosticVariables()) {
+                        String value = (String) pv.getValue();
+                        if ("yes".equals(value)) {
+                            skuska1yestreatment1++;
+                        } else if ("no".equals(value)) {
+                            skuska1notreatment1++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // At least
+        assertTrue("Should be at least <" + (patientsPerArm1 - 1) + "> but was <" + resultArm1.getSubjects().size() +">", resultArm1.getSubjects().size() >= patientsPerArm1 - 1);
+
+        // At most
+        assertTrue("Should be at most <" + (patientsPerArm1 + 1) + "> but was <" + resultArm1.getSubjects().size() + ">", resultArm1.getSubjects().size() <= patientsPerArm1 + 1);
+
+        TreatmentArm resultArm2 = study.getTreatmentArms().get(1);
+        for (TrialSubject sub: resultArm2.getSubjects()) {
+            if (sub.getTrialSite().getIdentifier().equals("SITE1")) {
+                if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 2")) {
+                    for (PrognosticVariable pv : sub.getPrognosticVariables()) {
+                        String value = (String) pv.getValue();
+                        if ("yes".equals(value)) {
+                            skuska1yestreatment2++;
+                        } else if ("no".equals(value)) {
+                            skuska1notreatment2++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // At least
+        assertTrue("Should be at least <" + (patientsPerArm2 - 1) + "> but was <" + resultArm2.getSubjects().size() +">", resultArm2.getSubjects().size() >= patientsPerArm2 - 1);
+
+        // At most
+        assertTrue("Should be at most <" + (patientsPerArm2 + 1) + "> but was <" + resultArm2.getSubjects().size() + ">", resultArm2.getSubjects().size() <= patientsPerArm2 + 1);
+
+
+        assertEquals(patientsPerArm1 + patientsPerArm2, skuska1yestreatment1 + skuska1yestreatment2 + skuska1notreatment1 + skuska1notreatment2);
+    }
+
+    @Ignore
+    @Test
     public void testTwoSitesTwoGroupsWithPartnerSitesStrata() {
         conf.setMinimumBlockSize(3);
         conf.setMaximumBlockSize(6);
@@ -121,7 +329,7 @@ public class BlockRandomisationTest {
         // Planned subjects per arm (two arms)
         int patientsPerArm = 154;
 
-        List<TreatmentArm> arms = new ArrayList<TreatmentArm>();
+        List<TreatmentArm> arms = new ArrayList<>();
 
         for (int i = 0; i < numberOfTreatmentArms; i++) {
             TreatmentArm arm = new TreatmentArm();
@@ -139,7 +347,7 @@ public class BlockRandomisationTest {
         PartnerSite site2 = new PartnerSite();
         site2.setIdentifier("SITE2");
 
-        List<Study> studies = new ArrayList<Study>();
+        List<Study> studies = new ArrayList<>();
         studies.add(study);
         site1.setStudies(studies);
 
@@ -150,12 +358,11 @@ public class BlockRandomisationTest {
             subject = new TrialSubject();
             if (onetwo) {
                 subject.setTrialSite(site1);
-            }
-            else {
+            } else {
                 subject.setTrialSite(site2);
             }
 
-            List<PrognosticVariable<?>> variables = new ArrayList<PrognosticVariable<?>>();
+            List<PrognosticVariable<?>> variables = new ArrayList<>();
 
             // First prognostic variable definition is exclusive yes/no property
             PrognosticVariable<String> v1 = getEmptyDichotomProperty1();
@@ -169,8 +376,7 @@ public class BlockRandomisationTest {
                 v1.setValue(isYes ? "yes" : "no");
                 //                            v2.setValue("option" + j);
 //                            v3.setValue("option" + k);
-            }
-            catch (Exception err) {
+            } catch (Exception err) {
                 fail(err.getMessage());
             }
             subject.setPrognosticVariables(variables);
@@ -199,51 +405,38 @@ public class BlockRandomisationTest {
                     if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 1")) {
                         for (PrognosticVariable pv : sub.getPrognosticVariables()) {
                             String value = (String)pv.getValue();
-                            if (value.equals("yes")) {
+                            if ("yes".equals(value)) {
                                 skuska1yestreatment1++;
-                            }
-                            else if (value.equals("no"))
-                            {
+                            } else if ("no".equals(value)) {
                                 skuska1notreatment1++;
                             }
                         }
-                    }
-                    else if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 2"))
-                    {
+                    } else if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 2")) {
                         for (PrognosticVariable pv : sub.getPrognosticVariables()) {
                             String value = (String)pv.getValue();
-                            if (value.equals("yes")) {
+                            if ("yes".equals(value)) {
                                 skuska1yestreatment2++;
-                            }
-                            else if (value.equals("no"))
-                            {
+                            } else if ("no".equals(value)) {
                                 skuska1notreatment2++;
                             }
                         }
                     }
-                }
-                else if (sub.getTrialSite().getIdentifier().equals("SITE2")) {
+                } else if (sub.getTrialSite().getIdentifier().equals("SITE2")) {
                     if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 1")) {
                         for (PrognosticVariable pv : sub.getPrognosticVariables()) {
                             String value = (String)pv.getValue();
-                            if (value.equals("yes")) {
+                            if ("yes".equals(value)) {
                                 skuska2yestreatment1++;
-                            }
-                            else if (value.equals("no"))
-                            {
+                            } else if ("no".equals(value)) {
                                 skuska2notreatment1++;
                             }
                         }
-                    }
-                    else if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 2"))
-                    {
+                    } else if (sub.getTreatmentArm().getName().equals("Dummy treatment arm: 2")) {
                         for (PrognosticVariable pv : sub.getPrognosticVariables()) {
                             String value = (String)pv.getValue();
-                            if (value.equals("yes")) {
+                            if ("yes".equals(value)) {
                                 skuska2yestreatment2++;
-                            }
-                            else if (value.equals("no"))
-                            {
+                            } else if ("no".equals(value)) {
                                 skuska2notreatment2++;
                             }
                         }
@@ -298,6 +491,7 @@ public class BlockRandomisationTest {
 //    }
 
     private DichotomousCriterion dCriterion1 = null;
+
     private PrognosticVariable<String> getEmptyDichotomProperty1() {
         if (dCriterion1 == null) {
 
@@ -310,7 +504,7 @@ public class BlockRandomisationTest {
 
             try {
 
-                List<String> value = new ArrayList<String>();
+                List<String> value = new ArrayList<>();
                 value.add(dCriterion1.getOption1());
 
                 // Setup constraints for criterion
@@ -329,13 +523,12 @@ public class BlockRandomisationTest {
 
                 // Add second constraint to criterion
                 dCriterion1.addStrata(co);
-            }
-            catch (Exception err) {
+            } catch (Exception err) {
                 fail(err.getMessage());
             }
         }
 
-        return new PrognosticVariable<String>(dCriterion1);
+        return new PrognosticVariable<>(dCriterion1);
 
     }
 

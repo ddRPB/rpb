@@ -6,11 +6,11 @@
 
     <entry key="sponsoringType">Sonsoring</entry>
     <entry key="sponsoringType_plural">Typen</entry>
-    <entry key="sponsoringType_reload">Neu laden vorhandenen Typen</entry>
-    <entry key="sponsoringType_print">Drucken Tabelle Typen</entry>
-    <entry key="sponsoringType_new">Definieren Sie eine neue Typ</entry>
-    <entry key="sponsoringType_edit">Bearbeiten ausgewählte Typ</entry>
-    <entry key="sponsoringType_delete">Löschen ausgewählte Typ</entry>
+    <entry key="sponsoringType_reload">Vorhandenen Sonsoring Typen neu laden</entry>
+    <entry key="sponsoringType_print">Tabelle Sonsoring Typen drucken</entry>
+    <entry key="sponsoringType_new">Neuen Sponsoring Typ definieren</entry>
+    <entry key="sponsoringType_edit">Ausgewählten Sponsoring Typ bearbeiten</entry>
+    <entry key="sponsoringType_delete">Ausgewählten Sponsoring Typ löschen</entry>
 
     <!-- attributes -->
     <entry key="sponsoringType_id">Id</entry>

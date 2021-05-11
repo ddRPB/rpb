@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2018 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 
 package de.dktk.dd.rpb.portal.web.mb.admin;
 
-import de.dktk.dd.rpb.core.domain.admin.SampleContent;
-import de.dktk.dd.rpb.core.repository.admin.SampleContentRepository;
+import de.dktk.dd.rpb.core.domain.cms.SampleContent;
+import de.dktk.dd.rpb.core.repository.cms.SampleContentRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 
@@ -61,15 +61,6 @@ public class ContentBean extends CrudEntityViewModel<SampleContent, Integer> {
         return this.repository;
     }
 
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(SampleContentRepository repository) {
-        this.repository = repository;
-    }
-
     //endregion
 
     //endregion
@@ -106,7 +97,7 @@ public class ContentBean extends CrudEntityViewModel<SampleContent, Integer> {
             return results;
         }
 
-        return new ArrayList<SortMeta>();
+        return new ArrayList<>();
     }
 
     //endregion

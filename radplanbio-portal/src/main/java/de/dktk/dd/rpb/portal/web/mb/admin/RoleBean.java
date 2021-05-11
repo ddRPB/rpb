@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2016 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,25 +22,21 @@ package de.dktk.dd.rpb.portal.web.mb.admin;
 import de.dktk.dd.rpb.core.domain.admin.Role;
 import de.dktk.dd.rpb.core.repository.admin.RoleRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import javax.annotation.PostConstruct;
 
-import javax.faces.context.FacesContext;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bean for administration of DefaultAccount Role domain entities
+ * Bean for administration of RadPlanBio roles (permissions)
  *
  * @author tomas@skripcak.net
  * @since 01 July 2015
@@ -57,22 +53,13 @@ public class RoleBean extends CrudEntityViewModel<Role, Integer> {
     private RoleRepository repository;
 
     /**
-     * Get StructTypeRepository
-     * @return StructTypeRepository
+     * Get RoleRepository
+     * @return RoleRepository
      */
     @SuppressWarnings("unused")
     @Override
     public RoleRepository getRepository() {
         return this.repository;
-    }
-
-    /**
-     * Set StructTypeRepository
-     * @param repository StructTypeRepository
-     */
-    @SuppressWarnings("unused")
-    public void setRepository(RoleRepository repository) {
-        this.repository = repository;
     }
 
     //endregion
@@ -109,37 +96,17 @@ public class RoleBean extends CrudEntityViewModel<Role, Integer> {
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<SortMeta>();
-
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-
-        // Roles Administration View
-        UIComponent column = viewRoot.findComponent(":form:tabView:dtEntities:colRoleName");
-        if (column != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column);
-            sm1.setSortField("colRoleName");
-            sm1.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm1);
-
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colRoleName", "colRoleName", SortOrder.ASCENDING);
+        if (results != null) {
             return results;
         }
 
-        // UserAccount -> Roles Administration View
-        column = viewRoot.findComponent(":form:tabView:dtAccountRoles:colRoleName");
-        if (column != null) {
-            SortMeta sm1 = new SortMeta();
-            sm1.setSortBy((UIColumn) column);
-            sm1.setSortField("colRoleName");
-            sm1.setSortOrder(SortOrder.ASCENDING);
-
-            results.add(sm1);
-
+        results = DataTableUtil.buildSortOrder(":form:tabView:dtAccountRoles:colRoleName", "colRoleName", SortOrder.ASCENDING);
+        if (results != null) {
             return results;
         }
 
-        return results;
+        return new ArrayList<>();
     }
 
     /**
@@ -147,7 +114,7 @@ public class RoleBean extends CrudEntityViewModel<Role, Integer> {
      * @return List of Boolean values determining column visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {
-        List<Boolean> result = new ArrayList<Boolean>();
+        List<Boolean> result = new ArrayList<>();
         result.add(Boolean.TRUE); // Name
         result.add(Boolean.TRUE); // Description
 

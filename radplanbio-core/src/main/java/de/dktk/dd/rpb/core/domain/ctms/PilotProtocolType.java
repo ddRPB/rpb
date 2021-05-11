@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2017 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@ import javax.persistence.Entity;
  * @author tomas@skripcak.net
  * @since 25 Aug 2016
  */
-//@Entity
-//@DiscriminatorValue("PILOT")
-public class PilotProtocolType {
+@Entity
+@DiscriminatorValue("PILOT")
+public class PilotProtocolType extends AbstractProtocolType {
 
     //extends AbstractProtocolType
 
@@ -60,25 +60,25 @@ public class PilotProtocolType {
      */
     @Override
     public boolean equals(Object other) {
-        return this == other || (other instanceof ObservationalProtocolType && hashCode() == other.hashCode());
+        return this == other || (other instanceof PilotProtocolType && hashCode() == other.hashCode());
     }
 
-//    @Override
-//    public int hashCode() {
-//        return this.identifiableHashBuilder.hash(log, this);
-//    }
+    @Override
+    public int hashCode() {
+        return this.identifiableHashBuilder.hash(log, this);
+    }
 
-//    /**
-//     * Construct a readable string representation for this entity instance.
-//     *
-//     * @see java.lang.Object#toString()
-//     */
-//    @Override
-//    public String toString() {
-//        return Objects.toStringHelper(this)
-//                .add("id", this.id)
-//                .toString();
-//    }
+    /**
+     * Construct a readable string representation for this entity instance.
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("id", this.id)
+                .toString();
+    }
 
     //endregion
 

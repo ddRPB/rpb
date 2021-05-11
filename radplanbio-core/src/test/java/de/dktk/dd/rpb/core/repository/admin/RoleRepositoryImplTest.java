@@ -1,23 +1,29 @@
 package de.dktk.dd.rpb.core.repository.admin;
 
-import static org.fest.assertions.Assertions.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.NoResultException;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import de.dktk.dd.rpb.core.domain.admin.Role;
-
 import de.dktk.dd.rpb.core.dao.admin.RoleDao;
 import de.dktk.dd.rpb.core.dao.support.SearchParameters;
+import de.dktk.dd.rpb.core.domain.admin.Role;
+import org.apache.log4j.Logger;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 /**
  * Unit test on RoleRepositoryImpl
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({RoleRepositoryImplTest.class, Logger.class})
 public class RoleRepositoryImplTest {
 
     private RoleRepositoryImpl roleRepositoryImpl;
@@ -26,6 +32,9 @@ public class RoleRepositoryImplTest {
     @Before
     public void setUp() {
         // called before each test.
+        mockStatic(Logger.class);
+        Logger logger = mock(Logger.class);
+        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
         roleRepositoryImpl = new RoleRepositoryImpl();
         roleDao = mock(RoleDao.class);
         roleRepositoryImpl.setRoleDao(roleDao);

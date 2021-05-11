@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 Tomas Skripcak
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import static javax.faces.application.FacesMessage.SEVERITY_WARN;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.application.FacesMessage.Severity;
+import javax.faces.application.ViewExpiredException;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -159,6 +160,9 @@ public class MessageUtil {
             // works only if the spring security filter is before the exception filter, 
             // that is if the exception filter handles the exception first.
             this.error("error_access_denied");
+        }
+        else if (ExceptionUtil.isCausedBy(e, ViewExpiredException.class)) {
+            this.error("session_expired");
         }
         else {
             this.error("status_exception_ko", getMessage(e));
