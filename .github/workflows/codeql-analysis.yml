@@ -68,8 +68,7 @@ jobs:
     #    uses a compiled language
 
     - name: Build rpb-platform
-    - run: |
-        mvn -pl radplanbio-core,radplanbio-portal,radplanbio-participate -B package --file pom.xml
+      run: mvn -pl radplanbio-core,radplanbio-portal,radplanbio-participate -B package --file pom.xml
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
