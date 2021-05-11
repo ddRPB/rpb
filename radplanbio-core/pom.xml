@@ -639,29 +639,20 @@
 			<name>dcm4che Repository</name>
             <url>https://www.dcm4che.org/maven2</url>
 		</repository>
-       
-	   <!-- <repository>
-            <id>spring-release</id>
-            <url>https://repo.springsource.org/libs-release/</url>
-        </repository> -->
 		
 		<repository> 
 			<id>repository.spring.release</id> 
 			<name>Spring GA Repository</name> 
-			<url>http://repo.spring.io/release</url> 
+			<url>https://repo.spring.io/release</url>
 		</repository>
 		
 		<repository>
 			<id>jboss</id>
-			<url>http://repository.jboss.org/nexus/content/groups/public-jboss</url>
+			<url>https://repository.jboss.org/nexus/content/groups/public-jboss</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-        <repository>
-            <id>googlecode.com</id>
-            <url>http://mashups4jsf.googlecode.com/svn/trunk/mashups4jsf-repo</url>
-        </repository>
 	</repositories>
 
 	<!-- ~~~~~ -->
