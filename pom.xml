@@ -32,7 +32,7 @@
     <modules>
         <module>radplanbio-core</module>
         <module>radplanbio-portal</module>
-        <!--<module>radplanbio-participate</module>-->
+        <module>radplanbio-participate</module>
     </modules>
 
     <build>
