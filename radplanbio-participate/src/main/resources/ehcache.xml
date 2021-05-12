@@ -46,13 +46,13 @@
 		memoryStoreEvictionPolicy="LFU">
 	</cache>
 
-	<!-- Web services client cache (for responses) for application when getting data from RPB subsystems over web services
-
-    	 This cache contains a maximum in memory of 400000 elements,
+	<!-- Web services client cache (for responses) for application when getting data from RPB subsystems over web services -->
+	<!-- StudySubjects
+		 This cache contains a maximum in memory of 400000 elements,
     	 will expire an element if it is idle for more than 1 hours and lives for more than 1 hours (3600)
 	-->
 	<cache
-		name="wsClientCache"
+		name="wsClientStudySubjectsCache"
 		maxElementsInMemory="400000"
 		timeToIdleSeconds="3600"
 		timeToLiveSeconds="3600"
@@ -60,6 +60,17 @@
 		eternal="false"
 		overflowToDisk="false"
 		>
+	</cache>
+	<!-- Metadata
+		 This cache contains a maximum in memory of 2000 elements
+		 does not expire so study metadata have to be removed administratively from cache to load fresh new from EDC
+	-->
+	<cache
+		name="wsClientStudyMetadataCache"
+		maxElementsInMemory="2000"
+		eternal="true"
+		overflowToDisk="false"
+		memoryStoreEvictionPolicy="LFU">
 	</cache>
 
 	<!-- You can override cache configuration given a cache name the following way:

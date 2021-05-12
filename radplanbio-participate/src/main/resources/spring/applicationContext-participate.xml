@@ -25,11 +25,6 @@
 	<context:component-scan base-package="de.dktk.dd.rpb">
 		<!-- exclude web beans as they live in the web application context -->
 		<context:exclude-filter type="regex" expression="de.dktk.dd.rpb.participate.web.*" />
-
-        <!-- Standalone participate does not have any database -->
-        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.core.dao.*" />
-        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.core.repository.*" />
-        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.core.service.AuditLogService" />
 	</context:component-scan>
 
     <!-- Inject to OC data repository setter -->
@@ -53,33 +48,88 @@
     <!--..........................................................................................................-->
 
     <!-- Where the properties files are -->
-    <context:property-placeholder location="classpath*:edc.properties,classpath*:database.properties" />
+    <context:property-placeholder
+            location="classpath*:app-version.properties,
+            classpath*:database.properties,
+            classpath*:hibernate.properties,
+            classpath*:iengine.properties,
+            classpath*:ldap.properties"
+    />
 
     <!--..........................................SPRING SECURITY AUTHENTICATION.....................................-->
+    <!-- Default authentication provider -->
+    <bean
+        id="defaultAuthenticationProvider"
+        class="de.dktk.dd.rpb.core.security.DefaultAuthenticationProvider"
+        >
+        <property name="userDetailsService">
+            <bean class="de.dktk.dd.rpb.core.security.DefaultUserDetailsServiceImpl" />
+        </property>
+    </bean>
 
     <!-- OpenClinica authentication provider -->
     <bean
-        id="openClinicaRestApiAuthenticationProvider"
+        id="openClinicaAuthenticationProvider"
         class="de.dktk.dd.rpb.core.security.OpenClinicaRestApiAuthenticationProvider"
         >
         <property name="userDetailsService">
-            <bean class="de.dktk.dd.rpb.core.security.OpenClinicaRestUserDetailsServiceImpl" />
+            <bean class="de.dktk.dd.rpb.core.security.OpenClinicaUserDetailsServiceImpl" />
         </property>
+    </bean>
+
+    <!-- ActiveDirectory -->
+    <bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+        <constructor-arg>
+            <value>${ldap.host}</value>
+        </constructor-arg>
+        <property name="userDn">
+            <value>${ldap.userDn}</value>
+        </property>
+        <property name="password">
+            <value>${ldap.password}</value>
+        </property>
+    </bean>
+
+    <bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">
+        <constructor-arg index="0" value=""></constructor-arg><!-- Optimal LDAP subtree -->
+        <constructor-arg index="1" value="${ldap.loginQuery}"></constructor-arg>
+        <constructor-arg index="2" ref="contextSource"></constructor-arg>
+        <property name="searchSubtree">
+            <value>true</value>
+        </property>
+    </bean>
+
+    <!-- LDAP provider -->
+    <bean id="ldapAuthenticationProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+        <constructor-arg>
+            <bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
+                <constructor-arg ref="contextSource"/>
+                <!-- How to find user in LDAP -->
+                <property name="userSearch" ref="userSearch"/>
+            </bean>
+        </constructor-arg>
+        <!-- Populator is used to populate authenticated user authorities - in this case they are RPB authorities -->
+        <constructor-arg>
+            <bean class="de.dktk.dd.rpb.core.security.DefaultLdapAuthoritiesPopulator"/>
+        </constructor-arg>
     </bean>
 
     <!-- Authentication manager as a container for providers -->
     <security:authentication-manager alias="authenticationManager" erase-credentials="false">
-        <security:authentication-provider ref="openClinicaRestApiAuthenticationProvider" />
+        <security:authentication-provider ref="defaultAuthenticationProvider" />
+        <security:authentication-provider ref="openClinicaAuthenticationProvider" />
+        <security:authentication-provider ref="ldapAuthenticationProvider"/>
     </security:authentication-manager>
 
     <!-- Where to go after authentication success -->
     <bean
-        id="successHandler"
-        class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
+            id="successHandler"
+            class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
         >
-        <property name="defaultTargetUrl" value="/home.faces" />
-        <!-- Redirect to the page which the user originally wanted to visit -->
-        <property name="useReferer" value="true" />
+        <property
+                name="defaultTargetUrl"
+                value="/home.faces"
+        />
     </bean>
 
     <!-- Where to go after authentication failure -->
@@ -93,23 +143,17 @@
             />
     </bean>
 
-    <!-- Where to go when authentication page is needed -->
-    <bean
-        id="loginUrlAuthenticationEntryPoint"
-        class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
-        >
-        <constructor-arg name="loginFormUrl" value="/login.faces" />
-    </bean>
-
     <!-- Custom filter for authentication which will choose which authentication provider to use -->
     <bean
         id="myAuthenticationFilter"
         class="de.dktk.dd.rpb.core.security.MyAuthenticationFilter"
         >
+        <constructor-arg
+                name="urlPattern" value="/login.faces"
+        />
         <property name="authenticationManager" ref="authenticationManager"/>
         <property name="authenticationFailureHandler" ref="failureHandler"/>
         <property name="authenticationSuccessHandler" ref="successHandler"/>
-        <property name="filterProcessesUrl" value="/logincheck.faces"/>
     </bean>
 
     <!-- Configuring annotations to secure business logic in domain level -->
@@ -121,6 +165,45 @@
 
 	<!-- Enable the configuration of transactional behavior based on annotations -->
 	<tx:annotation-driven />
+
+    <!--...................................... CACHE.................................................................-->
+    <bean
+        id="ehCacheManager"
+        class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+        >
+        <property name="shared" value="true" />
+    </bean>
+
+    <!--...................................... TASK..................................................................-->
+    <task:annotation-driven executor="myExecutor" scheduler="myScheduler" />
+    <task:executor id="myExecutor" pool-size="5" />
+    <task:scheduler id="myScheduler" pool-size="10" />
+
+    <!--......................................DATA SOURCES...........................................................-->
+
+	<!-- RadPlanBio data source -->
+	<bean
+        id="dataSource"
+        class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close" 
+		lazy-init="false" 
+		p:driverClassName="${rpb.jdbc.driver}"
+		p:url="${rpb.jdbc.url}"
+		p:username="${rpb.jdbc.user}"
+		p:password="${rpb.jdbc.password}"
+		p:initialSize="1" 
+		p:maxActive="50"
+		p:maxIdle="1" 
+		p:maxWait="5000"
+		p:poolPreparedStatements="true"
+		p:defaultAutoCommit="false" 
+		p:removeAbandoned="true" 
+		p:removeAbandonedTimeout="60">
+		<description>
+			This is a direct access to the datasource that can be used for specific queries that need to bypass hibernate functionalities.
+			However, if you need to use JDBC, please look at hibernate SQL-QUERIES, they would most probably be a more elegant way to solve your problem.
+		</description>
+	</bean>
 
     <!--Open Clinica data source-->
     <bean
@@ -146,6 +229,46 @@
         </description>
     </bean>
     <!--............................................................................,................................-->
+
+	<!-- Spring support for JPA -->
+	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor">
+		<description>Enable exception translation for beans annotated with @Repository</description>
+	</bean>
+
+    <!-- transactionManager is using defined entityManagerFactory-->
+	<bean
+        id="transactionManager"
+        class="org.springframework.orm.jpa.JpaTransactionManager"
+		p:entityManagerFactory-ref="entityManagerFactory"
+        >
+		<description>Please read http://www.springframework.org/docs/reference/transaction.html</description>
+	</bean>
+
+    <!-- Hibernate JPA specific adapter for our entityManagerFactory -->
+	<bean
+        id="hibernateJpaVendorAdapter"
+        class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
+        >
+		<description>Allow spring to configure hibernate specific settings</description>
+	</bean>
+
+    <!-- p:persistenceXmlLocation="classpath:META-INF/spring-persistence.xml" -->
+    <!-- Full control over EntityManagerFactory (or managing persistent entities objects) -->
+    <!-- It is related to defined dataSource -->
+    <!-- It uses spring-persistence.xml to create a PersistenceUnitInfo - radplanbioPU -->
+    <!-- Use hibernate as a data access adapter -->
+	<bean
+        id="entityManagerFactory"
+        class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+		p:dataSource-ref="dataSource"
+		p:persistenceUnitName="rpbParticipatePU"
+		p:jpaVendorAdapter-ref="hibernateJpaVendorAdapter"
+		p:jpaProperties="classpath:hibernate.properties"
+        p:packagesToScan="de.dktk.dd.rpb.core.domain"
+        />
+
+    <!-- Hibernate specific session factory obtained from defined entityManagerFactory -->
+	<util:property-path id="sessionFactory" path="entityManagerFactory.sessionFactory" />
 
 	<!-- Bean validation -->
 	<bean
