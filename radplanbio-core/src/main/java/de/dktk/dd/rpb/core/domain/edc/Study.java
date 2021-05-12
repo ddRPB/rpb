@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * OpenClinica Study transient domain entity
+ * EDC Study transient domain entity
  *
  * @author tomas@skripcak.net
  * @since 18 Oct 2013

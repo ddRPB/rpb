@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -125,6 +125,7 @@ public class WebDavStudyService extends BaseService  {
         int retryTimeout = 15000;
         long endTime = System.currentTimeMillis() + retryTimeout;
         while (soapStudies == null && System.currentTimeMillis() < endTime) {
+            this.sleepSecond();
             soapStudies = svcEdc.listAllStudies();
         }
 

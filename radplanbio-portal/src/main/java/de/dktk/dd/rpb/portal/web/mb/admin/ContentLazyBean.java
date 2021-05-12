@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,11 +78,13 @@ public class ContentLazyBean extends GenericLazyDataModel<SampleContent, Integer
     protected SampleContent getEntity(Map<String, Object> filters) {
         SampleContent example = this.repository.getNew();
 
-        for (Map.Entry<String, Object> entry : filters.entrySet()) {
-            switch (entry.getKey()) {
-                case "title":
-                    example.setTitle(entry.getValue().toString());
-                    break;
+        if (filters != null) {
+            for (Map.Entry<String, Object> entry : filters.entrySet()) {
+                switch (entry.getKey()) {
+                    case "title":
+                        example.setTitle(entry.getValue().toString());
+                        break;
+                }
             }
         }
 

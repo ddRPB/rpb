@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,23 @@ package de.dktk.dd.rpb.core.domain.pacs;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlTransient;
 
-//consider merging or integrating with DicomRtPlan
+//TODO: consider merging or integrating with DicomRtPlan
 
 /**
  * {@inheritDoc}
  */
 public class RtPlanDicomSeries extends DicomSeries {
+
+    //region Members
+
     private String rtPlanLabel;
     private String rtPlanName;
     private String rtPlanDate;
     private String rtPlanDescription;
+
+    //endregion
+
+    //region Properties
 
     @XmlTransient
     public String getRtPlanDescription() {
@@ -73,6 +80,8 @@ public class RtPlanDicomSeries extends DicomSeries {
         this.rtPlanDate = rtPlanDate;
     }
 
+    //endregion
+
     /**
      * {@inheritDoc}
      */
@@ -85,16 +94,17 @@ public class RtPlanDicomSeries extends DicomSeries {
 
     private String replaceEmptyDescriptionIfNecessary(String originalDescription) {
         if ("".equals(originalDescription)) {
-            if (rtPlanLabel != null && !"".equals(rtPlanLabel)) {
-                return rtPlanLabel;
+            if (this.rtPlanLabel != null && !"".equals(this.rtPlanLabel)) {
+                return this.rtPlanLabel;
             }
-            if (rtPlanName != null && !"".equals(rtPlanName)) {
-                return rtPlanName;
+            if (this.rtPlanName != null && !"".equals(this.rtPlanName)) {
+                return this.rtPlanName;
             }
-            if (rtPlanDescription != null && !"".equals(rtPlanDescription)) {
-                return rtPlanDescription;
+            if (this.rtPlanDescription != null && !"".equals(this.rtPlanDescription)) {
+                return this.rtPlanDescription;
             }
         }
+        
         return originalDescription;
     }
 

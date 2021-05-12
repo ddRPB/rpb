@@ -21,8 +21,8 @@
 
     <!-- Content page-->
 	<ui:define name="content">
-		<!-- Our form is not a jsf form... I assume this will assign the action for the form -->
-		<script>$("form").attr('action','${request.contextPath}/logincheck.faces');</script>
+        <!-- Refers to the login page configured in applicationContext-security-http.xml -->
+        <script>$("form").attr('action', 'login.faces');</script>
 
         <!-- When logged in show the user information -->
         <p:panel

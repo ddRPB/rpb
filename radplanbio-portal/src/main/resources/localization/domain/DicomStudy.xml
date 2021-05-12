@@ -11,6 +11,8 @@
     <entry key="dicomStudy_new">Define a new DICOM Study</entry>
     <entry key="dicomStudy_edit">Edit selected DICOM Study</entry>
     <entry key="dicomStudy_delete">Delete selected DICOM Study</entry>
+    <entry key="dicomStudy_assign">Assign DICOM Study</entry>
+
 
     <!-- attributes -->
     <entry key="dicomStudy_id">Id</entry>
@@ -20,5 +22,7 @@
     <entry key="dicomStudy_studyDate">Date</entry>
 
     <entry key="dicomStudy_studySeries">DICOM Series</entry>
+
+    <entry key="dicomStudy_studySeries_upload_slot">DICOM</entry>
 
 </properties>

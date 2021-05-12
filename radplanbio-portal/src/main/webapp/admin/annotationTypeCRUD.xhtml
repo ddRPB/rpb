@@ -94,7 +94,7 @@
                     </f:facet>
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -105,7 +105,6 @@
                             filterBy="#{entity.name}"
                             visible="#{mbAnnotationTypeLazy.columnVisibilityList[0]}"
                             filterMatchMode="contains"
-                            style="width:40%"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.annotationType_name}" />
@@ -119,7 +118,6 @@
                             filterBy="#{entity.description}"
                             visible="#{mbAnnotationTypeLazy.columnVisibilityList[1]}"
                             filterMatchMode="contains"
-                            style="width:45%"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.annotationType_description}" />
@@ -132,7 +130,6 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:10%"
                         >
 
                         <!-- Edit -->

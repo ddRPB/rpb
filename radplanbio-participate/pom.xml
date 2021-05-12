@@ -45,7 +45,7 @@
 		<!-- ~~~~~~ -->
 		<!-- System -->
 		<!-- ~~~~~~ -->
-		<jdk.version>1.7</jdk.version>
+		<jdk.version>1.8</jdk.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -58,7 +58,7 @@
 		<jsf-api.version>2.1.24</jsf-api.version>
 		<primefaces.version>6.1</primefaces.version>
 		<primefaces-themes.version>1.0.10</primefaces-themes.version>
-		<omnifaces.version>1.8.1</omnifaces.version>
+		<omnifaces.version>1.8.1</omnifaces.version><!-- could consider to bump to version 1.14.1 -->
 		<slf4j.version>1.5.10</slf4j.version>
 		
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -111,46 +111,6 @@
 				<jdbc.password>${database.password}</jdbc.password>
 				<!-- hibernate -->
 				<hibernate.dialect>org.hibernate.dialect.PostgresPlusDialect</hibernate.dialect>
-			</properties>
-		</profile>
-		<profile>
-			<id>oracle</id>
-			<properties>
-				<!-- jdbc driver dependency -->
-				<!-- Please deploy this driver in your local maven repository -->
-				<jdbc.groupId>com.oracle</jdbc.groupId>
-				<jdbc.artifactId>ojdbc14</jdbc.artifactId>
-				<jdbc.version>10.2.0.3</jdbc.version>
-				<!-- jdbc settings -->
-				<jdbc.type>oracle</jdbc.type>
-				<jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
-				<jdbc.url>jdbc:oracle:thin:@${database.host}:1521:XE</jdbc.url>
-				<jdbc.catalog>${database.name}</jdbc.catalog>
-				<jdbc.user>${database.user}</jdbc.user>
-				<jdbc.password>${database.password}</jdbc.password>
-				<!-- hibernate -->
-				<hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</hibernate.dialect>
-				<!-- misc -->
-				<sql-maven-plugin.delimiter>;</sql-maven-plugin.delimiter>
-			</properties>
-		</profile>
-		<profile>
-			<id>mysql</id>
-			<properties>
-				<!-- jdbc driver dependency -->
-				<jdbc.groupId>mysql</jdbc.groupId>
-				<jdbc.artifactId>mysql-connector-java</jdbc.artifactId>
-				<jdbc.version>5.1.17</jdbc.version>
-				<!-- jdbc settings -->
-				<jdbc.type>mysql</jdbc.type>
-				<jdbc.driver>com.mysql.jdbc.Driver</jdbc.driver>
-				<!-- see http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-configuration-properties.html -->
-				<jdbc.url>jdbc:mysql://${database.host}/${database.name}?zeroDateTimeBehavior=convertToNull</jdbc.url>
-				<jdbc.catalog>${database.name}</jdbc.catalog>
-				<jdbc.user>${database.user}</jdbc.user>
-				<jdbc.password>${database.password}</jdbc.password>
-				<!-- hibernate -->
-				<hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
 			</properties>
 		</profile>
 		<profile>
@@ -572,16 +532,7 @@
 		</dependency>
 
 		<!-- ~~~ -->
-		<!-- RSS -->
-		<!-- ~~~ -->
-		<dependency>
-			<groupId>com.rometools</groupId>
-			<artifactId>rome</artifactId>
-			<version>1.5.0</version>
-		</dependency>
-
-		<!-- ~~~ -->
-		<!-- JSF                         -->
+		<!-- JSF -->
 		<!-- ~~~ -->
 		<dependency>
 			<groupId>org.jboss.el</groupId>
@@ -786,36 +737,6 @@
 			<version>1.5.9</version>
 		</dependency>
 
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
-		<!-- DATA TRANSFORMATION -->
-		<!-- ~~~~~~~~~~~~~~~~~~~ -->
-
-		<!-- CSV -->
-		<dependency>
-			<groupId>net.sf.supercsv</groupId>
-			<artifactId>super-csv</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-
-		<!-- ~~~~~ -->
-		<!-- DICOM -->
-		<!-- ~~~~~ -->
-		<dependency>
-			<groupId>org.dcm4che</groupId>
-			<artifactId>dcm4che-core</artifactId>
-			<version>5.13.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.dcm4che</groupId>
-			<artifactId>dcm4che-image</artifactId>
-			<version>5.13.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.dcm4che</groupId>
-			<artifactId>dcm4che-net</artifactId>
-			<version>5.13.0</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-site-plugin</artifactId>
@@ -834,23 +755,17 @@
 	<!-- REPOSITORIES -->
 	<!-- ~~~~~~~~~~~~ -->
 	<repositories>
-		<repository>
-			<id>dcm4che</id>
-			<name>dcm4che Repository</name>
-			<url>https://www.dcm4che.org/maven2</url>
-		</repository>
+		
 		<repository>
 			<id>primefaces</id>
 			<url>https://repository.primefaces.org</url>
 			<layout>default</layout>
 		</repository>
-		
 		<repository> 
 			<id>repository.spring.release</id> 
 			<name>Spring GA Repository</name> 
 			<url>https://repo.spring.io/release</url>
 		</repository>
-		
 		<repository>
 			<id>jboss</id>
 			<url>https://repository.jboss.org/nexus/content/groups/public-jboss</url>

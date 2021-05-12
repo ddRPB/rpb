@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@ import de.dktk.dd.rpb.core.context.UserContext;
  */
 public class AuditContextHolder {
 
-    private static final ThreadLocal<Boolean> audit = new ThreadLocal<Boolean>();
-    private static final ThreadLocal<String> username = new ThreadLocal<String>();
+    private static final ThreadLocal<Boolean> audit = new ThreadLocal<>();
+    private static final ThreadLocal<String> username = new ThreadLocal<>();
 
     public static void setAudit(boolean auditing) {
         audit.set(auditing);

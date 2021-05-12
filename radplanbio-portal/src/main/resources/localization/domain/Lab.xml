@@ -18,5 +18,6 @@
     <entry key="lab_publicUrl">Public URL</entry>
     <entry key="lab_isEnabled">Enabled</entry>
     <entry key="lab_version">Version</entry>
+    <entry key="data_tables">data tables</entry>
 
 </properties>

@@ -20,7 +20,10 @@
 package de.dktk.dd.rpb.portal.web.mb.edc;
 
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.OdmMatch;
+import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.mapping.Mapping;
 import de.dktk.dd.rpb.core.service.DataTransformationService;
 import de.dktk.dd.rpb.core.service.OdmService;
@@ -30,18 +33,15 @@ import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
-
 import org.json.JSONObject;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.ToggleEvent;
 import org.primefaces.model.*;
-
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -262,7 +262,7 @@ public class OCImportBean implements Serializable {
         genderValues.put("Female", "f");
     }
 
-    public Map<String,Object> getGenderValues() {
+    public Map<String, Object> getGenderValues() {
         return genderValues;
     }
 
@@ -325,7 +325,7 @@ public class OCImportBean implements Serializable {
                 this.buildColumnVisibilityList()
         );
         this.setSubjectsPreSortOrder(
-            this.buildSubjectsSortOrder()
+                this.buildSubjectsSortOrder()
         );
 
         // Load initial data
@@ -339,8 +339,7 @@ public class OCImportBean implements Serializable {
     public void onSubjectEntityToggle(ToggleEvent e) {
         try {
             this.subjectsColumnVisibilityList.set(((Integer) e.getData() - 1), e.getVisibility() == Visibility.VISIBLE);
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -358,8 +357,7 @@ public class OCImportBean implements Serializable {
             this.studyIntegrationFacade.init(this.mainBean);
             this.study = this.studyIntegrationFacade.loadStudy();
             this.metadataOdm = this.studyIntegrationFacade.getMetadataOdm();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -372,9 +370,8 @@ public class OCImportBean implements Serializable {
             List<StudySubject> enrolledSubjects = this.studyIntegrationFacade.loadStudySubjects();
             this.importDataOdm.updateSubjectKeys(enrolledSubjects, this.metadataOdm.getStudyDetails().getStudyParameterConfiguration().getStudySubjectIdGeneration());
             this.subjectList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
-            this.messageUtil.infoText("Enrolled study subject [" + this.subjectList.size() + "] details reloaded from EDC." );
-        }
-        catch (Exception err) {
+            this.messageUtil.infoText("Enrolled study subject [" + this.subjectList.size() + "] details reloaded from EDC.");
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -385,7 +382,7 @@ public class OCImportBean implements Serializable {
     public void transformData() {
         try {
             // Almost correct import data (Subject key has to be loaded after study subject enrollment)
-            this.importDataOdm  = this.svcDataTransformation.transformToOdm(
+            this.importDataOdm = this.svcDataTransformation.transformToOdm(
                     this.metadataOdm,
                     this.selectedMapping,
                     this.uploadedFile.getInputstream(),
@@ -394,18 +391,45 @@ public class OCImportBean implements Serializable {
 
             // Load detected subjects
             if (this.importDataOdm != null &&
-                this.importDataOdm.getClinicalDataList() != null &&
-                this.importDataOdm.getClinicalDataList().size() == 1) {
+                    this.importDataOdm.getClinicalDataList() != null &&
+                    this.importDataOdm.getClinicalDataList().size() == 1) {
 
                 this.subjectList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
-            }
-            else {
+            } else {
                 throw new Exception("Failed to create clinical data model.");
             }
 
             this.messageUtil.infoText("Import ODM data model created: " + this.importDataOdm.getDescription());
+        } catch (Exception err) {
+            this.messageUtil.error(err);
         }
-        catch (Exception err) {
+    }
+
+    /**
+     * Transform data according to selected mapping
+     */
+    public void transformDataWithAllMappings() {
+        try {
+            // Almost correct import data (Subject key has to be loaded after study subject enrollment)
+            this.importDataOdm = this.svcDataTransformation.transformToOdm(
+                    this.metadataOdm,
+                    this.selectedMapping,
+                    this.uploadedFile.getInputstream(),
+                    this.uploadedFile.getFileName()
+            );
+
+            // Load detected subjects
+            if (this.importDataOdm != null &&
+                    this.importDataOdm.getClinicalDataList() != null &&
+                    this.importDataOdm.getClinicalDataList().size() == 1) {
+
+                this.subjectList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
+            } else {
+                throw new Exception("Failed to create clinical data model.");
+            }
+
+            this.messageUtil.infoText("Import ODM data model created: " + this.importDataOdm.getDescription());
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -437,8 +461,7 @@ public class OCImportBean implements Serializable {
 
                         if (subject.getPerson().getIsSure()) {
                             finalResult = this.mainBean.getSvcPid().createSurePatientJson(tokenId, subject.getPerson());
-                        }
-                        else {
+                        } else {
                             finalResult = this.mainBean.getSvcPid().getCreatePatientJsonResponse(tokenId, subject.getPerson());
                         }
 
@@ -460,8 +483,7 @@ public class OCImportBean implements Serializable {
 
                 this.messageUtil.info("PIDs for " + Integer.toString(generatedPids) + " subjects successfully generated.");
             }
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error("PID generation failed: ", err.getMessage());
         }
     }
@@ -482,12 +504,10 @@ public class OCImportBean implements Serializable {
             // Update subjects keys in odm so that it correspond to keys of newly imported subjects
             if (notImported.size() == 0) {
                 this.reloadSubjects();
-            }
-            else {
+            } else {
                 this.messageUtil.warning("For some of provided subjects enrolment failed."); //TODO: do something with not imported subject ideally show them
             }
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -496,20 +516,56 @@ public class OCImportBean implements Serializable {
      * Schedule all study events for all subjects
      */
     public void scheduleEvents() {
-        try {
-            this.studyIntegrationFacade.scheduleStudyEvents(
-                    this.importDataOdm
-                        .getClinicalDataList()
-                        .get(0)
-                        .getStudySubjects(),
-                    this.metadataOdm
-            );
+        this.reloadSubjects();
 
-            this.messageUtil.info("All events scheduled.");
-        }
-        catch (Exception err) {
+        List<StudySubject> studySubjectsFromFileList = this.importDataOdm.getClinicalDataList().get(0).getStudySubjects();
+
+        try {
+            List<StudySubject> studySubjectsForUpdate = filterOutExistingEvents(studySubjectsFromFileList);
+            List<String> ocResponses = this.studyIntegrationFacade.scheduleStudyEvents(studySubjectsForUpdate, this.metadataOdm);
+            this.messageUtil.info(ocResponses.size() + " events scheduled.");
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
+
+        this.study = this.studyIntegrationFacade.loadStudy();
+
+    }
+
+    private List<StudySubject> filterOutExistingEvents(List<StudySubject> studySubjectsFromFileList) {
+        List<StudySubject> studySubjectsForUpdate = new ArrayList<>();
+
+        for (StudySubject subject : studySubjectsFromFileList) {
+
+            String queryOdmXmlPath = this.mainBean.getActiveStudy().getOcoid() + "/" + subject.getSubjectKey() + "/*/*";
+            Odm targetSubjectOdm = this.mainBean.getOpenClinicaService().getStudyCasebookOdm(
+                    OpenClinicaService.CasebookFormat.XML,
+                    OpenClinicaService.CasebookMethod.VIEW,
+                    queryOdmXmlPath
+            );
+
+            List<EventData> newEvents = new ArrayList<>();
+
+            for (EventData sourceEvent : subject.getStudyEventDataList()) {
+                List<EventData> eventDataList = targetSubjectOdm.getClinicalDataList().get(0).getStudySubjects().get(0).getStudyEventDataList();
+                if (eventDataList == null) {
+                    eventDataList = new ArrayList<>();
+                }
+                if (eventDataList.size() > 0) {
+                    if (this.getEventFromEventDataListByOid(eventDataList, sourceEvent.getStudyEventOid(), sourceEvent.getStudyEventRepeatKey()) == null) {
+                        newEvents.add(sourceEvent);
+                    }
+                } else {
+                    newEvents.add(sourceEvent);
+                }
+            }
+            if (newEvents.size() > 0) {
+                subject.setStudyEventDataList(newEvents);
+                studySubjectsForUpdate.add(subject);
+            }
+
+        }
+        return studySubjectsForUpdate;
     }
 
     /**
@@ -523,14 +579,14 @@ public class OCImportBean implements Serializable {
             );
 
             this.messageUtil.info("Import successfully finished.");
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
 
     /**
      * Import subject source data from import model to target system
+     *
      * @param studySubject StudySubject
      */
     public void importSubjectData(StudySubject studySubject) {
@@ -545,8 +601,7 @@ public class OCImportBean implements Serializable {
                 this.studyIntegrationFacade.importData(sourceSubjectOdm, 1);
                 this.messageUtil.info("Import successfully finished.");
             }
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -588,8 +643,7 @@ public class OCImportBean implements Serializable {
                     FileUtil.MimeType.zip.toString(),
                     this.study.getOcStudyIdentifier() + "-import-data.zip"
             );
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -609,14 +663,14 @@ public class OCImportBean implements Serializable {
 
         if (allEqual) {
             this.messageUtil.info("Source data after mapping equals target data.");
-        }
-        else {
+        } else {
             this.messageUtil.warning("Non equality found for subject: " + this.selectedSubjectOdmMatch.getClinicalDataMatchList().get(0).getSubjectDataMatchList().get(0).getSubjectKey());
         }
     }
 
     /**
      * Compare source data import model with extract from target system
+     *
      * @param studySubject StudySubject
      */
     public void compareSubjectData(StudySubject studySubject) {
@@ -638,10 +692,27 @@ public class OCImportBean implements Serializable {
 
                 this.selectedSubjectOdmMatch = this.svcOdmService.compareOdm(sourceSubjectOdm, targetSubjectOdm);
             }
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
+    }
+
+    private EventData getEventFromEventDataListByOid(List<EventData> eventDataList, String oid, String repeatKey) {
+
+        if (eventDataList != null) {
+            for (EventData eventData : eventDataList) {
+                if (eventData.getStudyEventOid().equalsIgnoreCase(oid)) {
+                    if (eventData.getStudyEventRepeatKey() == null || repeatKey == null) {
+                        return eventData;
+                    } else {
+                        if (eventData.getStudyEventRepeatKey().equalsIgnoreCase(repeatKey)) {
+                            return eventData;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -650,8 +721,7 @@ public class OCImportBean implements Serializable {
     public void doUpdateSubject() {
         try {
             this.messageUtil.infoEntity("status_edited_ok", this.selectedSubject);
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -662,6 +732,7 @@ public class OCImportBean implements Serializable {
 
     /**
      * Upload input data for import
+     *
      * @param event upload event
      */
     public void handleUpload(FileUploadEvent event) {
@@ -671,8 +742,7 @@ public class OCImportBean implements Serializable {
                     event.getFile().getFileName() + " file size: " +
                     event.getFile().getSize() / 1024 + " Kb content type: " +
                     event.getFile().getContentType() + " The document file was uploaded.");
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -683,10 +753,11 @@ public class OCImportBean implements Serializable {
 
     /**
      * Need to build an initial sort order for data table multi sort
+     *
      * @return List of SortMeta objects
      */
     private List<SortMeta> buildSubjectsSortOrder() {
-        List<SortMeta> results =  DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
 
         if (results != null) {
             return results;
@@ -697,6 +768,7 @@ public class OCImportBean implements Serializable {
 
     /**
      * Create column visibility list
+     *
      * @return List of Boolean values determining column visibility
      */
     protected List<Boolean> buildColumnVisibilityList() {

@@ -22,25 +22,24 @@ package de.dktk.dd.rpb.portal.web.mb.admin.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.edc.*;
 import de.dktk.dd.rpb.core.domain.edc.mapping.Mapping;
+import de.dktk.dd.rpb.core.facade.CtpPipelineLookupTableUpdaterFacade;
 import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
-
+import de.dktk.dd.rpb.core.service.AuditEvent;
+import de.dktk.dd.rpb.core.service.AuditLogService;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
-
 import org.primefaces.model.DualListModel;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
-
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,14 +75,24 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
 
     //endregion
 
+    private AuditLogService auditLogService;
+
+    private CtpPipelineLookupTableUpdaterFacade ctpPipelineLookupTableUpdaterFacade;
+
     //endregion
 
     //region Constructors
 
     @Inject
-    public StudyManagementBean(IStudyRepository repository, MainBean mainBean) {
+    public StudyManagementBean(
+            IStudyRepository repository,
+            MainBean mainBean,
+            AuditLogService auditLogService,
+            CtpPipelineLookupTableUpdaterFacade ctpPipelineLookupTableUpdaterFacade) {
         this.repository = repository;
         this.mainBean = mainBean;
+        this.auditLogService = auditLogService;
+        this.ctpPipelineLookupTableUpdaterFacade = ctpPipelineLookupTableUpdaterFacade;
     }
 
     //endregion
@@ -205,8 +214,7 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
             super.load();
             // Reload available EDC studies via web service
             this.studyTypeList = this.mainBean.getOpenClinicaService().listAllStudies();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -217,19 +225,18 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
     public void loadStudyMetadata() {
         try {
             // Get ODM metadata for user's active study
-            MetadataODM metadata =  this.mainBean
+            MetadataODM metadata = this.mainBean
                     .getOpenClinicaService()
                     .getStudyMetadata(this.selectedEntity.getOcStudyIdentifier());
 
             // XML to DomainObjects
             this.odm = metadata.unmarshallOdm();
             this.odm.updateHierarchy();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             messageUtil.error(err);
         }
     }
-    
+
     public void refreshStudyMetadata(Study study) {
 
         try {
@@ -257,9 +264,44 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
             }
 
             messageUtil.infoText("Study metadata cache refreshed.");
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             messageUtil.error(err);
+        }
+    }
+
+    //endregion
+
+    //region updateCtp
+
+    /***
+     * Updates the subject identifier lookup table on the CTP system. In case of a multi centric study,
+     * it uses the partner_site_identifier property to identify the corresponding site related study
+     * and the associated StudySubjects.
+     * @param study Study
+     */
+
+    public void doUpdateSubjectLookupTable(Study study) {
+        String edcCode = study.getTagValue("EDC-code");
+        String partnerSideIdentifier = this.messageUtil.getResourcesUtil().getProperty("partner_site_identifier");
+
+        if (edcCode == null || edcCode.isEmpty()) {
+            messageUtil.warningText("Study has no EDC-code tag.");
+            return;
+        }
+
+        AuditEvent auditEvent = AuditEvent.CTPLookupUpdate;
+        auditLogService.event(auditEvent, edcCode);
+
+        List<Boolean> successList = ctpPipelineLookupTableUpdaterFacade.updateSubjectLookupForStudy(study, partnerSideIdentifier);
+
+        if (successList.size() == 0) {
+            messageUtil.warningText("No elements updated of the study " + edcCode);
+        } else {
+            if (successList.contains(false)) {
+                messageUtil.errorText("There was a problem updating the CTP lookup table for the study with edcCode " + edcCode + ".");
+            } else {
+                messageUtil.infoText("Successful update of " + successList.size() + " CTP lookup table elements");
+            }
         }
     }
 
@@ -295,8 +337,7 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
             }
 
             this.doUpdateEntity();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -308,8 +349,7 @@ public class StudyManagementBean extends CrudEntityViewModel<Study, Integer> {
         try {
             this.selectedEntity.removeCrfFieldAnnotation(annotation);
             this.doUpdateEntity();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }

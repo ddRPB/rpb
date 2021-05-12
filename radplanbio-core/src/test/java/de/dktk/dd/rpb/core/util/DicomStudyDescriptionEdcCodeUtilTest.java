@@ -144,8 +144,8 @@ public class DicomStudyDescriptionEdcCodeUtilTest {
         assertEquals(false, isEqual);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void throws_if_description_is_null() {
+    @Test
+    public void isCorrespondingStudyZero_returns_false_if_description_is_null() {
         String studyDate = "2010-10-01";
 
         DicomStudy study_one = new DicomStudy();
@@ -154,7 +154,7 @@ public class DicomStudyDescriptionEdcCodeUtilTest {
         DicomStudy study_two = new DicomStudy();
         study_two.setStudyDate(studyDate);
 
-        DicomStudyDescriptionEdcCodeUtil.isCorrespondingStudyZero(study_one, study_two);
+        assertFalse(DicomStudyDescriptionEdcCodeUtil.isCorrespondingStudyZero(study_one, study_two));
     }
 
     @Test(expected = NullPointerException.class)

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -340,15 +340,15 @@ public class StudyEventService extends BaseService {
                 );
 
                 // 15 seconds - hardcoded for now
-                int retryTimeout = 15000;
-                long endTime = System.currentTimeMillis() + retryTimeout;
-                while (subjectOdm == null && System.currentTimeMillis() < endTime) {
-                    subjectOdm = svcEdc.getStudyCasebookOdm(
-                            OpenClinicaService.CasebookFormat.XML,
-                            OpenClinicaService.CasebookMethod.VIEW,
-                            queryOdmXmlPath // Url
-                    );
-                }
+//                int retryTimeout = 15000;
+//                long endTime = System.currentTimeMillis() + retryTimeout;
+//                while (subjectOdm == null && System.currentTimeMillis() < endTime) {
+//                    subjectOdm = svcEdc.getStudyCasebookOdm(
+//                            OpenClinicaService.CasebookFormat.XML,
+//                            OpenClinicaService.CasebookMethod.VIEW,
+//                            queryOdmXmlPath // Url
+//                    );
+//                }
 
                 // What StudyEvent are we processing
                 JSONObject newJsonBody = new JSONObject(body);

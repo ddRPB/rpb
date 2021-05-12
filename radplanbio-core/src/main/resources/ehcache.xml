@@ -73,6 +73,18 @@
 		overflowToDisk="false"
 		>
 	</cache>
+	<!-- Idat
+		 This cache contains a maximum in memory of 100 elements
+		 does not expire so IDAT have to be removed administratively from cache to load fresh new PID
+	-->
+	<cache
+			name="restClientPatientsIdatCache"
+			maxElementsInMemory="100"
+			memoryStoreEvictionPolicy="LFU"
+			eternal="true"
+			overflowToDisk="false"
+	>
+	</cache>
 
 	<!-- You can override cache configuration given a cache name the following way:
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -414,7 +414,7 @@ public class FormData implements Identifiable<Integer>, Serializable {
                 }
             }
 
-            // Than cluster item groups (in n lists)
+            // Then cluster item groups (in n lists)
             List<List<ItemGroupData>> masterList = new ArrayList<>();
             for (String groupOid : itemGroups) {
 

@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <ui:composition
-    xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:ui="http://java.sun.com/jsf/facelets"
-    xmlns:f="http://java.sun.com/jsf/core"
-    xmlns:h="http://java.sun.com/jsf/html"
-    xmlns:p="http://primefaces.org/ui"
-    xmlns:o="http://omnifaces.org/ui"
-    template="/WEB-INF/layouts/main.xhtml"
-    >
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:o="http://omnifaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+>
 
     <!-- Metadata -->
     <ui:define name="metadata">
         <f:metadata>
             <!-- View quiery strings -->
-            <f:viewParam name="study" value="#{mbStudy.studyParam}" />
-            <f:viewParam name="studySubject" value="#{mbStudy.studySubjectParam}" />
-            <f:event type="preRenderView" listener="#{mbStudy.onLoad}" />
+            <f:viewParam name="study" value="#{mbStudy.studyParam}"/>
+            <f:viewParam name="studySubject" value="#{mbStudy.studySubjectParam}"/>
+            <f:event type="preRenderView" listener="#{mbStudy.onLoad}"/>
         </f:metadata>
     </ui:define>
 
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
-            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="#{msg.edc}" title="#{msg.edc} - data capture" url="#" />
-            <p:menuitem value="#{msg.study_plural}" title="#{msg.study_plural}" url="/edc/ecrfStudies.faces" />
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces"/>
+            <p:menuitem value="#{msg.edc}" title="#{msg.edc} - data capture" url="#"/>
+            <p:menuitem value="#{msg.study_plural}" title="#{msg.study_plural}" url="/edc/ecrfStudies.faces"/>
         </p:breadCrumb>
     </ui:define>
 
@@ -33,9 +33,10 @@
     <ui:define name="content">
 
         <!-- Enums -->
-        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob" />
-        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration" />
-        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumRequired" />
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob"/>
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration"/>
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumRequired"/>
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumPidGenerationStrategy"/>
 
         <!-- Main Tab -->
         <p:tabView id="tabView" activeIndex="#{mbStudy.tab.activeIndex}">
@@ -47,45 +48,46 @@
                 <p:accordionPanel multiple="true">
                     <p:tab title="#{msg.study}">
                         <p:panelGrid
-                            columnClasses="column"
-                            columns="2"
-                            >
-                            <h:outputLabel value="#{msg.study}:" />
+                                columnClasses="column"
+                                columns="2"
+                        >
+                            <h:outputLabel value="#{msg.study}:"/>
                             <p:selectOneMenu
-                                value="#{mbStudy.selectedStudyType}"
-                                converter="omnifaces.SelectItemsConverter"
-                                filter="true"
-                                filterMatchMode="contains"
-                                var="studyTypeIter"
-                                panelStyle="width: 150px"
-                                style="width:300px"
-                                >
+                                    value="#{mbStudy.selectedStudyType}"
+                                    converter="omnifaces.SelectItemsConverter"
+                                    filter="true"
+                                    filterMatchMode="contains"
+                                    var="studyTypeIter"
+                                    panelStyle="width: 150px"
+                                    style="width:300px"
+                            >
 
                                 <!-- AJAX update of studies datatable -->
                                 <p:ajax
-                                    event="itemSelect"
-                                    listener="#{mbStudy.selectedParentStudyChanged}"
-                                    update=":form:tabView:dtStudies, :form:tabView:dtStudySubjects, :form:tabView:pnlSiteEnrollment, :form:tabView:dtStudyEvents, :form:tabView:dtStudyDocs, :growl"
-                                    onstart="PF('buiTab').show()"
-                                    oncomplete="PF('buiTab').hide()"
-                                    />
+                                        event="itemSelect"
+                                        listener="#{mbStudy.selectedParentStudyChanged}"
+                                        update=":form:tabView:dtStudies, :form:tabView:dtStudySubjects, :form:tabView:pnlSiteEnrollment, :form:tabView:dtStudyEvents, :form:tabView:dtStudyDocs, :growl, newSubjectForm"
+                                        onstart="PF('buiTab').show()"
+                                        oncomplete="PF('buiTab').hide()"
+                                />
 
                                 <!-- Items -->
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}"
+                                              noSelectionOption="true"/>
                                 <f:selectItems
-                                    value="#{mbStudy.studyTypeList}"
-                                    itemLabel="#{studyType.name}"
-                                    itemValue="#{studyType}"
-                                    var="studyType"
-                                    />
-                                <p:column style="width:10%">
+                                        value="#{mbStudy.studyTypeList}"
+                                        itemLabel="#{studyType.name}"
+                                        itemValue="#{studyType}"
+                                        var="studyType"
+                                />
+                                <p:column>
                                     <h:outputText
-                                        styleClass="ui-icon ui-icon-circle-check"
-                                        rendered="#{mbMain.activeStudy.uniqueIdentifier != null and studyTypeIter.identifier != null and mbMain.activeStudy.uniqueIdentifier.contains(studyTypeIter.identifier)}"
-                                        />
+                                            styleClass="ui-icon ui-icon-circle-check"
+                                            rendered="#{mbMain.activeStudy.uniqueIdentifier != null and studyTypeIter.identifier != null and mbMain.activeStudy.uniqueIdentifier.contains(studyTypeIter.identifier)}"
+                                    />
                                 </p:column>
                                 <p:column>
-                                    <h:outputText value="#{studyTypeIter.name}" title="#{studyTypeIter.identifier}" />
+                                    <h:outputText value="#{studyTypeIter.name}" title="#{studyTypeIter.identifier}"/>
                                 </p:column>
                             </p:selectOneMenu>
                         </p:panelGrid>
@@ -97,146 +99,145 @@
                     <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                            value="#{msg.menu_print}"
-                            title="#{msg.partnerSite_print}"
-                            icon="ui-icon-print"
-                            >
-                            <p:printer target="dtStudies" />
+                                value="#{msg.menu_print}"
+                                title="#{msg.partnerSite_print}"
+                                icon="ui-icon-print"
+                        >
+                            <p:printer target="dtStudies"/>
                         </p:commandButton>
                         <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="#{msg.menu_help}"
-                            icon="ui-icon-help"
-                            onclick="target='_blank'"
-                            ajax="false"
-                            immediate="true"
-                            action="#{mbMain.navigateToHelp('x1-150002.1')}"
-                            />
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-150002.1')}"
+                        />
                     </p:toolbarGroup>
                 </p:toolbar>
 
                 <!-- Study Partners Data Table -->
                 <p:dataTable
-                    id="dtStudies"
-                    var="study"
-                    value="#{mbStudy.studyList}"
-                    widgetVar="studiesTable"
-                    resizableColumns="true"
-                    draggableColumns="false"
-                    paginator="true"
-                    rows="15"
-                    rowsPerPageTemplate="15,25,50"
-                    emptyMessage="#{msg.search_empty}"
-                    selection="#{mbStudy.selectedStudy}"
-                    selectionMode="single"
-                    rowKey="#{study.siteName}"
-                    rowIndexVar="rowIndex"
-                    filteredValue="#{mbStudy.filteredStudies}"
-                    sortMode="multiple"
-                    sortBy="#{mbStudy.sitesPreSortOrder}"
-                    disabledTextSelection="false"
-                    >
+                        id="dtStudies"
+                        var="study"
+                        value="#{mbStudy.studyList}"
+                        widgetVar="studiesTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        selection="#{mbStudy.selectedStudy}"
+                        selectionMode="single"
+                        rowKey="#{study.siteName}"
+                        rowIndexVar="rowIndex"
+                        filteredValue="#{mbStudy.filteredStudies}"
+                        sortMode="multiple"
+                        sortBy="#{mbStudy.sitesPreSortOrder}"
+                        disabledTextSelection="false"
+                >
 
                     <!--AJAX onclick on datatable row -->
                     <p:ajax
-                        event="rowSelect"
-                        listener="#{mbStudy.selectedStudySiteChanged}"
-                        update=":form:tabView:pnlSiteEnrollment, :form:tabView:dtStudySubjects, :form:tabView:dtStudyEvents"
-                        onstart="PF('buiTab').show()"
-                        oncomplete="PF('buiTab').hide()"
-                        />
+                            event="rowSelect"
+                            listener="#{mbStudy.selectedStudySiteChanged}"
+                            update=":form:tabView:pnlSiteEnrollment, :form:tabView:dtStudySubjects, :form:tabView:dtStudyEvents, dlgNewSubject"
+                            onstart="PF('buiTab').show()"
+                            oncomplete="PF('buiTab').hide()"
+                    />
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
+                    <p:column headerText="#" exportable="false" toggleable="false">
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
                     <!-- Site identifier -->
                     <p:column
-                        id="colSiteIdentifier"
-                        headerText="#{msg.partnerSite_identifier}"
-                        sortBy="#{study.siteName}"
-                        filterBy="#{study.siteName}"
-                        style="width:50%"
-                        >
-                        <h:outputText value="#{study.siteName}" style="float:left;" />
+                            id="colSiteIdentifier"
+                            headerText="#{msg.partnerSite_identifier}"
+                            sortBy="#{study.siteName}"
+                            filterBy="#{study.siteName}"
+                    >
+                        <h:outputText value="#{study.siteName}" style="float:left;"/>
                     </p:column>
 
                     <!-- Real site name (Partner) -->
                     <p:column
-                        headerText="#{msg.account_partnerSite}"
-                        sortBy="#{study.realSiteName}"
-                        filterBy="#{study.realSiteName}"
-                        filterMatchMode="in"
-                        style="width:30%"
-                        >
+                            headerText="#{msg.account_partnerSite}"
+                            sortBy="#{study.realSiteName}"
+                            filterBy="#{study.realSiteName}"
+                            filterMatchMode="in"
+                    >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
                                     label="#{msg.partnerSite_plural}"
                                     onchange="PF('studiesTable').filter()"
                                     panelStyle="width:270px"
                                     scrollHeight="150"
-                                    >
+                            >
                                 <f:selectItems
                                         value="#{mbPartnerSite.entityList}"
                                         var="partnerSite"
                                         itemLabel="#{partnerSite.name}"
                                         itemValue="#{partnerSite.name}"
                                         itemDescription="#{partnerSite.description}"
-                                        />
+                                />
                             </p:selectCheckboxMenu>
                         </f:facet>
-                        <h:outputText value="#{study.realSiteName}" style="float:left;" />
+                        <h:outputText value="#{study.realSiteName}" style="float:left;"/>
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                        headerText="#{msg.menu_commands}"
-                        exportable="false"
-                        toggleable="false"
-                        style="width:13%"
-                        >
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                    >
 
                         <!-- Change active study/site -->
                         <p:commandButton
-                            icon="ui-icon-star"
-                            title="#{msg.active_study_change}"
-                            immediate="true"
-                            process="@this"
-                            action="#{mbStudy.changeActiveStudy}"
-                            onstart="PF('buiTab').show()"
-                            oncomplete="PF('buiTab').hide()"
-                            >
+                                icon="ui-icon-star"
+                                title="#{msg.active_study_change}"
+                                immediate="true"
+                                process="@this"
+                                action="#{mbStudy.changeActiveStudy}"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        >
                             <f:setPropertyActionListener
-                                value="#{study}"
-                                target="#{mbStudy.selectedStudy}"
-                                />
+                                    value="#{study}"
+                                    target="#{mbStudy.selectedStudy}"
+                            />
                         </p:commandButton>
 
                         <!-- View Details -->
                         <p:commandButton
-                            icon="ui-icon-contact"
-                            title="#{msg.menu_edit}"
-                            update=":viewStudyForm:detailsDisplayStudy"
-                            immediate="true"
-                            process="@this"
-                            oncomplete="PF('viewStudyDialog').show();"
-                            >
+                                icon="ui-icon-contact"
+                                title="#{msg.menu_edit}"
+                                update=":viewStudyForm:detailsDisplayStudy"
+                                immediate="true"
+                                process="@this"
+                                oncomplete="PF('viewStudyDialog').show();"
+                        >
                             <f:setPropertyActionListener
-                                value="#{study}"
-                                target="#{mbStudy.selectedStudy}"
-                                />
+                                    value="#{study}"
+                                    target="#{mbStudy.selectedStudy}"
+                            />
                         </p:commandButton>
                     </p:column>
 
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudy.studyList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudy.studyList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbStudy.studyList.size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbStudy.studyList.size() == 1}"/>
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
                                 rendered="#{mbStudy.studyList.size() > 1}"
-                                >
-                            <f:param value="#{mbStudy.studyList.size()}" />
+                        >
+                            <f:param value="#{mbStudy.studyList.size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
@@ -245,11 +246,11 @@
                 <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
                         <p:graphicImage library="img" name="excel.png" title="xls"/>
-                        <p:dataExporter type="xls" target="dtStudies" fileName="#{msg.study_plural}" />
+                        <p:dataExporter type="xls" target="dtStudies" fileName="#{msg.study_plural}"/>
                     </h:commandLink>
                     <h:commandLink>
                         <p:graphicImage library="img" name="csv.png" title="csv"/>
-                        <p:dataExporter type="csv" target="dtStudies" fileName="#{msg.study_plural}" />
+                        <p:dataExporter type="csv" target="dtStudies" fileName="#{msg.study_plural}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -267,58 +268,58 @@
                             <!-- Left -->
                             <p:toolbarGroup align="left">
                                 <p:commandButton
-                                    value="#{msg.menu_reload}"
-                                    icon="ui-icon-refresh"
-                                    action="#{mbStudy.reloadSitePatientEnrollmentLineModel}"
-                                    ajax="true"
-                                    update=":form:tabView:pnlSiteEnrollment, :growl"
-                                    />
+                                        value="#{msg.menu_reload}"
+                                        icon="ui-icon-refresh"
+                                        action="#{mbStudy.reloadSitePatientEnrollmentLineModel}"
+                                        ajax="true"
+                                        update=":form:tabView:pnlSiteEnrollment, :growl"
+                                />
                             </p:toolbarGroup>
 
                             <!-- Right -->
                             <p:toolbarGroup align="right">
                                 <!-- Export -->
                                 <p:commandButton
-                                    type="button"
-                                    value="#{msg.menu_export}"
-                                    icon="ui-icon-extlink"
-                                    onclick="exportChart()"
-                                    />
+                                        type="button"
+                                        value="#{msg.menu_export}"
+                                        icon="ui-icon-extlink"
+                                        onclick="exportChart()"
+                                />
                             </p:toolbarGroup>
                         </p:toolbar>
 
                         <!-- Enrollment Graph-->
                         <p:chart
-                            id="chartSiteEnrollment"
-                            model="#{mbStudy.siteEnrolmentGraphModel}"
-                            widgetVar="lineSiteEnrollment"
-                            type="line"
-                            responsive="true"
-                            style="height:400px"
-                            />
+                                id="chartSiteEnrollment"
+                                model="#{mbStudy.siteEnrolmentGraphModel}"
+                                widgetVar="lineSiteEnrollment"
+                                type="line"
+                                responsive="true"
+                                style="height:400px"
+                        />
                     </p:tab>
                 </p:accordionPanel>
 
                 <!-- Study Subjects Toolbar-->
                 <p:toolbar>
                     <!-- Right -->
-                    <p:toolbarGroup align="right" >
+                    <p:toolbarGroup align="right">
                         <p:commandButton
-                            value="#{msg.menu_print}"
-                            title="#{msg.studySubject_print}"
-                            icon="ui-icon-print"
-                            >
-                            <p:printer target="dtStudySubjects" />
+                                value="#{msg.menu_print}"
+                                title="#{msg.studySubject_print}"
+                                icon="ui-icon-print"
+                        >
+                            <p:printer target="dtStudySubjects"/>
                         </p:commandButton>
                         <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="#{msg.menu_help}"
-                            icon="ui-icon-help"
-                            onclick="target='_blank'"
-                            ajax="false"
-                            immediate="true"
-                            action="#{mbMain.navigateToHelp('x1-180002.2')}"
-                            />
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-180002.2')}"
+                        />
                     </p:toolbarGroup>
 
                     <!-- Left -->
@@ -326,206 +327,205 @@
 
                         <!-- Show new study subject dialog -->
                         <p:commandButton
-                            value="#{msg.menu_new}"
-                            title="#{msg.studySubject_new}"
-                            icon="ui-icon-document"
-                            oncomplete="PF('newSubjectDialog').show();"
-                            style="float: left;"
-                            immediate="true"
-                            update=":newSubjectForm:newDisplaySubject"
-                            process="@this"
-                            disabled="#{!userContext.hasRole('ROLE_EDC_SUBMIT')}"
-                            />
+                                value="#{msg.menu_new}"
+                                title="#{msg.studySubject_new}"
+                                icon="ui-icon-document"
+                                oncomplete="PF('newSubjectDialog').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update="@(#newDisplaySubject)"
+                                process="@this"
+                                disabled="#{!userContext.hasRole('ROLE_EDC_SUBMIT')}"
+                        />
 
                         <!-- Reload study subjects for selected study/site from OpenClinica -->
                         <p:commandButton
-                            value="#{msg.menu_reload}"
-                            title="#{msg.studySubject_reload}"
-                            icon="ui-icon-refresh"
-                            action="#{mbStudy.reloadStudySubjects}"
-                            ajax="true"
-                            update=":form:tabView:dtStudySubjects, :growl"
-                            onstart="PF('buiTab').show()"
-                            oncomplete="PF('buiTab').hide()"
-                            />
+                                value="#{msg.menu_reload}"
+                                title="#{msg.studySubject_reload}"
+                                icon="ui-icon-refresh"
+                                action="#{mbStudy.reloadStudySubjects}"
+                                ajax="true"
+                                update=":form:tabView:dtStudySubjects, :growl"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
                     </p:toolbarGroup>
 
                 </p:toolbar>
 
                 <!-- Study Subjects Datatable -->
                 <p:dataTable
-                    id="dtStudySubjects"
-                    var="studySubject"
-                    value="#{mbStudy.studySubjectsList}"
-                    widgetVar="studySubjectsTable"
-                    resizableColumns="true"
-                    draggableColumns="false"
-                    paginator="true"
-                    rows="15"
-                    rowsPerPageTemplate="15,25,50"
-                    emptyMessage="#{msg.search_empty}"
-                    filteredValue="#{mbStudy.filteredStudySubjects}"
-                    selection="#{mbStudy.selectedStudySubject}"
-                    selectionMode="single"
-                    rowKey="#{studySubject.studySubjectLabel}"
-                    rowIndexVar="rowIndex"
-                    sortMode="multiple"
-                    sortBy="#{mbStudy.subjectsPreSortOrder}"
-                    disabledTextSelection="false"
-                    >
+                        id="dtStudySubjects"
+                        var="studySubject"
+                        value="#{mbStudy.entityList}"
+                        widgetVar="studySubjectsTable"
+                        resizableColumns="true"
+                        draggableColumns="false"
+                        paginator="true"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        filteredValue="#{mbStudy.filteredEntities}"
+                        selection="#{mbStudy.selectedEntity}"
+                        selectionMode="single"
+                        rowKey="#{studySubject.studySubjectId}"
+                        rowIndexVar="rowIndex"
+                        sortMode="multiple"
+                        sortBy="#{mbStudy.preSortOrder}"
+                        disabledTextSelection="false"
+                >
 
                     <!--AJAX onclick on datatable row -->
                     <p:ajax
-                        event="rowSelect"
-                        update=":form:tabView:dtStudyEvents"
-                        onstart="PF('buiTab').show()"
-                        oncomplete="PF('buiTab').hide()"
-                        />
+                            event="rowSelect"
+                            update=":form:tabView:dtStudyEvents"
+                            onstart="PF('buiTab').show()"
+                            oncomplete="PF('buiTab').hide()"
+                    />
 
                     <!-- Table header -->
                     <f:facet name="header">
-                        <h:outputText value="#{mbStudy.selectedStudy.siteName}" style="float:left" />
-                        <p:commandButton id="btnSubjectEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <h:outputText value="#{mbStudy.selectedStudy.siteName}" style="float:left"/>
+                        <p:commandButton id="btnSubjectEntitiesToggler" value="#{msg.menu_columns}" style="float:right"
+                                         icon="ui-icon-calculator"/>
                         <p:columnToggler
-                            datasource="dtStudySubjects"
-                            trigger=":form:tabView:dtStudySubjects:btnSubjectEntitiesToggler"
-                            style="width:450px"
-                            >
-                            <p:ajax event="toggle" listener="#{mbStudy.onSubjectEntityToggle}" />
+                                datasource="dtStudySubjects"
+                                trigger=":form:tabView:dtStudySubjects:btnSubjectEntitiesToggler"
+                                style="width:450px"
+                        >
+                            <p:ajax event="toggle" listener="#{mbStudy.onEntityToggle}"/>
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
+                    <p:column headerText="#" exportable="false" toggleable="false">
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
                     <!--Study Subject ID -->
                     <p:column
-                        id="colStudySubjectId"
-                        headerText="#{msg.studySubject_studySubjectId}"
-                        sortBy="#{studySubject.studySubjectLabel}"
-                        filterBy="#{studySubject.studySubjectLabel}"
-                        visible="#{mbStudy.subjectColumnVisibilityList[0]}"
-                        style="width:20%"
-                        >
-                        <h:outputText value="#{studySubject.studySubjectLabel}" style="float:left;" />
+                            id="colStudySubjectId"
+                            headerText="#{msg.studySubject_studySubjectId}"
+                            sortBy="#{studySubject.studySubjectId}"
+                            filterBy="#{studySubject.studySubjectId}"
+                            visible="#{mbStudy.columnVisibilityList[0]}"
+                    >
+                        <h:outputText value="#{studySubject.studySubjectId}" style="float:left;"/>
                     </p:column>
 
                     <!-- PID -->
                     <p:column
-                        headerText="#{msg.studySubject_personId}"
-                        sortBy="#{studySubject.personID}"
-                        filterBy="#{studySubject.personID}"
-                        visible="#{mbStudy.subjectColumnVisibilityList[1]}"
-                        style="width:20%"
-                        >
-                        <h:outputText value="#{studySubject.personID}" style="font-family:consolas, courier new,monospace; float: left;" />
+                            headerText="#{msg.studySubject_personId}"
+                            sortBy="#{studySubject.pid}"
+                            filterBy="#{studySubject.pid}"
+                            visible="#{mbStudy.columnVisibilityList[1]}"
+                    >
+                        <h:outputText value="#{studySubject.pid}"
+                                      style="font-family:consolas, courier new,monospace; float: left;"/>
                     </p:column>
 
                     <!-- Secondary ID -->
                     <p:column
-                        headerText="#{msg.studySubject_secondaryId}"
-                        sortBy="#{studySubject.studySubjectSecondaryLabel}"
-                        filterBy="#{studySubject.studySubjectSecondaryLabel}"
-                        visible="#{mbStudy.subjectColumnVisibilityList[2]}"
-                        style="width:20%"
-                        >
-                        <h:outputText value="#{studySubject.studySubjectSecondaryLabel}" style="float:left;" />
+                            headerText="#{msg.studySubject_secondaryId}"
+                            sortBy="#{studySubject.secondaryId}"
+                            filterBy="#{studySubject.secondaryId}"
+                            visible="#{mbStudy.columnVisibilityList[2]}"
+                    >
+                        <h:outputText value="#{studySubject.secondaryId}" style="float:left;"/>
                     </p:column>
 
                     <!-- Sex -->
                     <p:column
-                        headerText="#{msg.studySubject_gender}"
-                        sortBy="#{studySubject.sex}"
-                        filterBy="#{studySubject.sex}"
-                        filterMatchMode="in"
-                        visible="#{mbStudy.subjectColumnVisibilityList[3]}"
-                        style="width:10%"
-                        >
+                            headerText="#{msg.studySubject_gender}"
+                            sortBy="#{studySubject.sex}"
+                            filterBy="#{studySubject.sex}"
+                            filterMatchMode="in"
+                            visible="#{mbStudy.columnVisibilityList[3]}"
+                    >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
-                                label="Options"
-                                onchange="PF('studySubjectsTable').filter()"
-                                panelStyle="width:50px"
-                                scrollHeight="50"
-                                >
+                                    label="Options"
+                                    onchange="PF('studySubjectsTable').filter()"
+                                    panelStyle="width:50px"
+                                    scrollHeight="50"
+                            >
                                 <f:selectItems
-                                    value="#{mbStudy.genderValues}"
-                                    var="gender"
-                                    itemLabel="#{gender}"
-                                    itemValue="#{gender}"
-                                    />
+                                        value="#{mbStudy.genderValues}"
+                                        var="gender"
+                                        itemLabel="#{gender}"
+                                        itemValue="#{gender}"
+                                />
                             </p:selectCheckboxMenu>
                         </f:facet>
-                        <h:outputText value="#{studySubject.sex}" style="float:left;" />
+                        <h:outputText value="#{studySubject.sex}"/>
                     </p:column>
 
                     <!-- Date of Birth -->
                     <p:column
-                        headerText="#{msg.studySubject_dateOfBirth}"
-                        sortBy="#{studySubject.getComparableDateOfBirth}"
-                        filterBy="#{studySubject.dateOfBirth}"
-                        visible="#{mbStudy.subjectColumnVisibilityList[4]}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{studySubject.dateOfBirth}" style="float:left;" />
+                            headerText="#{msg.studySubject_dateOfBirth}"
+                            sortBy="#{studySubject.comparableDateOfBirth}"
+                            filterBy="#{studySubject.comparableDateOfBirthString}"
+                            filterMatchMode="contains"
+                            visible="#{mbStudy.columnVisibilityList[4]}"
+                    >
+                        <h:outputText value="#{studySubject.comparableDateOfBirthString}"/>
                     </p:column>
 
                     <!-- Enrolment date -->
                     <p:column
-                        headerText="#{msg.studySubject_enrollmentDate}"
-                        sortBy="#{studySubject.comparableDateOfRegistration}"
-                        filterBy="#{studySubject.dateOfRegistration}"
-                        visible="#{mbStudy.subjectColumnVisibilityList[5]}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{studySubject.dateOfRegistration}" style="float:left;" />
+                            headerText="#{msg.studySubject_enrollmentDate}"
+                            sortBy="#{studySubject.dateEnrollment}"
+                            filterBy="#{studySubject.dateEnrollmentString}"
+                            filterMatchMode="contains"
+                            visible="#{mbStudy.columnVisibilityList[5]}"
+                    >
+                        <h:outputText value="#{studySubject.dateEnrollmentString}"/>
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                        headerText="#{msg.menu_commands}"
-                        exportable="false"
-                        toggleable="false"
-                        style="width:13%"
-                        >
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                    >
                         <!-- Edit -->
                         <p:commandButton
-                            title="#{msg.studySubject_edit}"
-                            update=":subjectDetailsForm:detailsDisplaySubject"
-                            icon="ui-icon-contact"
-                            immediate="true"
-                            process="@this"
-                            onstart="PF('buiTab').show()"
-                            oncomplete="PF('buiTab').hide();PF('viewSubjectDialog').show();"
-                            >
+                                title="#{msg.studySubject_edit}"
+                                update=":subjectDetailsForm"
+                                icon="ui-icon-contact"
+                                immediate="true"
+                                process="@this"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide();PF('viewSubjectDialog').show();"
+                        >
                             <f:setPropertyActionListener
-                                value="#{studySubject}"
-                                target="#{mbStudy.selectedStudySubject}"
-                                />
+                                    value="#{studySubject}"
+                                    target="#{mbStudy.selectedEntity}"
+                            />
                         </p:commandButton>
                         <!-- Redirect -->
                         <p:commandButton
-                            title="#{msg.person_patient} Lookup"
-                            icon="ui-icon-arrowthick-1-e"
-                            immediate="true"
-                            process="@this"
-                            actionListener="#{mbMain.redirectToPid(studySubject)}"
-                            update=":growl"
-                            disabled="#{!userContext.hasRole('ROLE_PID_USER')}"
-                            />
+                                title="#{msg.person_patient} Lookup"
+                                icon="ui-icon-arrowthick-1-e"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{mbMain.redirectToPid(studySubject)}"
+                                update=":growl"
+                                disabled="#{!userContext.hasRole('ROLE_PID_USER')}"
+                        />
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudy.studySubjectsList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudy.studySubjectsList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbStudy.entityList.size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbStudy.entityList.size() == 1}"/>
                         <h:outputFormat
-                            value="#{msg.search_results_status_n}"
-                            rendered="#{mbStudy.studySubjectsList.size() > 1}"
-                            >
-                            <f:param value="#{mbStudy.studySubjectsList.size()}" />
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbStudy.entityList.size() > 1}"
+                        >
+                            <f:param value="#{mbStudy.entityList.size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
@@ -534,11 +534,11 @@
                 <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
                         <p:graphicImage library="img" name="excel.png" title="xls"/>
-                        <p:dataExporter type="xls" target="dtStudySubjects" fileName="#{msg.studySubject_plural}" />
+                        <p:dataExporter type="xls" target="dtStudySubjects" fileName="#{msg.studySubject_plural}"/>
                     </h:commandLink>
                     <h:commandLink>
                         <p:graphicImage library="img" name="csv.png" title="csv"/>
-                        <p:dataExporter type="csv" target="dtStudySubjects" fileName="#{msg.studySubject_plural}" />
+                        <p:dataExporter type="csv" target="dtStudySubjects" fileName="#{msg.studySubject_plural}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -550,202 +550,192 @@
                 <p:toolbar>
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                            value="#{msg.menu_print}"
-                            title="#{msg.studyEvent_print}"
-                            icon="ui-icon-print"
-                            >
-                            <p:printer target="dtStudyEvents" />
+                                value="#{msg.menu_print}"
+                                title="#{msg.studyEvent_print}"
+                                icon="ui-icon-print"
+                        >
+                            <p:printer target="dtStudyEvents"/>
                         </p:commandButton>
                         <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="#{msg.menu_help}"
-                            icon="ui-icon-help"
-                            onclick="target='_blank'"
-                            ajax="false"
-                            immediate="true"
-                            action="#{mbMain.navigateToHelp('x1-220002.3')}"
-                            />
+                                value="#{msg.menu_help}"
+                                title="#{msg.menu_help}"
+                                icon="ui-icon-help"
+                                onclick="target='_blank'"
+                                ajax="false"
+                                immediate="true"
+                                action="#{mbMain.navigateToHelp('x1-220002.3')}"
+                        />
                     </p:toolbarGroup>
                 </p:toolbar>
 
                 <!-- StudyEvents -->
                 <p:dataTable
-                    id="dtStudyEvents"
-                    var="event"
-                    value="#{mbStudy.rpbSelectedStudySubject.studyEventDataList}"
-                    widgetVar="subjectEventsTable"
-                    resizableColumns="true"
-                    paginator="true"
-                    draggableColumns="false"
-                    rows="15"
-                    rowsPerPageTemplate="15,25,50"
-                    emptyMessage="#{msg.search_empty}"
-                    filteredValue="#{mbStudyEvents.filteredEntities}"
-                    selection="#{mbStudy.selectedEventData}"
-                    selectionMode="single"
-                    rowKey="#{event.studyEventOid}#{event.studyEventRepeatKey}"
-                    rowIndexVar="rowIndex"
-                    sortMode="multiple"
-                    sortBy="#{mbStudyEvents.preSortOrder}"
-                    disabledTextSelection="false"
-                    >
-
-                    <!--AJAX onclick on datatable row -->
-                    <!--<p:ajax-->
-                        <!--event="rowSelect"-->
-                        <!--listener="#{mbStudy.selectedEventChanged}"-->
-                        <!--onstart="PF('buiTab').show()"-->
-                        <!--oncomplete="PF('buiTab').hide()"-->
-                        <!--/>-->
+                        id="dtStudyEvents"
+                        var="event"
+                        value="#{mbStudy.rpbSelectedStudySubject.studyEventDataList}"
+                        widgetVar="subjectEventsTable"
+                        resizableColumns="true"
+                        paginator="true"
+                        draggableColumns="false"
+                        rows="15"
+                        rowsPerPageTemplate="15,25,50"
+                        emptyMessage="#{msg.search_empty}"
+                        filteredValue="#{mbStudyEvents.filteredEntities}"
+                        selection="#{mbStudy.selectedEventData}"
+                        selectionMode="single"
+                        rowKey="#{event.studyEventOid}#{event.studyEventRepeatKey}"
+                        rowIndexVar="rowIndex"
+                        sortMode="multiple"
+                        sortBy="#{mbStudyEvents.preSortOrder}"
+                        disabledTextSelection="false"
+                >
 
                     <!-- Table header -->
                     <f:facet name="header">
-                        <h:outputText value="#{mbStudy.selectedStudy.siteName} / " style="float:left" />
-                        <h:outputText value="#{mbStudy.selectedStudySubject.studySubjectLabel}-[#{mbStudy.selectedStudySubject.personID}] / " style="float:left" />
-                        <p:commandButton id="btnEventEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <h:outputText value="#{mbStudy.selectedStudy.siteName} / " style="float:left"/>
+                        <h:outputText
+                                value="#{mbStudy.selectedEntity.studySubjectId}-[#{mbStudy.selectedEntity.pid}] / "
+                                style="float:left"/>
+                        <p:commandButton id="btnEventEntitiesToggler" value="#{msg.menu_columns}" style="float:right"
+                                         icon="ui-icon-calculator"/>
                         <p:columnToggler
-                            datasource="dtStudyEvents"
-                            trigger=":form:tabView:dtStudyEvents:btnEventEntitiesToggler"
-                            style="width:450px"
-                            >
-                            <p:ajax event="toggle" listener="#{mbStudyEvents.onEntityToggle}" />
+                                datasource="dtStudyEvents"
+                                trigger=":form:tabView:dtStudyEvents:btnEventEntitiesToggler"
+                                style="width:450px"
+                        >
+                            <p:ajax event="toggle" listener="#{mbStudyEvents.onEntityToggle}"/>
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
+                    <p:column headerText="#" exportable="false" toggleable="false">
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
                     <!-- Study Event Name -->
                     <p:column
-                        id="colEventName"
-                        headerText="#{msg.studyEvent_name}"
-                        sortBy="#{event.eventDefinition.name}"
-                        filterBy="#{event.eventDefinition.name}"
-                        visible="#{mbStudyEvents.columnVisibilityList[0]}"
-                        style="width:20%"
-                        >
-                        <h:outputText value="#{event.eventDefinition.name}" style="float: left;" />
+                            id="colEventName"
+                            headerText="#{msg.studyEvent_name}"
+                            sortBy="#{event.eventDefinition.name}"
+                            filterBy="#{event.eventDefinition.name}"
+                            visible="#{mbStudyEvents.columnVisibilityList[0]}"
+                    >
+                        <h:outputText value="#{event.eventDefinition.name}" style="float: left;"/>
                         <h:outputText
-                            value="[#{event.studyEventRepeatKey}]"
-                            rendered="#{event.eventDefinition.isRepeating}"
-                            style="float: left;"
-                            />
+                                value="[#{event.studyEventRepeatKey}]"
+                                rendered="#{event.eventDefinition.isRepeating}"
+                                style="float: left;"
+                        />
                     </p:column>
 
                     <!-- Study Event Description -->
                     <p:column
-                        headerText="#{msg.studyEvent_description}"
-                        sortBy="#{event.eventDefinition.description}"
-                        visible="#{mbStudyEvents.columnVisibilityList[1]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.eventDefinition.description}"  style="float: left;" />
+                            headerText="#{msg.studyEvent_description}"
+                            sortBy="#{event.eventDefinition.description}"
+                            visible="#{mbStudyEvents.columnVisibilityList[1]}"
+                    >
+                        <h:outputText value="#{event.eventDefinition.description}" style="float: left;"/>
                     </p:column>
 
                     <!-- Category -->
                     <p:column
-                        headerText="#{msg.studyEvent_category}"
-                        sortBy="#{event.eventDefinition.category}"
-                        visible="#{mbStudyEvents.columnVisibilityList[2]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.eventDefinition.category}"  style="float: left;" />
+                            headerText="#{msg.studyEvent_category}"
+                            sortBy="#{event.eventDefinition.category}"
+                            visible="#{mbStudyEvents.columnVisibilityList[2]}"
+                    >
+                        <h:outputText value="#{event.eventDefinition.category}" style="float: left;"/>
                     </p:column>
 
                     <!-- Type -->
                     <p:column
-                        headerText="#{msg.studyEvent_type}"
-                        sortBy="#{event.eventDefinition.type}"
-                        visible="#{mbStudyEvents.columnVisibilityList[3]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.eventDefinition.type}"  style="float: left;" />
+                            headerText="#{msg.studyEvent_type}"
+                            sortBy="#{event.eventDefinition.type}"
+                            visible="#{mbStudyEvents.columnVisibilityList[3]}"
+                    >
+                        <h:outputText value="#{event.eventDefinition.type}" style="float: left;"/>
                     </p:column>
 
                     <!-- Repeating -->
                     <p:column
-                        headerText="#{msg.studyEvent_repeating}"
-                        sortBy="#{event.eventDefinition.isRepeating}"
-                        filterBy="#{event.eventDefinition.isRepeating}"
-                        filterMatchMode="equals"
-                        visible="#{mbStudyEvents.columnVisibilityList[4]}"
-                        style="width:10%"
-                        >
+                            headerText="#{msg.studyEvent_repeating}"
+                            sortBy="#{event.eventDefinition.isRepeating}"
+                            filterBy="#{event.eventDefinition.isRepeating}"
+                            filterMatchMode="equals"
+                            visible="#{mbStudyEvents.columnVisibilityList[4]}"
+                    >
                         <f:facet name="filter">
                             <p:selectOneButton onchange="PF('subjectEventsTable').filter()">
-                                <f:converter converterId="javax.faces.Boolean" />
-                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true" />
-                                <f:selectItem itemLabel="#{msg.no}" itemValue="false" />
+                                <f:converter converterId="javax.faces.Boolean"/>
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
                             </p:selectOneButton>
                         </f:facet>
                         <p:selectBooleanButton
-                            value="#{event.eventDefinition.isRepeating}"
-                            onLabel="#{msg.yes}"
-                            offLabel="#{msg.no}"
-                            onIcon="ui-icon-check"
-                            offIcon="ui-icon-close"
-                            disabled="true"
-                            />
+                                value="#{event.eventDefinition.isRepeating}"
+                                onLabel="#{msg.yes}"
+                                offLabel="#{msg.no}"
+                                onIcon="ui-icon-check"
+                                offIcon="ui-icon-close"
+                                disabled="true"
+                        />
                     </p:column>
 
-                   <!-- Start Date -->
+                    <!-- Start Date -->
                     <p:column
-                        id="colEventStartDate"
-                        headerText="#{msg.studyEvent_startDate}"
-                        sortBy="#{event.comparableStartDate}"
-                        filterBy="#{event.startDate}"
-                        visible="#{mbStudyEvents.columnVisibilityList[5]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.startDate}" style="float: left;" />
+                            id="colEventStartDate"
+                            headerText="#{msg.studyEvent_startDate}"
+                            sortBy="#{event.comparableStartDate}"
+                            filterBy="#{event.comparableStartDateString}"
+                            filterMatchMode="contains"
+                            visible="#{mbStudyEvents.columnVisibilityList[5]}"
+                    >
+                        <h:outputText value="#{event.comparableStartDateString}"/>
                     </p:column>
 
                     <!-- Status -->
                     <p:column
-                        headerText="#{msg.studyEvent_status}"
-                        sortBy="#{event.status}"
-                        visible="#{mbStudyEvents.columnVisibilityList[6]}"
-                        style="width:15%"
-                        >
-                        <h:outputText value="#{event.status}"  style="float: left;" />
+                            headerText="#{msg.studyEvent_status}"
+                            sortBy="#{event.status}"
+                            visible="#{mbStudyEvents.columnVisibilityList[6]}"
+                    >
+                        <h:outputText value="#{event.status}" style="float: left;"/>
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                        headerText="#{msg.menu_commands}"
-                        exportable="false"
-                        toggleable="false"
-                        style="width:10%"
-                        >
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                    >
 
                         <!-- Edit -->
                         <p:commandButton
-                            title="#{msg.studyEvent_edit}"
-                            update=":eventDetailsForm:detailsDisplayEvent"
-                            icon="ui-icon-contact"
-                            immediate="true"
-                            process="@this"
-                            disabled="#{!userContext.hasRole('ROLE_ADMIN')}"
-                            actionListener="#{mbStudy.selectedEventChanged(event)}"
-                            oncomplete="PF('viewEventDialog').show();"
-                            >
+                                title="#{msg.studyEvent_edit}"
+                                update=":eventDetailsForm:detailsDisplayEvent"
+                                icon="ui-icon-contact"
+                                immediate="true"
+                                process="@this"
+                                disabled="#{!userContext.hasRole('ROLE_ADMIN')}"
+                                actionListener="#{mbStudy.selectedEventChanged(event)}"
+                                oncomplete="PF('viewEventDialog').show();"
+                        >
                             <f:setPropertyActionListener
-                                value="#{event}"
-                                target="#{mbStudy.selectedEventData}"
-                                />
+                                    value="#{event}"
+                                    target="#{mbStudy.selectedEventData}"
+                            />
                         </p:commandButton>
                     </p:column>
 
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size() == 1}"/>
                         <h:outputFormat
-                            value="#{msg.search_results_status_n}"
-                            rendered="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size() > 1}"
-                            >
-                            <f:param value="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size()}" />
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size() > 1}"
+                        >
+                            <f:param value="#{mbStudy.rpbSelectedStudySubject.studyEventDataList.size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
@@ -754,36 +744,14 @@
                 <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
                         <p:graphicImage library="img" name="excel.png" title="xls"/>
-                        <p:dataExporter type="xls" target="dtStudyEvents" fileName="#{msg.studyEvent_plural}" />
+                        <p:dataExporter type="xls" target="dtStudyEvents" fileName="#{msg.studyEvent_plural}"/>
                     </h:commandLink>
                     <h:commandLink>
                         <p:graphicImage library="img" name="csv.png" title="csv"/>
-                        <p:dataExporter type="csv" target="dtStudyEvents" fileName="#{msg.studyEvent_plural}" />
+                        <p:dataExporter type="csv" target="dtStudyEvents" fileName="#{msg.studyEvent_plural}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
-
-            <!-- eCRFs -->
-            <!--<p:tab title="eCRF">-->
-
-                <!-- Toolbar -->
-                <!--<p:toolbar>-->
-                    <!--<p:toolbarGroup align="left">-->
-                    <!--</p:toolbarGroup>-->
-                    <!--<p:toolbarGroup align="right">-->
-                        <!--<p:commandButton-->
-                            <!--value="#{msg.menu_help}"-->
-                            <!--title="#{msg.menu_help}"-->
-                            <!--icon="ui-icon-help"-->
-                            <!--onclick="target='_blank'"-->
-                            <!--ajax="false"-->
-                            <!--immediate="true"-->
-                            <!--action="#{mbMain.navigateToHelp('x1-220002.3')}"-->
-                            <!--/>-->
-                    <!--</p:toolbarGroup>-->
-                <!--</p:toolbar>-->
-
-            <!--</p:tab>-->
 
             <!-- Document/Files -->
             <p:tab title="#{msg.study_documents}">
@@ -796,15 +764,15 @@
                                 value="#{msg.menu_print}"
                                 title="#{msg.menu_print}"
                                 icon="ui-icon-print"
-                                >
-                            <p:printer target="dtStudyDocs" />
+                        >
+                            <p:printer target="dtStudyDocs"/>
                         </p:commandButton>
                         <p:commandButton
                                 value="#{msg.menu_help}"
                                 title="#{msg.menu_help}"
                                 icon="ui-icon-help"
                                 disabled="True"
-                                />
+                        />
                     </p:toolbarGroup>
                 </p:toolbar>
 
@@ -828,24 +796,25 @@
                         sortMode="multiple"
                         sortBy="#{mbStudyDoc.preSortOrder}"
                         disabledTextSelection="false"
-                        >
+                >
 
                     <!-- Header -->
                     <f:facet name="header">
-                        <h:outputText value="#{mbStudy.selectedStudy.siteName}" style="float:left" />
-                        <p:commandButton id="btnStudyDocEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
+                        <h:outputText value="#{mbStudy.selectedStudy.siteName}" style="float:left"/>
+                        <p:commandButton id="btnStudyDocEntitiesToggler" value="#{msg.menu_columns}" style="float:right"
+                                         icon="ui-icon-calculator"/>
                         <p:columnToggler
                                 datasource="dtStudyDocs"
                                 trigger=":form:tabView:dtStudyDocs:btnStudyDocEntitiesToggler"
                                 style="width:300px"
-                                >
-                            <p:ajax event="toggle" listener="#{mbStudyDoc.onEntityToggle}" />
+                        >
+                            <p:ajax event="toggle" listener="#{mbStudyDoc.onEntityToggle}"/>
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
+                    <p:column headerText="#" exportable="false" toggleable="false">
+                        <h:outputText value="#{rowIndex + 1}"/>
                     </p:column>
 
                     <!-- Displayname -->
@@ -856,8 +825,8 @@
                             filterBy="#{studyDoc.displayname}"
                             filterMatchMode="contains"
                             visible="#{mbStudyDoc.columnVisibilityList[0]}"
-                            >
-                        <h:outputText value="#{studyDoc.displayname}" style="float:left;" />
+                    >
+                        <h:outputText value="#{studyDoc.displayname}" style="float:left;"/>
                     </p:column>
 
                     <!-- Filename -->
@@ -867,8 +836,8 @@
                             filterBy="#{studyDoc.filename}"
                             filterMatchMode="contains"
                             visible="#{mbStudyDoc.columnVisibilityList[1]}"
-                            >
-                        <h:outputText value="#{studyDoc.filename}" style="float:left;" />
+                    >
+                        <h:outputText value="#{studyDoc.filename}" style="float:left;"/>
                     </p:column>
 
                     <!-- Doc type -->
@@ -878,61 +847,62 @@
                             sortBy="#{studyDoc.docType.name}"
                             filterBy="#{studyDoc.docType.name}"
                             filterMatchMode="contains"
-                            style="width:20%"
                             visible="#{mbStudyDoc.columnVisibilityList[2]}"
-                            >
+                    >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
                                     label="#{msg.docType_plural}"
                                     onchange="PF('studyDocsTable').filter()"
                                     panelStyle="width:200px"
                                     scrollHeight="110"
-                                    >
+                            >
                                 <f:selectItems
                                         value="#{mbDocType.entityList}"
                                         var="docType"
                                         itemLabel="#{docType.name}"
                                         itemValue="#{docType.name}"
                                         itemDescription="#{docType.description}"
-                                        />
+                                />
                             </p:selectCheckboxMenu>
                         </f:facet>
-                        <h:outputText value="#{studyDoc.docType.name}" title="#{studyDoc.docType.description}" style="float:left;" />
+                        <h:outputText value="#{studyDoc.docType.name}" title="#{studyDoc.docType.description}"
+                                      style="float:left;"/>
                     </p:column>
 
                     <!-- Commands -->
                     <p:column
-                        headerText="#{msg.menu_commands}"
-                        style="width:17%"
-                        exportable="false"
-                        toggleable="false"
-                        >
+                            headerText="#{msg.menu_commands}"
+                            exportable="false"
+                            toggleable="false"
+                    >
 
                         <!-- Download -->
                         <p:commandButton
-                            title="#{msg.menu_download}"
-                            icon="ui-icon-arrowthick-1-s"
-                            ajax="false"
-                            update=":growl"
-                            process="@this"
-                            immediate="true"
-                            >
+                                title="#{msg.menu_download}"
+                                icon="ui-icon-arrowthick-1-s"
+                                ajax="false"
+                                update=":growl"
+                                process="@this"
+                                immediate="true"
+                        >
                             <f:setPropertyActionListener
-                                value="#{studyDoc}"
-                                target="#{mbStudyDoc.selectedEntity}"
-                                />
-                            <p:fileDownload value="#{mbStudyDoc.file}" />
+                                    value="#{studyDoc}"
+                                    target="#{mbStudyDoc.selectedEntity}"
+                            />
+                            <p:fileDownload value="#{mbStudyDoc.file}"/>
                         </p:commandButton>
                     </p:column>
 
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbStudy.rpbStudy.studyDocs.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbStudy.rpbStudy.studyDocs.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}"
+                                      rendered="#{mbStudy.rpbStudy.studyDocs.size() == 0}"/>
+                        <h:outputText value="#{msg.search_results_status_1}"
+                                      rendered="#{mbStudy.rpbStudy.studyDocs.size() == 1}"/>
                         <h:outputFormat
-                            value="#{msg.search_results_status_n}"
-                            rendered="#{mbStudy.rpbStudy.studyDocs.size() > 1}"
-                            >
-                            <f:param value="#{mbStudy.rpbStudy.studyDocs.size()}" />
+                                value="#{msg.search_results_status_n}"
+                                rendered="#{mbStudy.rpbStudy.studyDocs.size() > 1}"
+                        >
+                            <f:param value="#{mbStudy.rpbStudy.studyDocs.size()}"/>
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
@@ -941,11 +911,11 @@
                 <p:panel header="#{msg.menu_export}" style="width: 100%">
                     <h:commandLink>
                         <p:graphicImage library="img" name="excel.png" title="xls"/>
-                        <p:dataExporter type="xls" target="dtStudyDocs" fileName="#{msg.study_documents}" />
+                        <p:dataExporter type="xls" target="dtStudyDocs" fileName="#{msg.study_documents}"/>
                     </h:commandLink>
                     <h:commandLink>
                         <p:graphicImage library="img" name="csv.png" title="csv"/>
-                        <p:dataExporter type="csv" target="dtStudyDocs" fileName="#{msg.study_documents}" />
+                        <p:dataExporter type="csv" target="dtStudyDocs" fileName="#{msg.study_documents}"/>
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -953,7 +923,7 @@
 
         <!-- Block UI for whole TabView -->
         <p:blockUI block="tabView" widgetVar="buiTab">
-            Processing<br /><p:graphicImage name="icons/ajaxloading.gif" />
+            #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
         </p:blockUI>
     </ui:define>
 
@@ -962,674 +932,848 @@
 
         <!-- View Study Details -->
         <p:dialog
-            id="dlgStudyView"
-            header="#{msg.study}"
-            widgetVar="viewStudyDialog"
-            resizable="false"
-            appendToBody="true"
-            modal="true"
-            closeOnEscape="true"
-            >
+                id="dlgStudyView"
+                header="#{msg.study}"
+                widgetVar="viewStudyDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
             <h:form id="viewStudyForm">
                 <p:panelGrid
-                    id="detailsDisplayStudy"
-                    columns="2"
-                    cellpadding="4"
-                    style="margin:0 auto;"
-                    >
+                        id="detailsDisplayStudy"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                >
                     <!-- Study Name -->
-                    <h:outputLabel value="#{msg.study}:" />
-                    <h:outputLabel value="#{mbStudy.selectedStudy.studyName}" />
+                    <h:outputLabel value="#{msg.study}:"/>
+                    <h:outputLabel value="#{mbStudy.selectedStudy.studyName}"/>
 
                     <!-- Site Name (Partner) -->
-                    <h:outputLabel value="#{msg.partnerSite}:" />
-                    <h:outputLabel value="#{mbStudy.selectedStudy.siteName}" />
+                    <h:outputLabel value="#{msg.partnerSite}:"/>
+                    <h:outputLabel value="#{mbStudy.selectedStudy.siteName}"/>
 
                     <!-- Study parameters -->
                     <!-- StudySubjectID generation method -->
-                    <h:outputLabel value="#{msg.studySubject_studySubjectId}:" />
-                    <p:selectOneButton value="#{mbStudy.studyConfiguration.studySubjectIdGeneration}"
-                        disabled="true"
-                        >
-                        <f:selectItem itemLabel="Manual" itemValue="#{EnumStudySubjectIdGeneration.MANUAL}" />
-                        <f:selectItem itemLabel="Automatic (editable)" itemValue="#{EnumStudySubjectIdGeneration.AUTO_EDITABLE}" />
-                        <f:selectItem itemLabel="Automatic (non-editable)" itemValue="#{EnumStudySubjectIdGeneration.AUTO_NONEDITABLE}" />
-                        <f:selectItem itemLabel="Automatic" itemValue="#{EnumStudySubjectIdGeneration.AUTO}" />
+                    <h:outputLabel value="#{msg.studySubject_studySubjectId}:"/>
+                    <p:selectOneButton value="#{mbStudy.studyParameterConfiguration.studySubjectIdGeneration}"
+                                       disabled="true"
+                    >
+                        <f:selectItem itemLabel="Manual" itemValue="#{EnumStudySubjectIdGeneration.MANUAL}"/>
+                        <f:selectItem itemLabel="Automatic (editable)"
+                                      itemValue="#{EnumStudySubjectIdGeneration.AUTO_EDITABLE}"/>
+                        <f:selectItem itemLabel="Automatic (non-editable)"
+                                      itemValue="#{EnumStudySubjectIdGeneration.AUTO_NONEDITABLE}"/>
+                        <!-- TODO: Automatic option should be deprecated (not used) and removed -->
+                        <!-- <f:selectItem itemLabel="Automatic" itemValue="#{EnumStudySubjectIdGeneration.AUTO}" /> -->
                     </p:selectOneButton>
 
                     <!-- PersonID is required -->
-                    <h:outputLabel value="#{msg.studySubject_personId}:" />
-                    <p:selectOneButton value="#{mbStudy.studyConfiguration.personIdRequired}"
-                        disabled="true"
-                        >
-                        <f:selectItem itemLabel="Required" itemValue="#{EnumRequired.REQUIRED}" />
-                        <f:selectItem itemLabel="Optional" itemValue="#{EnumRequired.OPTIONAL}" />
-                        <f:selectItem itemLabel="Not Used" itemValue="#{EnumRequired.NOT_USED}" />
+                    <h:outputLabel value="#{msg.studySubject_personId}:"/>
+                    <p:selectOneButton value="#{mbStudy.studyParameterConfiguration.personIdRequired}"
+                                       disabled="true"
+                    >
+                        <f:selectItem itemLabel="Required" itemValue="#{EnumRequired.REQUIRED}"/>
+                        <f:selectItem itemLabel="Optional" itemValue="#{EnumRequired.OPTIONAL}"/>
+                        <f:selectItem itemLabel="Not Used" itemValue="#{EnumRequired.NOT_USED}"/>
                     </p:selectOneButton>
 
                     <!-- SecondaryID is used -->
-                    <h:outputLabel value="#{msg.studySubject_secondaryId}:" />
+                    <h:outputLabel value="#{msg.studySubject_secondaryId}:"/>
                     <p:selectBooleanButton
-                        value="#{mbStudy.studyConfiguration.secondaryLabelViewable}"
-                        onLabel="#{msg.yes}"
-                        offLabel="#{msg.no}"
-                        onIcon="ui-icon-check"
-                        offIcon="ui-icon-close"
-                        disabled="true"
-                        style="width:60px"
-                        />
+                            value="#{mbStudy.studyParameterConfiguration.secondaryLabelViewable}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            style="width:60px"
+                    />
 
                     <!-- TreatmentArm -->
-                    <h:outputLabel value="#{msg.study_isEnrollmentArmAssignmentRequired}:" rendered="#{mbStudy.rpbStudy != null}" />
+                    <h:outputLabel value="#{msg.study_isEnrollmentArmAssignmentRequired}:"
+                                   rendered="#{mbStudy.rpbStudy != null}"/>
                     <p:selectBooleanButton
-                        value="#{mbStudy.rpbStudy.isEnrollmentArmAssignmentRequired}"
-                        onLabel="#{msg.yes}"
-                        offLabel="#{msg.no}"
-                        onIcon="ui-icon-check"
-                        offIcon="ui-icon-close"
-                        disabled="true"
-                        style="width:60px"
-                        rendered="#{mbStudy.rpbStudy != null}"
-                        />
+                            value="#{mbStudy.rpbStudy.isEnrollmentArmAssignmentRequired}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            style="width:60px"
+                            rendered="#{mbStudy.rpbStudy != null}"
+                    />
 
                     <!-- Discrepancy management -->
-                    <h:outputLabel value="Discrepancy Management:" />
+                    <h:outputLabel value="Discrepancy Management:"/>
                     <p:selectBooleanButton
-                        value="#{mbStudy.studyConfiguration.allowDiscrepancyManagement}"
-                        onLabel="#{msg.yes}"
-                        offLabel="#{msg.no}"
-                        onIcon="ui-icon-check"
-                        offIcon="ui-icon-close"
-                        disabled="true"
-                        style="width:60px"
-                        />
+                            value="#{mbStudy.studyParameterConfiguration.allowDiscrepancyManagement}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            style="width:60px"
+                    />
 
                     <!-- Collect Subject DOB -->
-                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_dateOfBirth}:" />
-                    <p:selectOneButton value="#{mbStudy.studyConfiguration.collectSubjectDob}"
-                        disabled="true"
-                        >
-                        <f:selectItem itemLabel="Yes" itemValue="#{EnumCollectSubjectDob.YES}" />
-                        <f:selectItem itemLabel="Only year" itemValue="#{EnumCollectSubjectDob.ONLY_YEAR}" />
-                        <f:selectItem itemLabel="No" itemValue="#{EnumCollectSubjectDob.NO}" />
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_dateOfBirth}:"/>
+                    <p:selectOneButton value="#{mbStudy.studyParameterConfiguration.collectSubjectDob}"
+                                       disabled="true"
+                    >
+                        <f:selectItem itemLabel="Yes" itemValue="#{EnumCollectSubjectDob.YES}"/>
+                        <f:selectItem itemLabel="Only year" itemValue="#{EnumCollectSubjectDob.ONLY_YEAR}"/>
+                        <f:selectItem itemLabel="No" itemValue="#{EnumCollectSubjectDob.NO}"/>
                     </p:selectOneButton>
 
                     <!-- Collect Subject Gender -->
-                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_gender}:" />
+                    <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_gender}:"/>
                     <p:selectBooleanButton
-                        value="#{mbStudy.studyConfiguration.sexRequired}"
-                        onLabel="#{msg.yes}"
-                        offLabel="#{msg.no}"
-                        onIcon="ui-icon-check"
-                        offIcon="ui-icon-close"
-                        disabled="true"
-                        style="width:60px"
-                        />
+                            value="#{mbStudy.studyParameterConfiguration.sexRequired}"
+                            onLabel="#{msg.yes}"
+                            offLabel="#{msg.no}"
+                            onIcon="ui-icon-check"
+                            offIcon="ui-icon-close"
+                            disabled="true"
+                            style="width:60px"
+                    />
                 </p:panelGrid>
             </h:form>
         </p:dialog>
 
         <!-- New Study Subject -->
         <p:dialog
-            id="dlgNewSubject"
-            header="#{msg.studySubject_new}"
-            widgetVar="newSubjectDialog"
-            resizable="false"
-            ajax="true"
-            appendToBody="true"
-            modal="true"
-            closeOnEscape="true"
-            >
+                id="dlgNewSubject"
+                header="#{msg.studySubject_new}"
+                widgetVar="newSubjectDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+                width="550px"
+        >
             <h:form id="newSubjectForm">
                 <p:panelGrid
-                    id="newDisplaySubject"
-                    columns="2"
-                    cellpadding="4"
-                    style="margin:0 auto;"
+                        id="newDisplaySubjectPanelGrid"
+                        columns="1"
+                        cellpadding="4"
+                        style="margin:0 auto;width: auto; height: auto;"
+                >
+                    <p:accordionPanel
+                            id="newSubjectFormTabView"
+                            dynamic="true"
+                            multiple="true"
+                            activeIndex="0,1,2"
+                            style="width: auto; height: auto;"
                     >
-
-                    <!-- Use PID generator -->
-                    <h:outputLabel value="#{msg.pid} generator:" for="chbUsePidGeneratorNew" />
-                    <p:selectBooleanButton
-                        id="chbUsePidGeneratorNew"
-                        value="#{mbStudy.usePidGenerator}"
-                        onLabel="#{msg.yes}"
-                        offLabel="#{msg.no}"
-                        onIcon="ui-icon-check"
-                        offIcon="ui-icon-close"
-                        style="width:60px"
+                        <p:tab
+                                title="#{msg.subject}"
+                                id="newSubjectFormTab"
+                                closable="true"
+                                style="width: auto; height: auto;"
                         >
-                        <p:ajax update=":newSubjectForm" />
-                    </p:selectBooleanButton>
 
-                    <!-- Study -->
-                    <h:outputLabel value="#{msg.study}: #{msg.label_required_suffix}" />
-                    <h:outputText value="#{mbStudy.selectedStudy.studyName}" />
+                            <p:panelGrid
+                                    id="newDisplaySubject"
+                                    columns="2"
+                                    cellpadding="4"
+                                    style="margin:0 auto;width: 450px; height: auto;"
+                            >
+                                <!--                                <h:outputLabel value="#{msg.pid} generator:" for="chbUsePidGeneratorStrategy"/>-->
+                                <!--                                <p:selectOneButton-->
+                                <!--                                        id="chbUsePidGeneratorStrategy"-->
+                                <!--                                        value="#{mbStudy.enumPidGenerationStrategy}">-->
+                                <!--                                    <f:selectItem itemLabel="#{(EnumPidGenerationStrategy.PID_GENERATOR).toString()}"-->
+                                <!--                                                  itemValue="#{EnumPidGenerationStrategy.PID_GENERATOR}"/>-->
+                                <!--                                    <f:selectItem itemLabel="#{(EnumPidGenerationStrategy.NO_PID_GENERATOR).toString()}"-->
+                                <!--                                                  itemValue="#{EnumPidGenerationStrategy.NO_PID_GENERATOR}"/>-->
+                                <!--                                    <f:selectItem itemDisabled="true"-->
+                                <!--                                                  itemLabel="#{(EnumPidGenerationStrategy.BRIDGEHEAD_PID_GENERATOR).toString()}"-->
+                                <!--                                                  itemValue="#{EnumPidGenerationStrategy.BRIDGEHEAD_PID_GENERATOR}"/>-->
+                                <!--                                    <p:ajax update=":newSubjectForm"/>-->
+                                <!--                                </p:selectOneButton>-->
 
-                    <!-- Site -->
-                    <h:outputLabel value="#{msg.partnerSite}: #{msg.label_required_suffix}" />
-                    <h:outputText value="#{mbStudy.selectedStudy.siteName}" />
+                                <!-- Use PID generator -->
+                                <h:outputLabel
+                                        value="#{msg.pid} generator:"
+                                        for="chbUsePidGeneratorNew"
+                                        rendered="#{mbStudy.hasIdatFlag()}"
+                                />
+                                <p:selectBooleanButton
+                                        id="chbUsePidGeneratorNew"
+                                        value="#{mbStudy.usePidGenerator}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        style="width:60px"
+                                        rendered="#{mbStudy.hasIdatFlag()}"
+                                >
+                                    <p:ajax update="growl, newSubjectForm:newSubjectFormTabView"/>
+                                </p:selectBooleanButton>
 
-                    <!-- StudySubjectID -->
-                    <h:outputLabel value="#{msg.studySubject_studySubjectId}: #{msg.label_required_suffix}" for="txtStudySubjectId" rendered="#{mbStudy.studyConfiguration.studySubjectIdGeneration.equals(EnumStudySubjectIdGeneration.MANUAL)}" />
-                    <p:inputText
-                        id="txtStudySubjectId"
-                        value="#{mbStudy.newSubject.studySubjectId}"
-                        rendered="#{mbStudy.studyConfiguration.studySubjectIdGeneration.equals(EnumStudySubjectIdGeneration.MANUAL)}"
-                        required="true"
-                        requiredMessage="#{msg.studySubject_studySubjectId} is mandatory when the study is set for manual #{msg.studySubject_studySubjectId} generation."
+                                <!-- Study -->
+                                <h:outputLabel value="#{msg.study}: #{msg.label_required_suffix}"/>
+                                <h:outputText value="#{mbStudy.selectedStudy.studyName}"/>
+
+                                <!-- Site -->
+                                <h:outputLabel value="#{msg.partnerSite}: #{msg.label_required_suffix}"/>
+                                <h:outputText value="#{mbStudy.selectedStudy.siteName}"/>
+
+                                <!-- StudySubjectID -->
+                                <h:outputLabel value="#{msg.studySubject_studySubjectId}: #{msg.label_required_suffix}"
+                                               for="txtStudySubjectId"
+                                               rendered="#{mbStudy.studyParameterConfiguration.studySubjectIdGeneration.equals(EnumStudySubjectIdGeneration.MANUAL) }"/>
+                                <p:inputText
+                                        id="txtStudySubjectId"
+                                        value="#{mbStudy.newSubject.studySubjectId}"
+                                        rendered="#{mbStudy.studyParameterConfiguration.studySubjectIdGeneration.equals(EnumStudySubjectIdGeneration.MANUAL)}"
+                                        required="true"
+                                        requiredMessage="#{msg.studySubject_studySubjectId} is mandatory when the study is set for manual #{msg.studySubject_studySubjectId} generation."
+                                >
+                                    <!-- Update PID not generated by pseudonym generation -->
+
+                                    <p:ajax event="blur"
+                                            update="lblPatientPID, newSubjectForm:newSubjectFormTabView"
+                                            listener="#{mbStudy.onStudySubjectIdChange}"/>
+
+                                </p:inputText>
+
+                                <!-- SecondaryID -->
+                                <h:outputLabel value="#{msg.studySubject_secondaryId}:" for="txtSecondaryLabel"
+                                               rendered="#{mbStudy.studyParameterConfiguration.secondaryLabelViewable}"/>
+                                <p:inputText id="txtSecondaryLabel" value="#{mbStudy.newSubject.secondaryId}"
+                                             rendered="#{mbStudy.studyParameterConfiguration.secondaryLabelViewable}"/>
+
+                                <!-- TreatmentArm -->
+                                <h:outputLabel value="#{msg.treatmentArm}: #{msg.label_required_suffix}"
+                                               for="ddlTreatmentArm"
+                                               rendered="#{mbStudy.rpbStudy != null and mbStudy.rpbStudy.isEnrollmentArmAssignmentRequired}"/>
+                                <p:selectOneMenu
+                                        id="ddlTreatmentArm"
+                                        value="#{mbStudy.newSubject.arm}"
+                                        converter="omnifaces.SelectItemsConverter"
+                                        style="width:250px"
+                                        required="true"
+                                        requiredMessage="#{msg.validation_required}: #{msg.treatmentArm}"
+                                        var="treatmentArmIter"
+                                        rendered="#{mbStudy.rpbStudy != null and mbStudy.rpbStudy.isEnrollmentArmAssignmentRequired}"
+                                >
+                                    <p:ajax listener="#{mbStudy.canEnrollIntoSelectedTreatmentArm()}"
+                                            update="newSubjectForm:btnSubmitSubject, :growl"/>
+                                    <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1"
+                                                  noSelectionOption="true"/>
+                                    <f:selectItems
+                                            value="#{mbStudy.rpbStudy.treatmentArms}"
+                                            var="treatmentArm"
+                                            itemLabel="#{treatmentArm.name}"
+                                            itemValue="#{treatmentArm}"
+                                            itemDescription="#{treatmentArm.description}"
+                                    />
+                                    <p:column>
+                                        <h:outputText value="#{treatmentArmIter.name}"/>
+                                    </p:column>
+                                </p:selectOneMenu>
+
+                                <!-- Subject Enrollment Date -->
+                                <h:outputLabel value="#{msg.studySubject_enrollmentDate}: #{msg.label_required_suffix}"
+                                               for="dateEnrollment"/>
+                                <p:calendar
+                                        id="dateEnrollment"
+                                        value="#{mbStudy.newSubject.comparableEnrollmentDate}"
+                                        pattern="dd.MM.yyyy"
+                                        showButtonPanel="true"
+                                        navigator="true"
+                                        required="true"
+                                        showOn="button"
+                                        requiredMessage="#{msg.studySubject_enrollmentDate} is mandatory!"
+                                >
+                                    <p:ajax event="dateSelect" update="dateEnrollment"/>
+                                </p:calendar>
+
+                                <!-- Subject Gender -->
+                                <h:outputLabel value="#{msg.studySubject_gender}: #{msg.label_required_suffix}"
+                                               for="rbtnGenderNew"/>
+                                <p:selectOneRadio
+                                        id="rbtnGenderNew"
+                                        value="#{mbStudy.newSubject.gender}"
+                                        required="true"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                        requiredMessage="#{msg.studySubject_gender} is mandatory!"
+                                >
+                                    <f:selectItems value="#{mbStudy.genderValues}"/>
+                                </p:selectOneRadio>
+
+
+                            </p:panelGrid>
+                        </p:tab>
+                        <p:tab
+                                title="#{msg.studySubject_personId}: #{mbStudy.newSubject.uniqueIdentifier}"
+                                id="newSubjectDialogPidTab"
+                                rendered="#{mbStudy.hasIdatFlag()}"
+                                style="width: auto; height: auto;"
+
                         >
-                        <!-- Update PID not generated by pseudonym generation -->
-                        <p:ajax event="keyup" update="txtPatientPID lblPatientPID" listener="#{mbStudy.onStudySubjectIdChange}" />
-                    </p:inputText>
+                            <p:panelGrid
+                                    id="newDisplaySubjectPid"
+                                    columns="2"
+                                    cellpadding="4"
+                                    style="margin:0 auto;width: 450px; height: auto;"
+                                    rendered="#{mbStudy.usePidGenerator and mbStudy.hasIdatFlag()}"
+                            >
+                                <p:outputLabel
+                                        value="#{msg.subject}: "
+                                        for="ddlPidStudySubject"
+                                        rendered="#{!mbStudy.selectedStudyIsStudyZero() and mbStudy.canUseStudyZeroPatients() and mbStudy.hasIdatFlag() and mbStudy.usePidGenerator and userContext.hasRole('ROLE_REIDENTIFY')}"
+                                />
 
-                    <!-- SecondaryID -->
-                    <h:outputLabel value="#{msg.studySubject_secondaryId}:" for="txtSecondaryLabel" rendered="#{mbStudy.studyConfiguration.secondaryLabelViewable}" />
-                    <p:inputText id="txtSecondaryLabel" value="#{mbStudy.newSubject.secondaryId}" rendered="#{mbStudy.studyConfiguration.secondaryLabelViewable}" />
+                                <p:autoComplete
+                                        id="ddlPidStudySubject"
+                                        value="#{mbStudy.selectedStudySubject}"
+                                        completeMethod="#{mbStudy.filterMatchingStudyZeroSubjects}"
+                                        var="studySubject"
+                                        itemLabel="#{studySubject.studySubjectId}"
+                                        itemValue="#{studySubject}"
+                                        inputStyle="width:300px"
+                                        dropdown="true"
+                                        maxResults="10"
+                                        minQueryLength="3"
+                                        moreText="There are more results."
+                                        rendered="#{!mbStudy.selectedStudyIsStudyZero() and mbStudy.canUseStudyZeroPatients() and mbStudy.hasIdatFlag() and mbStudy.usePidGenerator and userContext.hasRole('ROLE_REIDENTIFY')}">
+                                    >
+                                    <p:ajax
+                                            event="itemSelect"
+                                            listener="#{mbStudy.identifySelectedPatient}"
+                                            update="newSubjectForm"/>
+                                    <o:converter converterId="omnifaces.ListConverter"
+                                                 list="#{mbStudy.getStudyZeroStudySubjectLists()}"/>
+                                    <p:column headerText="#{msg.studySubject_studySubjectId}">
+                                        <h:outputText value="#{studySubject.studySubjectId}"/>
+                                    </p:column>
+                                    <p:column headerText="#{msg.studySubject_personId}">
+                                        <h:outputText
+                                                value="[#{studySubject.pid}]"
+                                                style="font-family:consolas, courier new,monospace;float: left;"
+                                        />
+                                    </p:column>
+                                    <p:column headerText="#{msg.studySubject_gender}">
+                                        <h:outputText value="#{studySubject.sex}"/>
+                                    </p:column>
+                                </p:autoComplete>
 
-                    <!-- TreatmentArm -->
-                    <h:outputLabel value="#{msg.treatmentArm}: #{msg.label_required_suffix}" for="ddlTreatmentArm" rendered="#{mbStudy.rpbStudy != null and mbStudy.rpbStudy.isEnrollmentArmAssignmentRequired}" />
-                    <p:selectOneMenu
-                        id="ddlTreatmentArm"
-                        value="#{mbStudy.newSubject.arm}"
-                        converter="omnifaces.SelectItemsConverter"
-                        style="width:250px"
-                        required="true"
-                        requiredMessage="#{msg.validation_required}: #{msg.treatmentArm}"
-                        var="treatmentArmIter"
-                        rendered="#{mbStudy.rpbStudy != null and mbStudy.rpbStudy.isEnrollmentArmAssignmentRequired}"
+                                <!-- Subject First Name -->
+                                <h:outputLabel value="#{msg.person_firstname}: #{msg.label_required_suffix}"
+                                               for="txtFirstNameNew"
+                                               rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"/>
+                                <p:inputText
+                                        id="txtFirstNameNew"
+                                        value="#{mbStudy.newSubject.person.firstname}"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        required="true"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                        requiredMessage="#{msg.person_firstname} is mandatory to generate patient PID."
+                                />
+
+                                <!-- Subject Last Name-->
+                                <h:outputLabel value="#{msg.person_surname}: #{msg.label_required_suffix}"
+                                               for="txtLastNameNew"
+                                               rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"/>
+                                <p:inputText
+                                        id="txtLastNameNew"
+                                        value="#{mbStudy.newSubject.person.surname}"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        required="true"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                        requiredMessage="#{msg.person_surname} is mandatory to generate patient PID."
+                                />
+
+                                <!-- Subject Birth Name (if applicable) -->
+                                <h:outputLabel
+                                        value="#{msg.person_birthname}:"
+                                        for="txtBirthNameNew"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        title="#{msg.person_birthname} is recommended to ensure the uniqueness of PID"
+                                />
+                                <p:inputText
+                                        id="txtBirthNameNew"
+                                        value="#{mbStudy.newSubject.person.birthname}"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                        title="#{msg.person_birthname} is recommended to ensure the uniquneess of PID"
+                                />
+
+                                <!-- Subject Date of Birth: depends on PIDG usage or Study setup -->
+                                <h:outputLabel value="#{msg.person_birthdate}: #{msg.label_required_suffix}"
+                                               for="dateOfBirthNew"
+                                               rendered="#{(mbStudy.hasIdatFlag() and mbStudy.usePidGenerator)or !mbStudy.hasIdatFlag() and !mbStudy.studyParameterConfiguration.collectSubjectDob.equals(EnumCollectSubjectDob.NO) }"/>
+                                <p:calendar
+                                        id="dateOfBirthNew"
+                                        pattern="dd.MM.yyyy"
+                                        navigator="true"
+                                        showOn="button"
+                                        value="#{mbStudy.newSubject.person.birthdate}"
+                                        rendered="#{(mbStudy.hasIdatFlag() and mbStudy.usePidGenerator) or !mbStudy.hasIdatFlag() and !mbStudy.studyParameterConfiguration.collectSubjectDob.equals(EnumCollectSubjectDob.NO) and mbStudy.usePidGenerator}"
+                                        required="true"
+                                        requiredMessage="#{msg.person_birthdate} is mandatory to generate patient PID"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                />
+
+                                <!-- Subject residence City -->
+                                <h:outputLabel
+                                        value="#{msg.person_city}:"
+                                        for="txtCityNew"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        title="#{msg.person_city} is recommended to ensure the uniqueness of PID"
+                                />
+                                <p:inputText
+                                        id="txtCityNew"
+                                        value="#{mbStudy.newSubject.person.city}"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        title="#{msg.person_city} is recommended to ensure the uniqueness of PID"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                />
+
+                                <!-- Subject residence ZIP code -->
+                                <h:outputLabel
+                                        value="#{msg.person_zip}:"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        title="#{msg.person_zip} is recommended to ensure the uniqueness of PID"
+                                />
+                                <p:inputText
+                                        value="#{mbStudy.newSubject.person.zipcode}"
+                                        rendered="#{mbStudy.hasIdatFlag() and mbStudy.usePidGenerator}"
+                                        title="#{msg.person_zip} is recommended to ensure the uniqueness of PID"
+                                        disabled="#{mbStudy.newSubject.person.pid != null}"
+                                />
+
+                                <!-- Possible patient match found -->
+                                <h:outputLabel
+                                        value="I am sure that patient data is correct and I want to create a new PID number:"
+                                        rendered="#{!mbStudy.isSure}"/>
+                                <p:selectBooleanCheckbox
+                                        rendered="#{!mbStudy.isSure}"
+                                        value="#{mbStudy.newSubject.person.isSure}"
+                                />
+
+                                <!-- Generate PID -->
+                                <h:outputText value=""
+                                              rendered="#{ (mbStudy.hasIdatFlag() and mbStudy.newSubject.person.pid == null and mbStudy.usePidGenerator)}"/>
+                                <p:commandButton
+                                        value="#{msg.menu_generate}"
+                                        update="newSubjectForm, :growl"
+                                        actionListener="#{mbStudy.generateNewPid}"
+                                        process="@this newSubjectForm"
+                                        rendered="#{(mbStudy.hasIdatFlag() and mbStudy.newSubject.person.pid == null)  and mbStudy.usePidGenerator}"
+                                />
+
+                                <!-- Pseudonym generator generated PID -->
+                                <h:outputLabel
+                                        value="#{msg.studySubject_personId}:"
+                                        title="Pseudonym"
+                                        for="lblPatientPID"
+                                        rendered="#{false and mbStudy.hasIdatFlag() and !mbStudy.studyParameterConfiguration.personIdRequired.equals(EnumRequired.NOT_USED)}"
+                                />
+                                <h:outputText
+                                        id="lblPatientPID"
+                                        value="#{mbStudy.newSubject.uniqueIdentifier}"
+                                        title="Pseudonym"
+                                        rendered="#{false and mbStudy.hasIdatFlag() and !mbStudy.studyParameterConfiguration.personIdRequired.equals(EnumRequired.NOT_USED)}"
+                                        style="font-family:consolas, courier new,monospace;"
+                                />
+                            </p:panelGrid>
+                            <p:blockUI block="ddlPidStudySubject" trigger="ddlPidStudySubject">
+                                #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                            </p:blockUI>
+                        </p:tab>
+                        <p:tab
+                                id="ccpIdentifierTab"
+                                title="CCP: #{mbStudy.newSubject.secondaryId}"
+                                rendered="#{mbStudy.hasCcpFlag()}"
+                                style="width: auto; height: auto;"
                         >
-                        <p:ajax listener="#{mbStudy.canEnrollIntoSelectedTreatmentArm()}" update=":newSubjectForm:btnSubmitSubject, :growl" />
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                            value="#{mbStudy.rpbStudy.treatmentArms}"
-                            var="treatmentArm"
-                            itemLabel="#{treatmentArm.name}"
-                            itemValue="#{treatmentArm}"
-                            itemDescription="#{treatmentArm.description}"
-                            />
-                        <p:column>
-                            <h:outputText value="#{treatmentArmIter.name}" />
-                        </p:column>
-                    </p:selectOneMenu>
+                            <p:panelGrid
+                                    id="newCcpPseudonymSubject"
+                                    columns="2"
+                                    cellpadding="4"
+                                    style="margin:0 auto;width: 450px;"
+                                    rendered="#{mbStudy.hasCcpFlag()}"
+                            >
+                                <h:outputLabel
+                                        value="CCP Id Manager Link"
+                                        title="CCP Id Manager"
+                                />
+                                <h:outputLink
+                                        value="#{mbStudy.getCcpUrl()}"
+                                        target="_blank">
+                                    #{mbStudy.getCcpCode()}
+                                </h:outputLink>
 
-                    <!-- Subject Enrollment Date -->
-                    <h:outputLabel value="#{msg.studySubject_enrollmentDate}: #{msg.label_required_suffix}" for="dateEnrollment" />
-                    <p:calendar
-                        id="dateEnrollment"
-                        value="#{mbStudy.newSubject.comparableEnrollmentDate}"
-                        pattern="dd.MM.yyyy"
-                        showButtonPanel="true"
-                        navigator="true"
-                        required="true"
-                        showOn="button"
-                        requiredMessage="#{msg.studySubject_enrollmentDate} is mandatory!"
-                        />
+                                <!-- CCP Pseudonym Input Field -->
+                                <h:outputLabel
+                                        value="CCP Identifier: "
+                                        title="Pseudonym"
+                                        for="txtPatientCcpPseudonym"
+                                />
 
-                    <!-- Subject Gender -->
-                    <h:outputLabel value="#{msg.studySubject_gender}: #{msg.label_required_suffix}" for="rbtnGenderNew" />
-                    <p:selectOneRadio
-                        id="rbtnGenderNew"
-                        value="#{mbStudy.newSubject.gender}"
-                        required="true"
-                        requiredMessage="#{msg.studySubject_gender} is mandatory!"
-                        >
-                        <f:selectItems value="#{mbStudy.genderValues}" />
-                    </p:selectOneRadio>
+                                <p:inputText
+                                        id="txtPatientCcpPseudonym"
+                                        value="#{mbStudy.newSubject.secondaryId}"
+                                        rendered="#{true}"
+                                        style="font-family:consolas, courier new,monospace;"
+                                        required="false"
+                                        requiredMessage="CCP Identifier #{msg.validation_required}!"
+                                >
 
-                    <!-- Subject First Name -->
-                    <h:outputLabel value="#{msg.person_firstname}: #{msg.label_required_suffix}" for="txtFirstNameNew" rendered="#{mbStudy.usePidGenerator}" />
-                    <p:inputText
-                        id="txtFirstNameNew"
-                        value="#{mbStudy.newSubject.person.firstname}"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        required="true"
-                        requiredMessage="#{msg.person_firstname} is mandatory to generate patient PID."
-                        />
-
-                    <!-- Subject Last Name-->
-                    <h:outputLabel value="#{msg.person_surname}: #{msg.label_required_suffix}" for="txtLastNameNew" rendered="#{mbStudy.usePidGenerator}" />
-                    <p:inputText
-                        id="txtLastNameNew"
-                        value="#{mbStudy.newSubject.person.surname}"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        required="true"
-                        requiredMessage="#{msg.person_surname} is mandatory to generate patient PID."
-                        />
-
-                    <!-- Subject Birth Name (if applicable) -->
-                    <h:outputLabel
-                        value="#{msg.person_birthname}:"
-                        for="txtBirthNameNew"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        title="#{msg.person_birthname} is recommended to ensure the uniqueness of PID"
-                        />
-                    <p:inputText
-                        id="txtBirthNameNew"
-                        value="#{mbStudy.newSubject.person.birthname}"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        title="#{msg.person_birthname} is recommended to ensure the uniquneess of PID"
-                        />
-
-                    <!-- Subject Date of Birth: depends on PIDG usage or Study setup -->
-                    <h:outputLabel value="#{msg.person_birthdate}: #{msg.label_required_suffix}" for="dateOfBirthNew" rendered="#{mbStudy.usePidGenerator or !mbStudy.studyConfiguration.collectSubjectDob.equals(EnumCollectSubjectDob.NO)}" />
-                    <p:calendar
-                        id="dateOfBirthNew"
-                        pattern="dd.MM.yyyy"
-                        navigator="true"
-                        showOn="button"
-                        value="#{mbStudy.newSubject.person.birthdate}"
-                        rendered="#{mbStudy.usePidGenerator or !mbStudy.studyConfiguration.collectSubjectDob.equals(EnumCollectSubjectDob.NO)}"
-                        required="true"
-                        requiredMessage="#{msg.person_birthdate} is mandatory to generate patient PID"
-                        />
-
-                    <!-- Subject residence City -->
-                    <h:outputLabel
-                        value="#{msg.person_city}:"
-                        for="txtCityNew"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        title="#{msg.person_city} is recommended to ensure the uniqueness of PID"
-                        />
-                    <p:inputText
-                        id="txtCityNew"
-                        value="#{mbStudy.newSubject.person.city}"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        title="#{msg.person_city} is recommended to ensure the uniqueness of PID"
-                        />
-
-                    <!-- Subject residence ZIP code -->
-                    <h:outputLabel
-                        value="#{msg.person_zip}:"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        title="#{msg.person_zip} is recommended to ensure the uniqueness of PID"
-                        />
-                    <p:inputText
-                        value="#{mbStudy.newSubject.person.zipcode}"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        title="#{msg.person_zip} is recommended to ensure the uniqueness of PID"
-                        />
-
-                    <!-- Pseudonym generator generated PID -->
-                    <h:outputLabel
-                        value="#{msg.studySubject_personId}:"
-                        title="Pseudonym"
-                        rendered="#{mbStudy.usePidGenerator and !mbStudy.studyConfiguration.personIdRequired.equals(EnumRequired.NOT_USED)}"
-                        />
-                    <h:outputText
-                        value="#{mbStudy.newSubject.uniqueIdentifier}"
-                        title="Pseudonym"
-                        rendered="#{mbStudy.usePidGenerator and !mbStudy.studyConfiguration.personIdRequired.equals(EnumRequired.NOT_USED)}"
-                        style="font-family:consolas, courier new,monospace;"
-                        />
-
-                    <!-- No pseudonym generator generated PID -->
-                    <h:outputLabel
-                        value="#{msg.studySubject_personId}: #{msg.label_required_suffix}"
-                        title="Pseudonym"
-                        for="txtPatientPID"
-                        rendered="#{!mbStudy.usePidGenerator and mbStudy.studyConfiguration.personIdRequired.equals(EnumRequired.REQUIRED)}"
-                        />
-                    <!-- Manual PID -->
-                    <p:inputText
-                        id="txtPatientPID"
-                        value="#{mbStudy.newSubject.uniqueIdentifier}"
-                        rendered="#{!mbStudy.usePidGenerator and mbStudy.studyConfiguration.personIdRequired.equals(EnumRequired.REQUIRED) and mbStudy.studyConfiguration.studySubjectIdGeneration.equals(EnumStudySubjectIdGeneration.MANUAL)}"
-                        style="font-family:consolas, courier new,monospace;"
-                        required="true"
-                        requiredMessage="#{msg.studySubject_personId} #{msg.validation_required}!"
-                        />
-                    <!-- Autogenerated PID -->
-                    <h:outputText
-                        id="lblPatientPID"
-                        value="#{mbStudy.newSubject.uniqueIdentifier}"
-                        rendered="#{!mbStudy.usePidGenerator and mbStudy.studyConfiguration.personIdRequired.equals(EnumRequired.REQUIRED) and mbStudy.studyConfiguration.studySubjectIdGeneration.equals(EnumStudySubjectIdGeneration.MANUAL)}"
-                        style="font-family:consolas, courier new,monospace;"
-                        />
-
-                    <!-- Possible patient match found -->
-                    <h:outputLabel value="I am sure that patient data is correct and I want to create a new PID number:" rendered="#{!mbStudy.isSure}" />
-                    <p:selectBooleanCheckbox
-                        rendered="#{!mbStudy.isSure}"
-                        value="#{mbStudy.newSubject.person.isSure}"
-                        />
-
-                    <!-- Generate PID -->
-                    <h:outputText value="" rendered="#{mbStudy.usePidGenerator}" />
-                    <p:commandButton
-                        value="#{msg.menu_generate}"
-                        update=":newSubjectForm, :growl"
-                        actionListener="#{mbStudy.generateNewPid}"
-                        process="@this newSubjectForm"
-                        rendered="#{mbStudy.usePidGenerator}"
-                        />
-
+                                    <p:ajax event="blur"
+                                            listener="#{mbStudy.onCcpIdentifierChange()}"
+                                            update="newSubjectForm:newSubjectFormTabView"
+                                    />
+                                </p:inputText>
+                            </p:panelGrid>
+                        </p:tab>
+                    </p:accordionPanel>
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                            id="btnSubmitSubject"
-                            value="#{msg.submit}"
-                            update=":form:tabView:dtStudySubjects, :growl"
-                            icon="ui-icon-disk"
-                            actionListener="#{mbStudy.createNewStudySubject}"
-                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSubject','newSubjectForm');"
-                            process="@this newSubjectForm"
-                            disabled="#{!mbStudy.canEnrollIntoSelectedTreatmentArm()}"
-                            />
+                                id="btnSubmitSubject"
+                                value="#{msg.submit}"
+                                update=":form:tabView:dtStudySubjects, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbStudy.handleNewSubjectDialogSubmit}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewSubject','newSubjectForm');"
+                                process="@this newSubjectForm"
+                                disabled="#{!mbStudy.canEnrollIntoSelectedTreatmentArm()}"
+                        />
                         <p:commandButton
-                            value="#{msg.menu_reset}"
-                            icon="ui-icon-close"
-                            update=":newSubjectForm"
-                            actionListener="#{mbStudy.resetNewStudySubject}"
-                            process="@this"
-                            immediate="true"
-                            />
+                                value="#{msg.menu_reset}"
+                                icon="ui-icon-close"
+                                update="newSubjectForm"
+                                actionListener="#{mbStudy.resetNewStudySubject}"
+                                process="@this"
+                                immediate="true"
+                        />
                     </f:facet>
                 </p:panelGrid>
 
-                <p:blockUI trigger="btnSubmitSubject" block="newDisplaySubject">
-                    Processing<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                <p:blockUI trigger="btnSubmitSubject" block="newSubjectForm">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
+
             </h:form>
+            <p:ajax event="close"
+                    listener="#{mbStudy.onCloseNewSubjectDialog()}"
+                    update="dlgNewSubject"
+            ></p:ajax>
         </p:dialog>
 
         <!-- Edit Study Subject -->
         <p:dialog
-            id="dlgAccountDetails"
-            header="#{msg.studySubject_edit}"
-            widgetVar="viewSubjectDialog"
-            resizable="false"
-            appendToBody="true"
-            modal="true"
-            closeOnEscape="true"
-            >
+                id="dlgAccountDetails"
+                header="#{msg.studySubject_edit}"
+                widgetVar="viewSubjectDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
             <h:form id="subjectDetailsForm">
-                <p:panelGrid
-                    id="detailsDisplaySubject"
-                    columns="2"
-                    cellpadding="4"
-                    style="margin:0 auto;"
+                <p:tabView>
+                    <p:tab
+                            title="#{msg.subject}"
                     >
-
-                    <h:outputLabel value="#{msg.pid} generator:" for="chbUsePidGenerator" />
-                    <p:selectBooleanButton
-                        id="chbUsePidGenerator"
-                        value="#{mbStudy.usePidGenerator}"
-                        onLabel="#{msg.yes}"
-                        offLabel="#{msg.no}"
-                        onIcon="ui-icon-check"
-                        offIcon="ui-icon-close"
-                        style="width:60px"
+                        <p:panelGrid
+                                id="detailsDisplaySubject"
+                                columns="2"
+                                cellpadding="4"
+                                style="margin:0 auto;"
                         >
-                        <p:ajax update=":subjectDetailsForm" />
-                    </p:selectBooleanButton>
 
-                    <h:outputLabel value="#{msg.study}:" />
-                    <h:outputText value="#{mbStudy.selectedStudy.studyName}" />
+                            <h:outputLabel
+                                    value="#{msg.pid} generator:"
+                                    for="chbUsePidGenerator"
+                                    rendered="false"
+                            />
+                            <p:selectBooleanButton
+                                    id="chbUsePidGenerator"
+                                    value="#{mbStudy.usePidGenerator}"
+                                    onLabel="#{msg.yes}"
+                                    offLabel="#{msg.no}"
+                                    onIcon="ui-icon-check"
+                                    offIcon="ui-icon-close"
+                                    style="width:60px"
+                                    rendered="false"
+                            >
+                                <p:ajax update=":subjectDetailsForm"/>
+                            </p:selectBooleanButton>
 
-                    <h:outputLabel value="#{msg.partnerSite}:" />
-                    <h:outputText value="#{mbStudy.selectedStudy.siteName}" />
+                            <h:outputLabel value="#{msg.study}:"/>
+                            <h:outputText value="#{mbStudy.selectedStudy.studyName}"/>
 
-                    <h:outputLabel value="#{msg.studySubject_studySubjectId}:" />
-                    <h:outputText value="#{mbStudy.selectedStudySubject.studySubjectLabel}" />
+                            <h:outputLabel value="#{msg.partnerSite}:"/>
+                            <h:outputText value="#{mbStudy.selectedStudy.siteName}"/>
 
-                    <h:outputLabel value="#{msg.studySubject_secondaryId}:" />
-                    <h:outputText value="#{mbStudy.selectedStudySubject.studySubjectSecondaryLabel}" />
+                            <h:outputLabel value="#{msg.studySubject_studySubjectId}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.studySubjectId}"/>
 
-                    <h:outputLabel value="#{msg.studySubject_personId}:" />
-                    <h:outputText value="#{mbStudy.selectedStudySubject.personID}" style="font-family:consolas, courier new,monospace;" />
+                            <h:outputLabel value="#{msg.studySubject_secondaryId}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.secondaryId}"/>
 
-                    <h:outputLabel value="#{msg.studySubject_gender}:" for="rbtnGender" />
-                    <p:selectOneRadio id="rbtnGender" value="#{mbStudy.selectedStudySubject.sex}" disabled="true">
-                        <f:selectItems value="#{mbStudy.genderValues}" />
-                    </p:selectOneRadio>
+                            <h:outputLabel value="#{msg.studySubject_personId}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.pid}"
+                                          style="font-family:consolas, courier new,monospace;"/>
 
-                    <h:outputLabel value="#{msg.studySubject_enrollmentDate}:" />
-                    <h:outputText value="#{mbStudy.selectedStudySubject.dateOfRegistration}" />
+                            <h:outputLabel value="#{msg.studySubject_gender}:" for="rbtnGender"/>
+                            <p:selectOneRadio id="rbtnGender" value="#{mbStudy.selectedEntity.sex}" disabled="true">
+                                <f:selectItems value="#{mbStudy.genderValues}"/>
+                            </p:selectOneRadio>
 
-                    <h:outputLabel value="" rendered="#{mbStudy.usePidGenerator}" />
-                    <p:commandButton
-                            value="#{msg.menu_reidentify}"
-                            update=":subjectDetailsForm, :growl"
-                            actionListener="#{mbStudy.getPersonalInformation}"
-                            process="@this subjectDetailsForm"
-                            rendered="#{mbStudy.usePidGenerator}"
-                            disabled="#{!mbStudy.canDepseudonymisePatient or !userContext.hasRole('ROLE_REIDENTIFY')}"
+                            <h:outputLabel value="#{msg.studySubject_enrollmentDate}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.dateEnrollmentString}"/>
+
+                            <h:outputLabel value="" rendered="#{mbStudy.usePidGenerator}"/>
+                            <p:commandButton
+                                    value="#{msg.menu_reidentify}"
+                                    update=":subjectDetailsForm, :growl"
+                                    actionListener="#{mbStudy.getPersonalInformation}"
+                                    process="@this subjectDetailsForm"
+                                    rendered="#{mbStudy.usePidGenerator}"
+                                    disabled="#{!mbStudy.canDepseudonymisePatient or !userContext.hasRole('ROLE_REIDENTIFY')}"
                             />
 
-                    <!-- Firstname -->
-                    <h:outputLabel value="#{msg.person_firstname}:" for="txtFirstName" rendered="#{mbStudy.usePidGenerator}" />
-                    <h:outputText id="txtFirstName" value="#{mbStudy.selectedSubject.person.firstname}" rendered="#{mbStudy.usePidGenerator}" />
+                            <!-- Firstname -->
+                            <h:outputLabel value="#{msg.person_firstname}:" for="txtFirstName"
+                                           rendered="#{mbStudy.usePidGenerator}"/>
+                            <h:outputText id="txtFirstName" value="#{mbStudy.selectedSubject.person.firstname}"
+                                          rendered="#{mbStudy.usePidGenerator}"/>
 
-                    <!-- Surname -->
-                    <h:outputLabel value="#{msg.person_surname}:" for="txtLastName" rendered="#{mbStudy.usePidGenerator}" />
-                    <h:outputText id="txtLastName" value="#{mbStudy.selectedSubject.person.surname}" rendered="#{mbStudy.usePidGenerator}" />
+                            <!-- Surname -->
+                            <h:outputLabel value="#{msg.person_surname}:" for="txtLastName"
+                                           rendered="#{mbStudy.usePidGenerator}"/>
+                            <h:outputText id="txtLastName" value="#{mbStudy.selectedSubject.person.surname}"
+                                          rendered="#{mbStudy.usePidGenerator}"/>
 
-                    <!-- Birthname -->
-                    <h:outputLabel value="#{msg.person_birthname}:" for="txtMaidenName" rendered="#{mbStudy.usePidGenerator and mbStudy.selectedSubject.gender == 'f'}" />
-                    <h:outputText id="txtMaidenName" value="#{mbStudy.selectedSubject.person.birthname}" rendered="#{mbStudy.usePidGenerator and mbStudy.selectedSubject.gender == 'f'}" />
+                            <!-- Birthname -->
+                            <h:outputLabel value="#{msg.person_birthname}:" for="txtMaidenName"
+                                           rendered="#{mbStudy.usePidGenerator and mbStudy.selectedSubject.gender == 'f'}"/>
+                            <h:outputText id="txtMaidenName" value="#{mbStudy.selectedSubject.person.birthname}"
+                                          rendered="#{mbStudy.usePidGenerator and mbStudy.selectedSubject.gender == 'f'}"/>
 
-                    <!-- Date of Birth -->
-                    <h:outputLabel value="#{msg.person_birthdate}:" for="dateOfBirth" rendered="#{mbStudy.usePidGenerator}" />
-                    <p:calendar
-                            id="dateOfBirth"
-                            pattern="dd.MM.yyyy"
-                            value="#{mbStudy.selectedSubject.person.birthdate}"
-                            rendered="#{mbStudy.usePidGenerator}"
-                            disabled="true"
+                            <!-- Date of Birth -->
+                            <h:outputLabel value="#{msg.person_birthdate}:" for="dateOfBirth"
+                                           rendered="#{mbStudy.usePidGenerator}"/>
+                            <p:calendar
+                                    id="dateOfBirth"
+                                    pattern="dd.MM.yyyy"
+                                    value="#{mbStudy.selectedSubject.person.birthdate}"
+                                    rendered="#{mbStudy.usePidGenerator}"
+                                    disabled="true"
                             />
 
-                    <!-- Residence -->
-                    <h:outputLabel value="#{msg.person_city}:" for="txtCity" rendered="#{mbStudy.usePidGenerator}" />
-                    <h:outputText id="txtCity" value="#{mbStudy.selectedSubject.person.city}" rendered="#{mbStudy.usePidGenerator}" />
+                            <!-- Residence -->
+                            <h:outputLabel value="#{msg.person_city}:" for="txtCity"
+                                           rendered="#{mbStudy.usePidGenerator}"/>
+                            <h:outputText id="txtCity" value="#{mbStudy.selectedSubject.person.city}"
+                                          rendered="#{mbStudy.usePidGenerator}"/>
 
-                    <!-- ZIP -->
-                    <h:outputLabel value="#{msg.person_zip}:" for="txtZipEdit" rendered="#{mbStudy.usePidGenerator}" />
-                    <h:outputText id="txtZipEdit" value="#{mbStudy.selectedSubject.person.zipcode}" rendered="#{mbStudy.usePidGenerator}" />
+                            <!-- ZIP -->
+                            <h:outputLabel value="#{msg.person_zip}:" for="txtZipEdit"
+                                           rendered="#{mbStudy.usePidGenerator}"/>
+                            <h:outputText id="txtZipEdit" value="#{mbStudy.selectedSubject.person.zipcode}"
+                                          rendered="#{mbStudy.usePidGenerator}"/>
+                        </p:panelGrid>
+                    </p:tab>
+                    <p:tab
+                            title="CCP"
+                            rendered="#{mbStudy.hasCcpFlag()}"
+                    >
+                        <p:panelGrid
+                                id="updateCcpId"
+                                columns="2"
+                                cellpadding="4"
+                                style="margin:0 auto;"
+                                rendered="#{mbStudy.hasCcpFlag()}"
+                        >
+                            <h:outputLabel value="#{msg.study}:"/>
+                            <h:outputText value="#{mbStudy.selectedStudy.studyName}"/>
 
-                </p:panelGrid>
+                            <h:outputLabel value="#{msg.partnerSite}:"/>
+                            <h:outputText value="#{mbStudy.selectedStudy.siteName}"/>
+
+                            <h:outputLabel value="#{msg.studySubject_studySubjectId}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.studySubjectId}"/>
+
+                            <h:outputLabel value="#{msg.studySubject_secondaryId}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.secondaryId}"/>
+
+                            <h:outputLabel value="#{msg.studySubject_personId}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.pid}"
+                                          style="font-family:consolas, courier new,monospace;"/>
+
+                            <h:outputLabel value="#{msg.studySubject_gender}:" for="rbtnGenderCcp"/>
+                            <p:selectOneRadio id="rbtnGenderCcp" value="#{mbStudy.selectedEntity.sex}" disabled="true">
+                                <f:selectItems value="#{mbStudy.genderValues}"/>
+                            </p:selectOneRadio>
+
+                            <h:outputLabel value="#{msg.studySubject_enrollmentDate}:"/>
+                            <h:outputText value="#{mbStudy.selectedEntity.dateEnrollmentString}"/>
+
+                            <h:outputLabel
+                                    value="CCP Id Manager Link"
+                                    title="CCP Id Manager"
+                            />
+                            <h:outputLink
+                                    value="#{mbStudy.getCcpUrl()}"
+                                    target="_blank">
+                                #{mbStudy.getCcpCode()}
+                            </h:outputLink>
+
+                            <!-- CCP Pseudonym Input Field -->
+                            <h:outputLabel
+                                    value="CCP Identifier: #{msg.label_required_suffix}"
+                                    title="Pseudonym"
+                                    for="txtUpdatePatientCcpPseudonym"
+                            />
+
+                            <p:inputText
+                                    id="txtUpdatePatientCcpPseudonym"
+                                    value="#{mbStudy.rpbSelectedStudySubject.secondaryId}"
+                                    rendered="#{true}"
+                                    style="font-family:consolas, courier new,monospace;"
+                                    requiredMessage="CCP Identifier #{msg.validation_required}!"
+
+                            />
+
+                            <!-- Footer -->
+                            <f:facet name="footer">
+                                <p:commandButton
+                                        id="btnUpdateSubject"
+                                        value="#{msg.menu_update}"
+                                        update="growl, form:tabView:dtStudySubjects, subjectDetailsForm"
+                                        icon="ui-icon-disk"
+                                        actionListener="#{mbStudy.handleSubjectUpdate}"
+                                        oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgAccountDetails');"
+                                />
+                            </f:facet>
+
+                        </p:panelGrid>
+                    </p:tab>
+                </p:tabView>
+
+
             </h:form>
         </p:dialog>
 
-        <!-- New Study Event -->
-        <!--<p:dialog-->
-            <!--id="dlgNewEvent"-->
-            <!--header="#{msg.studyEvent_new}"-->
-            <!--widgetVar="newEventDialog"-->
-            <!--resizable="false"-->
-            <!--ajax="true"-->
-            <!--appendToBody="true"-->
-            <!--modal="true"-->
-            <!--closeOnEscape="true"-->
-            <!--&gt;-->
-            <!--<h:form id="newEventForm">-->
-                <!--<p:panelGrid-->
-                    <!--id="newDisplayEvent"-->
-                    <!--columns="2"-->
-                    <!--cellpadding="4"-->
-                    <!--style="margin:0 auto;"-->
-                    <!--&gt;-->
-
-                    <!--&lt;!&ndash; Study &ndash;&gt;-->
-                    <!--<h:outputLabel value="#{msg.study}: #{msg.label_required_suffix}" />-->
-                    <!--<h:outputText value="#{mbStudy.selectedStudy.studyName}" />-->
-
-                    <!--&lt;!&ndash; Site &ndash;&gt;-->
-                    <!--<h:outputLabel value="#{msg.partnerSite}: #{msg.label_required_suffix}" />-->
-                    <!--<h:outputText value="#{mbStudy.selectedStudy.siteName}" />-->
-
-                    <!--&lt;!&ndash; Subject &ndash;&gt;-->
-                    <!--<h:outputLabel value="#{msg.studySubject}: #{msg.label_required_suffix}" />-->
-                    <!--<h:outputText value="#{mbStudy.selectedStudySubject.studySubjectLabel}" />-->
-
-                    <!--&lt;!&ndash; Event &ndash;&gt;-->
-                    <!--<h:outputLabel value="#{msg.studyEvent}: #{msg.label_required_suffix}" for="cmbStudyEvents" />-->
-                    <!--<p:selectOneMenu-->
-                            <!--id="cmbStudyEvents"-->
-                            <!--value="#{mbStudy.selectedEvent}"-->
-                            <!--panelStyle="width: 150px"-->
-                            <!--style="width:500px"-->
-                            <!--required="true"-->
-                            <!--requiredMessage="You have to select the event which should be scheduled!"-->
-                            <!--&gt;-->
-                        <!--<f:selectItem itemLabel="#{msg.search_select_one}" itemValue="" noSelectionOption="true" />-->
-                        <!--<f:selectItems-->
-                                <!--value="#{mbStudy.eventList}"-->
-                                <!--var="event"-->
-                                <!--itemLabel="#{event.eventName}"-->
-                                <!--itemValue="#{event.eventOID}"-->
-                                <!--/>-->
-                    <!--</p:selectOneMenu>-->
-
-                    <!--&lt;!&ndash; Location - optional &ndash;&gt;-->
-
-                    <!--&lt;!&ndash; Start date &ndash;&gt;-->
-                    <!--<h:outputLabel value="#{msg.studyEvent_startDate}: #{msg.label_required_suffix}" for="dateStart" />-->
-                    <!--<p:calendar-->
-                            <!--id="dateStart"-->
-                            <!--value="#{mbStudy.newEventDate}"-->
-                            <!--pattern="dd.MM.yyyy"-->
-                            <!--showButtonPanel="true"-->
-                            <!--navigator="true"-->
-                            <!--required="true"-->
-                            <!--showOn="button"-->
-                            <!--requiredMessage="#{msg.studyEvent_startDate} is mandatory!"-->
-                            <!--/>-->
-
-                    <!--&lt;!&ndash; Start time - optional &ndash;&gt;-->
-
-                    <!--&lt;!&ndash; End date - optional &ndash;&gt;-->
-
-                    <!--&lt;!&ndash; End time - optional &ndash;&gt;-->
-
-                    <!--<f:facet name="footer">-->
-                        <!--<p:commandButton-->
-                                <!--value="#{msg.menu_save}"-->
-                                <!--update=":form:tabView:dtStudyEvents, :growl"-->
-                                <!--icon="ui-icon-disk"-->
-                                <!--actionListener="#{mbStudy.scheduleNewStudyEvent}"-->
-                                <!--oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgNewEvent','newEventForm');"-->
-                                <!--process="@this newEventForm"-->
-                                <!--/>-->
-                        <!--<p:commandButton-->
-                                <!--value="#{msg.menu_reset}"-->
-                                <!--type="reset"-->
-                                <!--icon="ui-icon-close"-->
-                                <!--/>-->
-                    <!--</f:facet>-->
-                <!--</p:panelGrid>-->
-            <!--</h:form>-->
-        <!--</p:dialog>-->
-
         <!-- Edit Event -->
         <p:dialog
-            id="dlgEditEvent"
-            header="#{msg.studyEvent_edit}"
-            widgetVar="viewEventDialog"
-            resizable="false"
-            appendToBody="true"
-            modal="true"
-            closeOnEscape="true"
-            >
+                id="dlgEditEvent"
+                header="#{msg.studyEvent_edit}"
+                widgetVar="viewEventDialog"
+                resizable="false"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
             <h:form id="eventDetailsForm">
                 <p:panelGrid
-                    id="detailsDisplayEvent"
-                    columns="2"
-                    cellpadding="4"
-                    style="margin:0 auto;"
-                    >
+                        id="detailsDisplayEvent"
+                        columns="2"
+                        cellpadding="4"
+                        style="margin:0 auto;"
+                >
 
                     <!-- Study Event Name -->
-                    <h:outputLabel value="#{msg.studyEvent_name}:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.name}" />
+                    <h:outputLabel value="#{msg.studyEvent_name}:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.name}"/>
 
                     <!-- Study Event Description -->
-                    <h:outputLabel value="#{msg.studyEvent_description}:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.description}" />
+                    <h:outputLabel value="#{msg.studyEvent_description}:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.description}"/>
 
                     <!-- Category -->
-                    <h:outputLabel value="#{msg.studyEvent_category}:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.category}" />
+                    <h:outputLabel value="#{msg.studyEvent_category}:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.category}"/>
 
                     <!-- Type -->
-                    <h:outputLabel value="#{msg.studyEvent_type}:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.type}" />
+                    <h:outputLabel value="#{msg.studyEvent_type}:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.eventDefinition.type}"/>
 
                     <!-- Start Date -->
-                    <h:outputLabel value="#{msg.studyEvent_startDate}:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.startDate}" />
+                    <h:outputLabel value="#{msg.studyEvent_startDate}:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.comparableStartDateString}"/>
 
                     <!-- Status -->
-                    <h:outputLabel value="#{msg.studyEvent_status}:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.status}" />
+                    <h:outputLabel value="#{msg.studyEvent_status}:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.status}"/>
 
                     <!-- Original repeat key -->
-                    <h:outputLabel value="Original #{msg.studyEvent} RepeatKey:" />
-                    <h:outputText value="#{mbStudy.originalEventRepeatKey}" />
+                    <h:outputLabel value="Original #{msg.studyEvent} RepeatKey:"/>
+                    <h:outputText value="#{mbStudy.originalEventRepeatKey}"/>
 
                     <!-- New repeat key -->
-                    <h:outputLabel value="#{msg.menu_new} #{msg.studyEvent} RepeatKey:" />
-                    <h:outputText value="#{mbStudy.selectedEventData.studyEventRepeatKey}" />
+                    <h:outputLabel value="#{msg.menu_new} #{msg.studyEvent} RepeatKey:"/>
+                    <h:outputText value="#{mbStudy.selectedEventData.studyEventRepeatKey}"/>
 
                     <!-- Commands -->
-                    <h:outputLabel value="#{msg.menu_commands}:" />
+                    <h:outputLabel value="#{msg.menu_commands}:"/>
                     <p:commandButton
-                        icon="ui-icon-minusthick"
-                        update=":eventDetailsForm, :growl"
-                        actionListener="#{mbStudy.assignNewStudyEventRepeatKey(mbStudy.selectedEventData.studyEventRepeatKeyInteger - 1)}"
-                        process="@this eventDetailsForm"
-                        disabled="#{not mbStudy.selectedEventData.eventDefinition.isRepeating or mbStudy.selectedEventData.studyEventRepeatKeyInteger == 1}"
-                        />
+                            icon="ui-icon-minusthick"
+                            update=":eventDetailsForm, :growl"
+                            actionListener="#{mbStudy.assignNewStudyEventRepeatKey(mbStudy.selectedEventData.studyEventRepeatKeyInteger - 1)}"
+                            process="@this eventDetailsForm"
+                            disabled="#{not mbStudy.selectedEventData.eventDefinition.isRepeating or mbStudy.selectedEventData.studyEventRepeatKeyInteger == 1}"
+                    />
 
-                    <h:outputLabel value="" />
+                    <h:outputLabel value=""/>
                     <p:commandButton
-                        icon="ui-icon-plusthick"
-                        update=":eventDetailsForm, :growl"
-                        actionListener="#{mbStudy.assignNewStudyEventRepeatKey(mbStudy.selectedEventData.studyEventRepeatKeyInteger + 1)}"
-                        process="@this eventDetailsForm"
-                        disabled="#{not mbStudy.selectedEventData.eventDefinition.isRepeating or mbStudy.selectedEventData.studyEventRepeatKeyInteger == mbStudy.rpbSelectedStudySubject.getEventOccurrencesCountForEventDef(mbStudy.selectedEventData.eventDefinition)}"
-                        />
+                            icon="ui-icon-plusthick"
+                            update=":eventDetailsForm, :growl"
+                            actionListener="#{mbStudy.assignNewStudyEventRepeatKey(mbStudy.selectedEventData.studyEventRepeatKeyInteger + 1)}"
+                            process="@this eventDetailsForm"
+                            disabled="#{not mbStudy.selectedEventData.eventDefinition.isRepeating or mbStudy.selectedEventData.studyEventRepeatKeyInteger == mbStudy.rpbSelectedStudySubject.getEventOccurrencesCountForEventDef(mbStudy.selectedEventData.eventDefinition)}"
+                    />
 
                     <!-- Footer -->
                     <f:facet name="footer">
                         <p:commandButton
-                            id="btnSaveEvent"
-                            value="#{msg.menu_save}"
-                            update=":form:tabView:dtStudyEvents, :growl"
-                            icon="ui-icon-disk"
-                            actionListener="#{mbStudy.updateStudyEvent}"
-                            oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgEditEvent','eventDetailsForm');"
-                            process="@this eventDetailsForm"
-                            disabled="#{not mbStudy.selectedEventData.eventDefinition.isRepeating or mbStudy.selectedEventData.studyEventRepeatKeyInteger == mbStudy.originalEventRepeatKey}"
-                            />
+                                id="btnSaveEvent"
+                                value="#{msg.menu_save}"
+                                update=":form:tabView:dtStudyEvents, :growl"
+                                icon="ui-icon-disk"
+                                actionListener="#{mbStudy.updateStudyEvent}"
+                                oncomplete=" handleSubmitRequest(xhr, status, args, 'dlgEditEvent','eventDetailsForm');"
+                                process="@this eventDetailsForm"
+                                disabled="#{not mbStudy.selectedEventData.eventDefinition.isRepeating or mbStudy.selectedEventData.studyEventRepeatKeyInteger == mbStudy.originalEventRepeatKey}"
+                        />
                     </f:facet>
                 </p:panelGrid>
 
                 <p:blockUI trigger="btnSaveEvent" block="detailsDisplayEvent">
-                    Processing<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
             </h:form>
         </p:dialog>
 
         <!-- Export chart -->
         <p:dialog
-            widgetVar="dlg"
-            showEffect="fade"
-            modal="true"
-            header="Enrollment Progress"
-            resizable="false"
-            closeOnEscape="true"
-            >
-            <p:outputPanel id="outputEnrollmentMultiChart" layout="block" />
+                widgetVar="dlg"
+                showEffect="fade"
+                modal="true"
+                header="Enrollment Progress"
+                resizable="false"
+                closeOnEscape="true"
+        >
+            <p:outputPanel id="outputEnrollmentMultiChart" layout="block"/>
         </p:dialog>
 
         <!-- Submit from dialog -->
-        <!--PF('newEventDialog').hide();-->
         <script type="text/javascript">
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
-                dialog = jQuery('#'+dialogName);
-                if(args.validationFailed) {
-                    dialog.effect("shake", { times:3 }, 100);
+                dialog = jQuery('#' + dialogName);
+                if (args.validationFailed) {
+                    dialog.effect("shake", {times: 3}, 100);
                 } else {
                     clearForm(formName);
 
@@ -1639,11 +1783,13 @@
                     PF('viewEventDialog').hide();
                 }
             }
+
             function clearForm(formName) {
-                jQuery('#'+formName).each(function(){
+                jQuery('#' + formName).each(function () {
                     this.reset();
                 });
             }
+
             function exportChart() {
                 //export image
                 $('#outputEnrollmentMultiChart').empty().append(PF('lineSiteEnrollment').exportAsImage());

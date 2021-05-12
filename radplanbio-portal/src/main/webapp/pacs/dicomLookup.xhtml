@@ -9,6 +9,13 @@
         template="/WEB-INF/layouts/main.xhtml"
 >
 
+    <!-- Metadata -->
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:event type="preRenderView" listener="#{mbDicomLookup.onLoad}"/>
+        </f:metadata>
+    </ui:define>
+
     <!-- Definition of breadcrumbs place holder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
@@ -20,54 +27,29 @@
 
     <!-- Definition of the page content place holder -->
     <ui:define name="content">
-        <p:tabView id="tabView">
-            <p:tab
-                    title="DICOM Lookup"
-                    rendered="#{!mbDicomLookup.collectsDicomData()}"
-            >
 
-                <!--                <p:ajax event="onLoad" listener="#{mbDicomLookup.checkDicomDataFlag()}"/>-->
-            </p:tab>
-            <p:tab
-                    title="DICOM Lookup"
-                    rendered="#{mbDicomLookup.collectsDicomData()}"
-            >
+        <!-- Constants -->
+        <p:importConstants type="de.dktk.dd.rpb.core.util.Constants" var="Constants"/>
+
+        <p:tabView id="tabView">
+            <!-- Show empty page when no DICOM data collection in active study -->
+            <p:tab title="DICOM #{msg.subject} Lookup"  rendered="#{!mbDicomLookup.collectsDicomData()}" />
+            <!-- Otherwise show the lookup GUI -->
+            <p:tab title="DICOM #{msg.subject} Lookup"
+                rendered="#{mbDicomLookup.collectsDicomData()}"
+                >
                 <p:panelGrid
                         columns="1"
                         style="width: 100%"
                 >
                     <!-- Query Panel -->
-                    <p:accordionPanel id="pnlSearch" multiple="true" activeIndex="0,1">
-
-                        <!-- Switch View -->
-                        <p:tab title="#{msg.search_mode}">
-                            <p:panelGrid
-                                    columnClasses="column"
-                                    columns="2"
-                            >
-                                <h:outputLabel value="Root Q/R: *" for="ddlViewType"/>
-                                <p:selectOneButton id="ddlViewType" value="#{mbDicomLookup.viewType}">
-                                    <!-- AJAX update -->
-                                    <p:ajax event="change"
-                                            update=":form:tabView:pnlSearch:pnlSearchCriteria, :growl"/>
-
-                                    <!-- Patient Root Q/R Find -->
-                                    <f:selectItem itemLabel="PATIENT" itemValue="PATIENT"/>
-                                    <!-- Study Root Q/R Find -->
-                                    <f:selectItem itemLabel="STUDY" itemValue="STUDY" itemDisabled="true"/>
-                                </p:selectOneButton>
-                            </p:panelGrid>
-                        </p:tab>
-
-                        <!-- Search Criteria -->
-                        <p:tab title="#{msg.search_criteria}">
-
+                    <p:accordionPanel id="pnlSearch" multiple="true" activeIndex="0">
+                        <p:tab title="#{msg.search_select_one}">
                             <p:panelGrid
                                     id="pnlSearchCriteria"
                                     columnClasses="column"
                                     columns="2"
                             >
-                                <!-- Study Subject-->
                                 <p:outputLabel value="#{msg.studySubject}: " for="ddlStudySubjects"/>
                                 <p:autoComplete
                                         id="ddlStudySubjects"
@@ -79,64 +61,146 @@
                                         inputStyle="width:300px"
                                         dropdown="true"
                                         maxResults="10"
+                                        moreText="There are more results."
                                 >
+                                    <p:ajax
+                                            event="itemSelect"
+                                            listener="#{mbDicomLookup.searchDicomDataByStudySubjectId}"
+                                            update="form:tabView:dtPacsResults,growl,form:tabView:reloadButtonDtPacsResults"/>
                                     <o:converter converterId="omnifaces.ListConverter"
                                                  list="#{mbDicomLookup.studySubjectsList}"/>
-                                    <!-- Pseudonym-->
-                                    <!-- StudySybjectID -->
                                     <p:column headerText="#{msg.studySubject_studySubjectId}">
                                         <h:outputText value="#{studySubject.studySubjectId}"/>
                                     </p:column>
-
-                                    <!-- Pseudonym -->
                                     <p:column headerText="#{msg.studySubject_personId}">
                                         <h:outputText
                                                 value="[#{studySubject.pid}]"
                                                 style="font-family:consolas, courier new,monospace;float: left;"
                                         />
                                     </p:column>
-
-                                    <!-- Gender -->
                                     <p:column headerText="#{msg.studySubject_gender}">
                                         <h:outputText value="#{studySubject.sex}"/>
                                     </p:column>
                                 </p:autoComplete>
+                            </p:panelGrid>
 
+                        </p:tab>
+                        <p:tab title="#{msg.search_select_many}">
+                            <p:panelGrid
+                                    id="pnlBulkSearch"
+                                    columnClasses="column"
+                                    columns="2"
+                            >
+                                <p:outputLabel value="#{msg.studySubject}: " for="ddlStudySubjectList"/>
+                                <p:inputTextarea id="ddlStudySubjectList"
+                                                 value="#{mbDicomLookup.inputStudySubjectBulkString}"
+                                                 rows="6"
+                                                 cols="50"
+                                                 autoResize="false"
+                                >
+                                </p:inputTextarea>
+                                <f:facet name="footer">
+                                    <p:commandButton
+                                            id="searchSubjectsFromBulkTextButton"
+                                            title="#{msg.icon_search}"
+                                            value="#{msg.icon_search}"
+                                            action="#{mbDicomLookup.searchDicomDataFromBulkTextWithPids}"
+                                            icon="ui-icon-search"
+                                            ajax="true"
+                                            update="form:tabView:dtPacsResults,growl,form:tabView:reloadButtonDtPacsResults"
+                                    />
+                                </f:facet>
+                            </p:panelGrid>
+
+                        </p:tab>
+                        <p:tab
+                                title="#{msg.study} #{msg.person_patient_plural} #{msg.menu_search}"
+                                rendered="#{mbDicomLookup.isInStudyZero()}"
+                        >
+                            <p:panelGrid
+                                    id="pnlBulkSearchStudyZero"
+                                    columnClasses="column"
+                                    columns="2"
+
+                            >
+                                <h:outputLabel value="#{msg.study}:"/>
+
+                                <p:selectOneMenu
+                                        id="selectOneMenuStudyZeroBulkSearch"
+                                        value="#{mbDicomLookup.selectedEdcStudy}"
+                                        converter="omnifaces.SelectItemsConverter"
+                                        filter="true"
+                                        filterMatchMode="contains"
+                                        var="edcStudy"
+                                        style="width:400px"
+
+                                >
+                                    <!-- Items -->
+                                    <f:selectItem itemLabel="#{msg.search_select_one}"
+                                                  itemValue=""
+                                                  noSelectionOption="true"
+                                    />
+                                    <f:selectItems
+                                            value="#{mbDicomLookup.getAllEdcStudySitesExceptStudyZero()}"
+                                            itemLabel="#{study.getOcStudyName()}"
+                                            itemValue="#{study}"
+                                            var="study"
+                                    />
+                                    <p:column headerText="#{msg.study_name}">
+                                        <h:outputText value="#{edcStudy.getOcStudyName()}" title="#{edcStudy.oid}"/>
+                                    </p:column>
+                                    <p:column headerText="#{msg.study_partnerSites}">
+                                        <h:outputText value="#{edcStudy.getOcSiteName()}" title="#{edcStudy.oid}"/>
+                                    </p:column>
+                                    <p:column headerText="#{msg.study_edcIdentifier }">
+                                        <h:outputText value="#{edcStudy.uniqueIdentifier}" title="#{edcStudy.oid}"/>
+                                    </p:column>
+
+                                    <!-- AJAX update of studies datatable -->
+                                    <p:ajax
+                                            event="itemSelect"
+                                            listener="#{mbDicomLookup.searchStudySpecificSubjects()}"
+                                            update="form:tabView:dtPacsResults,growl,form:tabView:reloadButtonDtPacsResults"
+                                    />
+
+
+                                </p:selectOneMenu>
                             </p:panelGrid>
                         </p:tab>
                     </p:accordionPanel>
-                    <f:facet name="footer">
-                        <p:commandButton
-                                id="searchSubjectButton"
-                                title="#{msg.icon_search}"
-                                value="#{msg.icon_search}"
-                                action="#{mbDicomLookup.searchDicomDataByStudySubjectId}"
-                                icon="ui-icon-search"
-                                ajax="true"
-                                update="dtPacsResults,growl,reloadButtonDtPacsResults"
-                        />
-                    </f:facet>
+
                 </p:panelGrid>
 
-                <p:blockUI block="dtPacsResults" trigger="searchSubjectButton"/>
+                <p:blockUI block="tabView" trigger="form:tabView:pnlSearch:ddlStudySubjects">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
+
+                <p:blockUI block="tabView" trigger="form:tabView:pnlSearch:selectOneMenuStudyZeroBulkSearch">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
+                <p:blockUI block="tabView" trigger="form:tabView:pnlSearch:searchSubjectsFromBulkTextButton">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
+                <p:blockUI block="tabView" trigger="form:tabView:reloadButtonDtPacsResults">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
                 <p:toolbar>
                     <p:toolbarGroup align="left">
                         <p:commandButton
                                 id="reloadButtonDtPacsResults"
                                 value="#{msg.menu_reload}"
-                                title="#{msg.studyEvent_reload}"
+                                title="#{msg.subject_reload}"
                                 icon="ui-icon-refresh"
                                 style="float: left;"
                                 ajax="true"
-                                action="#{mbDicomLookup.searchDicomDataByStudySubjectId}"
+                                action="#{mbDicomLookup.searchDicomDataByStudySubjectList}"
                                 update="dtPacsResults"
                                 disabled="#{mbDicomLookup.getResultSubjectList() == null}"
                         />
                     </p:toolbarGroup>
-                    <!-- Right -->
                     <p:toolbarGroup align="right">
                         <p:commandButton
-                                id="dtPacsResultToggler"
+                                id="dtPacsResultTogglerButton"
                                 value="#{msg.menu_columns}"
                                 icon="ui-icon-calculator"
                         />
@@ -159,9 +223,16 @@
                                 action="#{mbMain.navigateToHelp('x1-240003')}"
                         />
                         <p:columnToggler
+                                id="dtPacsResultColumnToggler"
                                 datasource="dtPacsResults"
-                                trigger="dtPacsResultToggler"
-                        />
+                                trigger="dtPacsResultTogglerButton">
+                            <p:ajax
+                                    event="toggle"
+                                    listener="#{mbDicomLookup.onEntityToggle}"
+                                    update="dtPacsResults"
+                            />
+                        </p:columnToggler>
+
                     </p:toolbarGroup>
                 </p:toolbar>
                 <p:dataTable
@@ -181,13 +252,14 @@
                         rowIndexVar="rowIndex"
                         sortMode="multiple"
                         sortBy="#{mbDicomLookup.preSortOrder}"
+                        ajax="true"
                 >
                     <p:column style="width:10px"
                               exportable="false"
                               filterable="false"
                               toggleable="false"
                     >
-                        <p:rowToggler></p:rowToggler>
+                        <p:rowToggler/>
                     </p:column>
                     <p:column headerText="#"
                               exportable="false"
@@ -203,7 +275,7 @@
                             headerText="#{msg.subject_uniqueIdentifier}"
                             sortBy="#{subject.uniqueIdentifier}"
                             filterBy="#{subject.uniqueIdentifier}"
-                            visible='#{mbDicomLookup.componentIsVisible("uniqueIdentifier")}'
+                            visible="#{mbDicomLookup.columnVisibilityList[1]}"
                     >
                         <h:outputText
                                 style="font-family:consolas, courier new,monospace;float: left;"
@@ -213,7 +285,7 @@
                             headerText="#{msg.subject_studySubjectId}"
                             sortBy="#{subject.studySubjectId}"
                             filterBy="#{subject.studySubjectId}"
-                            visible='#{mbDicomLookup.componentIsVisible("studySubjectId")}'
+                            visible='#{mbDicomLookup.columnVisibilityList[2]}'
                     >
                         <h:outputText
                                 style="float: left;"
@@ -224,7 +296,7 @@
                             headerText="#{msg.subject_secondaryId}"
                             sortBy="#{subject.secondaryId}"
                             filterBy="#{subject.secondaryId}"
-                            visible='#{mbDicomLookup.componentIsVisible("secondaryId")}'
+                            visible="#{mbDicomLookup.columnVisibilityList[3]}"
                     >
                         <h:outputText
                                 value="#{subject.secondaryId}"
@@ -236,7 +308,7 @@
                             sortBy="#{subject.gender}"
                             filterBy="#{subject.gender}"
                             filterMatchMode="in"
-                            visible='#{mbDicomLookup.componentIsVisible("gender")}'
+                            visible="#{mbDicomLookup.columnVisibilityList[4]}"
                     >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
@@ -258,7 +330,7 @@
                             sortBy="#{subject.comparableEnrollmentDate}"
                             filterBy="#{subject.getEnrollmentDateString()}"
                             filterMatchMode="contains"
-                            visible='#{mbDicomLookup.componentIsVisible("enrollmentDate")}'
+                            visible='#{mbDicomLookup.columnVisibilityList[5]}'
                     >
                         <h:outputText
                                 value="#{subject.getEnrollmentDateString()}"
@@ -273,7 +345,7 @@
                             toggleable="false"
                     >
                         <p:commandButton
-                                id="editStudyButton"
+                                id="editStagedSubject"
                                 icon="ui-icon-contact"
                                 title="#{msg.menu_edit}"
                                 update="dlgDicomStudyEdit"
@@ -338,14 +410,36 @@
                                 />
                             </p:column>
                             <p:column
-                                    headerText="#{msg.stage_one} #{msg.dicomStudy_studyInstanceUID}"
-                                    sortBy="#{study.studyInstanceUID}"
-                                    filterBy="#{study.studyInstanceUID}"
+                                    headerText="#{msg.clinical} #{msg.dicomStudy_studyInstanceUID}"
+                                    sortBy="#{study.getClinicalStudyInstanceUid()}"
+                                    filterBy="#{study.getClinicalStudyInstanceUid()}"
                                     visible="false"
                             >
                                 <h:outputText
                                         style="float: left;"
-                                        value="#{study.studyInstanceUID}"
+                                        value="#{study.getClinicalStudyInstanceUid()}"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.stage_one} #{msg.dicomStudy_studyInstanceUID}"
+                                    sortBy="#{study.getStageOneStudyInstanceUid()}"
+                                    filterBy="#{study.getStageOneStudyInstanceUid()}"
+                                    visible="false"
+                            >
+                                <h:outputText
+                                        style="float: left;"
+                                        value="#{study.getStageOneStudyInstanceUid()}"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.stage_two} #{msg.dicomStudy_studyInstanceUID}"
+                                    sortBy="#{study.getStageTwoStudyInstanceUid()}"
+                                    filterBy="#{study.getStageTwoStudyInstanceUid()}"
+                                    visible="false"
+                            >
+                                <h:outputText
+                                        style="float: left;"
+                                        value="#{study.getStageTwoStudyInstanceUid()}"
                                 />
                             </p:column>
                             <p:column
@@ -371,49 +465,62 @@
                                 </h:outputText>
                             </p:column>
                             <p:column
+                                    id="stageOneRepresentationColumn"
                                     headerText="#{msg.stage_one}"
-                                    sortBy="#{study.hasStageOneRepresentation}"
-                                    filterBy="#{study.hasStageOneRepresentation}"
-                                    visible="flase"
+                                    sortBy="#{study.hasStageOneRepresentation()}"
+                                    filterBy="#{study.hasStageOneRepresentation()}"
+                                    visible="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
                                     style="width:30px"
                             >
                                 <f:facet name="filter">
-                                    <p:selectOneButton
+                                    <p:selectOneMenu
                                             onchange="PF('packsResultSubTable').filter()"
                                             label="filter"
                                     >
                                         <f:converter converterId="javax.faces.Boolean"/>
-                                        <f:selectItem itemLabel="No Filter" itemValue=""/>
-                                        <f:selectItem itemLabel="Yes" itemValue="true"/>
-                                        <f:selectItem itemLabel="No" itemValue="false"/>
-                                    </p:selectOneButton>
+                                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
+                                        <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                        <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                                    </p:selectOneMenu>
                                 </f:facet>
-                                <h:outputText
-                                        value="#{study.hasStageOneRepresentation}"
-                                >
-                                </h:outputText>
+                                <p:selectBooleanButton
+                                        value="#{study.hasStageOneRepresentation()}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
                             </p:column>
                             <p:column
                                     headerText="#{msg.stage_two}"
-                                    sortBy="#{study.hasStageTwoRepresentation}"
-                                    filterBy="#{study.hasStageTwoRepresentation}"
+                                    sortBy="#{study.hasStageTwoRepresentation()}"
+                                    filterBy="#{study.hasStageTwoRepresentation()}"
+                                    visible="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
                                     style="width:30px"
                             >
                                 <f:facet name="filter">
-                                    <p:selectOneButton
+                                    <p:selectOneMenu
                                             onchange="PF('packsResultSubTable').filter()"
                                             label="filter"
                                     >
                                         <f:converter converterId="javax.faces.Boolean"/>
-                                        <f:selectItem itemLabel="No Filter" itemValue=""/>
-                                        <f:selectItem itemLabel="Yes" itemValue="true"/>
-                                        <f:selectItem itemLabel="No" itemValue="false"/>
-                                    </p:selectOneButton>
+                                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
+                                        <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                        <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                                    </p:selectOneMenu>
                                 </f:facet>
-                                <h:outputText
-                                        value="#{study.hasStageTwoRepresentation}"
-                                >
-                                </h:outputText>
+
+                                <p:selectBooleanButton
+                                        value="#{study.hasStageTwoRepresentation()}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
                             </p:column>
                             <p:column
                                     headerText="#{msg.menu_commands}"
@@ -423,13 +530,31 @@
                                     toggleable="false"
                             >
                                 <p:commandButton
+                                        id="downloadStudyDataButton"
+                                        icon="ui-icon-arrowthick-1-s"
+                                        title="#{msg.menu_download}"
+                                        action="#{mbDicomLookup.downloadDicomStudy()}"
+                                        update=":growl"
+                                        process="@this"
+                                        immediate="true"
+                                        ajax="false"
+                                        disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD') or !study.isStaged()}"
+                                >
+                                    <f:setPropertyActionListener
+                                            value="#{study}"
+                                            target="#{mbDicomLookup.selectedDicomStudy}"
+                                    />
+                                    <f:setPropertyActionListener
+                                            value="#{subject}"
+                                            target="#{mbDicomLookup.selectedSubject}"/>
+                                </p:commandButton>
+                                <p:commandButton
                                         id="searchSeriesDataButton"
                                         icon="ui-icon-contact"
                                         title="#{msg.menu_edit}"
                                         action="#{mbDicomLookup.searchDicomSeriesOnPacs()}"
                                         oncomplete="PF('editEntityDialog').show();"
                                         update="dlgDicomStudyEdit"
-                                        rendered="#{study.hasStageOneRepresentation}"
                                         ajax="true"
                                 >
                                     <f:setPropertyActionListener
@@ -440,7 +565,10 @@
                                             value="#{subject}"
                                             target="#{mbDicomLookup.selectedSubject}"/>
                                 </p:commandButton>
-                                <p:blockUI block="searchSeriesDataButton" trigger="searchSeriesDataButton"/>
+
+                                <p:blockUI block="form:tabView" trigger="searchSeriesDataButton">
+                                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                                </p:blockUI>
                             </p:column>
                             <f:facet name="footer">
                                 <h:outputText value="#{msg.search_results_status_0}"
@@ -457,18 +585,6 @@
                         </p:dataTable>
                     </p:rowExpansion>
                 </p:dataTable>
-                <p:toolbar>
-                    <p:toolbarGroup align="left" rendered="#{mbDicomLookup.getResultSubjectList() != null}">
-                        <h:commandLink>
-                            <p:graphicImage library="img" name="excel.png" title="xls"/>
-                            <p:dataExporter type="xls" target="dtPacsResults" fileName="#{msg.subject}"/>
-                        </h:commandLink>
-                        <h:commandLink>
-                            <p:graphicImage library="img" name="csv.png" title="csv"/>
-                            <p:dataExporter type="csv" target="dtPacsResults" fileName="#{msg.subject}"/>
-                        </h:commandLink>
-                    </p:toolbarGroup>
-                </p:toolbar>
             </p:tab>
         </p:tabView>
     </ui:define>
@@ -488,32 +604,20 @@
         >
             <p:ajax event="close" listener="#{mbDicomLookup.clearSelectedDicomSeries()}"/>
             <h:form id="dicomStagedSeriesDialogForm">
-                <p:panel style="width: auto;">
+                <p:panel style="width: auto; height: auto">
                     <p:panelGrid id="dicomStagedSeriesGrid">
                         <p:row>
                             <p:column>
-                                <h:outputText value="#{msg.subject} #{msg.subject_uniqueIdentifier}"/>
+                                <h:outputText value="#{msg.subject} #{msg.subject_uniqueIdentifier}:"/>
                             </p:column>
                             <p:column>
                                 <h:outputText value="#{mbDicomLookup.selectedSubject.uniqueIdentifier}"/>
                             </p:column>
-                            <p:column rowspan="6">
-                                <p:commandButton
-                                        id="stageCompleteDicomSeries"
-                                        icon="ui-icon-play"
-                                        value="#{msg.menu_stage} #{msg.study}"
-                                        title="#{msg.menu_edit}"
-                                        action="#{mbDicomLookup.stageCompleteDicomStudy()}"
-                                        oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
-                                        ajax="true"
-                                />
-                                <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageCompleteDicomSeries"/>
-                            </p:column>
+
                         </p:row>
                         <p:row>
                             <p:column>
-                                <h:outputText
-                                        value="#{msg.dicomStudy_studyDescription}"/>
+                                <h:outputText value="#{msg.dicomStudy} #{msg.dicomStudy_studyDescription}:"/>
                             </p:column>
                             <p:column>
                                 <h:outputText value="#{mbDicomLookup.selectedDicomStudy.studyDescription}"/>
@@ -521,8 +625,7 @@
                         </p:row>
                         <p:row>
                             <p:column>
-                                <h:outputText
-                                        value="#{msg.dicomStudy_modalities}"/>
+                                <h:outputText value="#{msg.dicomStudy} #{msg.dicomStudy_modalities}:"/>
                             </p:column>
                             <p:column>
                                 <h:outputText value="#{mbDicomLookup.selectedDicomStudy.getStudyType()}"/>
@@ -530,33 +633,59 @@
                         </p:row>
                         <p:row>
                             <p:column>
-                                <h:outputText value="#{msg.dicomStudy_studyDate}"/>
+                                <h:outputText value="#{msg.dicomStudy} #{msg.dicomStudy_studyDate}:"/>
                             </p:column>
                             <p:column>
                                 <h:outputText value="#{mbDicomLookup.selectedDicomStudy.getDateStudy()}">
-                                    <f:convertDateTime pattern="dd.MM.yyyy"/>
+                                    <f:convertDateTime pattern="#{Constants.RPB_DATEFORMAT}"/>
                                 </h:outputText>
                             </p:column>
                         </p:row>
-                        <p:row>
+                        <p:row rendered="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}">
                             <p:column>
-                                <h:outputText
-                                        value="#{msg.stage_one} #{msg.dicomStudy_studyInstanceUID}"/>
+                                <h:outputText value="#{msg.clinical} #{msg.dicomStudy_studyInstanceUID}:"/>
                             </p:column>
                             <p:column>
-                                <h:outputText value="#{mbDicomLookup.selectedDicomStudy.studyInstanceUID}"/>
+                                <h:outputText value="#{mbDicomLookup.selectedDicomStudy.clinicalStudyInstanceUid}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column>
+                                <h:outputText value="#{msg.stage_one} #{msg.dicomStudy_studyInstanceUID}:"/>
+                            </p:column>
+                            <p:column>
+                                <h:outputText value="#{mbDicomLookup.selectedDicomStudy.stageOneStudyInstanceUid}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row rendered="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}">
+                            <p:column>
+                                <h:outputText value="#{msg.stage_two} #{msg.dicomStudy_studyInstanceUID}:"/>
+                            </p:column>
+                            <p:column>
+                                <h:outputText value="#{mbDicomLookup.selectedDicomStudy.stageTwoStudyInstanceUid}"/>
                             </p:column>
                         </p:row>
                         <p:row>
                             <p:column>
-                                <h:outputText
-                                        value="#{msg.stage_two} #{msg.dicomStudy_studyInstanceUID}"/>
+                                <h:outputText value="#{msg.menu_commands}:"/>
                             </p:column>
                             <p:column>
-                                <h:outputText value="#{mbDicomLookup.selectedDicomStudy.stageTwoStudyInstanceUID}"/>
+                                <p:commandButton
+                                        id="stageCompleteDicomSeries"
+                                        icon="ui-icon-play"
+                                        value="#{msg.menu_stage} #{msg.dicomStudy}"
+                                        title="#{msg.menu_stage}"
+                                        action="#{mbDicomLookup.stageCompleteDicomStudy()}"
+                                        oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
+                                        ajax="true"
+                                        style="float: left;"
+                                        disabled="#{!userContext.hasRole('ROLE_PACS_UPLOAD')}"
+                                />
+                                <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageCompleteDicomSeries">
+                                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                                </p:blockUI>
                             </p:column>
                         </p:row>
-
                     </p:panelGrid>
                 </p:panel>
                 <p:toolbar>
@@ -581,8 +710,8 @@
                         paginator="true"
                         paginatorAlwaysVisible="false"
                         draggableColumns="false"
-                        rows="15"
-                        rowsPerPageTemplate="15,25,50"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
                         emptyMessage="#{msg.search_empty}"
                         rowIndexVar="rowIndexDicomSeriesDetailTable"
                         selection="#{mbDicomLookup.selectedDicomSeries}"
@@ -592,8 +721,16 @@
                 >
                     <p:ajax event="rowSelectCheckbox" update="dicomStagedSeriesDialogForm"/>
                     <p:ajax event="rowUnselectCheckbox" update="dicomStagedSeriesDialogForm"/>
+                    <p:ajax event="rowSelect" update="dicomStagedSeriesDialogForm"/>
                     <p:ajax event="toggleSelect" update="dicomStagedSeriesDialogForm"/>
 
+                    <p:column
+                            selectionMode="multiple"
+                            exportable="false"
+                            toggleable="false"
+                            style="width:16px"
+                    >
+                    </p:column>
                     <p:column headerText="#"
                               exportable="false"
                               toggleable="false"
@@ -603,15 +740,38 @@
                                 style="float: left;"
                         />
                     </p:column>
-
                     <p:column
-                            id="seriesUidColumn"
-                            headerText="#{msg.stage_one} #{msg.dicomSeries_seriesInstanceUID}"
-                            sortBy="#{dicomSeries.seriesInstanceUID}"
-                            filterBy="#{dicomSeries.seriesInstanceUID}"
+                            id="seriesClinicalUidColumn"
+                            headerText="#{msg.clinical} #{msg.dicomSeries_seriesInstanceUID}"
+                            sortBy="#{dicomSeries.clinicalSeriesUid}"
+                            filterBy="#{dicomSeries.clinicalSeriesUid}"
                             visible="false"
                     >
-                        <h:outputText value="#{dicomSeries.seriesInstanceUID}"/>
+                        <h:outputText value="#{dicomSeries.clinicalSeriesUid}"
+                                      style="float: left"
+                        />
+                    </p:column>
+                    <p:column
+                            id="seriesStageOneUidColumn"
+                            headerText="#{msg.stage_one} #{msg.dicomSeries_seriesInstanceUID}"
+                            sortBy="#{dicomSeries.stageOneSeriesUid}"
+                            filterBy="#{dicomSeries.stageOneSeriesUid}"
+                            visible="false"
+                    >
+                        <h:outputText value="#{dicomSeries.stageOneSeriesUid}"
+                                      style="float: left"
+                        />
+                    </p:column>
+                    <p:column
+                            id="seriesStageTwoUidColumn"
+                            headerText="#{msg.stage_two} #{msg.dicomSeries_seriesInstanceUID}"
+                            sortBy="#{dicomSeries.stageTwoSeriesUid}"
+                            filterBy="#{dicomSeries.stageTwoSeriesUid}"
+                            visible="false"
+                    >
+                        <h:outputText value="#{dicomSeries.stageTwoSeriesUid}"
+                                      style="float: left"
+                        />
                     </p:column>
                     <p:column
                             headerText="#{msg.dicomSeries_seriesDescription}"
@@ -642,34 +802,86 @@
                         </h:outputText>
                     </p:column>
                     <p:column
-                            headerText="#{msg.stage_two}"
-                            sortBy="#{dicomSeries.hasStageTwoRepresentation()}"
-                            filterBy="#{dicomSeries.hasStageTwoRepresentation()}"
+                            headerText="#{msg.stage_one}"
+                            sortBy="#{dicomSeries.isStageOneRepresentation()}"
+                            filterBy="#{dicomSeries.isStageOneRepresentation()}"
+                            visible="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
                             style="width:30px"
                     >
                         <f:facet name="filter">
-                            <p:selectOneButton
+                            <p:selectOneMenu
                                     onchange="PF('DicomStudyDetailTableWidget').filter()"
                                     label="filter"
                             >
                                 <f:converter converterId="javax.faces.Boolean"/>
-                                <f:selectItem itemLabel="No Filter" itemValue=""/>
-                                <f:selectItem itemLabel="Yes" itemValue="true"/>
-                                <f:selectItem itemLabel="No" itemValue="false"/>
-                            </p:selectOneButton>
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                            </p:selectOneMenu>
                         </f:facet>
-                        <h:outputText
-                                value="#{dicomSeries.hasStageTwoRepresentation()}"
-                        >
-                        </h:outputText>
+                        <p:selectBooleanButton
+                                value="#{dicomSeries.isStageOneRepresentation()}"
+                                onLabel="#{msg.yes}"
+                                offLabel="#{msg.no}"
+                                onIcon="ui-icon-check"
+                                offIcon="ui-icon-close"
+                                disabled="true"
+                                style="width:60px"
+                        />
                     </p:column>
                     <p:column
-                            selectionMode="multiple"
-                            exportable="false"
-                            toggleable="false"
-                            style="width:16px"
+                            headerText="#{msg.stage_two}"
+                            sortBy="#{dicomSeries.isStageTwoRepresentation()}"
+                            filterBy="#{dicomSeries.isStageTwoRepresentation()}"
+                            visible="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                            style="width:30px"
                     >
+                        <f:facet name="filter">
+                            <p:selectOneMenu
+                                    onchange="PF('DicomStudyDetailTableWidget').filter()"
+                                    label="filter"
+                            >
+                                <f:converter converterId="javax.faces.Boolean"/>
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
+                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:selectBooleanButton
+                                value="#{dicomSeries.isStageTwoRepresentation()}"
+                                onLabel="#{msg.yes}"
+                                offLabel="#{msg.no}"
+                                onIcon="ui-icon-check"
+                                offIcon="ui-icon-close"
+                                disabled="true"
+                                style="width:60px"
+                        />
                     </p:column>
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            style="width:30px"
+                            exportable="false"
+                            filterable="false"
+                            toggleable="false"
+                    >
+                        <p:commandButton
+                                id="downloadSeriesDataButton"
+                                icon="ui-icon-arrowthick-1-s"
+                                title="#{msg.menu_download}"
+                                action="#{mbDicomLookup.downloadDicomSeries()}"
+                                update=":growl"
+                                process="@this"
+                                immediate="true"
+                                ajax="false"
+                                disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD') or !dicomSeries.isStaged() }"
+                        >
+                            <f:setPropertyActionListener
+                                    value="#{dicomSeries}"
+                                    target="#{mbDicomLookup.selectedStagedDicomSeries}"
+                            />
+                        </p:commandButton>
+                    </p:column>
+
                     <f:facet name="footer">
                         <h:outputText value="#{msg.search_results_status_0}"
                                       rendered="#{mbDicomLookup.stagedDicomSeries.size() == 0}"/>
@@ -700,13 +912,15 @@
                         <p:commandButton
                                 id="stageSelectedDicomSerie"
                                 icon="ui-icon-play"
-                                value="#{msg.menu_stage} #{msg.selection}"
-                                title="#{msg.menu_edit}"
-                                disabled="#{mbDicomLookup.selectedDicomSeries.size() == 0}"
+                                value="#{msg.menu_stage} #{msg.dicomSeries_plural}"
+                                title="#{msg.menu_stage}"
+                                disabled="#{mbDicomLookup.selectedDicomSeries.size() == 0 || !userContext.hasRole('ROLE_PACS_UPLOAD')}"
                                 action="#{mbDicomLookup.stageChosenDicomSeries()}"
                                 oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
                         />
-                        <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageSelectedDicomSerie"/>
+                        <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageSelectedDicomSerie">
+                            #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                        </p:blockUI>
                     </f:facet>
                 </p:toolbar>
             </h:form>
@@ -715,7 +929,7 @@
         <!-- Submit from dialog -->
         <script type="text/javascript">
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
-                dialog = jQuery('#' + dialogName);
+                var dialog = jQuery('#' + dialogName);
                 if (args.validationFailed) {
                     dialog.effect("shake", {times: 3}, 100);
                 } else {

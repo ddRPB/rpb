@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@ import java.util.List;
  * @since 24 Feb 2015
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="StudyEventData")
-public class EventData implements Identifiable<Integer>, Serializable {
+@XmlType(name = "StudyEventData")
+public class EventData implements Identifiable<Integer>, Serializable, Comparable<EventData> {
 
     //region Finals
 
@@ -58,25 +58,31 @@ public class EventData implements Identifiable<Integer>, Serializable {
     @XmlTransient
     private Integer id;
 
-    @XmlAttribute(name="StudyEventOID")
+    @XmlAttribute(name = "StudyEventOID")
     private String studyEventOid;
 
-    @XmlAttribute(name="EventName", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlAttribute(name = "EventName", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private String eventName;
 
-    @XmlAttribute(name="StartDate", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlAttribute(name = "StartDate", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private String startDate;
 
-    @XmlAttribute(name="Status", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlTransient
+    private String endDate;
+
+    @XmlAttribute(name = "Status", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private String status;
 
-    @XmlAttribute(name="StudyEventRepeatKey")
+    @XmlTransient
+    private String systemStatus;
+
+    @XmlAttribute(name = "StudyEventRepeatKey")
     private String studyEventRepeatKey;
 
     @XmlTransient
     private EventDefinition eventDefinition;
 
-    @XmlElement(name="FormData")
+    @XmlElement(name = "FormData")
     private List<FormData> formDataList;
 
     @XmlTransient
@@ -140,8 +146,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
     public String getEventName() {
         if (this.eventName != null) {
             return this.eventName;
-        }
-        else if (this.eventDefinition != null) {
+        } else if (this.eventDefinition != null) {
             return this.eventDefinition.getName();
         }
 
@@ -173,6 +178,12 @@ public class EventData implements Identifiable<Integer>, Serializable {
         return null;
     }
 
+    public String getComparableStartDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getComparableStartDate();
+        return date != null ? format.format(date) : null;
+    }
+
     public void setStartDate(String startDate) {
         this.startDate = startDate;
     }
@@ -180,11 +191,50 @@ public class EventData implements Identifiable<Integer>, Serializable {
     public void setStartDate(Date startDate) {
         DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
         this.startDate = format.format(startDate);
-
     }
 
     public void setStartDate(XMLGregorianCalendar startDate) {
         this.setStartDate(startDate.toGregorianCalendar().getTime());
+    }
+
+    //endregion
+
+    //region EndDate
+
+    public String getEndDate() {
+        return this.endDate;
+    }
+
+    public Date getComparableEndDate() {
+        if (this.endDate != null && !this.endDate.equals("")) {
+            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+            try {
+                return format.parse(this.startDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public String getComparableEndDateString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getComparableEndDate();
+        return date != null ? format.format(date) : null;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+        this.endDate = format.format(endDate);
+    }
+
+    public void setEndDate(XMLGregorianCalendar endDate) {
+        this.setEndDate(endDate.toGregorianCalendar().getTime());
     }
 
     //endregion
@@ -201,6 +251,18 @@ public class EventData implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region SystemStatus
+
+    public String getSystemStatus() {
+        return this.systemStatus;
+    }
+
+    public void setSystemStatus(String value) {
+        this.systemStatus = value;
+    }
+
+    //endregion
+
     //region StudyEventRepeatKey
 
     public String getStudyEventRepeatKey() {
@@ -210,8 +272,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
     public Integer getStudyEventRepeatKeyInteger() {
         if (this.studyEventRepeatKey != null && !this.studyEventRepeatKey.isEmpty()) {
             return Integer.parseInt(this.studyEventRepeatKey);
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -274,6 +335,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
 
     /**
      * Helper method to determine whether passed form OID is present in the formDataList list
+     *
      * @param formOid formOid to lookup for
      * @return true if the formData with specified form OID exists within event
      */
@@ -291,6 +353,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
 
     /**
      * Helper method to get formData according to form OID
+     *
      * @param formOid formOid to lookup for
      * @return formData if exists
      */
@@ -322,6 +385,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
 
     /**
      * Generate entity hash code
+     *
      * @return hash
      */
     @Override
@@ -332,6 +396,7 @@ public class EventData implements Identifiable<Integer>, Serializable {
 
     /**
      * Construct a readable string representation for this RtStructType instance.
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -410,6 +475,38 @@ public class EventData implements Identifiable<Integer>, Serializable {
         }
 
         return results;
+    }
+
+    /**
+     * Compares this object with the specified object for order.  Returns a
+     * negative integer, zero, or a positive integer as this object is less
+     * than, equal to, or greater than the specified object.
+     *
+     * @param o the object to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     * is less than, equal to, or greater than the specified object.
+     * @throws NullPointerException if the specified object is null
+     * @throws ClassCastException   if the specified object's type prevents it
+     *                              from being compared to this object.
+     */
+
+    @Override
+    public int compareTo(EventData o) {
+        if (this.getStudyEventOid().equalsIgnoreCase(o.getStudyEventOid())) {
+
+            if (this.getStudyEventRepeatKey() != null) {
+                // null < any Integer
+                if (o.getStudyEventRepeatKey() == null) return 1;
+
+                if (Integer.valueOf(this.getStudyEventRepeatKey()) < Integer.valueOf(o.getStudyEventRepeatKey()))
+                    return -1;
+                if (Integer.valueOf(this.getStudyEventRepeatKey()) > Integer.valueOf(o.getStudyEventRepeatKey()))
+                    return 1;
+            }
+            return 0;
+        } else {
+            return this.getStudyEventOid().compareTo(o.getStudyEventOid());
+        }
     }
 
     //endregion

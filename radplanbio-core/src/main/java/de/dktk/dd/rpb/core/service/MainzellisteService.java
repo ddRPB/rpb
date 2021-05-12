@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 package de.dktk.dd.rpb.core.service;
 
+import de.dktk.dd.rpb.core.util.CacheUtil;
+import net.sf.ehcache.Element;
 import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +68,8 @@ public class MainzellisteService implements IMainzellisteService {
 
     private String callback;
 
+    private CacheUtil cacheUtil;
+
     //endregion
 
     //region Constructors
@@ -88,7 +92,7 @@ public class MainzellisteService implements IMainzellisteService {
     public boolean getHasConnectionInfo() {
         return (this.baseUrl != null && !this.baseUrl.isEmpty() &&
                 this.apiKey != null && !this.apiKey.isEmpty() &&
-                this.callback != null && !this.callback.isEmpty());
+                this.callback != null);
     }
 
     /**
@@ -108,22 +112,21 @@ public class MainzellisteService implements IMainzellisteService {
     public boolean getUseApiVersion() {
         return !"".equals(this.apiVersion);
     }
+    
+    public CacheUtil getCacheUtil() {
+        if (this.cacheUtil == null) {
+            this.cacheUtil = CacheUtil.getInstance();
+        }
+
+        return this.cacheUtil;
+    }
 
     //endregion
 
     //region Methods
 
     //region Setup
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setupConnectionInfo(String baseUrl, String apiKey, String callback) {
-        this.baseUrl = baseUrl;
-        this.apiKey = apiKey;
-        this.callback = callback;
-    }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -233,16 +236,21 @@ public class MainzellisteService implements IMainzellisteService {
             String method = "addPatient";
 
             try {
-            String data = "{ \"type\": \"" + method + "\", \"data\": { \"callback\": \"" + this.callback + "\" } }";
+                // From docs e.g. {"type":"addPatient","data":{"callback":"https://mdat-server.de/callback.php"}}
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("type", method);
+                JSONObject jsonData = new JSONObject();
+                jsonData.put("callback", this.callback);
+                jsonObj.put("data", jsonData);
 
-            Client client = Client.create();
-            WebResource webResource = client.resource(this.baseUrl + endpoint + sessionId + "/tokens");
+                Client client = Client.create();
+                WebResource webResource = client.resource(this.baseUrl + endpoint + sessionId + "/tokens");
 
-            ClientResponse response = webResource
-                    .type(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .header("mainzellisteApiKey", this.apiKey)
-                    .post(ClientResponse.class, data);
+                ClientResponse response = webResource
+                        .type(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
+                        .header("mainzellisteApiKey", this.apiKey)
+                        .post(ClientResponse.class, jsonObj.toString());
 
                 // Created
                 if (response.getStatus() != 201) {
@@ -253,8 +261,8 @@ public class MainzellisteService implements IMainzellisteService {
                 String output = response.getEntity(String.class);
                 finalResult = new JSONObject(output);
             }
-            catch (Exception err){
-                err.printStackTrace();
+            catch (Exception err) {
+                log.error(err);
             }
         }
 
@@ -614,10 +622,9 @@ public class MainzellisteService implements IMainzellisteService {
 
                 String output = response.getEntity(String.class);
                 finalResult = new JSONObject(output);
-
             }
             catch (Exception err){
-                err.printStackTrace();
+                log.error(err);
             }
         }
 
@@ -822,28 +829,45 @@ public class MainzellisteService implements IMainzellisteService {
     /**
      * {@inheritDoc}
      */
-    public List<Person> getPatientListByPIDs(List<Person> personPIDList) throws Exception {
+    public List<Person> getPatientListByPIDs(List<Person> personPIDList, boolean forceRefreshPatientsIdatCache) throws Exception {
         List<Person> result;
 
-        // Extract PIDs
-        List<String> pids = new ArrayList<>();
-        for (Person p : personPIDList) {
-            if (p.getPid() != null) {
-                pids.add(p.getPid());
-            }
+        // Cache IDAT first time it is requested
+        String key = this.baseUrl + "patients/idat";
+
+        Element element = this.getCacheUtil().getPatientsIdatCacheElement(key);
+        if (forceRefreshPatientsIdatCache) {
+            element = null;
         }
 
-        JSONObject finalResult = this.newSession();
-        String sessionId = "";
-        if (finalResult != null) {
-            sessionId = finalResult.getString("sessionId");
+        if (element != null) {
+            result = (List<Person>) element.getObjectValue();
         }
-        finalResult = this.readPatientsToken(sessionId, pids);
-        String tokenId = "";
-        if (finalResult != null) {
-            tokenId = finalResult.getString("id");
+        else {
+            // Extract PIDs
+            List<String> pids = new ArrayList<>();
+            for (Person p : personPIDList) {
+                if (p.getPid() != null) {
+                    pids.add(p.getPid());
+                }
+            }
+
+            JSONObject finalResult = this.newSession();
+            String sessionId = "";
+            if (finalResult != null) {
+                sessionId = finalResult.getString("sessionId");
+            }
+            finalResult = this.readPatientsToken(sessionId, pids);
+            String tokenId = "";
+            if (finalResult != null) {
+                tokenId = finalResult.getString("id");
+            }
+
+            result = this.getPatientList(tokenId);
+            if (result != null && result.size() > 0) {
+                this.getCacheUtil().setPatientsIdatCache(new Element(key, result));
+            }
         }
-        result = this.getPatientList(tokenId);
 
         return result;
     }

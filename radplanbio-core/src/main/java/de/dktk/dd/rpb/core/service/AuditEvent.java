@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,9 @@ public enum AuditEvent {
     PACSDataModification("PACSDataModification"),
 
     BIOPatientCreation("BIOPatientCreation"),
-    BIOPatientLoad("BIOPatientLoad");
+    BIOPatientLoad("BIOPatientLoad"),
+
+    CTPLookupUpdate("CTPLookupUpdate");
 
     private String label;
 

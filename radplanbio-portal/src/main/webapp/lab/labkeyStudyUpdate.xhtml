@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui" xmlns:f="http://xmlns.jcp.org/jsf/core"
+        template="/WEB-INF/layouts/main.xhtml"
+>
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces"/>
+            <p:menuitem value="#{msg.pacs}" title="#{msg.pacs} - medical imaging" url="#"/>
+            <p:menuitem value="DICOM #{msg.study_plural}" title="LabKey Update"
+                        url="/lab/labkeyStudyUpdate.faces"/>
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of the page content place holder -->
+    <ui:define name="content">
+
+        <!-- RPB Study DICOM data -->
+        <p:tabView id="tabView" activeIndex="#{mbLab.tab.activeIndex}">
+            <!-- DICOM Study Subjects -->
+            <p:tab title="#{msg.lab}">
+
+                <p:wizard
+                        id="reloadLabkeyStudyDataWizard"
+                        widgetVar="reloadLabkeyStudyDataWizard"
+                        flowListener="#{mbLab.onFlowProcess}"
+                        showNavBar="false"
+                        step="#{mbLab.getStepIndex()}"
+                >
+                    <p:tab
+                            title="Create"
+                            id="studyExistsTab"
+                    >
+                        <p:panel>
+                            <h:outputText
+                                    value="#{mbLab.analyseLabkeyConnection()}"
+                            ></h:outputText>
+                        </p:panel>
+                    </p:tab>
+                    <p:tab
+                            title="Export"
+                            id="exportPathExistsTab"
+                    >
+                        <p:panel>
+                            <h:outputText
+                                    value="#{mbLab.analyseExportState()}"
+                            ></h:outputText>
+                            <h:outputText
+                                    rendered="#{mbLab.checkExportPathExistsOnLabKey()}"
+                                    value=" Export path was modified: #{mbLab.getExportPathModificationDate()}">
+                                <f:convertDateTime pattern="MM/dd/yyyy" type="date"/>
+                            </h:outputText>
+                            <h:outputText
+                                    value="Please trigger the export on Labkey (Manage -> Export Study -> Export to: Pipeline root export directory, as individual files)"
+                            ></h:outputText>
+
+                        </p:panel>
+                    </p:tab>
+                    <p:tab
+                            title="Upload"
+                            id="uploadDataTab"
+                    >
+                        <p:panel>
+                            <h:outputText
+                                    value="Please trigger the upload of data to Labkey if the export includes the latest changes on Labkey. "
+                            ></h:outputText>
+                            <h:outputText value="Export path was modified: #{mbLab.getExportPathModificationDate()}">
+                                <f:convertDateTime pattern="MM/dd/yyyy" type="date"/>
+                            </h:outputText>
+                            <p:toolbar>
+
+                                <!-- Left -->
+                                <p:toolbarGroup align="left">
+
+                                    <!-- Reload -->
+                                    <p:commandButton
+                                            id="uploadStudyToLabkeyButton"
+                                            value="#{msg.menu_upload}"
+                                            title="#{msg.menu_upload}"
+                                            icon=" ui-icon-arrowreturn-1-e"
+                                            action="#{mbLab.updateLabkeyData()}"
+                                            ajax="true"
+                                            update=":form:tabView, :growl"
+                                            oncomplete="PF('reloadLabkeyStudyDataWizard').loadStep(PF('reloadLabkeyStudyDataWizard').cfg.steps[3])"
+                                    />
+                                    <p:blockUI block="form:tabView" trigger="form:tabView:uploadStudyToLabkeyButton">
+                                        Processing<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                                    </p:blockUI>
+                                </p:toolbarGroup>
+
+
+                            </p:toolbar>
+                        </p:panel>
+
+                    </p:tab>
+                    <p:tab
+                            title="Reload"
+                            id="reloadStudyTab"
+                    >
+                        <p:panel>
+                            <h:outputText
+                                    value="Data is uploaded to Labkey. Please trigger the reload of the study on Labkey."
+                            ></h:outputText>
+                        </p:panel>
+
+                    </p:tab>
+                </p:wizard>
+
+
+            </p:tab>
+
+        </p:tabView>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#' + dialogName);
+                if (args.validationFailed) {
+                    dialog.effect("shake", {times: 3}, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('newDicomDialog').hide();
+                }
+            }
+
+            function clearForm(formName) {
+                jQuery('#' + formName).each(function () {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

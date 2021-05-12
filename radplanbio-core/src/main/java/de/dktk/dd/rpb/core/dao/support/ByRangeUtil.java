@@ -19,16 +19,15 @@
 
 package de.dktk.dd.rpb.core.dao.support;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
-
-import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
 /**
  * Helper to create a predicate out of {@link Range}s.
@@ -45,7 +44,7 @@ public class ByRangeUtil {
         List<Predicate> predicates = newArrayList();
         for (Range<?, ?> r : ranges) {
             @SuppressWarnings("unchecked")
-            Range<E, ?> range = (Range<E, ?>) r;
+            Range<E, ? extends Comparable<? super Comparable>> range = (Range<E, ? extends Comparable<? super Comparable>>) r;
             if (range.isSet()) {
                 Predicate rangePredicate = buildRangePredicate(range, root, builder);
 

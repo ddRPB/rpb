@@ -31,7 +31,7 @@ import javax.inject.Named;
  * @since 21 Mar 2018
  */
 @Named
-public class EngineService {
+public class EngineService implements IEngineService {
 
     //region Finals
 

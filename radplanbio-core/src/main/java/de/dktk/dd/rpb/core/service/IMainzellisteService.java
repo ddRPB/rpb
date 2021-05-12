@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,16 +38,7 @@ public interface IMainzellisteService {
     /**
      * Prepare service for communication with mainzelliste backend
      *
-     * @param baseUrl manizelliste location
-     * @param apiKey secret key to access mainzelliste
-     * @param callback where the callback is sent (Portal or MDAT server)
-     */
-    void setupConnectionInfo(String baseUrl, String apiKey, String callback);
-
-    /**
-     * Prepare service for communication with mainzelliste backend
-     *
-     * @param baseUrl manizelliste location
+     * @param baseUrl mainzelliste location
      * @param apiKey secret key to access mainzelliste
      * @param apiVersion version of mainzelliste
      * @param callback where the callback is sent (Portal or MDAT server)
@@ -186,10 +177,11 @@ public interface IMainzellisteService {
     /**
      * Get list of Patient entities with IDAT according to provided persons with PIDs
      * @param personPIDList List of Person with PIDs
+     * @param forceRefreshPatientsIdatCache true if new fresh cache should be created
      * @return List of patients
      * @throws Exception exception
      */
-    List<Person> getPatientListByPIDs(List<Person> personPIDList) throws Exception;
+    List<Person> getPatientListByPIDs(List<Person> personPIDList, boolean forceRefreshPatientsIdatCache) throws Exception;
 
     /**
      *

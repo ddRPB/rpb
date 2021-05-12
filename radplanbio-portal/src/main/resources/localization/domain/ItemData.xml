@@ -18,5 +18,7 @@
     <entry key="itemData_value">Value</entry>
     <entry key="itemData_status">Status</entry>
     <entry key="itemData_itemDefinition">Item Definition</entry>
+    <entry key="itemData_label">Item Label</entry>
+    <entry key="itemData_description">Item Description</entry>
 
 </properties>

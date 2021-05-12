@@ -351,6 +351,25 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         this.dateOfBirth = value;
     }
 
+    public Date getComparableDateOfBirth() {
+        if (this.dateOfBirth != null && !this.dateOfBirth.equals("")) {
+            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+            try {
+                return format.parse(this.dateOfBirth);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public String getComparableDateOfBirthString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getComparableDateOfBirth();
+        return date != null ? format.format(date) : null;
+    }
+
     //endregion
 
     //region EnrollmentDate
@@ -772,20 +791,28 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         }
     }
 
-    //region Event data
+    //region EventData
 
-    public int getEventOccurrencesCountForEventDef(EventDefinition eventDef) {
-        List<EventData> results = new ArrayList<>();
+    public int getEventOccurrencesCountForEventDef(String eventDefOid) {
+        int i = 0;
 
         if (this.studyEventDataList != null) {
             for (EventData ed : this.studyEventDataList) {
-                if (ed.getStudyEventOid().equals(eventDef.getOid())) {
-                    results.add(ed);
+                if (ed.getStudyEventOid().equals(eventDefOid)) {
+                    // Ignore invalid events
+                    // they have data but have been removed from study (definition is not in metadata anymore)
+                    if (!EnumEventDataStatus.INVALID.toString().equals(ed.getStatus())) {
+                        i++;
+                    }
                 }
             }
         }
 
-        return results.size();
+        return i;
+    }
+
+    public int getEventOccurrencesCountForEventDef(EventDefinition eventDef) {
+        return this.getEventOccurrencesCountForEventDef(eventDef.getOid());
     }
     
     /**
@@ -834,27 +861,39 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         return this.getEventOccurrencesForEventDef(eventDef.getOid());
     }
 
-    public List<EventData> getEventOccurrencesForEvenDefs(List<EventDefinition> eventDefs) {
+    public List<EventData> getEventOccurrencesForEventDefs(List<String> eventDefOidList) {
         List<EventData> results = new ArrayList<>();
 
         if (this.studyEventDataList != null) {
             for (EventData ed : this.studyEventDataList) {
-                for (EventDefinition eventDef : eventDefs) {
-                    if (ed.getStudyEventOid().equals(eventDef.getOid())) {
-                        results.add(ed);
+                for (String eventDefOid : eventDefOidList) {
+                    if (ed.getStudyEventOid().equals(eventDefOid)) {
+                        // Ignore invalid events
+                        // they have data but have been removed from study (definition is not in metadata anymore)
+                        if (!EnumEventDataStatus.INVALID.toString().equals(ed.getStatus())) {
+                            results.add(ed);
+                        }
                     }
                 }
             }
         }
 
         return results;
-
     }
 
-    public EventData getEventOccurrenceForEventDef(EventDefinition eventDef, int repeatKey) {
+    public List<EventData> getEventOccurrencesForEvenDefs(List<EventDefinition> eventDefs) {
+        List<String> eventDefOidList = new ArrayList<>();
+        for (EventDefinition eventDef : eventDefs) {
+            eventDefOidList.add(eventDef.getOid());
+        }
+
+        return this.getEventOccurrencesForEventDefs(eventDefOidList);
+    }
+
+    public EventData getEventOccurrenceForEventDef(String eventDefOid, int repeatKey) {
         if (this.studyEventDataList != null) {
             for (EventData ed : this.studyEventDataList) {
-                if (ed.getStudyEventOid().equals(eventDef.getOid()) && ed.getStudyEventRepeatKey().equals(String.valueOf(repeatKey))) {
+                if (ed.getStudyEventOid().equals(eventDefOid) && ed.getStudyEventRepeatKey().equals(String.valueOf(repeatKey))) {
                     return ed;
                 }
             }
@@ -863,9 +902,13 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         return null;
     }
 
+    public EventData getEventOccurrenceForEventDef(EventDefinition eventDef, int repeatKey) {
+       return this.getEventOccurrenceForEventDef(eventDef.getOid(), repeatKey);
+    }
+    
     //endregion
 
-    //region Item data
+    //region ItemData
 
     public ItemData getItemDataForItemDef(EventData eventData, ItemDefinition dicomItemDef) {
         if (dicomItemDef != null) {

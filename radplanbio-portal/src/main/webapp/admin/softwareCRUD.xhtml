@@ -97,7 +97,7 @@
                     >
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -108,7 +108,6 @@
                         sortBy="#{software.name}"
                         filterBy="#{software.name}"
                         filterMatchMode="contains"
-                        style="width:25%"
                         >
                         <h:outputText value="#{software.name}" style="float: left;" />
                     </p:column>
@@ -119,7 +118,6 @@
                         sortBy="#{software.platform}"
                         filterBy="#{software.platform}"
                         filterMatchMode="in"
-                        style="width:15%"
                         >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
@@ -129,6 +127,7 @@
                                 scrollHeight="90"
                                 >
                                 <f:selectItem itemLabel="win7" itemValue="win7" />
+                                <f:selectItem itemLabel="win" itemValue="win" />
                                 <f:selectItem itemLabel="debian" itemValue="debian"/>
                                 <f:selectItem itemLabel="osx" itemValue="osx" />
                             </p:selectCheckboxMenu>
@@ -142,7 +141,6 @@
                         sortBy="#{software.version}"
                         filterBy="#{software.version}"
                         filterMatchMode="contains"
-                        style="width:20%"
                         >
                         <h:outputText value="#{software.version}" style="float: left;" />
                     </p:column>
@@ -152,7 +150,6 @@
                         headerText="#{msg.software_latest}"
                         filterBy="#{software.latest}"
                         filterMatchMode="equals"
-                        style="width:18%"
                         >
                         <f:facet name="filter">
                             <p:selectOneButton onchange="PF('softwareTable').filter()">
@@ -176,7 +173,6 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:17%"
                         >
 
                         <p:commandButton
@@ -292,6 +288,7 @@
                         style="width:250px"
                         >
                         <f:selectItem itemLabel="win7" itemValue="win7" />
+                        <f:selectItem itemLabel="win" itemValue="win" />
                         <f:selectItem itemLabel="debian" itemValue="debian" />
                         <f:selectItem itemLabel="osx" itemValue="osx" />
                     </p:selectOneMenu>
@@ -397,6 +394,7 @@
                         style="width:250px"
                         >
                         <f:selectItem itemLabel="win7" itemValue="win7" />
+                        <f:selectItem itemLabel="win" itemValue="win" />
                         <f:selectItem itemLabel="debian" itemValue="debian" />
                         <f:selectItem itemLabel="osx" itemValue="osx" />
                     </p:selectOneMenu>

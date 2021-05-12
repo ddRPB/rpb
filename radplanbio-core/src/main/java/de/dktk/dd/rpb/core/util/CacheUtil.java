@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ public class CacheUtil {
 
     private Cache subjectsCache;
     private Cache metadataCache;
+    private Cache patientsIdatCache;
 
     @Inject
     public CacheUtil(CacheManager cacheManager) {
@@ -51,6 +52,7 @@ public class CacheUtil {
 
         this.subjectsCache = this.cacheManager.getCache("wsClientStudySubjectsCache");
         this.metadataCache = this.cacheManager.getCache("wsClientStudyMetadataCache");
+        this.patientsIdatCache = this.cacheManager.getCache("restClientPatientsIdatCache");
 
         instance = this;
     }
@@ -99,6 +101,24 @@ public class CacheUtil {
     public void setMetadataCacheElement(Element element) {
         if (this.metadataCache != null && element != null) {
             this.metadataCache.put(element);
+        }
+    }
+
+    public Cache getPatientsIdatCache() {
+        return this.patientsIdatCache;
+    }
+
+    public Element getPatientsIdatCacheElement(String key) {
+        if (this.patientsIdatCache != null && key != null && !key.isEmpty()) {
+            return this.patientsIdatCache.get(key);
+        }
+
+        return null;
+    }
+
+    public void setPatientsIdatCache(Element element) {
+        if (this.patientsIdatCache != null && element != null) {
+            this.patientsIdatCache.put(element);
         }
     }
 }

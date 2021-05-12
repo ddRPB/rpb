@@ -200,6 +200,14 @@ public class Subject implements Identifiable<Integer>, Serializable {
         return this.dateOfBirth;
     }
 
+    public String getDateOfBirthString() {
+        if (this.dateOfBirth == null) {
+            return null;
+        }
+        DateFormat df = new SimpleDateFormat(RPB_DATEFORMAT);
+        return df.format(this.dateOfBirth);
+    }
+
     public void setDateOfBirth(Date value) {
         this.dateOfBirth = value;
     }

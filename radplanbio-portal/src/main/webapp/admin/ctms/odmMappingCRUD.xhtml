@@ -1,0 +1,1157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:o="http://omnifaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+>
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces"/>
+            <p:menuitem value="#{msg.administration}" title="#{msg.administration}" url="#"/>
+            <p:menuitem value="#{msg.study_plural}" title="#{msg.study_plural}" url="/admin/studyManagement.faces"/>
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- Enums -->
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.mapping.MappingTypeEnum"/>
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.mapping.MappingItemTypeEnum"/>
+
+        <p:tabView id="tabView" activeIndex="#{odmMapping.activeIndex}">
+
+            <p:tab title="Source Definition">
+
+                <!-- Toolbar -->
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <!-- New -->
+                        <p:commandButton
+                                id="showDlgOdmFileUploadButton"
+                                value="Upload New ODM File"
+                                title="Upload New ODM File"
+                                icon="ui-icon-document"
+                                oncomplete="PF('dlgOdmFileUpload').show();"
+                                style="float: left;"
+                                immediate="true"
+                                update=":odmFileUploadForm, form:tabView"
+                                process="@this"
+                                actionListener="#{odmMapping.prepareNewOdmUpload}"
+                        />
+                        <p:commandButton
+                                id="removeSelectedEventsButton"
+                                value="Remove Selected Events"
+                                title="Remove Selected Events"
+                                icon="	ui-icon-trash"
+                                style="float: left;"
+                                immediate="true"
+                                update=":form:tabView"
+                                process="@this"
+                                actionListener="#{odmMapping.removeSelectedEventsFromMapping}"
+                        />
+                        <p:commandButton
+                                id="createOdmMappingsButton"
+                                value="Create ODM Mappings"
+                                title="Create ODM Mappings"
+                                icon="	ui-icon-trash"
+                                style="float: left;"
+                                immediate="true"
+                                update=":form:tabView"
+                                process="@this"
+                                actionListener="#{odmMapping.createOdmMapping}"
+                        />
+
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+
+                    </p:toolbarGroup>
+                </p:toolbar>
+
+                <p:blockUI block="tabView" trigger="showDlgOdmFileUploadButton">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
+                <p:blockUI block="tabView" trigger="removeSelectedEventsButton">
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
+
+                <p:dataTable
+                        id="eventMappingDataTable"
+                        var="eventDefinition"
+                        value="#{odmMapping.getSourceEventList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexEventMappingDataTable"
+                        selection="#{odmMapping.selectedEventDefinitionList}"
+                        rowKey="#{eventDefinition.oid}"
+                        widgetVar="eventMappingDataTable"
+                >
+
+                    <p:ajax event="rowSelectCheckbox" update="form:tabView"/>
+                    <p:ajax event="rowUnselectCheckbox" update="form:tabView"/>
+                    <p:ajax event="rowSelect" update="form:tabView"/>
+                    <p:ajax event="toggleSelect" update="form:tabView"/>
+                    <f:facet name="header">
+                        Event Definitions
+                    </f:facet>
+
+                    <p:column
+                            selectionMode="multiple"
+                            exportable="false"
+                            toggleable="false"
+                            style="width:16px"
+                    >
+                    </p:column>
+                    <p:column style="width:10px"
+                              exportable="false"
+                              filterable="false"
+                              toggleable="false"
+                    >
+                        <p:rowToggler/>
+                    </p:column>
+                    <p:column headerText="#"
+                              exportable="false"
+                              toggleable="false"
+                              style="width:16px">
+                        <h:outputText
+                                value="#{rowIndexEventMappingDataTable + 1}"
+                                style="float: left;"
+                        />
+                    </p:column>
+                    <p:column
+                            id="eventOid"
+                            headerText="Source Event Oid"
+                            sortBy="#{eventDefinition.oid}"
+                            filterBy="#{eventDefinition.oid}"
+                            visible="true"
+                    >
+                        <h:outputText value="#{eventDefinition.oid}"
+                                      style="float: left"
+                        />
+                    </p:column>
+                    <p:column
+                            id="eventName"
+                            headerText="Source Event Name"
+                            sortBy="#{eventDefinition.name}"
+                            filterBy="#{eventDefinition.name}"
+                            visible="true"
+                    >
+                        <h:outputText value="#{eventDefinition.name}"
+                                      style="float: left"
+                        />
+                    </p:column>
+                    <p:column
+                            id="eventDescription"
+                            headerText="Source Event Description"
+                            sortBy="#{eventDefinition.description}"
+                            filterBy="#{eventDefinition.description}"
+                            visible="true"
+                    >
+                        <h:outputText value="#{eventDefinition.description}"
+                                      style="float: left"
+                        />
+                    </p:column>
+
+                    <p:column
+                            id="targetEventOid"
+                            headerText="Target Event Oid"
+                            sortBy="#{odmMapping.getMappedItemOid(eventDefinition.oid)}"
+                            filterBy="#{odmMapping.getMappedItemOid(eventDefinition.oid)}"
+                            visible="true"
+                    >
+                        <h:outputText value="#{odmMapping.getMappedItemOid(eventDefinition.oid)}"
+                                      style="float: left"
+                        />
+                    </p:column>
+
+                    <p:column
+                            id="targetEventName"
+                            headerText="Target Event Name"
+                            sortBy="#{odmMapping.getMappedItemName(eventDefinition.oid)}"
+                            filterBy="#{odmMapping.getMappedItemName(eventDefinition.oid)}"
+                            visible="true"
+                    >
+                        <h:outputText value="#{odmMapping.getMappedItemName(eventDefinition.oid)}"
+                                      style="float: left"
+                        />
+                    </p:column>
+
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            style="width:30px"
+                            exportable="false"
+                            filterable="false"
+                            toggleable="false"
+                    >
+                        <p:commandButton
+                                id="assignEventMappingButton"
+                                icon="ui-icon-document"
+                                title="new mapping"
+                                oncomplete="PF('mapEventsDialog').show();"
+                                update=":mapEventsDialogForm, form:tabView"
+                                process="@this"
+                                immediate="true"
+                        >
+                            <f:setPropertyActionListener
+                                    value="#{eventDefinition}"
+                                    target="#{odmMapping.selectedEventDefinition}"
+                            />
+                        </p:commandButton>
+                        <p:commandButton
+                                id="clearEventMappingButton"
+                                icon="ui-icon-trash"
+                                title="clear mapping"
+                                action="#{odmMapping.clearMapping(eventDefinition.getOid())}"
+                                update=":growl"
+                                process="@this"
+                                immediate="true"
+                                ajax="false"
+                        ></p:commandButton>
+
+                    </p:column>
+                    <p:rowExpansion>
+                        <p:dataTable
+                                id="eventMappingDataSubtableFormDefinitionTable"
+                                sortMode="multiple"
+                                var="formDef"
+                                value="#{eventDefinition.getFormDefs()}"
+                                widgetVar="eventMappingDataSubtableFormDefinitionTable"
+                                resizableColumns="true"
+                                liveResize="true"
+                                paginator="true"
+                                paginatorAlwaysVisible="false"
+                                draggableColumns="false"
+                                rows="15"
+                                rowsPerPageTemplate="15,25,50"
+                                emptyMessage="#{msg.search_empty}"
+                                ajax="true"
+                                rowIndexVar="rowIndexeventMappingDataSubtableFormDefinitionTable"
+                                rowKey="#{formDef.oid}"
+                                selection="#{odmMapping.selectedFormDefinitionList}"
+                        >
+                            <p:ajax event="rowSelectCheckbox" update="eventMappingDataSubtableFormDefinitionTable"/>
+                            <p:ajax event="rowUnselectCheckbox" update="eventMappingDataSubtableFormDefinitionTable"/>
+                            <f:facet name="header">
+                                Form Definitions
+                            </f:facet>
+                            <p:column
+                                    selectionMode="multiple"
+                                    exportable="false"
+                                    toggleable="false"
+                                    style="width:16px"
+                                    visible="false"
+                            >
+                            </p:column>
+                            <p:column style="width:10px"
+                                      exportable="false"
+                                      filterable="false"
+                                      toggleable="false"
+                            >
+                                <p:rowToggler/>
+                            </p:column>
+                            <p:column headerText="#"
+                                      exportable="false"
+                                      toggleable="false"
+                                      style="width:16px">
+                                <h:outputText
+                                        value="#{rowIndexeventMappingDataSubtableFormDefinitionTable + 1}"
+                                        style="float: left;"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="Form OID"
+                                    sortBy="#{formDef.oid}"
+                                    filterBy="#{formDef.oid}"
+                                    visible="true"
+                            >
+                                <h:outputText
+                                        style="float: left;"
+                                        value="#{formDef.oid}"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="Form Name"
+                                    sortBy="#{formDef.name}"
+                                    filterBy="#{formDef.name}"
+                                    visible="true"
+                            >
+                                <h:outputText
+                                        style="float: left;"
+                                        value="#{formDef.name}"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="Target Oid"
+                                    visible="true"
+                            >
+                                <h:outputText
+                                        style="float: left;"
+                                        value="#{odmMapping.getMappedFormItemOid(eventDefinition,formDef.oid)}"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="Target Name"
+                                    visible="true"
+                            >
+                                <h:outputText
+                                        style="float: left;"
+                                        value="#{odmMapping.getMappedFormItemName(eventDefinition,formDef.oid)}"
+                                />
+                            </p:column>
+
+                            <p:column
+                                    headerText="#{msg.menu_commands}"
+                                    style="width:30px"
+                                    exportable="false"
+                                    filterable="false"
+                                    toggleable="false"
+                            >
+                                <p:commandButton
+                                        id="assignFormMappingButton"
+                                        icon="ui-icon-document"
+                                        title="new mapping"
+                                        oncomplete="PF('mapFormDialog').show();"
+                                        update=":mapFormDialogForm, eventMappingDataSubtableFormDefinitionTable"
+                                        process="@this"
+                                        immediate="true"
+                                >
+                                    <f:setPropertyActionListener
+                                            value="#{formDef}"
+                                            target="#{odmMapping.selectedFormDefinition}"
+                                    />
+                                    <f:setPropertyActionListener
+                                            value="#{eventDefinition}"
+                                            target="#{odmMapping.selectedEventDefinition}"
+                                    />
+                                </p:commandButton>
+                                <p:commandButton
+                                        id="clearFormMappingButton"
+                                        icon="ui-icon-trash"
+                                        title="clear mapping"
+                                        action="#{odmMapping.clearFormMapping()}"
+                                        update="eventMappingDataSubtableFormDefinitionTable"
+                                        process="@this"
+                                        immediate="true"
+                                >
+                                    <f:setPropertyActionListener
+                                            value="#{formDef}"
+                                            target="#{odmMapping.selectedFormDefinition}"
+                                    />
+                                    <f:setPropertyActionListener
+                                            value="#{eventDefinition}"
+                                            target="#{odmMapping.selectedEventDefinition}"
+                                    />
+
+                                </p:commandButton>
+
+                            </p:column>
+
+                            <f:facet name="footer">
+                            </f:facet>
+                            <p:rowExpansion>
+                                <p:dataTable
+                                        id="formMappingDataSubtableItemGroupDefinitionTable"
+                                        sortMode="multiple"
+                                        var="itemGroupDef"
+                                        value="#{formDef.getItemGroupDefs()}"
+                                        widgetVar="formMappingDataSubtableItemGroupDefinitionTable"
+                                        resizableColumns="true"
+                                        liveResize="true"
+                                        paginator="true"
+                                        paginatorAlwaysVisible="false"
+                                        draggableColumns="false"
+                                        rows="15"
+                                        rowsPerPageTemplate="15,25,50"
+                                        emptyMessage="#{msg.search_empty}"
+                                        ajax="true"
+                                        rowIndexVar="rowIndexFormMappingDataSubtableItemGroupDefinitionTable"
+                                        rowKey="#{itemGroupDef.oid}"
+                                >
+                                    <f:facet name="header">
+                                        Item Groups
+                                    </f:facet>
+                                    <p:column style="width:10px"
+                                              exportable="false"
+                                              filterable="false"
+                                              toggleable="false"
+                                    >
+                                        <p:rowToggler/>
+                                    </p:column>
+                                    <p:column headerText="#"
+                                              exportable="false"
+                                              toggleable="false"
+                                              style="width:16px">
+                                        <h:outputText
+                                                value="#{rowIndexFormMappingDataSubtableItemGroupDefinitionTable + 1}"
+                                                style="float: left;"
+                                        />
+                                    </p:column>
+                                    <p:column
+                                            headerText="Item Group Oid"
+                                            sortBy="#{itemGroupDef.oid}"
+                                            filterBy="#{itemGroupDef.oid}"
+                                            visible="true"
+                                    >
+                                        <h:outputText
+                                                style="float: left;"
+                                                value="#{itemGroupDef.oid}"
+                                        />
+
+                                    </p:column>
+                                    <p:column
+                                            headerText="Item Group Name"
+                                            sortBy="#{itemGroupDef.name}"
+                                            filterBy="#{itemGroupDef.name}"
+                                            visible="true"
+                                    >
+                                        <h:outputText
+                                                style="float: left;"
+                                                value="#{itemGroupDef.name}"
+                                        />
+
+                                    </p:column>
+
+                                    <p:column
+                                            headerText="Target Oid"
+                                            visible="true"
+                                    >
+                                        <h:outputText
+                                                style="float: left;"
+                                                value="#{odmMapping.getMappedItemGroupDefOid(eventDefinition,formDef, itemGroupDef)}"
+                                        />
+                                    </p:column>
+                                    <p:column
+                                            headerText="Target Name"
+                                            visible="true"
+                                    >
+                                        <h:outputText
+                                                style="float: left;"
+                                                value="#{odmMapping.getMappedItemGroupDefOid(eventDefinition,formDef, itemGroupDef)}"
+                                        />
+                                    </p:column>
+                                    <p:column
+                                            headerText="#{msg.menu_commands}"
+                                            style="width:30px"
+                                            exportable="false"
+                                            filterable="false"
+                                            toggleable="false"
+                                    >
+                                        <p:commandButton
+                                                id="assignItemGroupMappingButton"
+                                                icon="ui-icon-document"
+                                                title="new mapping"
+                                                oncomplete="PF('mapItemGroupDefDialog').show();"
+                                                update=":mapItemGroupDefDialog, formMappingDataSubtableItemGroupDefinitionTable"
+                                                process="@this"
+                                                immediate="true"
+                                        >
+                                            <f:setPropertyActionListener
+                                                    value="#{itemGroupDef}"
+                                                    target="#{odmMapping.selectedItemGroupDefinition}"
+                                            />
+                                            <f:setPropertyActionListener
+                                                    value="#{formDef}"
+                                                    target="#{odmMapping.selectedFormDefinition}"
+                                            />
+                                            <f:setPropertyActionListener
+                                                    value="#{eventDefinition}"
+                                                    target="#{odmMapping.selectedEventDefinition}"
+                                            />
+                                        </p:commandButton>
+                                        <p:commandButton
+                                                id="clearItemGroupMappingButton"
+                                                icon="ui-icon-trash"
+                                                title="clear mapping"
+                                                action="#{odmMapping.clearItemGroupMapping()}"
+                                                update="formMappingDataSubtableItemGroupDefinitionTable"
+                                                process="@this"
+                                                immediate="true"
+                                        >
+                                            <f:setPropertyActionListener
+                                                    value="#{itemGroupDef}"
+                                                    target="#{odmMapping.selectedItemGroupDefinition}"
+                                            />
+                                            <f:setPropertyActionListener
+                                                    value="#{formDef}"
+                                                    target="#{odmMapping.selectedFormDefinition}"
+                                            />
+                                            <f:setPropertyActionListener
+                                                    value="#{eventDefinition}"
+                                                    target="#{odmMapping.selectedEventDefinition}"
+                                            />
+                                        </p:commandButton>
+
+                                    </p:column>
+
+                                    <f:facet name="footer">
+                                    </f:facet>
+                                    <p:rowExpansion>
+                                        <p:dataTable
+                                                id="formMappingDataSubtableItemDefinitionTable"
+                                                sortMode="multiple"
+                                                var="itemDef"
+                                                value="#{itemGroupDef.getItemDefs()}"
+                                                widgetVar="formMappingDataSubtableItemDefinitionTable"
+                                                resizableColumns="true"
+                                                liveResize="true"
+                                                paginator="true"
+                                                paginatorAlwaysVisible="false"
+                                                draggableColumns="false"
+                                                rows="15"
+                                                rowsPerPageTemplate="15,25,50"
+                                                emptyMessage="#{msg.search_empty}"
+                                                ajax="true"
+                                                rowIndexVar="rowIndexFormMappingDataSubtableItemDefinitionTable"
+                                                rowKey="#{itemDef.oid}"
+                                        >
+                                            <f:facet name="header">
+                                                Items
+                                            </f:facet>
+                                            <p:column headerText="#"
+                                                      exportable="false"
+                                                      toggleable="false"
+                                                      style="width:16px">
+                                                <h:outputText
+                                                        value="#{rowIndexFormMappingDataSubtableItemDefinitionTable + 1}"
+                                                        style="float: left;"
+                                                />
+                                            </p:column>
+                                            <p:column
+                                                    headerText="Item Oid"
+                                                    sortBy="#{itemDef.oid}"
+                                                    filterBy="#{itemDef.oid}"
+                                                    visible="true"
+                                            >
+                                                <h:outputText
+                                                        style="float: left;"
+                                                        value="#{itemDef.oid}"
+                                                />
+                                            </p:column>
+                                            <p:column
+                                                    headerText="Item Name"
+                                                    sortBy="#{itemDef.name}"
+                                                    filterBy="#{itemDef.name}"
+                                                    visible="true"
+                                            >
+                                                <h:outputText
+                                                        style="float: left;"
+                                                        value="#{itemDef.name}"
+                                                />
+                                            </p:column>
+                                            <p:column
+                                                    headerText="Target Oid"
+                                                    visible="true"
+                                            >
+                                                <h:outputText
+                                                        style="float: left;"
+                                                        value="#{odmMapping.getMappedItemDefOid(eventDefinition,formDef, itemGroupDef,itemDef).getOid()}"
+                                                />
+                                            </p:column>
+                                            <p:column
+                                                    headerText="Target Name"
+                                                    visible="true"
+                                            >
+                                                <h:outputText
+                                                        style="float: left;"
+                                                        value="#{odmMapping.getMappedItemDefOid(eventDefinition,formDef, itemGroupDef,itemDef).getName()}"
+                                                />
+                                            </p:column>
+                                            <p:column
+                                                    headerText="#{msg.menu_commands}"
+                                                    style="width:30px"
+                                                    exportable="false"
+                                                    filterable="false"
+                                                    toggleable="false"
+                                            >
+                                                <p:commandButton
+                                                        id="assignItemMappingButton"
+                                                        icon="ui-icon-document"
+                                                        title="new mapping"
+                                                        oncomplete="PF('mapItemDefDialog').show();"
+                                                        update=":mapItemDefDialog, formMappingDataSubtableItemDefinitionTable"
+                                                        process="@this"
+                                                        immediate="true"
+                                                >
+                                                    <f:setPropertyActionListener
+                                                            value="#{itemDef}"
+                                                            target="#{odmMapping.selectedItemDefinition}"
+                                                    />
+                                                    <f:setPropertyActionListener
+                                                            value="#{itemGroupDef}"
+                                                            target="#{odmMapping.selectedItemGroupDefinition}"
+                                                    />
+                                                    <f:setPropertyActionListener
+                                                            value="#{formDef}"
+                                                            target="#{odmMapping.selectedFormDefinition}"
+                                                    />
+                                                    <f:setPropertyActionListener
+                                                            value="#{eventDefinition}"
+                                                            target="#{odmMapping.selectedEventDefinition}"
+                                                    />
+                                                </p:commandButton>
+                                                <p:commandButton
+                                                        id="clearItemMappingButton"
+                                                        icon="ui-icon-trash"
+                                                        title="clear mapping"
+                                                        action="#{odmMapping.clearItemMapping()}"
+                                                        update="formMappingDataSubtableItemDefinitionTable"
+                                                        process="@this"
+                                                        immediate="true"
+                                                >
+                                                    <f:setPropertyActionListener
+                                                            value="#{itemDef}"
+                                                            target="#{odmMapping.selectedItemDefinition}"
+                                                    />
+                                                    <f:setPropertyActionListener
+                                                            value="#{itemGroupDef}"
+                                                            target="#{odmMapping.selectedItemGroupDefinition}"
+                                                    />
+                                                    <f:setPropertyActionListener
+                                                            value="#{formDef}"
+                                                            target="#{odmMapping.selectedFormDefinition}"
+                                                    />
+                                                    <f:setPropertyActionListener
+                                                            value="#{eventDefinition}"
+                                                            target="#{odmMapping.selectedEventDefinition}"
+                                                    />
+                                                </p:commandButton>
+
+                                            </p:column>
+
+                                            <f:facet name="footer">
+                                            </f:facet>
+                                        </p:dataTable>
+
+
+                                    </p:rowExpansion>
+                                </p:dataTable>
+                            </p:rowExpansion>
+                        </p:dataTable>
+                    </p:rowExpansion>
+                </p:dataTable>
+                <p:toolbar>
+
+                    <!-- Left -->
+                    <p:toolbarGroup align="left">
+                        <!-- New -->
+                    </p:toolbarGroup>
+
+                    <!-- Right -->
+                    <p:toolbarGroup align="right">
+                    </p:toolbarGroup>
+                </p:toolbar>
+            </p:tab>
+
+
+        </p:tabView>
+
+        <!-- Block UI for whole TabView -->
+        <p:blockUI block="tabView" widgetVar="buiTab">
+            Processing<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+        </p:blockUI>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+        <!-- Event Mapping Dialog -->
+        <p:dialog
+                id="mapEventsDialog"
+                header="Event Mapping Dialog"
+                widgetVar="mapEventsDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
+
+            <!-- Form -->
+            <h:form id="mapEventsDialogForm">
+                <p:dataTable
+                        id="mapEventsDialogFormSourceDataTable"
+                        var="sourceEventDefinitionSummary"
+                        value="#{odmMapping.getSelectedEventDefinitionAsList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexMapEventsDialogFormSourceDataTable"
+                        rowKey="#{sourceEventDefinitionSummary.oid}"
+                        widgetVar="mapEventsDialogFormSourceDataTable"
+                >
+                    <p:column
+                            id="sourceEventOid"
+                            headerText="Oid"
+                            visible="true"
+                    > <h:outputText value="#{sourceEventDefinitionSummary.oid}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            id="sourceEventName"
+                            headerText="Name"
+                            visible="true"
+                    > <h:outputText value="#{sourceEventDefinitionSummary.name}"
+                                    style="float: left"
+                    />
+                    </p:column>
+
+                </p:dataTable>
+
+                <p:dataTable
+                        id="mapEventsDialogFormTargetDataTable"
+                        var="targetEventDefinitionSummary"
+                        value="#{odmMapping.getTargetEventList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexMapEventsDialogFormSourceDataTable"
+                        rowKey="#{sourceEventDefinitionSummary.oid}"
+                        widgetVar="mapEventsDialogFormSourceDataTable"
+                >
+                    <p:column
+                            id="targetCandidateEventOid"
+                            headerText="Oid"
+                            visible="true"
+                    > <h:outputText value="#{targetEventDefinitionSummary.oid}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            id="targetCandidateEventName"
+                            headerText="Name"
+                            visible="true"
+                    > <h:outputText value="#{targetEventDefinitionSummary.name}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            style="width:30px"
+                            exportable="false"
+                            filterable="false"
+                            toggleable="false"
+                    >
+                        <p:commandButton
+                                id="assignEventButton"
+                                title="assign mapping"
+                                icon=" ui-icon-link"
+                                style="float: left;"
+                                immediate="true"
+                                update=":form:tabView"
+                                process="@this"
+                                actionListener="#{odmMapping.assignMapping(targetEventDefinitionSummary)}"
+                                oncomplete="PF('mapEventsDialog').hide();"
+
+                        /></p:column>
+
+                </p:dataTable>
+
+
+            </h:form>
+        </p:dialog>
+        <!-- Form Mapping Dialog -->
+        <p:dialog
+                id="mapFormDialog"
+                header="Form Mapping Dialog"
+                widgetVar="mapFormDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
+            <h:form id="mapFormDialogForm">
+                <p:dataTable
+                        id="mapFormDialogFormSourceDataTable"
+                        var="sourceFormDefinitionSummary"
+                        value="#{odmMapping.getSelectedFormDefinitionAsList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexMapFormDialogFormSourceDataTable"
+                        rowKey="#{sourceFormDefinitionSummary.oid}"
+                        widgetVar="mapFormDialogFormSourceDataTable"
+                >
+                    <p:column
+                            id="sourceFormOid"
+                            headerText="Oid"
+                            visible="true"
+                    > <h:outputText value="#{sourceFormDefinitionSummary.oid}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            id="sourceFormName"
+                            headerText="Name"
+                            visible="true"
+                    > <h:outputText value="#{sourceFormDefinitionSummary.name}"
+                                    style="float: left"
+                    />
+                    </p:column>
+
+                </p:dataTable>
+
+                <p:dataTable
+                        id="mapFormDialogFormTargetDataTable"
+                        var="targetFormDefinitionSummary"
+                        value="#{odmMapping.getTargetFormList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexMapFormDialogFormSourceDataTable"
+                        rowKey="#{sourceEventDefinitionSummary.oid}"
+                        widgetVar="mapFormDialogFormSourceDataTable"
+                >
+                    <p:column
+                            id="targetCandidateFormOid"
+                            headerText="Oid"
+                            visible="true"
+                    > <h:outputText value="#{targetFormDefinitionSummary.oid}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            id="targetCandidateFormName"
+                            headerText="Name"
+                            visible="true"
+                    > <h:outputText value="#{targetFormDefinitionSummary.name}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            style="width:30px"
+                            exportable="false"
+                            filterable="false"
+                            toggleable="false"
+                    >
+                        <p:commandButton
+                                id="assignFormButton"
+                                title="assign mapping"
+                                icon=" ui-icon-link"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{odmMapping.assignFormMapping(targetFormDefinitionSummary)}"
+                                oncomplete="PF('mapFormDialog').hide();"
+
+                        /></p:column>
+
+                </p:dataTable>
+
+
+            </h:form>
+
+        </p:dialog>
+        <!-- ItemDef Mapping Dialog -->
+        <p:dialog
+                id="mapItemGroupDefDialog"
+                header="Item Group Definition Mapping Dialog"
+                widgetVar="mapItemGroupDefDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
+        <h:form id="mapItemGroupDefDialogForm">
+        <p:dataTable
+                id="mapItemGroupDefDialogFormSourceDataTable"
+                var="sourceItemGroupDefinitionSummary"
+                value="#{odmMapping.getSelectedItemGroupDefinitionAsList()}"
+                resizableColumns="true"
+                paginator="true"
+                paginatorAlwaysVisible="false"
+                draggableColumns="false"
+                rows="10"
+                rowsPerPageTemplate="10,20,50"
+                emptyMessage="#{msg.search_empty}"
+                rowIndexVar="rowIndexMapItemGroupDefDialogFormSourceDataTable"
+                rowKey="#{sourceItemGroupDefinitionSummary.oid}"
+                widgetVar="mapItemGroupDefDialogFormSourceDataTable"
+        >
+            <p:column
+                    id="sourceItemGroupOid"
+                    headerText="Oid"
+                    visible="true"
+            > <h:outputText value="#{sourceItemGroupDefinitionSummary.oid}"
+                            style="float: left"
+            />
+            </p:column>
+            <p:column
+                    id="sourceItemGroupName"
+                    headerText="Name"
+                    visible="true"
+            > <h:outputText value="#{sourceItemGroupDefinitionSummary.name}"
+                            style="float: left"
+            />
+            </p:column>
+        </p:dataTable>
+            <p:dataTable
+                    id="mapItemGroupDialogFormTargetDataTable"
+                    var="targetItemGroupDefinitionSummary"
+                    value="#{odmMapping.getTargetItemGroupList()}"
+                    resizableColumns="true"
+                    paginator="true"
+                    paginatorAlwaysVisible="false"
+                    draggableColumns="false"
+                    rows="10"
+                    rowsPerPageTemplate="10,20,50"
+                    emptyMessage="#{msg.search_empty}"
+                    rowIndexVar="rowIndexMapItemGroupDialogFormTargetDataTable"
+                    rowKey="#{targetItemGroupDefinitionSummary.oid}"
+                    widgetVar="mapItemGroupDialogFormTargetDataTable"
+            >
+                <p:column
+                        id="targetCandidateItemGroupOid"
+                        headerText="Oid"
+                        visible="true"
+                > <h:outputText value="#{targetItemGroupDefinitionSummary.oid}"
+                                style="float: left"
+                />
+                </p:column>
+                <p:column
+                        id="targetCandidateItemGroupName"
+                        headerText="Name"
+                        visible="true"
+                > <h:outputText value="#{targetItemGroupDefinitionSummary.name}"
+                                style="float: left"
+                />
+                </p:column>
+                <p:column
+                        headerText="#{msg.menu_commands}"
+                        style="width:30px"
+                        exportable="false"
+                        filterable="false"
+                        toggleable="false"
+                >
+                    <p:commandButton
+                            id="assignItemGroupButton"
+                            title="assign mapping"
+                            icon=" ui-icon-link"
+                            style="float: left;"
+                            immediate="true"
+                            process="@this"
+                            actionListener="#{odmMapping.assignItemGroupMapping(targetItemGroupDefinitionSummary)}"
+                            oncomplete="PF('mapItemGroupDefDialog').hide();"
+
+                    /></p:column>
+
+            </p:dataTable>
+
+
+        </h:form>
+        </p:dialog>
+
+        <!-- ItemDef Mapping Dialog -->
+        <p:dialog
+                id="mapItemDefDialog"
+                header="Item Definition Mapping Dialog"
+                widgetVar="mapItemDefDialog"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
+            <h:form id="mapItemDefDialogForm">
+                <p:dataTable
+                        id="mapItemDefDialogFormSourceDataTable"
+                        var="sourceItemDefinitionSummary"
+                        value="#{odmMapping.getSelectedItemDefinitionAsList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexMapItemDefDialogFormSourceDataTable"
+                        rowKey="#{sourceItemGroupDefinitionSummary.oid}"
+                        widgetVar="mapItemDefDialogFormSourceDataTable"
+                >
+                    <p:column
+                            id="sourceItemOid"
+                            headerText="Oid"
+                            visible="true"
+                    > <h:outputText value="#{sourceItemDefinitionSummary.oid}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            id="sourceItemName"
+                            headerText="Name"
+                            visible="true"
+                    > <h:outputText value="#{sourceItemDefinitionSummary.name}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                </p:dataTable>
+                <p:dataTable
+                        id="mapItemDialogFormTargetDataTable"
+                        var="targetItemDefinitionSummary"
+                        value="#{odmMapping.getTargetItemList()}"
+                        resizableColumns="true"
+                        paginator="true"
+                        paginatorAlwaysVisible="false"
+                        draggableColumns="false"
+                        rows="10"
+                        rowsPerPageTemplate="10,20,50"
+                        emptyMessage="#{msg.search_empty}"
+                        rowIndexVar="rowIndexMapItemDialogFormTargetDataTable"
+                        rowKey="#{targetItemDefinitionSummary.oid}"
+                        widgetVar="mapItemDialogFormTargetDataTable"
+                >
+                    <p:column
+                            id="targetCandidateItemOid"
+                            headerText="Oid"
+                            visible="true"
+                    > <h:outputText value="#{targetItemDefinitionSummary.oid}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            id="targetCandidateItemName"
+                            headerText="Name"
+                            visible="true"
+                    > <h:outputText value="#{targetItemDefinitionSummary.name}"
+                                    style="float: left"
+                    />
+                    </p:column>
+                    <p:column
+                            headerText="#{msg.menu_commands}"
+                            style="width:30px"
+                            exportable="false"
+                            filterable="false"
+                            toggleable="false"
+                    >
+                        <p:commandButton
+                                id="assignItemButton"
+                                title="assign mapping"
+                                icon=" ui-icon-link"
+                                style="float: left;"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{odmMapping.assignItemMapping(targetItemDefinitionSummary)}"
+                                oncomplete="PF('mapItemDefDialog').hide();"
+
+                        /></p:column>
+
+                </p:dataTable>
+
+
+            </h:form>
+        </p:dialog>
+
+
+
+        <!-- File Upload Dialog -->
+        <p:dialog
+                id="dlgOdmFileUpload"
+                header="ODM File Upload"
+                widgetVar="dlgOdmFileUpload"
+                resizable="false"
+                ajax="true"
+                appendToBody="true"
+                modal="true"
+                closeOnEscape="true"
+        >
+
+            <!-- Form -->
+            <h:form id="odmFileUploadForm">
+                <p:messages id="messagesMappingNewTwo" showDetail="true" autoUpdate="true"/>
+
+                <p:panelGrid
+                        columns="1"
+                        cellpadding="4"
+                        style="margin:0 auto; max-height:750px"
+                >
+                    <!-- Upload data definition file -->
+                    <h:outputLabel for="uploadImportFileTwo" rendered="#{odmMapping.uploadedFile == null}"/>
+                    <p:fileUpload
+                            id="uploadImportFileTwo"
+                            fileUploadListener="#{odmMapping.handleUpload}"
+                            rendered="#{odmMapping.uploadedFile == null}"
+                            mode="advanced"
+                            update=":growl,form:tabView"
+                            oncomplete="PF('dlgOdmFileUpload').hide()"
+                            label="Choose a file or drag and drop it here:"
+                            sizeLimit="10048576"
+                            auto="true"
+                            allowTypes="/(\.|\/)(xml)$/"
+                            invalidSizeMessage="The maximum file size allowed is 10 Megabyte!"
+                            invalidFileMessage="You are allowed to upload xml files only!"
+                            dragDropSupport="true"
+                            fileLimit="1"
+                    />
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+
+
+        <!-- Submit from dialog -->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#' + dialogName);
+                if (args.validationFailed) {
+                    dialog.effect("shake", {times: 3}, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('editStudyDialog').hide();
+
+                    PF('newMappingDialog').hide();
+                    PF('newMappingDialogTwo').hide();
+                    PF('deleteMappingDialog').hide();
+                    PF('editMappingDialog').hide();
+
+                    PF('newRecordDialog').hide();
+                    PF('editRecordDialog').hide();
+                    PF('deleteRecordDialog').hide();
+
+                    PF('newAnnotationDialog').hide();
+                    PF('deleteAnnotationDialog').hide();
+                    PF('editAnnotationDialog').hide();
+                }
+            }
+
+            function clearForm(formName) {
+                jQuery('#' + formName).each(function () {
+                    this.reset();
+                });
+            }
+        </script>
+    </ui:define>
+</ui:composition>

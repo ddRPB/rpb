@@ -2,42 +2,42 @@
 
 <!-- Spring framework configuration, data source, security methods, etc. -->
 <beans
-    default-lazy-init="true"
-    xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-    xmlns:security="http://www.springframework.org/schema/security"
-    xmlns:tx="http://www.springframework.org/schema/tx"
-    xmlns:p="http://www.springframework.org/schema/p"
-    xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="
+        default-lazy-init="true"
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:util="http://www.springframework.org/schema/util"
+        xmlns:security="http://www.springframework.org/schema/security"
+        xmlns:tx="http://www.springframework.org/schema/tx"
+        xmlns:p="http://www.springframework.org/schema/p"
+        xmlns:task="http://www.springframework.org/schema/task"
+        xsi:schemaLocation="
 			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
             http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd"
-    >
-	<description><![CDATA[Main entry point for spring configuration]]></description>
+>
+    <description><![CDATA[Main entry point for spring configuration]]></description>
 
     <!--.............................................SPRING IOC CONTAINER............................................-->
-	<!-- Spring IOC will automatically scan the base package for
-	@Repository – DAO components in the persistence layer.
+    <!-- Spring IOC will automatically scan the base package for
+    @Repository – DAO components in the persistence layer.
     @Service – Service component in the business layer -->
-	<context:component-scan base-package="de.dktk.dd.rpb">
-		<!-- Exclude web beans as they live in the web application context -->
-		<context:exclude-filter type="regex" expression="de.dktk.dd.rpb.portal.web.*" />
-	</context:component-scan>
+    <context:component-scan base-package="de.dktk.dd.rpb">
+        <!-- Exclude web beans as they live in the web application context -->
+        <context:exclude-filter type="regex" expression="de.dktk.dd.rpb.portal.web.*"/>
+    </context:component-scan>
 
     <!-- Inject to OC data repository setter -->
     <bean id="openClinicaDataDao" class="de.dktk.dd.rpb.core.dao.edc.OpenClinicaDataDao">
-        <property name="dataSource" ref="ocDataSource" />
+        <property name="dataSource" ref="ocDataSource"/>
     </bean>
 
     <!-- Inject to RPB data repository setter -->
     <bean id="radPlanBioDataDao" class="de.dktk.dd.rpb.core.dao.rpb.RadPlanBioDataDao">
-        <property name="dataSource" ref="dataSource" />
+        <property name="dataSource" ref="dataSource"/>
     </bean>
 
     <!--..........................................SPRING SUPPORT FOR VIEW SCOPE....................................-->
@@ -55,7 +55,8 @@
 
     <!-- Where the properties files are -->
     <context:property-placeholder
-        location="classpath*:database.properties,
+            location="classpath*:app-version.properties,
+            classpath*:database.properties,
             classpath*:hibernate.properties,
             classpath*:email.properties,
             classpath*:ldap.properties,
@@ -63,27 +64,29 @@
             classpath*:ctp.properties,
             classpath*:iengine.properties,
             classpath*:elastic.properties,
-            classpath*:app-version.properties"
-            />
+            classpath*:pacs.properties,
+            classpath*:rpblite.properties,
+            classpath*:ccp.properties"
+    />
 
     <!--..........................................SPRING SECURITY AUTHENTICATION.....................................-->
     <!-- Default authentication provider -->
     <bean
-        id="defaultAuthenticationProvider"
-        class="de.dktk.dd.rpb.core.security.DefaultAuthenticationProvider"
-        >
+            id="defaultAuthenticationProvider"
+            class="de.dktk.dd.rpb.core.security.DefaultAuthenticationProvider"
+    >
         <property name="userDetailsService">
-            <bean class="de.dktk.dd.rpb.core.security.DefaultUserDetailsServiceImpl" />
+            <bean class="de.dktk.dd.rpb.core.security.DefaultUserDetailsServiceImpl"/>
         </property>
     </bean>
 
     <!-- OpenClinica authentication provider -->
     <bean
-        id="openClinicaAuthenticationProvider"
-        class="de.dktk.dd.rpb.core.security.OpenClinicaRestApiAuthenticationProvider"
-        >
+            id="openClinicaAuthenticationProvider"
+            class="de.dktk.dd.rpb.core.security.OpenClinicaRestApiAuthenticationProvider"
+    >
         <property name="userDetailsService">
-            <bean class="de.dktk.dd.rpb.core.security.OpenClinicaUserDetailsServiceImpl" />
+            <bean class="de.dktk.dd.rpb.core.security.OpenClinicaUserDetailsServiceImpl"/>
         </property>
     </bean>
 
@@ -110,7 +113,8 @@
     </bean>
 
     <!-- LDAP provider -->
-    <bean id="ldapAuthenticationProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+    <bean id="ldapAuthenticationProvider"
+          class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
         <constructor-arg>
             <bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
                 <constructor-arg ref="contextSource"/>
@@ -126,46 +130,49 @@
 
     <!-- Authentication manager as a container for providers -->
     <security:authentication-manager alias="authenticationManager" erase-credentials="false">
-        <security:authentication-provider ref="defaultAuthenticationProvider" />
-        <security:authentication-provider ref="openClinicaAuthenticationProvider" />
+        <security:authentication-provider ref="defaultAuthenticationProvider"/>
+        <security:authentication-provider ref="openClinicaAuthenticationProvider"/>
         <security:authentication-provider ref="ldapAuthenticationProvider"/>
     </security:authentication-manager>
 
     <!-- Where to go after authentication success -->
     <bean
-        id="successHandler"
-        class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
-        >
-        <property name="defaultTargetUrl" value="/home.faces" />
-        <!-- Redirect to the page which the user originally wanted to visit -->
-        <property name="useReferer" value="true" />
+            id="successHandler"
+            class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler"
+    >
+        <property
+                name="defaultTargetUrl"
+                value="/home.faces"
+        />
     </bean>
 
     <!-- Where to go after authentication failure -->
     <bean
-        id="failureHandler"
-        class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler"
-        >
+            id="failureHandler"
+            class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler"
+    >
         <property
-            name="defaultFailureUrl"
-            value="/login.faces?login_error=1"
-            />
+                name="defaultFailureUrl"
+                value="/login.faces?login_error=1"
+        />
     </bean>
 
     <!-- Where to go when authentication page is needed -->
     <bean
-        id="loginUrlAuthenticationEntryPoint"
-        class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
-        >
-        <constructor-arg name="loginFormUrl" value="/login.faces" />
+            id="loginUrlAuthenticationEntryPoint"
+            class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
+    >
+        <constructor-arg name="loginFormUrl" value="/login.faces"/>
     </bean>
 
     <!-- Custom filter for authentication which will choose which authentication provider to use -->
     <bean
-        id="myAuthenticationFilter"
-        class="de.dktk.dd.rpb.core.security.MyAuthenticationFilter"
-        >
-        <constructor-arg name="defaultFilterProcessesUrl" value="/logincheck.faces"/>
+            id="myAuthenticationFilter"
+            class="de.dktk.dd.rpb.core.security.MyAuthenticationFilter"
+    >
+        <constructor-arg
+                name="urlPattern" value="/login.faces"
+        />
         <property name="authenticationManager" ref="authenticationManager"/>
         <property name="authenticationFailureHandler" ref="failureHandler"/>
         <property name="authenticationSuccessHandler" ref="successHandler"/>
@@ -173,71 +180,73 @@
 
     <!-- Configuring annotations to secure business logic in domain level -->
     <security:global-method-security
-        jsr250-annotations="enabled"
-        pre-post-annotations="enabled"
-        />
+            jsr250-annotations="enabled"
+            pre-post-annotations="enabled"
+    />
     <!--.............................................................................................................-->
 
-	<!-- Enable the configuration of transactional behavior based on annotations -->
-	<tx:annotation-driven />
+    <!-- Enable the configuration of transactional behavior based on annotations -->
+    <tx:annotation-driven/>
 
     <!--...................................... CACHE.................................................................-->
     <bean
-        id="ehCacheManager"
-        class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
-        >
-        <property name="shared" value="true" />
+            id="ehCacheManager"
+            class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+    >
+        <property name="shared" value="true"/>
     </bean>
 
     <!--...................................... TASK..................................................................-->
-    <task:annotation-driven executor="myExecutor" scheduler="myScheduler" />
-    <task:executor id="myExecutor" pool-size="5" />
-    <task:scheduler id="myScheduler" pool-size="10" />
+    <task:annotation-driven executor="myExecutor" scheduler="myScheduler"/>
+    <task:executor id="myExecutor" pool-size="5"/>
+    <task:scheduler id="myScheduler" pool-size="10"/>
 
     <!--......................................DATA SOURCES...........................................................-->
 
-	<!-- RadPlanBio data source -->
-	<bean
-        id="dataSource"
-        class="org.apache.commons.dbcp.BasicDataSource"
-		destroy-method="close" 
-		lazy-init="false" 
-		p:driverClassName="${rpb.jdbc.driver}"
-		p:url="${rpb.jdbc.url}"
-		p:username="${rpb.jdbc.user}"
-		p:password="${rpb.jdbc.password}"
-		p:initialSize="1" 
-		p:maxActive="50"
-		p:maxIdle="1" 
-		p:maxWait="5000"
-		p:poolPreparedStatements="true"
-		p:defaultAutoCommit="false" 
-		p:removeAbandoned="true" 
-		p:removeAbandonedTimeout="60">
-		<description>
-			Simple datasource. This is a direct access to the datasource that can be used for specific queries that need to bypass hibernate.
-			However, if you need to use JDBC, please look at hibernate SQL-QUERIES, they would most probably be a more elegant way to solve your problem.
-		</description>
-	</bean>
+    <!-- RadPlanBio data source -->
+    <bean
+            id="dataSource"
+            class="org.apache.commons.dbcp.BasicDataSource"
+            destroy-method="close"
+            lazy-init="false"
+            p:driverClassName="${rpb.jdbc.driver}"
+            p:url="${rpb.jdbc.url}"
+            p:username="${rpb.jdbc.user}"
+            p:password="${rpb.jdbc.password}"
+            p:initialSize="1"
+            p:maxActive="50"
+            p:maxIdle="1"
+            p:maxWait="5000"
+            p:poolPreparedStatements="true"
+            p:defaultAutoCommit="false"
+            p:removeAbandoned="true"
+            p:removeAbandonedTimeout="60">
+        <description>
+            Simple datasource. This is a direct access to the datasource that can be used for specific queries that need
+            to bypass hibernate.
+            However, if you need to use JDBC, please look at hibernate SQL-QUERIES, they would most probably be a more
+            elegant way to solve your problem.
+        </description>
+    </bean>
 
     <!--Open Clinica data source-->
     <bean
-        id="ocDataSource"
-        class="org.apache.commons.dbcp.BasicDataSource"
-        destroy-method="close"
-        lazy-init="false"
-        p:driverClassName="${oc.jdbc.driver}"
-        p:url="${oc.jdbc.url}"
-        p:username="${oc.jdbc.user}"
-        p:password="${oc.jdbc.password}"
-        p:initialSize="1"
-        p:maxActive="50"
-        p:maxIdle="1"
-        p:maxWait="5000"
-        p:poolPreparedStatements="true"
-        p:defaultAutoCommit="true"
-        p:removeAbandoned="true"
-        p:removeAbandonedTimeout="60">
+            id="ocDataSource"
+            class="org.apache.commons.dbcp.BasicDataSource"
+            destroy-method="close"
+            lazy-init="false"
+            p:driverClassName="${oc.jdbc.driver}"
+            p:url="${oc.jdbc.url}"
+            p:username="${oc.jdbc.user}"
+            p:password="${oc.jdbc.password}"
+            p:initialSize="1"
+            p:maxActive="50"
+            p:maxIdle="1"
+            p:maxWait="5000"
+            p:poolPreparedStatements="true"
+            p:defaultAutoCommit="true"
+            p:removeAbandoned="true"
+            p:removeAbandonedTimeout="60">
         <description>
             Simple datasource. This is a direct access to the OpenClinica datasource.
             I am planning to use this for custom query builder on top of OpenClinica data.
@@ -245,67 +254,69 @@
     </bean>
     <!--............................................................................,................................-->
 
-	<!-- Spring support for JPA -->
-	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor">
-		<description>Enable exception translation for beans annotated with @Repository</description>
-	</bean>
+    <!-- Spring support for JPA -->
+    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor">
+        <description>Enable exception translation for beans annotated with @Repository</description>
+    </bean>
 
     <!-- transactionManager is using defined entityManagerFactory-->
-	<bean
-        id="transactionManager"
-        class="org.springframework.orm.jpa.JpaTransactionManager"
-		p:entityManagerFactory-ref="entityManagerFactory"
-        >
-		<description>Please read http://www.springframework.org/docs/reference/transaction.html</description>
-	</bean>
+    <bean
+            id="transactionManager"
+            class="org.springframework.orm.jpa.JpaTransactionManager"
+            p:entityManagerFactory-ref="entityManagerFactory"
+    >
+        <description>Please read http://www.springframework.org/docs/reference/transaction.html</description>
+    </bean>
 
     <!-- Hibernate JPA specific adapter for our entityManagerFactory -->
-	<bean
-        id="hibernateJpaVendorAdapter"
-        class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
-        >
-		<description>Allow spring to configure hibernate specific settings</description>
-	</bean>
+    <bean
+            id="hibernateJpaVendorAdapter"
+            class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
+    >
+        <description>Allow spring to configure hibernate specific settings</description>
+    </bean>
 
     <!--p:persistenceXmlLocation="classpath:META-INF/spring-persistence.xml"-->
     <!-- Full control over EntityManagerFactory (or managing persistent entities objects) -->
     <!-- It is related to defined dataSource -->
     <!-- It uses spring-persistence.xml to create a PersistenceUnitInfo - radplanbioPU -->
     <!-- Use hibernate as a data access adapter -->
-	<bean
-        id="entityManagerFactory"
-        class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
-		p:dataSource-ref="dataSource"
-		p:persistenceUnitName="radplanbioPU"
-		p:jpaVendorAdapter-ref="hibernateJpaVendorAdapter"
-		p:jpaProperties="classpath:hibernate.properties"
-        p:packagesToScan="de.dktk.dd.rpb.core.domain"
-        />
+    <bean
+            id="entityManagerFactory"
+            class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+            p:dataSource-ref="dataSource"
+            p:persistenceUnitName="radplanbioPU"
+            p:jpaVendorAdapter-ref="hibernateJpaVendorAdapter"
+            p:jpaProperties="classpath:hibernate.properties"
+            p:packagesToScan="de.dktk.dd.rpb.core.domain"
+    />
 
     <!-- Hibernate specific session factory obtained from defined entityManagerFactory -->
-	<util:property-path id="sessionFactory" path="entityManagerFactory.sessionFactory" />
+    <util:property-path id="sessionFactory" path="entityManagerFactory.sessionFactory"/>
 
-	<!-- Bean validation -->
-	<bean
-        id="validator"
-        class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
-		p:validationMessageSource-ref="messageSource"
-        >
-		<description>Enable the bean validation provider, and configure it to use the messageSource when resolving properties</description>
-	</bean>
+    <!-- Bean validation -->
+    <bean
+            id="validator"
+            class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
+            p:validationMessageSource-ref="messageSource"
+    >
+        <description>Enable the bean validation provider, and configure it to use the messageSource when resolving
+            properties
+        </description>
+    </bean>
 
-	<!-- Localisation -->
-	<bean
-        id="messageSource"
-        class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
-		p:fallbackToSystemLocale="false"
-		p:useCodeAsDefaultMessage="true"
-        p:fileEncodings="UTF-8"
-		p:defaultEncoding="UTF-8"
-        >
-		<description>Base message source to handle internationalization</description>
-		<property name="basenames">
-			<list>
+    <!-- Localisation -->
+    <bean
+            id="messageSource"
+            class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+            p:fallbackToSystemLocale="false"
+            p:useCodeAsDefaultMessage="true"
+            p:fileEncodings="UTF-8"
+            p:defaultEncoding="UTF-8"
+    >
+        <description>Base message source to handle internationalization</description>
+        <property name="basenames">
+            <list>
                 <!-- main resources -->
                 <value>classpath:/localization/application</value>
                 <value>classpath:/localization/messages</value>
@@ -370,18 +381,18 @@
                 <value>classpath:javax.faces.Messages</value>
                 <!-- default bean validation messages -->
                 <value>classpath:org/hibernate/validator/ValidationMessages</value>
-			</list>
-		</property>
-        <property name="cacheSeconds" value="1" />
+            </list>
+        </property>
+        <property name="cacheSeconds" value="1"/>
     </bean>
 
     <!-- Email -->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-        <property name="host" value="${email.host}" />
-        <property name="port" value="${email.port}" />
-        <property name="username" value="${email.username}" />
-        <property name="password" value="${email.password}" />
-        <property name="protocol" value="smtp" />
+        <property name="host" value="${email.host}"/>
+        <property name="port" value="${email.port}"/>
+        <property name="username" value="${email.username}"/>
+        <property name="password" value="${email.password}"/>
+        <property name="protocol" value="smtp"/>
         <property name="javaMailProperties">
             <props>
                 <prop key="mail.transport.protocol">smtp</prop>

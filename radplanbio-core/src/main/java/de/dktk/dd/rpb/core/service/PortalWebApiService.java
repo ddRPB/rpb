@@ -255,7 +255,7 @@ public class PortalWebApiService implements IPortalWebApiService {
             WebResource webResource = client
                     .resource(this.url + "api/v1/pacs/archive/" + pacsObjectIdentifier)
                     .queryParam("mode", EnumConquestMode.ZIP_SERIES.toString())
-                    .queryParam("verifyCount", "-1");
+                    .queryParam("verifyCount", "-1"); // -1 -> the PacsArchiveService will determine the number of files
 
             ClientResponse response = webResource
                     .header("X-Api-Key", apiKey)

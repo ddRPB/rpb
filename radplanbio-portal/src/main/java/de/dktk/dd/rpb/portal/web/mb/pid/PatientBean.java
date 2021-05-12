@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@ import de.dktk.dd.rpb.core.repository.ctms.IPersonRepository;
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.AuditLogService;
 import de.dktk.dd.rpb.core.util.Constants;
+import de.dktk.dd.rpb.core.util.PatientIdentifierUtil;
 import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.json.JSONObject;
 import org.primefaces.model.DefaultTreeNode;
@@ -214,7 +214,7 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
         try {
             // IDAT search requires re-identification of all patients (for now)
             if (this.idatSearchMode) {
-                this.depseudonymiseAllPids();
+                this.depseudonymiseAllPids(false);
                 for (Person p : this.entityList) {
                     if (p.patientIdatEquals(this.newSearchPerson)) {
                         matchingPersons.add(p);
@@ -223,7 +223,7 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
             }
             // PID search requires re-identification of one patient pseudonym
             else {
-                String pid = this.mainBean.extractMySubjectPurePid(this.newSearchPerson.getPid());
+                String pid = PatientIdentifierUtil.removePatientIdPrefix(this.newSearchPerson.getPid());
                 Person person = this.reidentifyPseudonymToPerson(pid);
                 if (person != null) {
                     person.clearIdentity();
@@ -265,13 +265,14 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
         }
     }
 
+    //TODO: add parameter to force the reload of cache for admin call (re-identify all)
     /**
      * Re-identify all pseudonyms in order to show clear IDAT
      */
-    public void depseudonymiseAllPids() {
+    public void depseudonymiseAllPids(boolean forceRefreshPatientsIdatCache) {
         try {
             List<Person> pseudonymisedPatients = this.mainBean.getSvcPid().getAllPatientPIDs();
-            this.entityList = this.mainBean.getSvcPid().getPatientListByPIDs(pseudonymisedPatients);
+            this.entityList = this.mainBean.getSvcPid().getPatientListByPIDs(pseudonymisedPatients, forceRefreshPatientsIdatCache);
 
             this.auditLogService.event(AuditEvent.PIDDepseudonymisation, "All PIDs");
             this.messageUtil.infoText("Patient identity data for " + entityList.size() + " pseudonyms loaded.");

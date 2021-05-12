@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 
 package de.dktk.dd.rpb.core.repository.edc;
 
-import java.util.List;
-
 import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.exception.DataBaseItemNotFoundException;
 import org.openclinica.ws.beans.StudyType;
+
+import java.util.List;
 
 /**
  * OpenClinica Database Repository - operation layer abstraction
@@ -38,13 +39,11 @@ public interface IOpenClinicaDataRepository {
 
     String getUserAccountHash(String username);
 
-    String getUserId(String username);
-
-    String getUserName(int id);
-
     //endregion
 
     //region Study
+
+    Study getStudyById(String id);
 
     Study getStudyByIdentifier(String identifier);
 
@@ -56,7 +55,21 @@ public interface IOpenClinicaDataRepository {
 
     //region StudySubject
 
+    StudySubject getStudySubjectByStudySubjectId(String studyIdentifier, String studySubjectId);
+
+    StudySubject getStudySubjectWithEvents(String studyIdentifier, String studySubjectId);
+
+    StudySubject getStudySubjectWithEventsWithForms(String studyIdentifier, String studySubjectId);
+
     List<StudySubject> findStudySubjectsByPseudonym(String pid, List<StudyType> studyTypeList);
+
+    List<StudySubject> findStudySubjectsByStudy(String studyIdentifier);
+
+    List<StudySubject> findStudySubjectsWithEvents(String studyIdentifier);
+
+    public int setPidOnExistingStudySubject(StudySubject studySubject, String ocUserName) throws DataBaseItemNotFoundException;
+
+    int setSecondaryIdOnExistingStudySubject(StudySubject studySubject, String ocUserName) throws DataBaseItemNotFoundException;
 
     //endregion
 
@@ -67,6 +80,8 @@ public interface IOpenClinicaDataRepository {
     //endregion
 
     //region ItemData
+
+    ItemData findItemData(String studyOid, String subjectPid, String studyEventOid, String studyEventRepeatKey, String formOid, String itemOid);
 
     List<ItemDefinition> getData(String uniqueIdentifier);
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ package de.dktk.dd.rpb.core.service;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import de.dktk.dd.rpb.core.domain.edc.ItemData;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
@@ -29,7 +30,6 @@ import de.dktk.dd.rpb.core.domain.pacs.*;
 import de.dktk.dd.rpb.core.service.support.PacsPatientResponseUnmashaller;
 import de.dktk.dd.rpb.core.util.JsonStringUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Sequence;
@@ -83,6 +83,8 @@ public class ConquestService implements IConquestService {
     //region Members
 
     private String baseUrl;
+    private String username;
+    private String password;
     private int structureFillTransparency = 115;
     private int isoFillTransparency = 70;
     private boolean forceRecalculateDvh = false;
@@ -111,6 +113,15 @@ public class ConquestService implements IConquestService {
         this.baseUrl = baseUrl;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void setupConnection(String baseUrl, String user, String password) {
+        this.baseUrl = baseUrl;
+        this.username = user;
+        this.password = password;
+    }
+
     //endregion
 
     //region RT Treatment Case
@@ -130,15 +141,15 @@ public class ConquestService implements IConquestService {
                             rtStructSerie.getSeriesInstanceUID()
                     );
 
-                    if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSerieImages() != null && dicomSeriesWithImages.getSerieImages().size() > 0) {
+                    if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSeriesImages() != null && dicomSeriesWithImages.getSeriesImages().size() > 0) {
 
                         List<DicomRtStructureSet> structureSets = new ArrayList<>();
-                        for (DicomImage instance : dicomSeriesWithImages.getSerieImages()) {
+                        for (DicomImage instance : dicomSeriesWithImages.getSeriesImages()) {
                             structureSets.add(
                                     this.loadDicomRtStructureSet(
                                             dicomStudy.getStudyInstanceUID(),
                                             rtStructSerie.getSeriesInstanceUID(),
-                                            dicomSeriesWithImages.getSerieImages().get(0).getSopInstanceUID(),
+                                            dicomSeriesWithImages.getSeriesImages().get(0).getSopInstanceUID(),
                                             tc
                                     )
                             );
@@ -158,10 +169,10 @@ public class ConquestService implements IConquestService {
                         planSerie.getSeriesInstanceUID()
                 );
 
-                if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSerieImages() != null) {
+                if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSeriesImages() != null) {
 
                     List<DicomRtPlan> plans = new ArrayList<>();
-                    for (DicomImage instance : dicomSeriesWithImages.getSerieImages()) {
+                    for (DicomImage instance : dicomSeriesWithImages.getSeriesImages()) {
                         plans.add(
                                 this.loadDicomRtPlan(
                                         dicomStudy.getStudyInstanceUID(),
@@ -184,10 +195,10 @@ public class ConquestService implements IConquestService {
                         doseSerie.getSeriesInstanceUID()
                 );
 
-                if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSerieImages() != null) {
+                if (dicomSeriesWithImages != null && dicomSeriesWithImages.getSeriesImages() != null) {
 
                     List<DicomRtDose> doses = new ArrayList<>();
-                    for (DicomImage instance : dicomSeriesWithImages.getSerieImages()) {
+                    for (DicomImage instance : dicomSeriesWithImages.getSeriesImages()) {
                         doses.add(
                                 this.loadDicomRtDose(
                                         dicomStudy.getStudyInstanceUID(),
@@ -225,22 +236,29 @@ public class ConquestService implements IConquestService {
             queryResultString = JsonStringUtil.trimJsonString(queryResultString);
             results = handlePacsPatientResponse(queryResultString);
         } else {
-            log.error("Response of query: " + compositeQueryUrl + " had no entity, but status was 200.");
-            throw new Exception("There was a problem with your request. Please try again or contact your administrator");
+            String errorMessage = "There was a problem with your request, because the response had no entity.";
+            String errorDetails = "Status: 200 " + "URL: " + compositeQueryUrl;
+            String userAdvice = "Please try again or contact your administrator";
+            log.error(errorMessage + " " + errorDetails);
+            throw new Exception(errorMessage + " " + userAdvice);
         }
         return results;
     }
 
     private ClientResponse queryConquest(String compositeQueryUrl) {
         Client client = Client.create();
+        if (this.username != null && !this.username.isEmpty()) {
+            client.addFilter(new HTTPBasicAuthFilter(this.username, this.password));
+        }
         WebResource webResource = client.resource(compositeQueryUrl);
         return webResource.get(ClientResponse.class);
     }
 
     private void throwIfResponseStatusIsNotTwoHundred(String compositeQueryUrl, ClientResponse response) throws Exception {
         if (response.getStatus() != 200) {
-            throw new Exception("There was a problem with your request. Please try again or contact your administrator" +
-                    "Status code: " + response.getStatus());
+            String errorMessage = "There was a problem with your request. ";
+            throw new Exception(errorMessage + " URL: " + compositeQueryUrl +
+                    " Status code: " + response.getStatus() + " " + response.getStatusInfo().toString());
         }
     }
 
@@ -252,9 +270,9 @@ public class ConquestService implements IConquestService {
             JSONArray jsonPatients = json.getJSONArray("Patients");
             results = PacsPatientResponseUnmashaller.unmarshalPacsPatientsResponse(jsonPatients);
         } catch (JSONException e) {
-            log.error("There was a problem with the JSON String: " + queryResultString);
-            log.debug("StackTrace: " + ExceptionUtils.getFullStackTrace(e));
+            log.error("There was a problem with the JSON String: " + queryResultString, e);
         }
+
         return results;
     }
 
@@ -262,6 +280,32 @@ public class ConquestService implements IConquestService {
      * {@inheritDoc}
      */
     public List<Subject> loadPatients(List<StudySubject> studySubjectList) throws Exception {
+        List<List<StudySubject>> listOfStudySubjectLists = splitIntoSublists(studySubjectList);
+        List<Subject> loadedSubjects = new ArrayList<>();
+        for (List<StudySubject> studySubjectSubList : listOfStudySubjectLists) {
+            loadedSubjects.addAll(loadPatientsForSublist(studySubjectSubList));
+        }
+        return loadedSubjects;
+
+    }
+
+    private List<List<StudySubject>> splitIntoSublists(List<StudySubject> studySubjectList) {
+        int maxElementsPerList = 15;
+
+        List<List<StudySubject>> listOfStudySubjectLists = new ArrayList<>();
+        for (int i = 0; i < studySubjectList.size(); i = i + maxElementsPerList) {
+            int listSize = studySubjectList.size();
+            int nextMaxIndex = i + maxElementsPerList;
+            if (listSize < nextMaxIndex) {
+                nextMaxIndex = listSize;
+            }
+            List<StudySubject> subList = studySubjectList.subList(i, nextMaxIndex);
+            listOfStudySubjectLists.add(subList);
+        }
+        return listOfStudySubjectLists;
+    }
+
+    private List<Subject> loadPatientsForSublist(List<StudySubject> studySubjectList) throws Exception {
         String concatenatedPatients = "";
         for (StudySubject subject : studySubjectList) {
             if (concatenatedPatients.length() > 0) {
@@ -317,8 +361,10 @@ public class ConquestService implements IConquestService {
 
             if (response.hasEntity()) {
                 JSONArray jsonStudies = getJsonEntityFromString(response, "Studies");
-                JSONObject jsonStudy = jsonStudies.getJSONObject(0);
-                unmarshalStudyProperties(result, jsonStudy);
+                if (jsonStudies.length() > 0) {
+                    JSONObject jsonStudy = jsonStudies.getJSONObject(0);
+                    unmarshalStudyProperties(result, jsonStudy);
+                }
             } else {
                 log.error("The response on the request with query: " + compositeQueryUrl + "had no entity");
                 log.debug(response.toString());
@@ -425,7 +471,7 @@ public class ConquestService implements IConquestService {
                             study.setStudyInstanceUID(jsonStudy.getString("StudyInstanceUID"));
 
                             // filter to return only studies listed in parameter
-                            Boolean studyFound = false;
+                            boolean studyFound = false;
                             for (ItemData itemData : dicomStudyUidList) {
                                 if (itemData.getValue() != null && itemData.getValue().equals(study.getStudyInstanceUID())) {
                                     studyFound = true;
@@ -508,6 +554,39 @@ public class ConquestService implements IConquestService {
     /**
      * {@inheritDoc}
      */
+    public ClientResponse loadStudySeriesResponse(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid) {
+        ClientResponse result = null;
+
+        try {
+            String compositeQueryUrl = this.baseUrl + mode + EnumConquestMode.JSON_SERIES.toString();
+            if (!"".equals(dicomPatientId)) {
+                compositeQueryUrl += patientId + dicomPatientId;
+            }
+            if (!"".equals(dicomStudyUid)) {
+                compositeQueryUrl += studyUid + dicomStudyUid;
+            }
+            if (!"".equals(dicomSeriesUid)) {
+                compositeQueryUrl += seriesUid + dicomSeriesUid;
+            }
+
+            ClientResponse response = queryConquest(compositeQueryUrl);
+
+            throwIfResponseStatusIsNotTwoHundred(compositeQueryUrl, response);
+
+            if (response.hasEntity()) {
+                result = response;
+            }
+        } catch (Exception err) {
+            String message = "Loading the DICOM images failed!\nThere appears to be a problem with the server connection.";
+            log.error(message, err);
+        }
+
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public DicomSeries loadStudySeries(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid) {
         DicomSeries result = null;
 
@@ -540,8 +619,8 @@ public class ConquestService implements IConquestService {
                     result.setSeriesModality(jsonStudy.optString("Modality"));
 
                     JSONArray jsonImages = jsonStudy.getJSONArray("Images");
-                    result.setSerieImages(
-                            this.unmarshallDicomImages(jsonImages)
+                    result.setSeriesImages(
+                            this.unmarshalDicomImages(jsonImages)
                     );
                 }
             }
@@ -1084,7 +1163,7 @@ public class ConquestService implements IConquestService {
         return results;
     }
 
-    private DicomSeries unmarshalSingleDicomSeries(JSONObject jsonSeries) throws JSONException {
+    private DicomSeries unmarshalSingleDicomSeries(JSONObject jsonSeries) {
         DicomSeries dicomSeries = null;
 
         try {
@@ -1101,18 +1180,18 @@ public class ConquestService implements IConquestService {
                         dicomSeries = unmarshalRtStructSpecificProperties(jsonSeries);
                         break;
                     case "RTIMAGE":
-                        dicomSeries = unmarshalRtImageSoecificProperties(jsonSeries);
+                        dicomSeries = unmarshalRtImageSpecificProperties(jsonSeries);
                         break;
                     default:
                         dicomSeries = new DicomSeries();
                         log.debug("No specific case specified to handle modality " + modality +
-                                " in unmarshal process of series. Use default handling.");
+                                " in unmarshalling process of series. Use default handling.");
                 }
                 unmarshalDicomSeriesProperties(jsonSeries, dicomSeries);
             }
 
         } catch (JSONException e) {
-            String message = "Error unmarshal DICOM series from JSON!";
+            String message = "Error unmarshalling DICOM series from JSON!";
             log.error(message, e);
             log.debug("JSON object: " + jsonSeries.toString());
         }
@@ -1121,17 +1200,30 @@ public class ConquestService implements IConquestService {
 
     private void unmarshalDicomSeriesProperties(JSONObject jsonSeries, DicomSeries dicomSeries) throws JSONException {
         dicomSeries.setSeriesInstanceUID(jsonSeries.getString("SeriesInstanceUID"));
+        dicomSeries.setFrameOfReferenceUid(jsonSeries.optString("FrameOfReferenceUID"));
         dicomSeries.setSeriesDescription(jsonSeries.optString("SeriesDescription"));
         dicomSeries.setSeriesModality(jsonSeries.optString("Modality"));
         dicomSeries.setSeriesTime(jsonSeries.optString("SeriesTime"));
     }
 
-    private RtImageDicomSeries unmarshalRtImageSoecificProperties(JSONObject jsonSeries) {
+    private RtImageDicomSeries unmarshalRtImageSpecificProperties(JSONObject jsonSeries) {
         RtImageDicomSeries rtImageDicomSeries = new RtImageDicomSeries();
         rtImageDicomSeries.setRtImageLabel(jsonSeries.optString("RTImageLabel"));
+        if (rtImageDicomSeries.getRtImageLabel().isEmpty()) {
+            rtImageDicomSeries.setRtImageLabel(jsonSeries.optString("rtImageLabel"));
+        }
         rtImageDicomSeries.setRtImageName(jsonSeries.optString("RTImageName"));
+        if (rtImageDicomSeries.getRtImageName().isEmpty()) {
+            rtImageDicomSeries.setRtImageName(jsonSeries.optString("rtImageName"));
+        }
         rtImageDicomSeries.setRtImageDescription(jsonSeries.optString("RTImageDescription"));
+        if (rtImageDicomSeries.getRtImageDescription().isEmpty()) {
+            rtImageDicomSeries.setRtImageDescription(jsonSeries.optString("rtImageDescription"));
+        }
         rtImageDicomSeries.setInstanceCreationDate(jsonSeries.optString("InstanceCreationDate"));
+        if (rtImageDicomSeries.getInstanceCreationDate().isEmpty()) {
+            rtImageDicomSeries.setInstanceCreationDate(jsonSeries.optString("instanceCreationDate"));
+        }
         return rtImageDicomSeries;
     }
 
@@ -1163,7 +1255,7 @@ public class ConquestService implements IConquestService {
         return rtPlanDicomSeries;
     }
 
-    private List<DicomImage> unmarshallDicomImages(JSONArray jsonDicomImages) {
+    private List<DicomImage> unmarshalDicomImages(JSONArray jsonDicomImages) {
         List<DicomImage> images = new ArrayList<>();
 
         try {
@@ -1175,7 +1267,7 @@ public class ConquestService implements IConquestService {
                 images.add(image);
             }
         } catch (Exception err) {
-            String message = "Cannot unmarshall DICOM series from JSON!";
+            String message = "Cannot unmarshalling DICOM series from JSON!";
             log.error(message, err);
         }
 

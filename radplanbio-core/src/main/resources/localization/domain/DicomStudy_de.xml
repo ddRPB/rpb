@@ -15,7 +15,7 @@
     <!-- attributes -->
     <entry key="dicomStudy_id">Id</entry>
     <entry key="dicomStudy_studyInstanceUID">UID</entry>
-    <entry key="dicomStudy_studyDescription">Studie Beschreibung</entry>
+    <entry key="dicomStudy_studyDescription">Beschreibung</entry>
     <entry key="dicomStudy_modalities">Typ</entry>
     <entry key="dicomStudy_studyDate">Datum</entry>
 

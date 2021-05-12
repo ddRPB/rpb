@@ -19,20 +19,22 @@
     <ui:define name="content">
         <p:panel header="#{msg.partnerSite_plural}">
             <p:gmap
-                id="gmap"
-                center="51.056475, 13.787435"
-                zoom="5"
-                type="TERRAIN"
-                model="#{mbCollaboration.simpleModel}"
-                style="width:100%;height:600px"
-                >
-                <p:ajax event="overlaySelect" listener="#{mbCollaboration.onMarkerSelect}" update=":growl" />
+                    id="gmap"
+                    center="51.056475, 13.787435"
+                    zoom="5"
+                    type="TERRAIN"
+                    model="#{mbCollaboration.simpleModel}"
+                    style="width:100%;height:600px"
+            >
+                <p:ajax event="overlaySelect" listener="#{mbCollaboration.onMarkerSelect}" update=":growl"/>
             </p:gmap>
-            
+
+            <script src="https://maps.google.com/maps/api/js?v=3" type="text/javascript"></script>
+            -->
             <!-- Give focus to first link to ease keyboard navigation -->
             <script type="text/javascript">
-                $(function() {
-                    setTimeout(function() {
+                $(function () {
+                    setTimeout(function () {
                         APP.focusTo('form:logo_link');
                     }, 200);
                 });

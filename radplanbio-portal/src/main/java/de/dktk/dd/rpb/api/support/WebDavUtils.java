@@ -26,8 +26,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import org.openclinica.ws.beans.StudySubjectWithEventsType;
-
 import java.math.BigInteger;
 import java.util.*;
 
@@ -60,8 +58,8 @@ public class WebDavUtils {
         return result;
     }
 
-    public static String buildStudySubjectIdentifier(StudySubjectWithEventsType ocSubject) {
-        return ocSubject.getLabel() + "-(" + ocSubject.getSubject().getUniqueIdentifier() + ")";
+    public static String buildStudySubjectIdentifier(de.dktk.dd.rpb.core.domain.edc.StudySubject studySubject) {
+        return studySubject.getStudySubjectId() + "-(" + studySubject.getPid() + ")";
     }
 
     public static String buildEventIdentifier(EventData eventData) {

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,6 +132,8 @@ public class WebDavEventAgnosticDicomStudyService extends BaseService {
 
         final Collection<Response> responses = new LinkedList<>(singletonList(dicomStudiesFolder));
 
+        //TODO:
+
         // Init the facade with OC service with access to OC data
         this.studyIntegrationFacade.init(svcEdcEngine);
         // Load corresponding RPB study
@@ -155,6 +157,7 @@ public class WebDavEventAgnosticDicomStudyService extends BaseService {
             int retryTimeout = 15000;
             long endTime = System.currentTimeMillis() + retryTimeout;
             while (studySubjectOdm == null && System.currentTimeMillis() < endTime) {
+                this.sleepSecond();
                 studySubjectOdm = svcEdcEngine.getStudyCasebookOdm(
                         OpenClinicaService.CasebookFormat.XML,
                         OpenClinicaService.CasebookMethod.VIEW,
@@ -177,6 +180,9 @@ public class WebDavEventAgnosticDicomStudyService extends BaseService {
                 // Data
                 List<EventData> dicomEventDataList = selectedStudySubject.getEventOccurrencesForEvenDefs(dicomEventDefinitions);
 
+                // Load DICOM data for patient from PACS (all at once, later it will be filtered)
+                List<DicomStudy> allPatientDicomStudies = svcPacs.loadPatientStudies(selectedStudySubject.getPid());
+
                 // Lookup for selected study event
                 for (EventData eventData : dicomEventDataList) {
 
@@ -189,12 +195,20 @@ public class WebDavEventAgnosticDicomStudyService extends BaseService {
                             rpbStudy.findAnnotations(dicomAnnotationType, eventExample)
                     );
 
-                    // Load DICOM data from PACS
-                    List<DicomStudy> dicomStudies = svcPacs.loadPatientStudies(
-                            selectedStudySubject.getPid(),
-                            dicomCrfItemData
-                    );
-                    if (dicomStudies != null) {
+                    // Filter only DICOM studies that care referenced in item data
+                    List<DicomStudy> dicomStudies = new ArrayList<>();
+                    for (ItemData id : dicomCrfItemData) {
+                        if (!"".equals(id.getValue())) {
+                            for (DicomStudy ds : allPatientDicomStudies) {
+                                if (ds.getStudyInstanceUID().equals(id.getValue())) {
+                                    dicomStudies.add(ds);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (dicomStudies.size() > 0) {
                         for (DicomStudy dicomStudy : dicomStudies) {
 
                             String dicomStudyNameIdentifier = dicomStudy.getStudyType() +

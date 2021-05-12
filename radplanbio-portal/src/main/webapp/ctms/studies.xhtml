@@ -555,7 +555,7 @@
 
                 <!-- Block table -->
                 <p:blockUI block="dtEntities" trigger="dtEntities">
-                    LOADING<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                    #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
                 </p:blockUI>
 
                 <!-- Export -->
@@ -676,7 +676,7 @@
                         <f:facet name="header">
                             <h:outputText value="#{msg.tumourEntity_description}" />
                         </f:facet>
-                        <h:outputText value="#{tumourEntity.description}" />
+                        <h:outputText value="#{tumourEntity.description}" style="float:left;" />
                     </p:column>
 
                     <!-- Commands -->
@@ -907,7 +907,7 @@
                         <f:facet name="header">
                             <h:outputText value="#{msg.timeLineEvent_startDate}" />
                         </f:facet>
-                        <h:outputText value="#{timeLineEvent.startDateString}" style="float:left;" />
+                        <h:outputText value="#{timeLineEvent.startDateString}" />
                     </p:column>
 
                     <!-- EndDate -->
@@ -922,7 +922,7 @@
                         <f:facet name="header">
                             <h:outputText value="#{msg.timeLineEvent_endDate}" />
                         </f:facet>
-                        <h:outputText value="#{timeLineEvent.endDateString}" style="float:left;" />
+                        <h:outputText value="#{timeLineEvent.endDateString}" />
                     </p:column>
 
                     <!-- Organisation -->
@@ -1167,7 +1167,7 @@
                         visible="#{mbStudyPerson.columnVisibilityList[4]}"
                         style="width:15%"
                         >
-                        <h:outputText value="#{studyPerson.startDateString}" style="float:left;" />
+                        <h:outputText value="#{studyPerson.startDateString}" />
                     </p:column>
 
                     <!-- EndDate -->
@@ -1179,7 +1179,7 @@
                         visible="#{mbStudyPerson.columnVisibilityList[5]}"
                         style="width:15%"
                         >
-                        <h:outputText value="#{studyPerson.endDateString}" style="float:left;" />
+                        <h:outputText value="#{studyPerson.endDateString}" />
                     </p:column>
 
                     <!-- Commands -->
@@ -1918,8 +1918,8 @@
                     <!-- Type -->
                     <p:column
                             headerText="#{msg.abstractCriterion_contstraintType}"
-                            sortBy="#{criterion.contstraintType.simpleName}"
-                            filterBy="#{criterion.contstraintType.simpleName}"
+                            sortBy="#{criterion.constraintType.simpleName}"
+                            filterBy="#{criterion.constraintType.simpleName}"
                             filterMatchMode="in"
                             style="width:10%"
                             >
@@ -1938,7 +1938,7 @@
                                         />
                             </p:selectCheckboxMenu>
                         </f:facet>
-                        <h:outputText value="#{criterion.contstraintType.simpleName}" />
+                        <h:outputText value="#{criterion.constraintType.simpleName}" />
                     </p:column>
 
                     <!-- Commands -->

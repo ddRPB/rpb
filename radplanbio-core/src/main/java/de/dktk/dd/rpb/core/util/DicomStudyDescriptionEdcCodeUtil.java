@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package de.dktk.dd.rpb.core.util;
 
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
@@ -46,15 +47,48 @@ public class DicomStudyDescriptionEdcCodeUtil {
      * @throws NullPointerException throws if parameter is null
      */
     public static String removeEdcCodePrefix(String descriptionWithPrefix) throws NullPointerException {
-        int pos = 0;
-        Pattern p = Pattern.compile("^\\([^)-]+\\)-");
-        Matcher m = p.matcher(descriptionWithPrefix);
 
-        if (m.find()) {
-            pos = m.end(0);
+        String result = "";
+
+        if (descriptionWithPrefix != null) {
+            int pos = 0;
+            Pattern p = Pattern.compile("^\\([^)-]+\\)-");
+            Matcher m = p.matcher(descriptionWithPrefix);
+
+            if (m.find()) {
+                pos = m.end(0);
+            }
+
+            result = descriptionWithPrefix.substring(pos);
         }
 
-        return descriptionWithPrefix.substring(pos);
+        return result;
+    }
+
+    /**
+     * Removes the first prefix that includes the EDC-Code
+     *
+     * @param idWithPrefix String with EDC-Code prefix from study description
+     * @return EDC-Code prefix
+     * @throws NullPointerException throws if parameter is null
+     */
+    public static String getSiteCodePrefix(String idWithPrefix) throws NullPointerException {
+
+        String result = "";
+
+        if (idWithPrefix != null) {
+            int pos = 0;
+            Pattern p = Pattern.compile("^[^)-]+-");
+            Matcher m = p.matcher(idWithPrefix);
+
+            if (m.find()) {
+                pos = m.end(0);
+            }
+
+            result = idWithPrefix.substring(0, pos - 1);
+        }
+
+        return result;
     }
 
     /**
@@ -67,13 +101,13 @@ public class DicomStudyDescriptionEdcCodeUtil {
      * @return boolean true if the studies correspond from the description and date
      * @throws NullPointerException throws if properties are missing or parameter is null
      */
-    public static boolean isCorrespondingStudyZero(DicomStudy stagedStudy, DicomStudy studyZero) throws NullPointerException {
+    public static boolean isCorrespondingStudyZero(DicomStudy stagedStudy, DicomStudy studyZero) {
         boolean isCorresponding = false;
 
         String stagedStudyDescriptionWithoutPrefix = removeEdcCodePrefix(stagedStudy.getStudyDescription());
         String studyZeroDescriptionWithoutPrefix = removeEdcCodePrefix(studyZero.getStudyDescription());
 
-        if (stagedStudyDescriptionWithoutPrefix.equals(studyZeroDescriptionWithoutPrefix)) {
+        if (stagedStudyDescriptionWithoutPrefix.equals(studyZeroDescriptionWithoutPrefix) && !stagedStudyDescriptionWithoutPrefix.isEmpty()) {
             if (stagedStudy.getStudyDate().equals(studyZero.getStudyDate())) {
                 isCorresponding = true;
             }
@@ -93,4 +127,5 @@ public class DicomStudyDescriptionEdcCodeUtil {
         Matcher m = p.matcher(descriptionWithPrefix);
         return m.find();
     }
+
 }

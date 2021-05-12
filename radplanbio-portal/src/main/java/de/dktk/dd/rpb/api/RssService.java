@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2021 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class RssService {
     //region GET
 
     @GET
-    @Produces("application/rss+xml")
+    @Produces("application/rss+xml;charset=UTF-8")
     public Response getRssFeed(@Context final UriInfo uriInfo) {
         try {
             final SyndFeed feed = this.generate(uriInfo.getRequestUri().toString());

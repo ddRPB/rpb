@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2015 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,8 @@ public class HibernateListenerRegistration {
         register(POST_DELETE, auditLogListener);
         register(POST_INSERT, auditLogListener);
         register(PRE_UPDATE, auditLogListener);
-        this.auditLogService.event(ApplicationStartup);
+        //TODO: maybe it is possible to load the string from pom or from msg resource
+        this.auditLogService.event(ApplicationStartup, "radplanbio-portal");
     }
 
     private <T> void register(EventType<T> eventType, T t) {
@@ -86,7 +87,8 @@ public class HibernateListenerRegistration {
 
     @PreDestroy
     public void destroy() {
-        this.auditLogService.event(ApplicationShutdown);
+        //TODO: maybe it is possible to load the string from pom or from msg resource
+        this.auditLogService.event(ApplicationShutdown, "radplanbio-portal");
     }
 
 }

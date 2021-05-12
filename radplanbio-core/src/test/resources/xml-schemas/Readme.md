@@ -1,0 +1,1 @@
+This folder includes XML schema xsd files of the project.

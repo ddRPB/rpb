@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,6 @@ package de.dktk.dd.rpb.api.v1.webdav;
 
 import de.dktk.dd.rpb.api.support.BaseService;
 import de.dktk.dd.rpb.api.support.WebDavUtils;
-import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
-import de.dktk.dd.rpb.core.ocsoap.types.Study;
-import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
 import net.java.dev.webdav.jaxrs.xml.elements.*;
@@ -33,7 +29,6 @@ import net.java.dev.webdav.jaxrs.xml.properties.DisplayName;
 import net.java.dev.webdav.jaxrs.xml.properties.GetLastModified;
 
 import org.apache.log4j.Logger;
-import org.openclinica.ws.beans.*;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -96,10 +91,6 @@ public class WebDavStudySubjectService extends BaseService {
             return javax.ws.rs.core.Response.status(404).build();
         }
 
-        // Authentication
-        DefaultAccount defaultAccount = this.defaultAccountAuthentication(httpServletRequest);
-        IOpenClinicaService svcEdc = this.createEdcConnection(defaultAccount);
-
         String subjectsUrl = uriInfo.getRequestUri().toString();
         if (!subjectsUrl.endsWith("/")) {
             subjectsUrl += "/";
@@ -128,31 +119,23 @@ public class WebDavStudySubjectService extends BaseService {
         // Otherwise expand
         final Collection<Response> responses = new LinkedList<>(singletonList(studySubjectsFolder));
 
-        // Create example to query parent study
-        de.dktk.dd.rpb.core.ocsoap.types.Study selectedStudy = new Study();
-        selectedStudy.setStudyIdentifier(studyIdentifier);
+        // Init the facade with OC data service with access to OC database
+        this.studyIntegrationFacade.init(this.openClinicaDataRepository);
 
-        // When study and site identifier are not the same it is multi-centre study
-        if (!studyIdentifier.equals(siteIdentifier)) {
-            // Define which site to query
-            selectedStudy.setSiteName(siteIdentifier);
-        }
+        // Define EDC study for query
+        de.dktk.dd.rpb.core.domain.edc.Study edcStudy = new de.dktk.dd.rpb.core.domain.edc.Study();
+        // Query for siteIdentifier (in mono-centre it is the same as parent study)
+        edcStudy.setUniqueIdentifier(siteIdentifier);
 
         try {
-            // With too many parallel requests SOAP listing can fail
-            List<StudySubjectWithEventsType> soapSubjects = svcEdc.listAllStudySubjectsByStudy(selectedStudy);
-            // 15 seconds - hardcoded for now
-            int retryTimeout = 15000;
-            long endTime = System.currentTimeMillis() + retryTimeout;
-            while (soapSubjects == null && System.currentTimeMillis() < endTime) {
-                soapSubjects = svcEdc.listAllStudySubjectsByStudy(selectedStudy);
-            }
 
-            if (soapSubjects != null) {
-                for (StudySubjectWithEventsType ocSubject : soapSubjects) {
+            List <de.dktk.dd.rpb.core.domain.edc.StudySubject> studySubjects = this.studyIntegrationFacade.loadStudySubjects(edcStudy);
 
-                    String studySubjectNameIdentifier = WebDavUtils.buildStudySubjectIdentifier(ocSubject);
-                    Date convertEnrollmentDate = ocSubject.getEnrollmentDate().toGregorianCalendar().getTime();
+            if (studySubjects != null) {
+                for (de.dktk.dd.rpb.core.domain.edc.StudySubject studySubject : studySubjects) {
+
+                    String studySubjectNameIdentifier = WebDavUtils.buildStudySubjectIdentifier(studySubject);
+                    Date convertEnrollmentDate = studySubject.getDateEnrollment();
                     Response studySubjectFolder = new Response(
                         new HRef(subjectsUrl + studySubjectNameIdentifier),
                         null,
@@ -172,14 +155,11 @@ public class WebDavStudySubjectService extends BaseService {
                     responses.add(studySubjectFolder);
                 }
             }
-            else {
-                log.error("WebDAV: OC SOAP list all subjects failed, probably too many parallel requests.");
-            }
 
             return javax.ws.rs.core.Response.status(MULTI_STATUS).entity(new MultiStatus(responses.toArray(new Response[0]))).build();
         }
-        catch (OCConnectorException e) {
-            log.error(e);
+        catch (Exception err) {
+            log.error(err);
             return javax.ws.rs.core.Response.status(500).build();
         }
     }

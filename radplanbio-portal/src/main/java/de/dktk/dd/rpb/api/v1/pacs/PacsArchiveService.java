@@ -19,22 +19,20 @@
 
 package de.dktk.dd.rpb.api.v1.pacs;
 
+import com.sun.jersey.core.header.ContentDisposition;
 import de.dktk.dd.rpb.api.support.BaseService;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
 import de.dktk.dd.rpb.core.domain.pacs.EnumConquestMode;
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.IConquestService;
-
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
-import com.sun.jersey.core.header.ContentDisposition;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
 import java.io.InputStream;
 import java.util.Date;
 
@@ -119,8 +117,8 @@ public class PacsArchiveService extends BaseService {
                 this.auditLogService.setUsername(account.getUsername());
                 this.auditLogService.event(
                         AuditEvent.PACSDataDownload,
+                        "DicomStudy",
                         dicomPatientId,
-                        EnumConquestMode.ZIP_STUDY.toString(),
                         studyInstanceUid
                 );
 
@@ -143,8 +141,8 @@ public class PacsArchiveService extends BaseService {
                 if (verifyCount == -1) {
                     DicomSeries dicomSeries = svcPacs.loadStudySeries(dicomPatientId, studyInstanceUid, seriesInstanceUid);
 
-                    if (dicomSeries.getSerieImages() != null) {
-                        filesCount = dicomSeries.getSerieImages().size();
+                    if (dicomSeries.getSeriesImages() != null) {
+                        filesCount = dicomSeries.getSeriesImages().size();
                     }
                 }
 
@@ -156,8 +154,8 @@ public class PacsArchiveService extends BaseService {
                 this.auditLogService.setUsername(account.getUsername());
                 this.auditLogService.event(
                         AuditEvent.PACSDataDownload,
+                        "DicomSeries",
                         dicomPatientId,
-                        EnumConquestMode.ZIP_SERIES.toString(),
                         seriesInstanceUid
                 );
 

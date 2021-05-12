@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,10 +49,10 @@ public class DefaultAccountService extends BaseService {
     //region GET
 
     @GET
-    @Path("/{param}")
-    @Produces({"application/vnd.defaultaccount.v1+json"})
+    @Path("/{defaultAccountIdentifier}")
+    @Produces({"application/vnd.defaultaccount.v1+json;charset=UTF-8"})
     public Response getDefaultAccount(@Context HttpHeaders headers,
-                                      @PathParam("param") String identifier) {
+                                      @PathParam("defaultAccountIdentifier") String defaultAccountIdentifier) {
 
         // ApiKey for authentication
         String apiKey = headers.getRequestHeader("X-Api-Key").get(0);
@@ -70,7 +70,7 @@ public class DefaultAccountService extends BaseService {
 
         log.info("User with corresponding ApiKey was found.");
 
-        Response notAuthorised = this.notAuthorisedResponse(identifier, userAccount);
+        Response notAuthorised = this.notAuthorisedResponse(defaultAccountIdentifier, userAccount);
         if (notAuthorised != null) {
             return notAuthorised;
         }
@@ -111,9 +111,9 @@ public class DefaultAccountService extends BaseService {
     //region PUT
 
     @PUT
-    @Path("/{param}/activestudy/{studyIdentifierParam}")
+    @Path("/{defaultAccountIdentifier}/activestudy/{studyIdentifierParam}")
     public Response changeDefaultAccountActiveStudy(@Context HttpHeaders headers,
-                                                    @PathParam("param") String identifier,
+                                                    @PathParam("defaultAccountIdentifier") String defaultAccountIdentifier,
                                                     @PathParam("studyIdentifierParam") String studyIdentifierParam) {
 
         // ApiKey for authentication
@@ -130,12 +130,16 @@ public class DefaultAccountService extends BaseService {
             return javax.ws.rs.core.Response.status(401).build();
         }
 
-        Response notAuthorised = this.notAuthorisedResponse(identifier, userAccount);
+        Response notAuthorised = this.notAuthorisedResponse(defaultAccountIdentifier, userAccount);
         if (notAuthorised != null) {
             return notAuthorised;
         }
 
         Study newActiveStudy = this.openClinicaDataRepository.getStudyByIdentifier(studyIdentifierParam);
+        // Workaround for use in python client which sends primary key as identifier
+        if (newActiveStudy == null) {
+            newActiveStudy = this.openClinicaDataRepository.getStudyById(studyIdentifierParam);
+        }
 
         if (this.openClinicaDataRepository.changeUserActiveStudy(
                 userAccount.getOcUsername(),

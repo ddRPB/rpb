@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,9 @@ import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
 import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.service.IConquestService;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
-
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
 import net.java.dev.webdav.jaxrs.xml.elements.*;
-import net.java.dev.webdav.jaxrs.xml.elements.Status;
 import net.java.dev.webdav.jaxrs.xml.properties.*;
-
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -43,10 +40,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
-
 import java.io.InputStream;
-import java.util.*;
 import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
 
 import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -166,17 +163,17 @@ public class WebDavEventAgnosticDicomFileService extends BaseService {
 
             if (dicomSeries != null) {
 
-                for (DicomImage dicomImage : dicomSeries.getSerieImages()) {
-                    
+                for (DicomImage dicomImage : dicomSeries.getSeriesImages()) {
+
                     String dicomImageNameIdentifier = WebDavUtils.encodeDicomUid(dicomImage.getSopInstanceUID()) + ".dcm";
                     int size = dicomImage.getSize() != null ? dicomImage.getSize() : 1024;
-                    
+
                     Response fileResponse = new net.java.dev.webdav.jaxrs.xml.elements.Response(
-                        new HRef(dicomFilesUrl + dicomImageNameIdentifier),
-                        null,
-                        null,
-                        null,
-                        new PropStat(
+                            new HRef(dicomFilesUrl + dicomImageNameIdentifier),
+                            null,
+                            null,
+                            null,
+                            new PropStat(
                             new Prop(
                                 new DisplayName(dicomImageNameIdentifier),
                                 new CreationDate(new Date()),

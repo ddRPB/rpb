@@ -27,6 +27,7 @@
         <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration" />
         <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumRequired" />
 
+        <!-- Main Tab -->
         <p:tabView id="tabView">
 
             <!-- Import source data -->
@@ -322,12 +323,12 @@
                     </f:facet>
 
                     <!-- Row expansion -->
-                    <p:column toggleable="false" exportable="false" style="width:10px">
+                    <p:column toggleable="false" exportable="false">
                         <p:rowToggler />
                     </p:column>
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -338,7 +339,6 @@
                         filterBy="#{entity.isEnabled}"
                         filterMatchMode="exact"
                         visible="#{mbImportData.subjectsColumnVisibilityList[0]}"
-                        style="width:10%"
                         >
                         <f:facet name="filter">
                             <p:selectOneButton onchange="PF('entitiesTable').filter()">
@@ -365,7 +365,6 @@
                         filterBy="#{entity.studySubjectId}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[1]}"
-                        style="width:10%"
                         >
                         <h:outputText value="#{entity.studySubjectId}" style="float: left;" />
                     </p:column>
@@ -377,7 +376,6 @@
                         filterBy="#{entity.pid}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[2]}"
-                        style="width:10%"
                         >
                         <h:outputText value="#{entity.pid}" style="font-family:consolas, courier new,monospace;float: left;" />
                     </p:column>
@@ -389,7 +387,6 @@
                         filterBy="#{entity.subjectKey}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[3]}"
-                        style="width:10%"
                         >
                         <h:outputText value="#{entity.subjectKey}" style="float: left;" />
                     </p:column>
@@ -401,7 +398,6 @@
                         filterBy="#{entity.sex}"
                         filterMatchMode="in"
                         visible="#{mbImportData.subjectsColumnVisibilityList[4]}"
-                        style="width:10%"
                         >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
@@ -424,7 +420,6 @@
                         filterBy="#{entity.person.firstname}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[5]}"
-                        style="width:10%"
                         >
                         <h:outputText value="#{entity.person.firstname}" style="float: left;" />
                     </p:column>
@@ -436,7 +431,6 @@
                         filterBy="#{entity.person.surname}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[6]}"
-                        style="width:13%"
                         >
                         <h:outputText value="#{entity.person.surname}" style="float: left;" />
                     </p:column>
@@ -448,7 +442,6 @@
                         filterBy="#{entity.person.birthdateString}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[7]}"
-                        style="width:9%"
                         >
                         <h:outputText value="#{entity.person.birthdateString}" style="float: left;" />
                     </p:column>
@@ -460,7 +453,6 @@
                         filterBy="#{entity.person.birthname}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[8]}"
-                        style="width:10%"
                         >
                         <h:outputText value="#{entity.person.birthname}" style="float: left;" />
                     </p:column>
@@ -472,7 +464,6 @@
                         filterBy="#{entity.person.city}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[9]}"
-                        style="width:10%"
                         >
                         <h:outputText value="#{entity.person.city}" style="float: left;" />
                     </p:column>
@@ -484,7 +475,6 @@
                         filterBy="#{entity.person.zipcode}"
                         filterMatchMode="contains"
                         visible="#{mbImportData.subjectsColumnVisibilityList[10]}"
-                        style="width:5%"
                         >
                         <h:outputText value="#{entity.person.zipcode}" style="float: left;" />
                     </p:column>
@@ -494,7 +484,6 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:13%"
                         >
                         <!-- Edit -->
                         <p:commandButton
@@ -572,7 +561,7 @@
                             </p:column>
 
                             <!-- Row -->
-                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                            <p:column headerText="#" toggleable="false" exportable="false">
                                 <h:outputText value="#{subRowIndex + 1}" />
                             </p:column>
 
@@ -625,7 +614,7 @@
                                     </p:column>
 
                                     <!-- Row -->
-                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                    <p:column headerText="#" toggleable="false" exportable="false">
                                         <h:outputText value="#{subsubRowIndex + 1}" />
                                     </p:column>
 
@@ -668,7 +657,7 @@
                                             </p:column>
 
                                             <!-- Row -->
-                                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                            <p:column headerText="#" toggleable="false" exportable="false">
                                                 <h:outputText value="#{subsubsubRowIndex + 1}" />
                                             </p:column>
 
@@ -716,7 +705,7 @@
                                                     </f:facet>
 
                                                     <!-- Row -->
-                                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                    <p:column headerText="#" toggleable="false" exportable="false">
                                                         <h:outputText value="#{subsubsubsubRowIndex + 1}" />
                                                     </p:column>
 
@@ -1073,7 +1062,7 @@
                             </p:column>
 
                             <!-- Row -->
-                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                            <p:column headerText="#" toggleable="false" exportable="false">
                                 <h:outputText value="#{rowIndex + 1}" />
                             </p:column>
 
@@ -1087,7 +1076,6 @@
                             <!-- ODM match -->
                             <p:column
                                 headerText="Match"
-                                style="width:20%"
                                 >
                                 <p:selectBooleanButton
                                     value="#{clinicalDataMatch.match}"
@@ -1096,7 +1084,6 @@
                                     onIcon="ui-icon-check"
                                     offIcon="ui-icon-close"
                                     disabled="true"
-                                    style="width:60px"
                                     />
                             </p:column>
 
@@ -1131,7 +1118,7 @@
                                     </p:column>
 
                                     <!-- Row -->
-                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                    <p:column headerText="#" toggleable="false" exportable="false">
                                         <h:outputText value="#{subRowIndex + 1}" />
                                     </p:column>
 
@@ -1145,7 +1132,6 @@
                                     <!-- ClinicalData match -->
                                     <p:column
                                         headerText="Match"
-                                        style="width:20%"
                                         >
                                         <p:selectBooleanButton
                                             value="#{subjectDataMatch.match}"
@@ -1154,7 +1140,6 @@
                                             onIcon="ui-icon-check"
                                             offIcon="ui-icon-close"
                                             disabled="true"
-                                            style="width:60px"
                                             />
                                     </p:column>
 
@@ -1187,7 +1172,7 @@
                                             </p:column>
 
                                             <!-- Row -->
-                                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                            <p:column headerText="#" toggleable="false" exportable="false">
                                                 <h:outputText value="#{subsubRowIndex + 1}" />
                                             </p:column>
 
@@ -1201,7 +1186,6 @@
                                             <!-- Event repeat key -->
                                             <p:column
                                                 headerText="Key"
-                                                style="width:5%"
                                                 >
                                                 <h:outputText value="#{eventDataMatch.studyEventRepeatKey}" style="float: left;" />
                                             </p:column>
@@ -1209,7 +1193,6 @@
                                             <!-- EventData match -->
                                             <p:column
                                                 headerText="Match"
-                                                style="width:20%"
                                                 >
                                                 <p:selectBooleanButton
                                                     value="#{eventDataMatch.match}"
@@ -1218,7 +1201,6 @@
                                                     onIcon="ui-icon-check"
                                                     offIcon="ui-icon-close"
                                                     disabled="true"
-                                                    style="width:60px"
                                                     />
                                             </p:column>
 
@@ -1253,7 +1235,7 @@
                                                     </p:column>
 
                                                     <!-- Row -->
-                                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                    <p:column headerText="#" toggleable="false" exportable="false">
                                                         <h:outputText value="#{subsubsubRowIndex + 1}" />
                                                     </p:column>
 
@@ -1267,7 +1249,6 @@
                                                     <!-- FormData match -->
                                                     <p:column
                                                         headerText="Match"
-                                                        style="width:20%"
                                                         >
                                                         <p:selectBooleanButton
                                                             value="#{formDataMatch.match}"
@@ -1310,7 +1291,8 @@
                                                             </p:column>
 
                                                             <!-- Row -->
-                                                            <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                            <p:column headerText="#" toggleable="false"
+                                                                      exportable="false">
                                                                 <h:outputText value="#{subsubsubsubRowIndex + 1}" />
                                                             </p:column>
 
@@ -1324,7 +1306,6 @@
                                                             <!-- ItemGroupData repeat key -->
                                                             <p:column
                                                                 headerText="Key"
-                                                                style="width:5%"
                                                                 >
                                                                 <h:outputText value="#{itemGroupDataMatch.itemGroupRepeatKey}" style="float: left;" />
                                                             </p:column>
@@ -1332,7 +1313,6 @@
                                                             <!-- ItemGroupData match -->
                                                             <p:column
                                                                 headerText="Match"
-                                                                style="width:20%"
                                                                 >
                                                                 <p:selectBooleanButton
                                                                     value="#{itemGroupDataMatch.match}"
@@ -1372,7 +1352,8 @@
                                                                     </f:facet>
 
                                                                     <!-- Row -->
-                                                                    <p:column headerText="#" toggleable="false" exportable="false" style="width:5%">
+                                                                    <p:column headerText="#" toggleable="false"
+                                                                              exportable="false">
                                                                         <h:outputText value="#{subsubsubsubsubRowIndex + 1}" />
                                                                     </p:column>
 
@@ -1391,7 +1372,6 @@
                                                                         filterBy="#{itemDataMatch.match}"
                                                                         sortBy="#{itemDataMatch.match}"
                                                                         filterMatchMode="exact"
-                                                                        style="width:20%"
                                                                         >
                                                                         <f:facet name="header">
                                                                             <h:outputText value="Match" />

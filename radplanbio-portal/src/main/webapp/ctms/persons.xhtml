@@ -41,7 +41,7 @@
                                 immediate="true"
                                 update=":newEntityForm:newDisplay"
                                 process="@this"
-                                actionListener="#{mbPerson.prepareNewEntity}"
+                                actionListener="#{mbPersonLazy.doPrepareNewEntityWithDefaults}"
                                 />
                         <p:commandButton
                                 value="#{msg.menu_reload}"
@@ -51,7 +51,7 @@
                                 immediate="true"
                                 process="@this"
                                 update=":form:tabView:dtEntities, :growl"
-                                actionListener="#{mbPerson.load}"
+                                oncomplete="PF('entitiesTable').filter()"
                                 />
                     </p:toolbarGroup>
 
@@ -77,7 +77,7 @@
                 <p:dataTable
                         id="dtEntities"
                         var="entity"
-                        value="#{mbPerson.entityList}"
+                        value="#{mbPersonLazy}"
                         widgetVar="entitiesTable"
                         resizableColumns="true"
                         draggableColumns="false"
@@ -85,18 +85,14 @@
                         rows="15"
                         rowsPerPageTemplate="15,25,50,100"
                         emptyMessage="#{msg.search_empty}"
-                        rowKey="#{entity.id}"
-                        selection="#{mbPerson.selectedEntity}"
                         selectionMode="single"
                         rowIndexVar="rowIndex"
-                        filteredValue="#{mbPerson.filteredEntities}"
-                        sortMode="multiple"
-                        sortBy="#{mbPerson.preSortOrder}"
+                        lazy="true"
                         disabledTextSelection="false"
                         >
 
-                    <!--AJAX onclick on datatable row -->
-                    <p:ajax event="rowSelect" update=":form:tabView:dtCvEntities, :form:tabView:dtPersonnelEntities" />
+                    <!-- AJAX onclick on data table row -->
+                    <p:ajax event="rowSelect" listener="#{mbPersonLazy.onRowSelect}" update=":form:tabView:dtPersonnelEntities" />
 
                     <!-- Table header -->
                     <f:facet name="header">
@@ -106,12 +102,12 @@
                                 trigger=":form:tabView:dtEntities:btnEntitiesToggler"
                                 style="width:450px"
                                 >
-                            <p:ajax event="toggle" listener="#{mbPerson.onEntityToggle}" />
+                            <p:ajax event="toggle" listener="#{mbPersonLazy.onEntityToggle}" />
                         </p:columnToggler>
                     </f:facet>
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -121,8 +117,7 @@
                             sortBy="#{entity.surname}"
                             filterBy="#{entity.surname}"
                             filterMatchMode="contains"
-                            visible="#{mbPerson.columnVisibilityList[0]}"
-                            style="width:20%"
+                            visible="#{mbPersonLazy.columnVisibilityList[0]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.person_surname}" />
@@ -136,8 +131,7 @@
                             sortBy="#{entity.firstname}"
                             filterBy="#{entity.firstname}"
                             filterMatchMode="contains"
-                            visible="#{mbPerson.columnVisibilityList[1]}"
-                            style="width:20%"
+                            visible="#{mbPersonLazy.columnVisibilityList[1]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.person_firstname}" />
@@ -150,8 +144,7 @@
                             sortBy="#{entity.birthname}"
                             filterBy="#{entity.birthname}"
                             filterMatchMode="contains"
-                            visible="#{mbPerson.columnVisibilityList[2]}"
-                            style="width:20%"
+                            visible="#{mbPersonLazy.columnVisibilityList[2]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.person_birthname}" />
@@ -165,26 +158,30 @@
                         sortBy="#{entity.status.name}"
                         filterBy="#{entity.status.name}"
                         filterMatchMode="in"
-                        visible="#{mbPerson.columnVisibilityList[3]}"
-                        style="width:15%"
+                        visible="#{mbPersonLazy.columnVisibilityList[3]}"
                         >
                         <f:facet name="header">
                             <h:outputText value="#{msg.person_status}" />
                         </f:facet>
                         <f:facet name="filter">
-                            <p:selectCheckboxMenu
-                                label="#{msg.personStatus_plural}"
-                                onchange="PF('entitiesTable').filter()"
-                                panelStyle="width:150px"
-                                >
+                            <p:selectOneMenu
+                                    label="#{msg.personStatus_plural}"
+                                    var="personStatusIter"
+                                    onchange="PF('entitiesTable').filter()"
+                                    converter="omnifaces.SelectItemsConverter"
+                                    panelStyle="width:250px"
+                            >
+                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                                 <f:selectItems
-                                    value="#{mbPersonStatus.entityList}"
-                                    var="status"
-                                    itemLabel="#{status.name}"
-                                    itemValue="#{status.name}"
-                                    itemDescription="#{status.description}"
-                                    />
-                            </p:selectCheckboxMenu>
+                                        value="#{mbPersonStatus.entityList}"
+                                        var="status"
+                                        itemLabel="#{status.name}"
+                                        itemDescription="#{status.description}"
+                                />
+                                <p:column>
+                                    <h:outputText value="#{personStatusIter.name}" />
+                                </p:column>
+                            </p:selectOneMenu>
                         </f:facet>
                         <h:outputText value="#{entity.status.name}" title="#{entity.status.description}" style="float:left;" />
                     </p:column>
@@ -194,8 +191,7 @@
                             sortBy="#{entity.titlesBefore}"
                             filterBy="#{entity.titlesBefore}"
                             filterMatchMode="contains"
-                            visible="#{mbPerson.columnVisibilityList[4]}"
-                            style="width:20%"
+                            visible="#{mbPersonLazy.columnVisibilityList[4]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.person_titlesBefore}" />
@@ -208,8 +204,7 @@
                         sortBy="#{entity.titlesAfter}"
                         filterBy="#{entity.titlesAfter}"
                         filterMatchMode="contains"
-                        visible="#{mbPerson.columnVisibilityList[5]}"
-                        style="width:20%"
+                        visible="#{mbPersonLazy.columnVisibilityList[5]}"
                         >
                         <f:facet name="header">
                             <h:outputText value="#{msg.person_titlesAfter}" />
@@ -222,7 +217,6 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:10%"
                         >
                         <!-- Edit -->
                         <p:commandButton
@@ -235,7 +229,7 @@
                             >
                             <f:setPropertyActionListener
                                     value="#{entity}"
-                                    target="#{mbPerson.selectedEntity}"
+                                    target="#{mbPersonLazy.selectedEntity}"
                                     />
                         </p:commandButton>
 
@@ -250,20 +244,20 @@
                             >
                             <f:setPropertyActionListener
                                 value="#{entity}"
-                                target="#{mbPerson.selectedEntity}"
+                                target="#{mbPersonLazy.selectedEntity}"
                                 />
                         </p:commandButton>
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPerson.entityList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPerson.entityList.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPersonLazy.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPersonLazy.size == 1}" />
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbPerson.entityList.size() > 1}"
+                                rendered="#{mbPersonLazy.size > 1}"
                                 >
-                            <f:param value="#{mbPerson.entityList.size()}" />
+                            <f:param value="#{mbPersonLazy.size}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
@@ -277,244 +271,6 @@
                     <h:commandLink>
                         <p:graphicImage library="img" name="csv.png" title="csv"/>
                         <p:dataExporter type="csv" target="dtEntities" fileName="#{msg.person_plural}" />
-                    </h:commandLink>
-                </p:panel>
-            </p:tab>
-
-            <!-- CVs -->
-            <p:tab title="#{msg.person_curriculumVitaeItems}">
-                <!-- Toolbar -->
-                <p:toolbar>
-
-                    <!-- Left -->
-                    <p:toolbarGroup align="left">
-                        <p:commandButton
-                                value="#{msg.menu_new}"
-                                title="#{msg.curriculumVitaeItem_new}"
-                                icon="ui-icon-document"
-                                oncomplete="PF('newCvItemDialog').show();"
-                                style="float: left;"
-                                immediate="true"
-                                update=":newCvItemForm:newCvItemDisplay"
-                                process="@this"
-                                actionListener="#{mbCurriculumVitaeItem.prepareNewEntity}"
-                                />
-                    </p:toolbarGroup>
-
-                    <!-- Right -->
-                    <p:toolbarGroup align="right">
-                        <p:commandButton
-                                value="#{msg.menu_print}"
-                                title="#{msg.curriculumVitaeItem_print}"
-                                icon="ui-icon-print"
-                                >
-                            <p:printer target="dtCvEntities" />
-                        </p:commandButton>
-                        <p:commandButton
-                                value="#{msg.menu_help}"
-                                title="#{msg.menu_help}"
-                                icon="ui-icon-help"
-                                disabled="True"
-                                />
-                    </p:toolbarGroup>
-                </p:toolbar>
-
-                <!-- Data table -->
-                <p:dataTable
-                        id="dtCvEntities"
-                        var="cvItem"
-                        value="#{mbPerson.selectedEntity.curriculumVitaeItems}"
-                        widgetVar="cvEntitiesTable"
-                        resizableColumns="true"
-                        draggableColumns="false"
-                        paginator="true"
-                        rows="15"
-                        rowsPerPageTemplate="15,25,50"
-                        emptyMessage="#{msg.search_empty}"
-                        rowKey="#{cvItem.id}"
-                        selection="#{mbCurriculumVitaeItem.selectedEntity}"
-                        selectionMode="single"
-                        rowIndexVar="rowIndex"
-                        filteredValue="#{mbCurriculumVitaeItem.filteredEntities}"
-                        sortMode="multiple"
-                        sortBy="#{mbCurriculumVitaeItem.preSortOrder}"
-                        disabledTextSelection="false"
-                        >
-
-                    <!-- Table header -->
-                    <f:facet name="header">
-                        <h:outputText value="#{mbPerson.selectedEntity.surname}" style="float:left" />
-                        <p:commandButton id="btnCvEntitiesToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
-                        <p:columnToggler
-                                datasource="dtCvEntities"
-                                trigger=":form:tabView:dtCvEntities:btnCvEntitiesToggler"
-                                style="width:450px"
-                                >
-                            <p:ajax event="toggle" listener="#{mbCurriculumVitaeItem.onEntityToggle}" />
-                        </p:columnToggler>
-                    </f:facet>
-
-                    <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
-                        <h:outputText value="#{rowIndex + 1}" />
-                    </p:column>
-
-                    <!-- Name -->
-                    <p:column
-                        id="colItemName"
-                        sortBy="#{cvItem.name}"
-                        filterBy="#{cvItem.name}"
-                        filterMatchMode="contains"
-                        visible="#{mbCurriculumVitaeItem.columnVisibilityList[0]}"
-                        style="width:20%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.curriculumVitaeItem_name}" />
-                        </f:facet>
-                        <h:outputText value="#{cvItem.name}" style="float:left;" />
-                    </p:column>
-
-                    <!-- Type -->
-                    <p:column
-                        sortBy="#{cvItem.type.name}"
-                        filterBy="#{cvItem.type.name}"
-                        filterMatchMode="in"
-                        visible="#{mbCurriculumVitaeItem.columnVisibilityList[1]}"
-                        style="width:10%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.curriculumVitaeItem_type}" />
-                        </f:facet>
-                        <f:facet name="filter">
-                            <p:selectCheckboxMenu
-                                    label="#{msg.curriculumVitaeItemType_plural}"
-                                    onchange="PF('cvEntitiesTable').filter()"
-                                    panelStyle="width:280px"
-                                    scrollHeight="200"
-                                    >
-                                <f:selectItems
-                                        value="#{mbCurriculumVitaeItemType.entityList}"
-                                        var="type"
-                                        itemLabel="#{type.name}"
-                                        itemValue="#{type.name}"
-                                        itemDescription="#{type.description}"
-                                        />
-                            </p:selectCheckboxMenu>
-                        </f:facet>
-                        <h:outputText value="#{cvItem.type.name}" style="float:left;" />
-                    </p:column>
-
-                    <!-- StartDate -->
-                    <p:column
-                        id="colItemStartDate"
-                        sortBy="#{cvItem.startDate}"
-                        filterBy="#{cvItem.startDateString}"
-                        filterMatchMode="contains"
-                        visible="#{mbCurriculumVitaeItem.columnVisibilityList[2]}"
-                        style="width:10%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.curriculumVitaeItem_startDate}" />
-                        </f:facet>
-                        <h:outputText value="#{cvItem.startDateString}" style="float: left;" />
-                    </p:column>
-
-                    <!-- EndDate -->
-                    <p:column
-                        sortBy="#{cvItem.endDate}"
-                        filterBy="#{cvItem.endDateString}"
-                        filterMatchMode="contains"
-                        visible="#{mbCurriculumVitaeItem.columnVisibilityList[3]}"
-                        style="width:10%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.curriculumVitaeItem_endDate}" />
-                        </f:facet>
-                        <h:outputText value="#{cvItem.endDateString}" style="float: left;" />
-                    </p:column>
-
-                    <!-- Employer -->
-                    <p:column
-                        sortBy="#{cvItem.employer.name}"
-                        visible="#{mbCurriculumVitaeItem.columnVisibilityList[4]}"
-                        style="width:10%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.curriculumVitaeItem_employer}" />
-                        </f:facet>
-                        <h:outputText value="#{cvItem.employer.name}" style="float:left;" />
-                    </p:column>
-
-                    <!-- WorkingPlace -->
-                    <p:column
-                        sortBy="#{cvItem.workingPlace.name}"
-                        visible="#{mbCurriculumVitaeItem.columnVisibilityList[5]}"
-                        style="width:10%"
-                        >
-                        <f:facet name="header">
-                            <h:outputText value="#{msg.curriculumVitaeItem_workingPlace}" />
-                        </f:facet>
-                        <h:outputText value="#{cvItem.workingPlace.name}" style="float:left;" />
-                    </p:column>
-
-                    <!-- Commands -->
-                    <p:column
-                        headerText="#{msg.menu_commands}"
-                        exportable="false"
-                        toggleable="false"
-                        style="width:10%"
-                        >
-                        <p:commandButton
-                            icon="ui-icon-contact"
-                            title="#{msg.menu_edit}"
-                            update=":editCvItemForm:editCvItemDisplay"
-                            immediate="true"
-                            process="@this"
-                            oncomplete="PF('editCvItemDialog').show();"
-                            >
-                            <f:setPropertyActionListener
-                                value="#{cvItem}"
-                                target="#{mbCurriculumVitaeItem.selectedEntity}"
-                                />
-                        </p:commandButton>
-
-                        <p:commandButton
-                            icon="ui-icon-trash"
-                            title="#{msg.menu_delete}"
-                            update=":deleteCvItemForm:deleteCvItemDisplay"
-                            immediate="true"
-                            process="@this"
-                            oncomplete="PF('deleteCvItemDialog').show();"
-                            >
-                            <f:setPropertyActionListener
-                                value="#{cvItem}"
-                                target="#{mbCurriculumVitaeItem.selectedEntity}"
-                                />
-                        </p:commandButton>
-                    </p:column>
-
-                    <!-- Footer -->
-                    <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPerson.selectedEntity.curriculumVitaeItems.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPerson.selectedEntity.curriculumVitaeItems.size() == 1}" />
-                        <h:outputFormat
-                            value="#{msg.search_results_status_n}"
-                            rendered="#{mbPerson.selectedEntity.curriculumVitaeItems.size() > 1}"
-                            >
-                            <f:param value="#{mbPerson.selectedEntity.curriculumVitaeItems.size()}" />
-                        </h:outputFormat>
-                    </f:facet>
-                </p:dataTable>
-
-                <!-- Export -->
-                <p:panel header="#{msg.menu_export}" style="width: auto;">
-                    <h:commandLink>
-                        <p:graphicImage library="img" name="excel.png" title="xls"/>
-                        <p:dataExporter type="xls" target="dtCvEntities" fileName="#{msg.person_curriculumVitaeItems}" />
-                    </h:commandLink>
-                    <h:commandLink>
-                        <p:graphicImage library="img" name="csv.png" title="csv"/>
-                        <p:dataExporter type="csv" target="dtCvEntities" fileName="#{msg.person_curriculumVitaeItems}" />
                     </h:commandLink>
                 </p:panel>
             </p:tab>
@@ -561,7 +317,7 @@
                 <p:dataTable
                     id="dtPersonnelEntities"
                     var="studyPerson"
-                    value="#{mbPerson.selectedEntity.studyPersonnel}"
+                    value="#{mbPersonLazy.selectedEntity.studyPersonnel}"
                     widgetVar="personnelEntitiesTable"
                     resizableColumns="true"
                     draggableColumns="false"
@@ -580,7 +336,7 @@
 
                     <!-- Table header -->
                     <f:facet name="header">
-                        <h:outputText value="#{mbPerson.selectedEntity.surname}" style="float:left" />
+                        <h:outputText value="#{mbPersonLazy.selectedEntity.surname}" style="float:left" />
                         <p:commandButton id="btnStudyPersonToggler" value="#{msg.menu_columns}" style="float:right" icon="ui-icon-calculator" />
                         <p:columnToggler datasource="dtPersonnelEntities" trigger=":form:tabView:dtPersonnelEntities:btnStudyPersonToggler">
                             <p:ajax event="toggle" listener="#{mbStudyPerson.onEntityToggle}" />
@@ -591,7 +347,7 @@
                     <p:column selectionMode="multiple" exportable="false" toggleable="false" style="width:16px;text-align:center" />
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -603,7 +359,6 @@
                         filterBy="#{studyPerson.study.name}"
                         filterMatchMode="contains"
                         visible="#{mbStudyPerson.columnVisibilityList[0]}"
-                        style="width:30%"
                         >
                         <h:outputText value="#{studyPerson.study.name}" title="#{studyPerson.study.title}" style="float:left;" />
                     </p:column>
@@ -643,7 +398,6 @@
                         sortBy="#{studyPerson.role.name}"
                         filterBy="#{studyPerson.role.name}"
                         filterMatchMode="in"
-                        style="width:20%"
                         visible="#{mbStudyPerson.columnVisibilityList[2]}"
                         >
                         <f:facet name="filter">
@@ -670,7 +424,6 @@
                         headerText="#{msg.studyPerson_canObtaionInformedConsent}"
                         filterBy="#{studyPerson.canObtainInformedConsent}"
                         filterMatchMode="equals"
-                        style="width:12%"
                         visible="#{mbStudyPerson.columnVisibilityList[3]}"
                         >
                         <f:facet name="filter">
@@ -697,12 +450,11 @@
                         filterBy="#{studyPerson.startDateString}"
                         filterMatchMode="contains"
                         visible="#{mbStudyPerson.columnVisibilityList[4]}"
-                        style="width:12%"
                         >
                         <f:facet name="header">
                             <h:outputText value="#{msg.studyPerson_startDate}" />
                         </f:facet>
-                        <h:outputText value="#{studyPerson.startDateString}" style="float: left;" />
+                        <h:outputText value="#{studyPerson.startDateString}" />
                     </p:column>
 
                     <!-- EndDate -->
@@ -712,23 +464,22 @@
                         filterBy="#{studyPerson.endDateString}"
                         filterMatchMode="contains"
                         visible="#{mbStudyPerson.columnVisibilityList[5]}"
-                        style="width:12%"
                         >
                         <f:facet name="header">
                             <h:outputText value="#{msg.studyPerson_endDate}" />
                         </f:facet>
-                        <h:outputText value="#{studyPerson.endDateString}" style="float: left;" />
+                        <h:outputText value="#{studyPerson.endDateString}" />
                     </p:column>
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPerson.selectedEntity.studyPersonnel.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPerson.selectedEntity.studyPersonnel.size() == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbPersonLazy.selectedEntity.studyPersonnel.size() == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbPersonLazy.selectedEntity.studyPersonnel.size() == 1}" />
                         <h:outputFormat
                             value="#{msg.search_results_status_n}"
-                            rendered="#{mbPerson.selectedEntity.studyPersonnel.size() > 1}"
+                            rendered="#{mbPersonLazy.selectedEntity.studyPersonnel.size() > 1}"
                             >
-                            <f:param value="#{mbPerson.selectedEntity.studyPersonnel.size()}" />
+                            <f:param value="#{mbPersonLazy.selectedEntity.studyPersonnel.size()}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>
@@ -777,7 +528,7 @@
                     <h:outputLabel value="#{msg.person_titlesBefore}:" for="txtPersonTitlesBeforeNew" />
                     <p:inputText
                         id="txtPersonTitlesBeforeNew"
-                        value="#{mbPerson.newEntity.titlesBefore}"
+                        value="#{mbPersonLazy.newEntity.titlesBefore}"
                         maxlength="255"
                         />
 
@@ -785,7 +536,7 @@
                     <h:outputLabel value="#{msg.person_firstname}: #{msg.label_required_suffix}" for="txtPersonFirstnameNew" />
                     <p:inputText
                         id="txtPersonFirstnameNew"
-                        value="#{mbPerson.newEntity.firstname}"
+                        value="#{mbPersonLazy.newEntity.firstname}"
                         maxlength="255"
                         required="true"
                         requiredMessage="#{msg.person_firstname} is mandatory!"
@@ -795,7 +546,7 @@
                     <h:outputLabel value="#{msg.person_surname}: #{msg.label_required_suffix}" for="txtPersonSurnameNew" />
                     <p:inputText
                         id="txtPersonSurnameNew"
-                        value="#{mbPerson.newEntity.surname}"
+                        value="#{mbPersonLazy.newEntity.surname}"
                         maxlength="255"
                         required="true"
                         requiredMessage="#{msg.person_surname} is mandatory!"
@@ -805,7 +556,7 @@
                     <h:outputLabel value="#{msg.person_titlesAfter}:" for="txtPersonTitlesAfterNew" />
                     <p:inputText
                         id="txtPersonTitlesAfterNew"
-                        value="#{mbPerson.newEntity.titlesAfter}"
+                        value="#{mbPersonLazy.newEntity.titlesAfter}"
                         maxlength="255"
                         />
 
@@ -813,7 +564,7 @@
                     <!--<h:outputLabel value="#{msg.person_birthDate}: #{msg.label_required_suffix}" for="calPersonBirthDateNew" />-->
                     <!--<p:calendar-->
                         <!--id="calPersonBirthDateNew"-->
-                        <!--value="#{mbPerson.newEntity.birthdate}"-->
+                        <!--value="#{mbPersonLazy.newEntity.birthdate}"-->
                         <!--pattern="dd.MM.yyyy"-->
                         <!--showButtonPanel="true"-->
                         <!--navigator="true"-->
@@ -826,7 +577,7 @@
                     <h:outputLabel value="#{msg.person_birthname}:" for="txtPersonBirthNameNew" />
                     <p:inputText
                         id="txtPersonBirthNameNew"
-                        value="#{mbPerson.newEntity.birthname}"
+                        value="#{mbPersonLazy.newEntity.birthname}"
                         maxlength="255"
                         />
 
@@ -834,7 +585,7 @@
                     <h:outputLabel value="#{msg.person_status}: #{msg.label_required_suffix}" for="ddlPersonStatusNew" />
                     <p:selectOneMenu
                             id="ddlPersonStatusNew"
-                            value="#{mbPerson.newEntity.status}"
+                            value="#{mbPersonLazy.newEntity.status}"
                             converter="omnifaces.SelectItemsConverter"
                             style="width:350px"
                             required="true"
@@ -854,7 +605,7 @@
                     <h:outputLabel value="#{msg.person_comment}:" for="txtPersonCommentNew" />
                     <p:inputTextarea
                             id="txtPersonCommentNew"
-                            value="#{mbPerson.newEntity.comment}"
+                            value="#{mbPersonLazy.newEntity.comment}"
                             maxlength="4000"
                             style="width:350px"
                             />
@@ -866,7 +617,7 @@
                                 update=":form:tabView:dtEntities, :newEntityForm, :growl"
                                 icon="ui-icon-disk"
                                 oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewEntity','newEntityForm');"
-                                actionListener="#{mbPerson.doCreateEntity}"
+                                actionListener="#{mbPersonLazy.doCreateEntity}"
                                 process="@this newEntityForm"
                                 />
                         <p:commandButton
@@ -903,7 +654,7 @@
                     <h:outputLabel value="#{msg.person_titlesBefore}:" for="txtPersonTitlesBeforeEdit" />
                     <p:inputText
                             id="txtPersonTitlesBeforeEdit"
-                            value="#{mbPerson.selectedEntity.titlesBefore}"
+                            value="#{mbPersonLazy.selectedEntity.titlesBefore}"
                             maxlength="255"
                             />
 
@@ -911,7 +662,7 @@
                     <h:outputLabel value="#{msg.person_firstname}: #{msg.label_required_suffix}" for="txtPersonFirstnameEdit" />
                     <p:inputText
                             id="txtPersonFirstnameEdit"
-                            value="#{mbPerson.selectedEntity.firstname}"
+                            value="#{mbPersonLazy.selectedEntity.firstname}"
                             maxlength="255"
                             required="true"
                             requiredMessage="#{msg.person_firstname} is mandatory!"
@@ -921,7 +672,7 @@
                     <h:outputLabel value="#{msg.person_surname}: #{msg.label_required_suffix}" for="txtPersonSurnameEdit" />
                     <p:inputText
                             id="txtPersonSurnameEdit"
-                            value="#{mbPerson.selectedEntity.surname}"
+                            value="#{mbPersonLazy.selectedEntity.surname}"
                             maxlength="255"
                             required="true"
                             requiredMessage="#{msg.person_surname} is mandatory!"
@@ -931,7 +682,7 @@
                     <h:outputLabel value="#{msg.person_titlesAfter}:" for="txtPersonTitlesAfterEdit" />
                     <p:inputText
                             id="txtPersonTitlesAfterEdit"
-                            value="#{mbPerson.selectedEntity.titlesAfter}"
+                            value="#{mbPersonLazy.selectedEntity.titlesAfter}"
                             maxlength="255"
                             />
 
@@ -939,7 +690,7 @@
                     <!--<h:outputLabel value="#{msg.person_birthDate}: #{msg.label_required_suffix}" for="calPersonBirthDateNew" />-->
                     <!--<p:calendar-->
                     <!--id="calPersonBirthDateNew"-->
-                    <!--value="#{mbPerson.newEntity.birthdate}"-->
+                    <!--value="#{mbPersonLazy.newEntity.birthdate}"-->
                     <!--pattern="dd.MM.yyyy"-->
                     <!--showButtonPanel="true"-->
                     <!--navigator="true"-->
@@ -952,7 +703,7 @@
                     <h:outputLabel value="#{msg.person_birthname}:" for="txtPersonBirthNameEdit" />
                     <p:inputText
                             id="txtPersonBirthNameEdit"
-                            value="#{mbPerson.selectedEntity.birthname}"
+                            value="#{mbPersonLazy.selectedEntity.birthname}"
                             maxlength="255"
                             />
 
@@ -960,7 +711,7 @@
                     <h:outputLabel value="#{msg.person_status}: #{msg.label_required_suffix}" for="ddlPersonStatusEdit" />
                     <p:selectOneMenu
                         id="ddlPersonStatusEdit"
-                        value="#{mbPerson.selectedEntity.status}"
+                        value="#{mbPersonLazy.selectedEntity.status}"
                         converter="omnifaces.SelectItemsConverter"
                         style="width:350px"
                         required="true"
@@ -980,7 +731,7 @@
                     <h:outputLabel value="#{msg.person_comment}:" for="txtPersonCommentEdit" />
                     <p:inputTextarea
                             id="txtPersonCommentEdit"
-                            value="#{mbPerson.selectedEntity.comment}"
+                            value="#{mbPersonLazy.selectedEntity.comment}"
                             maxlength="4000"
                             style="width:350px"
                             />
@@ -993,7 +744,7 @@
                                 update=":form:tabView:dtEntities, :entityDetailsForm, :growl"
                                 icon="ui-icon-disk"
                                 oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEntityDetails','entityDetailsForm');"
-                                actionListener="#{mbPerson.doUpdateEntity}"
+                                actionListener="#{mbPersonLazy.doUpdateEntity}"
                                 process="@this entityDetailsForm"
                                 />
                     </f:facet>
@@ -1023,31 +774,31 @@
 
                     <!-- Titles before the first name -->
                     <h:outputLabel value="#{msg.person_titlesBefore}:" for="txtPersonTitlesBeforeDelete" />
-                    <h:outputText id="txtPersonTitlesBeforeDelete" value="#{mbPerson.selectedEntity.titlesBefore}" />
+                    <h:outputText id="txtPersonTitlesBeforeDelete" value="#{mbPersonLazy.selectedEntity.titlesBefore}" />
 
                     <!-- First name -->
                     <h:outputLabel value="#{msg.person_firstname}:" for="txtPersonFirstnameDelete" />
-                    <h:outputText id="txtPersonFirstnameDelete" value="#{mbPerson.selectedEntity.firstname}" />
+                    <h:outputText id="txtPersonFirstnameDelete" value="#{mbPersonLazy.selectedEntity.firstname}" />
 
                     <!-- Surname -->
                     <h:outputLabel value="#{msg.person_surname}:" for="txtPersonSurnameDelete" />
-                    <h:outputText id="txtPersonSurnameDelete" value="#{mbPerson.selectedEntity.surname}" />
+                    <h:outputText id="txtPersonSurnameDelete" value="#{mbPersonLazy.selectedEntity.surname}" />
 
                     <!-- Titles after the surname -->
                     <h:outputLabel value="#{msg.person_titlesAfter}:" for="txtPersonTitlesAfterDelete" />
-                    <h:outputText id="txtPersonTitlesAfterDelete" value="#{mbPerson.selectedEntity.titlesAfter}" />
+                    <h:outputText id="txtPersonTitlesAfterDelete" value="#{mbPersonLazy.selectedEntity.titlesAfter}" />
 
                     <!-- Birthname -->
                     <h:outputLabel value="#{msg.person_birthname}:" for="txtPersonBirthNameDelete" />
-                    <h:outputText id="txtPersonBirthNameDelete" value="#{mbPerson.selectedEntity.birthname}" />
+                    <h:outputText id="txtPersonBirthNameDelete" value="#{mbPersonLazy.selectedEntity.birthname}" />
 
                     <!-- Status -->
                     <h:outputLabel value="#{msg.person_status}:" for="txtPersonStatusDelete" />
-                    <h:outputText id="txtPersonStatusDelete" value="#{mbPerson.selectedEntity.status.name}" title="#{mbPerson.selectedEntity.status.description}" />
+                    <h:outputText id="txtPersonStatusDelete" value="#{mbPersonLazy.selectedEntity.status.name}" title="#{mbPersonLazy.selectedEntity.status.description}" />
 
                     <!-- Comment -->
                     <h:outputLabel value="#{msg.person_comment}:" for="txtPersonCommentDelete" />
-                    <h:outputText id="txtPersonCommentDelete" value="#{mbPerson.selectedEntity.comment}" />
+                    <h:outputText id="txtPersonCommentDelete" value="#{mbPersonLazy.selectedEntity.comment}" />
 
                     <!-- Footer -->
                     <f:facet name="footer">
@@ -1056,405 +807,8 @@
                                 update=":form:tabView:dtEntities, :deleteEntityForm, :growl"
                                 icon="ui-icon-trash"
                                 oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteEntity','deleteEntityForm');"
-                                actionListener="#{mbPerson.doDeleteEntity}"
+                                actionListener="#{mbPersonLazy.doDeleteEntity}"
                                 process="@this deleteEntityForm"
-                                />
-                    </f:facet>
-                </p:panelGrid>
-            </h:form>
-        </p:dialog>
-
-        <!-- New CV item -->
-        <p:dialog
-                id="dlgNewCvItem"
-                header="#{msg.curriculumVitaeItem_new}"
-                widgetVar="newCvItemDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
-
-            <!-- Form -->
-            <h:form id="newCvItemForm">
-                <p:panelGrid
-                        id="newCvItemDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-
-                    <!-- Selected Person -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_person}:" />
-                    <h:outputText value="#{mbPerson.selectedEntity.fullName}" />
-
-                    <!-- Name -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_name}: *" for="txtCvItemNameNew" />
-                    <p:inputText
-                            id="txtCvItemNameNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.name}"
-                            maxlength="255"
-                            style="width:350px"
-                            required="true"
-                            requiredMessage="Curriculum vitae item name is mandatory!"
-                            />
-
-                    <!-- Type -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_type}: *" for="ddlCvItemTypeNew" />
-                    <p:selectOneMenu
-                            id="ddlCvItemTypeNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.type}"
-                            converter="#{curriculumVitaeItemTypeConverter}"
-                            style="width:350px"
-                            required="true"
-                            requiredMessage="Curriculum vitae item type is mandatory!"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                                value="#{mbCurriculumVitaeItemType.entityList}"
-                                var="cvItemTypeNew"
-                                itemLabel="#{cvItemTypeNew.name}"
-                                itemValue="#{cvItemTypeNew}"
-                                itemDescription="#{cvItemTypeNew.description}"
-                                />
-                    </p:selectOneMenu>
-
-                    <!-- StartDate -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_startDate}: *" for="calCvItemStartDateNew" />
-                    <p:calendar
-                            id="calCvItemStartDateNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.startDate}"
-                            pattern="dd.MM.yyyy"
-                            showButtonPanel="true"
-                            navigator="true"
-                            required="true"
-                            showOn="button"
-                            requiredMessage="Start date is mandatory!"
-                            />
-
-                    <!-- EndDate -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_endDate}:" for="calCvItemEndDateNew" />
-                    <p:calendar
-                            id="calCvItemEndDateNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.endDate}"
-                            pattern="dd.MM.yyyy"
-                            showButtonPanel="true"
-                            navigator="true"
-                            required="false"
-                            showOn="button"
-                            />
-
-                    <!-- Employer -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_employer}:" for="ddlCvItemEmployerNew" />
-                    <p:selectOneMenu
-                            id="ddlCvItemEmployerNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.employer}"
-                            converter="#{organisationConverter}"
-                            style="width:350px"
-                            filter="true"
-                            filterMatchMode="contains"
-                            var="employerIter"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                                value="#{mbOrganisation.entityList}"
-                                var="employerNew"
-                                itemLabel="#{employerNew.name}"
-                                itemValue="#{employerNew}"
-                                />
-                        <p:column>
-                            <h:outputText value="#{employerIter.name}" />
-                        </p:column>
-                    </p:selectOneMenu>
-
-                    <!-- Working place -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_workingPlace}:" for="ddlCvItemPlaceOfWorkNew" />
-                    <p:selectOneMenu
-                            id="ddlCvItemPlaceOfWorkNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.workingPlace}"
-                            converter="#{organisationConverter}"
-                            style="width:350px"
-                            filter="true"
-                            filterMatchMode="contains"
-                            var="placeIter"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                                value="#{mbOrganisation.entityList}"
-                                var="placeOfWorkNew"
-                                itemLabel="#{placeOfWorkNew.name}"
-                                itemValue="#{placeOfWorkNew}"
-                                />
-                        <p:column>
-                            <h:outputText value="#{placeIter.name}" />
-                        </p:column>
-                    </p:selectOneMenu>
-
-                    <!-- Comment -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_comment}: " for="txtCvItemCommentNew" />
-                    <p:inputTextarea
-                            id="txtCvItemCommentNew"
-                            value="#{mbCurriculumVitaeItem.newEntity.comment}"
-                            maxlength="4000"
-                            style="width:350px"
-                            />
-
-                    <!-- Footer -->
-                    <f:facet name="footer">
-                        <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtCvEntities, :newCvItemForm, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgNewCvItem','newCvItemForm');"
-                                actionListener="#{mbPerson.addNewCvItem(mbCurriculumVitaeItem.newEntity)}"
-                                process="@this newCvItemForm"
-                                />
-                        <p:commandButton
-                                value="#{msg.menu_reset}"
-                                type="reset"
-                                icon="ui-icon-close"
-                                />
-                    </f:facet>
-                </p:panelGrid>
-            </h:form>
-        </p:dialog>
-
-        <!-- Edit CV item -->
-        <p:dialog
-                id="dlgEditCvItem"
-                header="#{msg.curriculumVitaeItem_edit}"
-                widgetVar="editCvItemDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
-
-            <!-- Form -->
-            <h:form id="editCvItemForm">
-                <p:panelGrid
-                        id="editCvItemDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-
-                    <!-- Selected Person -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_person}:" />
-                    <h:outputText value="#{mbPerson.selectedEntity.fullName}" />
-
-                    <!-- Name -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_name}: *" for="txtCvItemNameEdit" />
-                    <p:inputText
-                            id="txtCvItemNameEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.name}"
-                            maxlength="255"
-                            style="width:350px"
-                            required="true"
-                            requiredMessage="Curriculum vitae item name is mandatory!"
-                            />
-
-                    <!-- Type -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_type}: *" for="ddlCvItemTypeEdit" />
-                    <p:selectOneMenu
-                            id="ddlCvItemTypeEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.type}"
-                            converter="#{curriculumVitaeItemTypeConverter}"
-                            style="width:350px"
-                            required="true"
-                            requiredMessage="Curriculum vitae item type is mandatory!"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                                value="#{mbCurriculumVitaeItemType.entityList}"
-                                var="cvItemTypeNew"
-                                itemLabel="#{cvItemTypeNew.name}"
-                                itemValue="#{cvItemTypeNew}"
-                                itemDescription="#{cvItemTypeNew.description}"
-                                />
-                    </p:selectOneMenu>
-
-                    <!-- StartDate -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_startDate}: *" for="calCvItemStartDateEdit" />
-                    <p:calendar
-                            id="calCvItemStartDateEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.startDate}"
-                            pattern="dd.MM.yyyy"
-                            showButtonPanel="true"
-                            navigator="true"
-                            required="true"
-                            showOn="button"
-                            requiredMessage="Start date is mandatory!"
-                            />
-
-                    <!-- EndDate -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_endDate}:" for="calCvItemEndDateEdit" />
-                    <p:calendar
-                            id="calCvItemEndDateEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.endDate}"
-                            pattern="dd.MM.yyyy"
-                            showButtonPanel="true"
-                            navigator="true"
-                            required="false"
-                            showOn="button"
-                            />
-
-                    <!-- Employer -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_employer}:" for="ddlCvItemEmployerEdit" />
-                    <p:selectOneMenu
-                            id="ddlCvItemEmployerEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.employer}"
-                            converter="#{organisationConverter}"
-                            style="width:350px"
-                            filter="true"
-                            filterMatchMode="contains"
-                            var="employerIterEdit"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                                value="#{mbOrganisation.entityList}"
-                                var="employerEdit"
-                                itemLabel="#{employerEdit.name}"
-                                itemValue="#{employerEdit}"
-                                />
-                        <p:column>
-                            <h:outputText value="#{employerIterEdit.name}" />
-                        </p:column>
-                    </p:selectOneMenu>
-
-                    <!-- Working place -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_workingPlace}:" for="ddlCvItemPlaceOfWorkEdit" />
-                    <p:selectOneMenu
-                            id="ddlCvItemPlaceOfWorkEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.workingPlace}"
-                            converter="#{organisationConverter}"
-                            style="width:350px"
-                            filter="true"
-                            filterMatchMode="contains"
-                            var="placeIterEdit"
-                            >
-                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="-1" noSelectionOption="true" />
-                        <f:selectItems
-                                value="#{mbOrganisation.entityList}"
-                                var="placeOfWorkEdit"
-                                itemLabel="#{placeOfWorkEdit.name}"
-                                itemValue="#{placeOfWorkEdit}"
-                                />
-                        <p:column>
-                            <h:outputText value="#{placeIterEdit.name}" />
-                        </p:column>
-                    </p:selectOneMenu>
-
-                    <!-- Comment -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_comment}:" for="txtCvItemCommentEdit" />
-                    <p:inputTextarea
-                            id="txtCvItemCommentEdit"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.comment}"
-                            maxlength="4000"
-                            style="width:350px"
-                            />
-
-                    <!-- Footer -->
-                    <f:facet name="footer">
-                        <p:commandButton
-                                value="#{msg.menu_save}"
-                                update=":form:tabView:dtCvEntities, :editCvItemForm, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEditCvItem','editCvItemForm');"
-                                actionListener="#{mbCurriculumVitaeItem.doUpdateEntity}"
-                                process="@this editCvItemForm"
-                                />
-                    </f:facet>
-                </p:panelGrid>
-            </h:form>
-        </p:dialog>
-
-        <!-- Delete CV item -->
-        <p:dialog
-                id="dlgDeleteCvItem"
-                header="#{msg.curriculumVitaeItem_delete}"
-                widgetVar="deleteCvItemDialog"
-                resizable="false"
-                ajax="true"
-                appendToBody="true"
-                modal="true"
-                closeOnEscape="true"
-                >
-
-            <!-- Form -->
-            <h:form id="deleteCvItemForm">
-                <p:panelGrid
-                        id="deleteCvItemDisplay"
-                        columns="2"
-                        cellpadding="4"
-                        style="margin:0 auto;"
-                        >
-
-                    <!-- Selected Person -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_person}:" />
-                    <h:outputText value="#{mbPerson.selectedEntity.fullName}" />
-
-                    <!-- Name -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_name}:" />
-                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.name}" />
-
-                    <!-- Type -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_type}:" for="txtCvItemTypeDelete" />
-                    <h:outputText
-                            id="txtCvItemTypeDelete"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.type.name}"
-                            title="#{mbCurriculumVitaeItem.selectedEntity.type.description}"
-                            />
-
-                    <!-- StartDate -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_startDate}:" />
-                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.startDate}">
-                        <f:convertDateTime
-                                pattern="dd-MM-yyyy"
-                                type="date"
-                                timeZone="CET"
-                                />
-                    </h:outputText>
-
-                    <!-- EndDate -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_endDate}:" />
-                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.endDate}">
-                        <f:convertDateTime
-                                pattern="dd-MM-yyyy"
-                                type="date"
-                                timeZone="CET"
-                                />
-                    </h:outputText>
-
-                    <!-- Employer -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_employer}:" />
-                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.employer.name}" />
-
-                    <!-- Working place -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_workingPlace}:" />
-                    <h:outputText value="#{mbCurriculumVitaeItem.selectedEntity.workingPlace.name}" />
-
-                    <!-- Comment -->
-                    <h:outputLabel value="#{msg.curriculumVitaeItem_comment}: " for="txtCvItemCommentDelete" />
-                    <p:inputTextarea
-                            id="txtCvItemCommentDelete"
-                            value="#{mbCurriculumVitaeItem.selectedEntity.comment}"
-                            maxlength="4000"
-                            style="width:350px"
-                            readonly="true"
-                            />
-
-                    <!-- Footer -->
-                    <f:facet name="footer">
-                        <p:commandButton
-                                value="#{msg.menu_delete}"
-                                update=":form:tabView:dtCvEntities, :deleteCvItemForm, :growl"
-                                icon="ui-icon-disk"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDeleteCvItem','deleteCvItemForm');"
-                                actionListener="#{mbPerson.removeSelectedCvItem(mbCurriculumVitaeItem.selectedEntity)}"
-                                process="@this deleteCvItemForm"
                                 />
                     </f:facet>
                 </p:panelGrid>
@@ -1484,7 +838,7 @@
 
                     <!-- Person -->
                     <h:outputLabel value="#{msg.studyPerson_person}:" />
-                    <h:outputText value="#{mbPerson.selectedEntity.surname} #{mbPerson.selectedEntity.firstname}" />
+                    <h:outputText value="#{mbPersonLazy.selectedEntity.surname} #{mbPersonLazy.selectedEntity.firstname}" />
 
                     <!-- Studies -->
                     <h:outputLabel value="#{msg.study_plural}:" />
@@ -1521,7 +875,7 @@
                             update=":form:tabView:dtPersonnelEntities, :editMultiStudyPersonForm, :growl"
                             icon="ui-icon-disk"
                             oncomplete="handleSubmitRequest(xhr, status, args, 'dlgEditStudyPerson','editMultiStudyPersonForm');"
-                            actionListener="#{mbPerson.doUpdateEntity(mbStudyPerson.selectedEntities, mbStudyPerson.editMultiEntity)}"
+                            actionListener="#{mbPersonLazy.doUpdateEntity(mbStudyPerson.selectedEntities, mbStudyPerson.editMultiEntity)}"
                             process="@this editMultiStudyPersonForm"
                             />
                     </f:facet>
@@ -1540,10 +894,6 @@
                     PF('newEntityDialog').hide();
                     PF('editEntityDialog').hide();
                     PF('deleteEntityDialog').hide();
-
-                    PF('newCvItemDialog').hide();
-                    PF('editCvItemDialog').hide();
-                    PF('deleteCvItemDialog').hide();
 
                     PF('editMultiStudyPersonDialog').hide();
                 }

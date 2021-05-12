@@ -41,10 +41,6 @@
 
             <!-- Allows to use $ instead of jquery -->
             <script type="text/javascript"> $ = jQuery;</script>
-            <!-- To support google map integration -->
-            <script src="https://maps.google.com/maps/api/js?v=3" type="text/javascript"></script>
-            <!--<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=API_KEY&amp;callback=initMap"></script>-->
-
             <!-- Favicon -->
             <link rel="shortcut icon" type="image/x-icon" href="${request.contextPath}/resources/img/favicon.ico" />
             <link rel="icon" type="image/x-icon" href="${request.contextPath}/resources/img/favicon.ico"  />
@@ -192,19 +188,19 @@
                                             style="width: 200px;"
                                             />
                                         <p:menuitem
+                                                value="#{msg.active_study_lab}"
+                                                target="newPopup"
+                                                url="/lab/openLab.faces"
+                                                icon="ui-icon-extlink"
+                                                rendered="#{userContext.hasRole('ROLE_LAB_OPEN')}"
+                                                style="width: 200px;"
+                                        />
+                                        <p:menuitem
                                             value="#{msg.active_study_bio}"
                                             target="newPopup"
                                             url="/bio/openBio.faces"
                                             icon="ui-icon-extlink"
                                             rendered="#{userContext.hasRole('ROLE_BIO_OPEN')}"
-                                            style="width: 200px;"
-                                            />
-                                        <p:menuitem
-                                            value="#{msg.active_study_lab}"
-                                            target="newPopup"
-                                            url="/lab/openLab.faces"
-                                            icon="ui-icon-extlink"
-                                            rendered="#{userContext.hasRole('ROLE_LAB_OPEN')}"
                                             style="width: 200px;"
                                             />
                                         <p:menuitem
@@ -256,7 +252,7 @@
                                     <!-- Home -->
                                     <p:menuitem value="#{msg.home}" url="/home.faces" icon="ui-icon-home" />
 
-                                    <!-- Clinical Trial Management CTMS -->
+                                    <!-- CTMS Clinical Trial Management -->
                                     <p:submenu
                                         label="CTMS - study management"
                                         rendered="#{userContext.hasRole('ROLE_CTMS_USER')}"
@@ -281,7 +277,7 @@
                                             />
                                     </p:submenu>
 
-                                    <!-- Electronic Data Capture EDC -->
+                                    <!-- EDC Electronic Data Capture -->
                                     <p:submenu
                                         label="#{msg.edc} - data capture"
                                         rendered="#{userContext.hasRole('ROLE_EDC_USER')}"
@@ -323,9 +319,27 @@
                                             <!--disabled="true"-->
                                             <!--rendered="#{userContext.hasRole('ROLE_EDC_USER')}"-->
                                             <!--/>-->
+                                        <p:menuitem
+                                            value="#{msg.study} Data Migrate"
+                                            url="/edc/studyDataMigrate.faces"
+                                            icon="ui-icon-seek-next"
+                                            rendered="#{userContext.hasRole('ROLE_ADMIN')}"
+                                        />
+                                        <p:menuitem
+                                            value="#{msg.study} Data Import"
+                                            url="/edc/studyDataImport.faces"
+                                            icon="ui-icon-folder-open"
+                                            rendered="#{userContext.hasRole('ROLE_IMPORT')}"
+                                        />
+                                        <p:menuitem
+                                            value="#{msg.active_study_metadata}"
+                                            url="/edc/studyMetadata.faces"
+                                            icon="ui-icon-link"
+                                            rendered="#{userContext.hasRole('ROLE_EDC_METADATA')}"
+                                        />
                                     </p:submenu>
 
-                                    <!-- DICOM research PACS server -->
+                                    <!-- PACS research DICOM server -->
                                     <p:submenu
                                         label="#{msg.pacs} - medical imaging"
                                         rendered="#{userContext.hasRole('ROLE_PACS_USER')}"
@@ -350,6 +364,19 @@
                                             />
                                     </p:submenu>
 
+                                    <!-- LABKey -->
+                                    <p:submenu
+                                        label="#{msg.lab} - #{msg.data_tables}"
+                                        rendered="#{userContext.hasRole('ROLE_LAB_USER')}"
+                                        >
+                                        <p:menuitem
+                                            value="Labkey Update"
+                                            url="/lab/labkeyStudyUpdate.faces"
+                                            icon="ui-icon-copy"
+                                            rendered="#{userContext.hasRole('ROLE_ADMIN')}"
+                                        />
+                                    </p:submenu>
+
                                     <!-- BIObank -->
                                     <p:submenu
                                         label="#{msg.bio} - specimens"
@@ -362,33 +389,33 @@
                                             rendered="#{userContext.hasRole('ROLE_BIO_USER')}"
                                             />
                                         <p:menuitem
-                                            value="#{msg.bio} Matrix"
-                                            url="/bio/bioMatrix.faces"
-                                            icon="ui-icon-heart"
-                                            rendered="#{userContext.hasRole('ROLE_BIO_MATRIX')}"
-                                            />
+                                                value="#{msg.bio} Matrix"
+                                                url="/bio/bioMatrix.faces"
+                                                icon="ui-icon-heart"
+                                                rendered="#{userContext.hasRole('ROLE_BIO_MATRIX')}"
+                                        />
                                         <p:menuitem
-                                            value="#{msg.bio} Lookup"
-                                            url="/bio/bioLookup.faces"
-                                            icon="ui-icon-heart"
-                                            rendered="#{userContext.hasRole('ROLE_BIO_LOOKUP')}"
-                                            />
+                                                value="#{msg.bio} Lookup"
+                                                url="/bio/bioLookup.faces"
+                                                icon="ui-icon-heart"
+                                                rendered="#{userContext.hasRole('ROLE_BIO_LOOKUP')}"
+                                        />
                                     </p:submenu>
 
                                     <!-- PID -->
                                     <p:submenu
-                                        label="#{msg.pid} - patient identity"
-                                        rendered="#{userContext.hasRole('ROLE_PID_USER')}"
-                                        >
+                                            label="#{msg.pid} - patient identity"
+                                            rendered="#{userContext.hasRole('ROLE_PID_USER')}"
+                                    >
                                         <p:menuitem
-                                            value="#{msg.person_patient} #{msg.icon_search}"
-                                            url="/pid/pidCRUD.faces"
-                                            icon="ui-icon-person"
+                                                value="#{msg.person_patient} #{msg.icon_search}"
+                                                url="/pid/pidCRUD.faces"
+                                                icon="ui-icon-person"
                                             rendered="#{userContext.hasRole('ROLE_PID_USER')}"
                                             />
                                     </p:submenu>
 
-                                    <!-- Content Management CMS -->
+                                    <!-- CMS Content Management -->
                                     <p:submenu
                                         label="CMS - content management"
                                         rendered="#{userContext.hasRole('ROLE_CMS_USER')}"
@@ -398,43 +425,6 @@
                                             url="/cms/contentCRUD.faces"
                                             icon="ui-icon-clipboard"
                                             rendered="#{userContext.hasRole('ROLE_CMS_USER')}"
-                                            />
-                                    </p:submenu>
-
-                                    <!-- Data -->
-                                    <p:submenu
-                                        label="DATA - data and metadata"
-                                        rendered="#{userContext.hasRole('ROLE_USER')}"
-                                        >
-                                        <p:menuitem
-                                            value="#{msg.active_study_metadata}"
-                                            url="/edc/studyMetadata.faces"
-                                            icon="ui-icon-link"
-                                            rendered="#{userContext.hasRole('ROLE_EDC_METADATA')}"
-                                            />
-                                        <p:menuitem
-                                            value="#{msg.study} Data Query"
-                                            url="/edc/studyDataQuery.faces"
-                                            icon="ui-icon-search"
-                                            rendered="#{userContext.hasRole('ROLE_QUERY')}"
-                                            />
-                                        <!--<p:menuitem-->
-                                            <!--value="#{msg.study} Data Migrate"-->
-                                            <!--url="/edc/studyDataMigrate.faces"-->
-                                            <!--icon="ui-icon-seek-next"-->
-                                            <!--rendered="#{userContext.hasRole('ROLE_ADMIN')}"-->
-                                            <!--/>-->
-                                        <p:menuitem
-                                            value="#{msg.study} Data Export"
-                                            url="/edc/studyDataExport.faces"
-                                            icon="ui-icon-script"
-                                            rendered="#{userContext.hasRole('ROLE_EXPORT')}"
-                                            />
-                                        <p:menuitem
-                                            value="#{msg.study} Data Import"
-                                            url="/edc/studyDataImport.faces"
-                                            icon="ui-icon-folder-open"
-                                            rendered="#{userContext.hasRole('ROLE_IMPORT')}"
                                             />
                                     </p:submenu>
 
@@ -491,6 +481,11 @@
                                                     icon="ui-icon-calculator"
                                                     />
                                             <p:menuitem
+                                                    value="ODM Mapping"
+                                                    url="/admin/ctms/odmMappingCRUD.faces"
+                                                    icon="ui-icon-calculator"
+                                            />
+                                            <p:menuitem
                                                     value="#{msg.study} #{msg.studyPhase_plural}"
                                                     url="/admin/ctms/studyPhaseCRUD.faces"
                                                     icon="ui-icon-clock"
@@ -529,11 +524,6 @@
                                                     value="#{msg.person} #{msg.personStatus_plural}"
                                                     url="/admin/ctms/personStatusCRUD.faces"
                                                     icon="ui-icon-note"
-                                                    />
-                                            <p:menuitem
-                                                    value="#{msg.curriculumVitaeItem} #{msg.curriculumVitaeItemType_plural}"
-                                                    url="/admin/ctms/cvItemTypeCRUD.faces"
-                                                    icon="ui-icon-script"
                                                     />
                                             <p:menuitem
                                                     value="Timeline #{msg.studyEvent} #{msg.eventType_plural}"
@@ -588,8 +578,7 @@
                                     <a href="${facesContext.externalContext.requestContextPath}/home.faces">#{msg.home}</a> | <a href="#{msg.platform_url}" target="_new">#{msg.platform}</a> | <a href="${facesContext.externalContext.requestContextPath}/collaboration.faces">#{msg.collaboration}</a> | <a href="${facesContext.externalContext.requestContextPath}/license.faces">#{msg.licence}</a> | <a href="${facesContext.externalContext.requestContextPath}/software.faces">#{msg.software}</a> | <a href="${facesContext.externalContext.requestContextPath}/help.faces">#{msg.menu_help}</a> | <a href="${facesContext.externalContext.requestContextPath}/api/rss">RSS</a> | <a href="${facesContext.externalContext.requestContextPath}/impressum.faces">#{msg.impressum}</a> | <a href="${facesContext.externalContext.requestContextPath}/privacyPolicy.faces">#{msg.data_privacy}</a> | <a href="${facesContext.externalContext.requestContextPath}/contact.faces">#{msg.contact}</a>
                                     <br />
                                     <br />
-                                    <h:outputText value="#{msg.application_name} version: #{msg.version} © 2013-2019 DKTK" />
-                                    <!--<h:outputText value="#{msg.application_name} version: #{versionService.format()} © 2013-2019 DKTK" />-->
+                                    <h:outputText value="#{msg.application_name} version: #{versionService.format()} © 2013-2020 DKTK" />
                                 </p>
                             </p:outputPanel>
                         </div>

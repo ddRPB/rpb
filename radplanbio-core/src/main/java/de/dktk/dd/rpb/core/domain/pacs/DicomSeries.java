@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,11 +57,12 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     private Integer id; // unused for Transient entity
 
     private String seriesInstanceUID;
+    private String frameOfReferenceUid;
     private String seriesDescription;
     private String seriesModality;
     private String seriesTime;
 
-    private List<DicomImage> serieImages;
+    private List<DicomImage> seriesImages;
 
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
@@ -95,6 +96,8 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region Uid
+
     public String getSeriesInstanceUID() {
         return seriesInstanceUID;
     }
@@ -103,8 +106,29 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
         this.seriesInstanceUID = value;
     }
 
+    //endregion
+    // region FrameOfReferencingUid
+
+    @Transient
+    public String getFrameOfReferenceUid() {
+        return frameOfReferenceUid;
+    }
+
+    @Transient
+    public void setFrameOfReferenceUid(String frameOfReferenceUid) {
+        this.frameOfReferenceUid = frameOfReferenceUid;
+    }
+
+    //endregion
+
+    //region Description
+
     public String getSeriesDescription() {
         return seriesDescription;
+    }
+
+    public void setSeriesDescription(String value) {
+        this.seriesDescription = value;
     }
 
     /**
@@ -116,15 +140,12 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
      */
     @XmlTransient
     public String getUserViewSeriesDescription() {
-        if (seriesDescription == null) {
-            return "";
-        }
         return DicomStudyDescriptionEdcCodeUtil.removeEdcCodePrefix(seriesDescription);
     }
 
-    public void setSeriesDescription(String value) {
-        this.seriesDescription = value;
-    }
+    //endregion
+
+    //region Modality
 
     public String getSeriesModality() {
         return this.seriesModality;
@@ -133,6 +154,8 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     public void setSeriesModality(String value) {
         this.seriesModality = value.trim();
     }
+
+    //endregion
 
     //region SeriesTime
 
@@ -165,13 +188,17 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    public List<DicomImage> getSerieImages() {
-        return this.serieImages;
+    //region Images
+
+    public List<DicomImage> getSeriesImages() {
+        return this.seriesImages;
     }
 
-    public void setSerieImages(List<DicomImage> images) {
-        this.serieImages = images;
+    public void setSeriesImages(List<DicomImage> images) {
+        this.seriesImages = images;
     }
+
+    //endregion
 
     //endregion
 
@@ -192,6 +219,7 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
 
     /**
      * Construct a readable string representation for this Study instance.
+     *
      * @see java.lang.Object#toString()
      */
     @Override

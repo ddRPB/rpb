@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tables xmlns="http://labkey.org/data/xml">
+    <table tableName="EventAttributes" tableDbType="TABLE">
+        <description>Contains up to one row of Event_Data data for each Participant/Visit combination.</description>
+        <columns>
+            <column columnName="ParticipantId">
+                <datatype>varchar</datatype>
+                <columnTitle>Participant ID</columnTitle>
+                <description>Subject identifier</description>
+                <propertyURI>http://cpas.labkey.com/Study#ParticipantId</propertyURI>
+                <nullable>false</nullable>
+                <importAliases>
+                    <importAlias>ptid</importAlias>
+                </importAliases>
+                <fk>
+                    <fkDbSchema>study</fkDbSchema>
+                    <fkTable>Participant</fkTable>
+                    <fkColumnName>ParticipantId</fkColumnName>
+                </fk>
+                <scale>32</scale>
+            </column>
+            <column columnName="SequenceNum">
+                <datatype>double</datatype>
+                <columnTitle>Sequence Num</columnTitle>
+                <propertyURI>http://cpas.labkey.com/Study#SequenceNum</propertyURI>
+                <nullable>false</nullable>
+                <importAliases>
+                    <importAlias>visit</importAlias>
+                    <importAlias>visitid</importAlias>
+                </importAliases>
+            </column>
+            <column columnName="date">
+                <datatype>timestamp</datatype>
+                <columnTitle>Date</columnTitle>
+                <propertyURI>http://cpas.labkey.com/Study#VisitDate</propertyURI>
+                <formatString>Date</formatString>
+            </column>
+            <column columnName="Id">
+                <datatype>integer</datatype>
+                <columnTitle>Id</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#int</rangeURI>
+            </column>
+            <column columnName="StudyEventOID">
+                <datatype>varchar</datatype>
+                <columnTitle>Study Event OID</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+            <column columnName="EventName">
+                <datatype>varchar</datatype>
+                <columnTitle>Event Name</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+            <column columnName="StartDate">
+                <datatype>timestamp</datatype>
+                <columnTitle>Start Date</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#dateTime</rangeURI>
+            </column>
+            <column columnName="EndDate">
+                <datatype>timestamp</datatype>
+                <columnTitle>End Date</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#dateTime</rangeURI>
+            </column>
+            <column columnName="Status">
+                <datatype>varchar</datatype>
+                <columnTitle>Status</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+            <column columnName="StudyEventRepeatKey">
+                <datatype>varchar</datatype>
+                <columnTitle>Study Event Repeat Key</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+        </columns>
+        <tableTitle>Event_Data</tableTitle>
+    </table>
+</tables>

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lazy loading Bean for administration of RadPlanBio annotation types
+ * Lazy loading Bean for administration of RPB eCRF annotation types
  *
  * These annotation types are used when defining eCRF annotations
  * Annotations give a specific meaning to rather flexible eCRF item fields

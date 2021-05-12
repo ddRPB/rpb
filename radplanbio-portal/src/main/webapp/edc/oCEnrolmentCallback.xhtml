@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:o="http://omnifaces.org/ui"
+        template="/WEB-INF/layouts/main.xhtml"
+>
+
+    <!-- Metadata -->
+    <ui:define name="metadata">
+        <f:metadata>
+            <!-- View quiery strings -->
+            <f:viewParam name="study" value="#{oCEnrolmentCallbackBean.studyId}"/>
+            <f:viewParam name="site" value="#{oCEnrolmentCallbackBean.siteSpecificStudyId}"/>
+            <f:viewParam name="subject_id" value="#{oCEnrolmentCallbackBean.subjectId}"/>
+            <f:viewParam name="second_subject_id" value="#{oCEnrolmentCallbackBean.secondSubjectId}"/>
+            <f:viewParam name="enrollment_date" value="#{oCEnrolmentCallbackBean.enrollmentDate}"/>
+            <f:viewParam name="enrollment_arm" value="#{oCEnrolmentCallbackBean.enrollmentArmId}"/>
+            <f:viewParam name="pseudonym" value="#{oCEnrolmentCallbackBean.pseudonym}"/>
+            <f:viewParam name="gender" value="#{oCEnrolmentCallbackBean.genderString}"/>
+            <f:viewParam name="birth_date" value="#{oCEnrolmentCallbackBean.dateOfBirthString}"/>
+            <f:viewParam name="birth_year" value="#{oCEnrolmentCallbackBean.yearOfBirthString}"/>
+            <f:event type="preRenderView" listener="#{oCEnrolmentCallbackBean.onLoad}"/>
+        </f:metadata>
+    </ui:define>
+
+    <!-- Definition of breadcrumbs place holder -->
+    <ui:define name="breadcrumbs">
+        <p:breadCrumb>
+            <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces"/>
+            <p:menuitem value="#{msg.edc}" title="#{msg.edc} - data capture" url="#"/>
+            <p:menuitem value="#{msg.study_plural}" title="#{msg.study_plural}" url="/edc/ecrfStudies2.faces"/>
+        </p:breadCrumb>
+    </ui:define>
+
+    <!-- Definition of page content place holder -->
+    <ui:define name="content">
+
+        <!-- Enums -->
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob"/>
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration"/>
+        <o:importConstants type="de.dktk.dd.rpb.core.domain.edc.EnumRequired"/>
+
+        <!-- Main Tab -->
+        <p:tabView id="tabView" activeIndex="#{oCEnrolmentCallbackBean.tab.activeIndex}">
+
+            <!-- Sites -->
+            <p:tab
+                    title="#{msg.studySubject}"
+                    id="dtStudySubjects"
+            >
+                <p:accordionPanel id="pnlNewSubject" multiple="true" activeIndex="1"
+                                  rendered="#{oCEnrolmentCallbackBean.studyId != null}"
+                >
+                    <p:tab title="#{msg.active_study_metadata}">
+
+                        <h:form id="viewStudyForm"
+                                rendered="#{oCEnrolmentCallbackBean.studyParameterConfiguration != null}"
+                        >
+                            <p:panelGrid
+                                    id="detailsDisplayStudy"
+                                    columns="2"
+                                    cellpadding="4"
+                                    style="margin:0 auto; float:left;"
+                            >
+                                <!-- Study Name -->
+                                <h:outputLabel value="#{msg.study}:"/>
+                                <h:outputLabel value="#{oCEnrolmentCallbackBean.studyId}"/>
+
+                                <!-- Site Name (Partner) -->
+                                <h:outputLabel value="#{msg.partnerSite}:"/>
+                                <h:outputLabel value="#{oCEnrolmentCallbackBean.siteSpecificStudyId}"/>
+
+                                <!-- Study parameters -->
+                                <!-- StudySubjectID generation method -->
+                                <h:outputLabel value="#{msg.studySubject_studySubjectId}:"/>
+                                <p:selectOneButton
+                                        value="#{oCEnrolmentCallbackBean.studyParameterConfiguration.studySubjectIdGeneration}"
+                                        disabled="true"
+                                >
+                                    <f:selectItem itemLabel="Manual"
+                                                  itemValue="#{EnumStudySubjectIdGeneration.MANUAL}"/>
+                                    <f:selectItem itemLabel="Automatic (editable)"
+                                                  itemValue="#{EnumStudySubjectIdGeneration.AUTO_EDITABLE}"/>
+                                    <f:selectItem itemLabel="Automatic (non-editable)"
+                                                  itemValue="#{EnumStudySubjectIdGeneration.AUTO_NONEDITABLE}"/>
+                                    <!-- TODO: Automatic option should be deprecated (not used) and removed -->
+                                    <!-- <f:selectItem itemLabel="Automatic" itemValue="#{EnumStudySubjectIdGeneration.AUTO}" /> -->
+                                </p:selectOneButton>
+
+                                <!-- PersonID is required -->
+                                <h:outputLabel value="#{msg.studySubject_personId}:"/>
+                                <p:selectOneButton
+                                        value="#{oCEnrolmentCallbackBean.studyParameterConfiguration.personIdRequired}"
+                                        disabled="true"
+                                >
+                                    <f:selectItem itemLabel="Required" itemValue="#{EnumRequired.REQUIRED}"/>
+                                    <f:selectItem itemLabel="Optional" itemValue="#{EnumRequired.OPTIONAL}"/>
+                                    <f:selectItem itemLabel="Not Used" itemValue="#{EnumRequired.NOT_USED}"/>
+                                </p:selectOneButton>
+
+                                <!-- SecondaryID is used -->
+                                <h:outputLabel value="#{msg.studySubject_secondaryId}:"/>
+                                <p:selectBooleanButton
+                                        value="#{oCEnrolmentCallbackBean.studyParameterConfiguration.secondaryLabelViewable}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
+
+                                <!--                                 TreatmentArm-->
+                                <h:outputLabel value="#{msg.study_isEnrollmentArmAssignmentRequired}:"
+                                               rendered="#{oCEnrolmentCallbackBean.rpbStudy != null}"/>
+                                <p:selectBooleanButton
+                                        value="#{oCEnrolmentCallbackBean.rpbStudy.isEnrollmentArmAssignmentRequired}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                        rendered="#{oCEnrolmentCallbackBean.rpbStudy != null}"
+                                />
+
+                                <!-- Discrepancy management -->
+                                <h:outputLabel value="Discrepancy Management:"/>
+                                <p:selectBooleanButton
+                                        value="#{oCEnrolmentCallbackBean.studyParameterConfiguration.allowDiscrepancyManagement}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
+
+                                <!-- Collect Subject DOB -->
+                                <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_dateOfBirth}:"/>
+                                <p:selectOneButton
+                                        value="#{oCEnrolmentCallbackBean.studyParameterConfiguration.collectSubjectDob}"
+                                        disabled="true"
+                                >
+                                    <f:selectItem itemLabel="Yes" itemValue="#{EnumCollectSubjectDob.YES}"/>
+                                    <f:selectItem itemLabel="Only year" itemValue="#{EnumCollectSubjectDob.ONLY_YEAR}"/>
+                                    <f:selectItem itemLabel="No" itemValue="#{EnumCollectSubjectDob.NO}"/>
+                                </p:selectOneButton>
+
+                                <!-- Collect Subject Gender -->
+                                <h:outputLabel value="#{msg.studySubject} #{msg.studySubject_gender}:"/>
+                                <p:selectBooleanButton
+                                        value="#{oCEnrolmentCallbackBean.studyParameterConfiguration.sexRequired}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
+                            </p:panelGrid>
+                        </h:form>
+
+
+                    </p:tab>
+                    <p:tab closable="false" title="#{msg.studySubject_new}">
+
+                        <p:panelGrid
+                                columnClasses="column"
+                                columns="2"
+                                style="margin:0 auto; float:left;"
+                        >
+                            <!-- Study -->
+                            <h:outputLabel rendered="#{oCEnrolmentCallbackBean.studyId != null}" value="#{msg.study}"
+                                           style="font-weight:bold"/>
+                            <h:outputText rendered="#{oCEnrolmentCallbackBean.studyId != null}"
+                                          value="#{oCEnrolmentCallbackBean.studyId}"/>
+
+                            <!-- Site -->
+                            <h:outputLabel rendered="#{oCEnrolmentCallbackBean.siteSpecificStudyId != null}"
+                                           value="#{msg.partnerSite}"
+                                           style="font-weight:bold"/>
+                            <h:outputText rendered="#{oCEnrolmentCallbackBean.siteSpecificStudyId != null}"
+                                          value="#{oCEnrolmentCallbackBean.siteSpecificStudyId}"/>
+
+                            <!-- Subject Identifier-->
+                            <h:outputLabel for="subjectId" rendered="#{oCEnrolmentCallbackBean.subjectId != null}"
+                                           value="#{msg.studySubject_id}" style="font-weight:bold"/>
+                            <p:inputText
+                                    id="subjectId"
+                                    rendered="#{oCEnrolmentCallbackBean.subjectId != null}" readonly="true"
+                                    placeholder="#{oCEnrolmentCallbackBean.subjectId}"
+                                    value="#{oCEnrolmentCallbackBean.subjectId}"
+                            />
+
+                            <h:outputLabel for="secondSubjectId" value="#{msg.studySubject_secondaryId}"
+                                           rendered="#{oCEnrolmentCallbackBean.secondSubjectId != null}"
+                                           style="font-weight:bold"/>
+                            <p:inputText id="secondSubjectId" placeholder="#{oCEnrolmentCallbackBean.secondSubjectId}"
+                                         rendered="#{oCEnrolmentCallbackBean.secondSubjectId != null}" readonly="true"
+                                         value="#{oCEnrolmentCallbackBean.secondSubjectId}"/>
+
+                            <h:outputLabel for="enrollmentDate" value="#{msg.studySubject_enrollmentDate}"
+                                           rendered="#{oCEnrolmentCallbackBean.enrollmentDate != null}"
+                                           style="font-weight:bold"/>
+                            <p:inputText id="enrollmentDate" placeholder="#{oCEnrolmentCallbackBean.enrollmentDate}"
+                                         rendered="#{oCEnrolmentCallbackBean.enrollmentDate != null}" readonly="true"
+                                         value="#{oCEnrolmentCallbackBean.enrollmentDate}"/>
+
+                            <h:outputLabel for="enrollmentArm" value="#{msg.treatmentArm}"
+                                           rendered="#{oCEnrolmentCallbackBean.enrollmentArmId != null and oCEnrolmentCallbackBean.treatmentArm != null}"
+                                           style="font-weight:bold"/>
+                            <p:inputText id="enrollmentArm"
+                                         placeholder="#{oCEnrolmentCallbackBean.getTreatmentArmById(oCEnrolmentCallbackBean.enrollmentArmId).getName()}"
+                                         rendered="#{oCEnrolmentCallbackBean.enrollmentArmId != null and oCEnrolmentCallbackBean.treatmentArm != null}"
+                                         readonly="true"
+                                         value="#{oCEnrolmentCallbackBean.getTreatmentArm().getName()}"/>
+
+                            <h:outputLabel for="gender" value="#{msg.studySubject_gender}"
+                                           rendered="#{oCEnrolmentCallbackBean.genderString != null}"
+                                           style="font-weight:bold"/>
+                            <p:inputText id="gender" placeholder="#{oCEnrolmentCallbackBean.genderString}"
+                                         readonly="true"
+                                         rendered="#{oCEnrolmentCallbackBean.genderString != null}"
+                                         value="#{oCEnrolmentCallbackBean.genderString}"/>
+
+
+                            <h:outputLabel for="pseudonym" value="#{msg.subject_uniqueIdentifier}"
+                                           style="font-weight:bold"
+                                           rendered="#{oCEnrolmentCallbackBean.pseudonym != null}"/>
+                            <p:inputText id="pseudonym" placeholder="#{oCEnrolmentCallbackBean.pseudonym}"
+                                         readonly="true"
+                                         rendered="#{oCEnrolmentCallbackBean.pseudonym != null}"
+                                         value="#{oCEnrolmentCallbackBean.pseudonym}"/>
+
+                            <h:outputLabel for="birthdate"
+                                           rendered="#{oCEnrolmentCallbackBean.dateOfBirthString != null}"
+                                           value="#{msg.person_birthdate}" style="font-weight:bold"/>
+                            <p:inputText id="birthdate" rendered="#{oCEnrolmentCallbackBean.dateOfBirthString != null}"
+                                         readonly="true"
+                                         placeholder="#{oCEnrolmentCallbackBean.dateOfBirthString}"
+                                         value="#{oCEnrolmentCallbackBean.dateOfBirthString}"/>
+
+                            <h:outputLabel for="birthyear"
+                                           rendered="#{oCEnrolmentCallbackBean.yearOfBirthString != null}"
+                                           value="#{msg.subject_yearOfBirth}" style="font-weight:bold"/>
+                            <p:inputText id="birthyear" rendered="#{oCEnrolmentCallbackBean.yearOfBirthString != null}"
+                                         readonly="true"
+                                         placeholder="#{oCEnrolmentCallbackBean.yearOfBirthString}"
+                                         value="#{oCEnrolmentCallbackBean.yearOfBirthString}"/>
+
+                            <f:facet name="footer">
+                                <p:commandButton
+                                        id="btnSubmitSubject"
+                                        value="Enroll"
+                                        update=":form:tabView:dtStudySubjects, :growl"
+                                        icon="ui-icon-disk"
+                                        actionListener="#{oCEnrolmentCallbackBean.createNewStudySubject}"
+                                        oncomplete=" handleSubmitRequest(xhr, status, args, 'form');"
+                                        rendered="#{oCEnrolmentCallbackBean.studyParameterConfiguration != null}"
+                                        disabled="#{!oCEnrolmentCallbackBean.treatmentArmSettingsAreValid()}"
+                                />
+                            </f:facet>
+
+                        </p:panelGrid>
+                    </p:tab>
+                </p:accordionPanel>
+            </p:tab>
+
+        </p:tabView>
+
+        <!-- Block UI for whole TabView -->
+        <p:blockUI block="tabView" widgetVar="buiTab">
+            #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+        </p:blockUI>
+    </ui:define>
+
+    <!-- Definition of dialogs place holder -->
+    <ui:define name="dialogs">
+
+
+        <!-- Submit from dialog -->
+        <!--PF('newEventDialog').hide();-->
+        <script type="text/javascript">
+            function handleSubmitRequest(xhr, status, args, dialogName, formName) {
+                dialog = jQuery('#' + dialogName);
+                if (args.validationFailed) {
+                    dialog.effect("shake", {times: 3}, 100);
+                } else {
+                    clearForm(formName);
+
+                    PF('viewStudyDialog').hide();
+                    PF('newSubjectDialog').hide();
+                    PF('viewSubjectDialog').hide();
+                    PF('viewEventDialog').hide();
+                }
+            }
+
+            function clearForm(formName) {
+                jQuery('#' + formName).each(function () {
+                    this.reset();
+                });
+            }
+
+            function exportChart() {
+                //export image
+                $('#outputEnrollmentMultiChart').empty().append(PF('lineSiteEnrollment').exportAsImage());
+
+                //show the dialog
+                PF('dlg').show();
+            }
+        </script>
+    </ui:define>
+</ui:composition>

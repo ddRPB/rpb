@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,9 @@ import org.apache.log4j.Logger;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * StudyEventDefinition transient domain entity (CDISC ODM)
@@ -57,9 +51,8 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
 
     //region Members
 
+    @XmlTransient
     private Integer id; // unused for Transient entity
-
-    private DatatypeFactory dataTypeFactory;
 
     @XmlAttribute(name="OID")
     private String oid;
@@ -67,28 +60,35 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
     @XmlAttribute(name="Name")
     private String name;
 
+    @XmlTransient
     private String description;
-    private String category;
 
     @XmlAttribute(name="Type")
     private String type;
+
+    @XmlTransient
+    private String category;
 
     @XmlAttribute(name="Repeating")
     @XmlJavaTypeAdapter(NoYesBooleanAdapter.class)
     private Boolean isRepeating;
 
-    private String status;
-    private int subjectAgeAtEvent;
-    private int studyEventRepeatKey;
+    @XmlTransient
+    private Boolean isMandatory = Boolean.TRUE;
 
-    @XmlElement(name="FormRef")
+    @XmlTransient
+    private Integer ordinal;
+
+    @XmlElement(name = "FormRef")
     private List<FormDefinition> formRefs;
 
+    @XmlElement(name = "EventDefinitionDetails", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    private EventDefinitionDetails eventDefinitionDetails;
+
+    @XmlTransient
     private List<FormDefinition> formDefs;
 
-    private XMLGregorianCalendar startDate;
-
-    // Object hash
+    @XmlTransient
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
     //endregion
@@ -96,15 +96,8 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
     //region Constructors
 
     public EventDefinition() {
-
-        try {
-            dataTypeFactory = DatatypeFactory.newInstance();
-        } catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
-        }
-
-        this.formDefs = new ArrayList<FormDefinition>();
-        this.formRefs = new ArrayList<FormDefinition>();
+        this.formDefs = new ArrayList<>();
+        this.formRefs = new ArrayList<>();
     }
 
     //endregion
@@ -152,17 +145,7 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    //region FormRefs
-
-    public List<FormDefinition> getFormRefs() {
-        return this.formRefs;
-    }
-
-    public void setFormRefs(List<FormDefinition> list) {
-        this.formRefs = list;
-    }
-
-    //endregion
+    //region Description
 
     public String getDescription() {
         return this.description;
@@ -172,11 +155,7 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
         this.description = value;
     }
 
-    public String getCategory() { return this.category; }
-
-    public void setCategory(String value) {
-        this.category = value;
-    }
+    //endregion
 
     //region Type
 
@@ -190,33 +169,15 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    public String getStatus() {
-        return this.status;
+    //region Category
+
+    public String getCategory() { return this.category; }
+
+    public void setCategory(String value) {
+        this.category = value;
     }
 
-    public void setStatus(String value) {
-        this.status = value;
-    }
-
-    public int getSubjectAgeAtEvent() {
-        return this.subjectAgeAtEvent;
-    }
-
-    public void setSubjectAgeAtEvent(int value) {
-        if (this.subjectAgeAtEvent != value) {
-            this.subjectAgeAtEvent = value;
-        }
-    }
-
-    public int getStudyEventRepeatKey() {
-        return this.studyEventRepeatKey;
-    }
-
-    public void setStudyEventRepeatKey(int value) {
-        if (this.studyEventRepeatKey != value) {
-            this.studyEventRepeatKey = value;
-        }
-    }
+    //endregion
 
     //region IsRepeating
 
@@ -230,6 +191,44 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    //region IsMandatory
+
+    public Boolean getIsMandatory() {
+        return this.isMandatory;
+    }
+
+    public void setIsMandatory(Boolean value) {
+        this.isMandatory = value;
+    }
+
+    //endregion
+
+    //region Ordinal
+
+    public Integer getOrdinal() {
+        return this.ordinal;
+    }
+
+    public void setOrdinal(Integer value) {
+        this.ordinal = value;
+    }
+
+    //endregion
+
+    //region FormRefs
+
+    public List<FormDefinition> getFormRefs() {
+        return this.formRefs;
+    }
+
+    public void setFormRefs(List<FormDefinition> list) {
+        this.formRefs = list;
+    }
+
+    //endregion
+
+    //region FormDefs
+
     public List<FormDefinition> getFormDefs() {
         return this.formDefs;
     }
@@ -238,48 +237,19 @@ public class EventDefinition implements Identifiable<Integer>, Serializable {
         this.formDefs = list;
     }
 
-    /**
-     * Get event start date
-     * @return event start date
-     */
-    public XMLGregorianCalendar getStartDate() {
-        return startDate;
+    //endregion
+
+    // region EventDefinitionDetails
+
+    public EventDefinitionDetails getEventDefinitionDetails() {
+        return eventDefinitionDetails;
     }
 
-    /**
-     * Set event start date
-     * @param startDate event start date
-     */
-    public void setStartDate(XMLGregorianCalendar startDate) {
-        this.startDate = startDate;
-        if (this.startDate != null) {
-            this.startDate.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
-        }
+    public void setEventDefinitionDetails(EventDefinitionDetails eventDefinitionDetails) {
+        this.eventDefinitionDetails = eventDefinitionDetails;
     }
 
-    /**
-     * Set event start date from String
-     * @param startDate event start date as String (yyyy-mm-dd)
-     */
-    public void setStartDate(String startDate) {
-        DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-
-        Calendar cal = null;
-        try {
-            Date datum  = df.parse(startDate);
-
-            // Convert Date to a Calendar
-            cal = GregorianCalendar.getInstance();
-            cal.setTime(datum);
-
-            // mutate the value
-            //cal.add(Calendar.YEAR, 1);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        this.setStartDate(this.dataTypeFactory.newXMLGregorianCalendar((GregorianCalendar)cal));
-    }
+    // endregion
 
     //endregion
 

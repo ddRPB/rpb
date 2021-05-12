@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,6 +199,8 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
     //endregion
 
     //region RadPlanBio
+
+    // TODO: this should be changed and deprecated because form can be used in multiple events
 
     public EventDefinition getEventDefinition() {
         return this.eventDefinition;

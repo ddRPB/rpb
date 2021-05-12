@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,18 +19,23 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.sun.jersey.api.client.*;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-
 import de.dktk.dd.rpb.core.context.UserContext;
-import de.dktk.dd.rpb.core.domain.edc.*;
-
+import de.dktk.dd.rpb.core.domain.edc.ClinicalData;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.UserAccount;
+import de.dktk.dd.rpb.core.ocsoap.connect.ConnectInfo;
+import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
+import de.dktk.dd.rpb.core.ocsoap.connect.OCWebServices;
+import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
+import de.dktk.dd.rpb.core.ocsoap.types.Event;
+import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
+import de.dktk.dd.rpb.core.ocsoap.types.Study;
+import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
 import de.dktk.dd.rpb.core.util.CacheUtil;
 import de.dktk.dd.rpb.core.util.Constants;
 import net.sf.ehcache.Element;
@@ -38,14 +43,19 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import org.openclinica.ws.beans.EventType;
+import org.openclinica.ws.beans.SiteType;
+import org.openclinica.ws.beans.StudySubjectWithEventsType;
+import org.openclinica.ws.beans.StudyType;
 import org.openclinica.ws.data.v1.ImportResponse;
 import org.openclinica.ws.event.v1.ScheduleResponse;
+import org.openclinica.ws.study.v1.ListAllResponse;
+import org.openclinica.ws.studysubject.v1.CreateResponse;
 import org.openclinica.ws.studysubject.v1.IsStudySubjectResponse;
+import org.openclinica.ws.studysubject.v1.ListAllByStudyResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Named;
-
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -53,23 +63,12 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.net.MalformedURLException;
-import de.dktk.dd.rpb.core.ocsoap.connect.ConnectInfo;
-import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
-import de.dktk.dd.rpb.core.ocsoap.connect.OCWebServices;
-import de.dktk.dd.rpb.core.ocsoap.types.Study;
-import de.dktk.dd.rpb.core.ocsoap.types.Event;
-import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
-import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
-import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
-
-import org.openclinica.ws.beans.StudyType;
-import org.openclinica.ws.study.v1.ListAllResponse;
-import org.openclinica.ws.beans.StudySubjectWithEventsType;
-import org.openclinica.ws.studysubject.v1.ListAllByStudyResponse;
-import org.openclinica.ws.beans.EventType;
-import org.openclinica.ws.beans.SiteType;
-import org.openclinica.ws.studysubject.v1.CreateResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OpenClinica service implements client calls to SOAP and REST based web-service endpoints provided by the EDC system
@@ -357,7 +356,7 @@ public class OpenClinicaService implements IOpenClinicaService {
      * {@inheritDoc}
      */
     @Override
-    public String createNewStudySubject(StudySubject studySubject) {
+    public String createNewStudySubject(StudySubject studySubject) throws OCConnectorException {
         String result = null;
 
         try {
@@ -366,12 +365,11 @@ public class OpenClinicaService implements IOpenClinicaService {
                 if (response != null) {
                     if (response.getResult().equals(Constants.OC_SUCCESS)) {
                         if (response.getLabel() != null && !response.getLabel().equals(""))
-                        result = response.getLabel();
+                            result = response.getLabel();
                     }
                 }
             }
-        }
-        catch (DatatypeConfigurationException | OCConnectorException err) {
+        } catch (DatatypeConfigurationException err) {
             log.error(err);
         }
 
@@ -451,6 +449,7 @@ public class OpenClinicaService implements IOpenClinicaService {
         return studySubjectsResponse.getStudySubjects().getStudySubject();
     }
 
+    //TODO: unused?, probably we can deprecate this method (using direct access to DB, that returns StudySubjects
     @Override
     public List<StudySubject> getSubjectsByStudy(de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy) throws OCConnectorException {
 
@@ -535,7 +534,8 @@ public class OpenClinicaService implements IOpenClinicaService {
 
             // When using OC SOAP ws the xml should start with ODM element as root
             String cleanOdmXmlData = odmXmlData.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
-            cleanOdmXmlData = cleanOdmXmlData.replace(" xmlns:ns2=\"http://www.openclinica.org/ns/odm_ext_v130/v3.1\" xmlns=\"http://www.cdisc.org/ns/odm/v1.3\"", "");
+            cleanOdmXmlData = cleanOdmXmlData.replace(" xmlns:ns2=\"http://www.openclinica.org/ns/odm_ext_v130/v3.1\"", "");
+            cleanOdmXmlData = cleanOdmXmlData.replace(" xmlns=\"http://www.cdisc.org/ns/odm/v1.3\"", "");
 
             // Import
             ImportResponse response = this.ocws.importODM(cleanOdmXmlData);
@@ -846,81 +846,6 @@ public class OpenClinicaService implements IOpenClinicaService {
                 }
             }
             catch (Exception err) {
-                log.error(err);
-            }
-        }
-
-        return results;
-    }
-
-    //endregion
-
-    //region Study Event
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<EventDefinition> getStudyCasebookEvents(String studyOid, String studySubjectIdentifier) {
-        List<EventDefinition> results = new ArrayList<>();
-
-        // Depending on OC version studySubjectIdentifier can be StudySubjectID instead of subject OID
-        String method = studyOid + "/" + studySubjectIdentifier + "/*/*";
-        String format = "json";
-
-        if (!this.restBaseUrl.endsWith("/")) {
-            this.restBaseUrl += "/";
-        }
-
-        ClientResponse response = this.getOcRestfulUrl(
-                this.ocUsername,
-                this.ocPassword,
-                format,
-                method
-        );
-
-        // Success
-        if (response.getStatus() == 200) {
-            String output = response.getEntity(String.class);
-
-            try {
-                JSONObject obj = new JSONObject(output);
-                JSONObject clinicalData = obj.getJSONObject("ClinicalData");
-                JSONObject subjectData = clinicalData.getJSONObject("SubjectData");
-
-                // Multiple events
-                JSONArray eventData;
-                eventData = subjectData.optJSONArray("StudyEventData");
-                if (eventData != null) {
-                    for (int i = 0; i < eventData.length(); i++) {
-                        EventDefinition event = new EventDefinition();
-
-                        event.setOid(eventData.getJSONObject(i).getString("@StudyEventOID"));
-                        event.setStatus(eventData.getJSONObject(i).getString("@OpenClinica:Status"));
-                        String date = eventData.getJSONObject(i).getString("@OpenClinica:StartDate");
-                        event.setStartDate(date);
-                        event.setSubjectAgeAtEvent(eventData.getJSONObject(i).optInt("OpenClinica:SubjectAgeAtEvent", 0));
-                        event.setStudyEventRepeatKey(eventData.getJSONObject(i).getInt("@StudyEventRepeatKey"));
-
-                        results.add(event);
-                    }
-                }
-                // Only one event
-                else {
-                    JSONObject ed = subjectData.getJSONObject("StudyEventData");
-                    EventDefinition event = new EventDefinition();
-
-                    event.setOid(ed.getString("@StudyEventOID"));
-                    event.setStatus(ed.getString("@OpenClinica:Status"));
-                    String date = ed.getString("@OpenClinica:StartDate");
-                    event.setStartDate(date);
-                    event.setSubjectAgeAtEvent(ed.optInt("OpenClinica:SubjectAgeAtEvent", 0));
-                    event.setStudyEventRepeatKey(ed.getInt("@StudyEventRepeatKey"));
-
-                    results.add(event);
-                }
-            }
-            catch (JSONException err) {
                 log.error(err);
             }
         }

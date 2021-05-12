@@ -48,6 +48,8 @@ public class Person_ {
 
     // One to many
     public static volatile ListAttribute<Person, StudyPerson> studyPersonnel;
-    public static volatile ListAttribute<Person, CurriculumVitaeItem> curriculumVitaeItems;
+    
+    // DEPRECATED
+    //public static volatile ListAttribute<Person, CurriculumVitaeItem> curriculumVitaeItems;
 
 }

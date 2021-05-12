@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,23 +19,20 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import java.util.List;
-
 import de.dktk.dd.rpb.core.domain.edc.EventData;
 import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
-
 import de.dktk.dd.rpb.core.domain.edc.Odm;
 import de.dktk.dd.rpb.core.domain.edc.UserAccount;
 import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
 import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
+import de.dktk.dd.rpb.core.ocsoap.types.Event;
 import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
+import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
-
 import org.openclinica.ws.beans.StudySubjectWithEventsType;
 import org.openclinica.ws.beans.StudyType;
 
-import de.dktk.dd.rpb.core.ocsoap.types.Study;
-import de.dktk.dd.rpb.core.ocsoap.types.Event;
+import java.util.List;
 
 /**
  * OpenClinica service helps to access SOAP and REST based web-services provided by EDC system
@@ -130,7 +127,7 @@ public interface IOpenClinicaService {
      * @param studySubject - Study subject entity
      * @return newly created StudySubjectID
      */
-    String createNewStudySubject(StudySubject studySubject);
+    String createNewStudySubject(StudySubject studySubject) throws OCConnectorException;
 
     Boolean studySubjectExistsInStudy(StudySubject studySubject, Study study);
 
@@ -184,12 +181,6 @@ public interface IOpenClinicaService {
     StudySubject getStudyCasebookSubject(String studyOid, String studySubjectIdentifier);
 
     List<de.dktk.dd.rpb.core.domain.edc.StudySubject> getStudyCasebookSubjects(OpenClinicaService.CasebookFormat format, OpenClinicaService.CasebookMethod method, String queryOdmXmlPath);
-
-    //endregion
-
-    //region Study Event
-
-    List<EventDefinition> getStudyCasebookEvents(String studyOid, String subjectOid);
 
     //endregion
 

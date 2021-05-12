@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datasets metaDataFile="datasets_metadata.xml" xmlns="http://labkey.org/study/xml">
+  <datasets>
+    <dataset name="Participants" id="5001" type="Standard">
+      <tags/>
+    </dataset>
+  </datasets>
+</datasets>

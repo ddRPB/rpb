@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
@@ -50,9 +52,6 @@ import com.google.common.base.Objects;
 
 import de.dktk.dd.rpb.core.domain.edc.Edc;
 
-import static javax.persistence.CascadeType.MERGE;
-import static javax.persistence.CascadeType.PERSIST;
-
 /**
  * PartnerSite domain entity
  *
@@ -64,6 +63,7 @@ import static javax.persistence.CascadeType.PERSIST;
  */
 @Entity
 @Table(name = "PARTNERSITE")
+@XmlRootElement
 public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     //region Finals
@@ -244,6 +244,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="PORTALID")
+    @XmlTransient
     public Portal getPortal() {
         return this.portal;
     }
@@ -258,6 +259,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="GENERATORID")
+    @XmlTransient
     public Pid getPid() {
         return this.pid;
     }
@@ -272,6 +274,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="EDCID")
+    @XmlTransient
     public Edc getEdc() {
         return this.edc;
     }
@@ -286,6 +289,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="FORMENGINEID")
+    @XmlTransient
     public FormEngine getFormEngine() {
         return this.formEngine;
     }
@@ -300,6 +304,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch= FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="PACSID")
+    @XmlTransient
     public Pacs getPacs() {
         return this.pacs;
     }
@@ -314,6 +319,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="BIOID")
+    @XmlTransient
     public Bio getBio() {
         return this.bio;
     }
@@ -328,6 +334,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="LABID")
+    @XmlTransient
     public Lab getLab() {
         return this.lab;
     }
@@ -342,6 +349,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @OneToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     @JoinColumn(name="SERVERID")
+    @XmlTransient
     public Server getServer() {
         return this.server;
     }
@@ -360,6 +368,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @Access(AccessType.PROPERTY)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "partnerSite")
+    @XmlTransient
     public List<DefaultAccount> getDefaultAccounts() {
         return this.defaultAccounts;
     }
@@ -399,6 +408,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
 
     @LazyCollection(LazyCollectionOption.FALSE)
     @ManyToMany(mappedBy = "participatingSites")
+    @XmlTransient
     public List<Study> getStudies() {
         return this.studies;
     }

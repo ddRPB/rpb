@@ -210,6 +210,18 @@
                                 target="#{mbStudyManagement.selectedEntity}"
                                 />
                         </p:commandButton>
+                        <p:commandButton
+                                id="update-ctp-lookup-btn"
+                                icon="ui-icon-transferthick-e-w"
+                                title="#{msg.menu_update} #{msg.study_ctp_lookup_table}"
+                                update=":growl"
+                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgUpdateSubjectIdMapping','UpdateSubjectIdMappingForm');"
+                                actionListener="#{mbStudyManagement.doUpdateSubjectLookupTable(study)}"
+                                process="@this"
+                        />
+                        <p:blockUI block="form:tabView" trigger="update-ctp-lookup-btn">
+                            Processing<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                        </p:blockUI>
                     </p:column>
 
                     <!-- Footer -->

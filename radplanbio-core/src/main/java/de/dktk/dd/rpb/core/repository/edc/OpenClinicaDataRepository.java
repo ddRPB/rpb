@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,23 +21,21 @@ package de.dktk.dd.rpb.core.repository.edc;
 
 import de.dktk.dd.rpb.core.dao.edc.OpenClinicaDataDao;
 import de.dktk.dd.rpb.core.domain.edc.*;
-
+import de.dktk.dd.rpb.core.exception.DataBaseItemNotFoundException;
 import org.apache.log4j.Logger;
+import org.openclinica.ws.beans.StudyType;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-
-import org.openclinica.ws.beans.StudyType;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 /**
  * Default implementation of the {@link IOpenClinicaDataRepository} interface.
  * @see IOpenClinicaDataRepository
  *
- * OCDataRepository
+ * OpenClinicaDataRepository
  *
  * @author tomas@skripcak.net
  * @since 14 Jul 2013
@@ -73,19 +71,14 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
         return this.dao.getUserAccountHash(username);
     }
 
-    @Transactional
-    public String getUserId(String username) {
-        return this.dao.getUserId(username);
-    }
-
-    @Transactional
-    public String getUserName(int id) {
-        return this.dao.getUserName(id);
-    }
-
     //endregion
 
     //region Study
+
+    @Transactional
+    public Study getStudyById(String id) {
+        return this.dao.getStudyById(id);
+    }
 
     @Transactional
     public Study getStudyByIdentifier(String identifier) {
@@ -97,6 +90,7 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
         return this.dao.getUserActiveStudy(username);
     }
 
+    @Transactional
     public boolean changeUserActiveStudy(String username, Study newActiveStudy) {
         return this.dao.changeUserActiveStudy(username, newActiveStudy);
     }
@@ -106,9 +100,45 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
     //region StudySubject
 
     @Transactional
+    public StudySubject getStudySubjectByStudySubjectId(String studyIdentifier, String studySubjectId) {
+        return this.dao.getStudySubject(studyIdentifier, studySubjectId);
+    }
+
+    @Transactional
+    public StudySubject getStudySubjectWithEvents(String studyIdentifier, String studySubjectId) {
+        return this.dao.getStudySubjectWithEvents(studyIdentifier, studySubjectId);
+    }
+
+    @Transactional
+    public StudySubject getStudySubjectWithEventsWithForms(String studyIdentifier, String studySubjectId) {
+        return this.dao.getStudySubjectWithEventsWithForms(studyIdentifier, studySubjectId);
+    }
+
+    @Transactional
     public List<StudySubject> findStudySubjectsByPseudonym(String pid, List<StudyType> studyTypeList) {
         return this.dao.findStudySubjectsByPseudonym(pid, studyTypeList);
     }
+
+    @Transactional
+    public List<StudySubject> findStudySubjectsByStudy(String studyIdentifier) {
+        return this.dao.findStudySubjects(studyIdentifier);
+    }
+
+    @Transactional
+    public List<StudySubject> findStudySubjectsWithEvents(String studyIdentifier) {
+        return this.dao.findStudySubjectsWithEvents(studyIdentifier);
+    }
+
+    @Transactional
+    public int setPidOnExistingStudySubject(StudySubject studySubject, String ocUserName) throws DataBaseItemNotFoundException {
+        return this.dao.setPidOnExistingStudySubject(studySubject, ocUserName);
+    }
+
+    @Transactional
+    public int setSecondaryIdOnExistingStudySubject(StudySubject studySubject, String ocUserName) throws DataBaseItemNotFoundException {
+        return this.dao.setSecondaryIdOnExistingStudySubject(studySubject, ocUserName);
+    }
+
 
     //endregion
 
@@ -159,6 +189,12 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
     //endregion
 
     //region ItemData
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemData findItemData(String studyOid, String subjectPid, String studyEventOid, String studyEventRepeatKey, String formOid, String itemOid) {
+        return this.dao.findItemData(studyOid, subjectPid, studyEventOid, studyEventRepeatKey, formOid, itemOid);
+    }
 
     @Override
     @Transactional(readOnly = true)

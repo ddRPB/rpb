@@ -52,7 +52,7 @@
 		<!-- ~~~~~~ -->
 		<!-- System -->
 		<!-- ~~~~~~ -->
-		<jdk.version>1.7</jdk.version>
+		<jdk.version>1.8</jdk.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -443,6 +443,13 @@
             <artifactId>json</artifactId>
             <version>20070829</version>
         </dependency>
+        <!--Helper to copy and access properties-->
+        <!-- https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils -->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.3</version>
+        </dependency>
 
 	    <!-- ~~~~~~ -->
 		<!-- SPRING -->
@@ -788,15 +795,22 @@
 		</dependency>
 
         <!-- ~~~~~~~~~~~~~~~~~~~ -->
-        <!-- DATA TRANSFORMATION -->
-        <!-- ~~~~~~~~~~~~~~~~~~~ -->
+		<!-- DATA TRANSFORMATION -->
+		<!-- ~~~~~~~~~~~~~~~~~~~ -->
 
-        <!-- CSV -->
-        <dependency>
-            <groupId>net.sf.supercsv</groupId>
-            <artifactId>super-csv</artifactId>
-            <version>2.3.1</version>
-        </dependency>
+		<!-- CSV -->
+		<dependency>
+			<groupId>net.sf.supercsv</groupId>
+			<artifactId>super-csv</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.univocity/univocity-parsers -->
+		<dependency>
+			<groupId>com.univocity</groupId>
+			<artifactId>univocity-parsers</artifactId>
+			<version>2.1.1</version>
+		</dependency>
 
 		<!-- ~~~~~ -->
 		<!-- DICOM -->
@@ -832,7 +846,14 @@
 			<version>3.0</version>
 		</dependency>
 
-    </dependencies>
+		<!-- webdav client -->
+		<dependency>
+			<groupId>com.github.lookfirst</groupId>
+			<artifactId>sardine</artifactId>
+			<version>5.9</version>
+		</dependency>
+
+	</dependencies>
 
 	<!-- ~~~~~~~~~~~~ -->
 	<!-- REPOSITORIES -->
@@ -848,6 +869,11 @@
 			<url>https://repository.primefaces.org</url>
 			<layout>default</layout>
 		</repository>
+        
+		<!-- <repository>
+            <id>spring-release</id>
+            <url>https://repo.springsource.org/libs-release/</url>
+        </repository> -->
 		
 		<repository> 
 			<id>repository.spring.release</id> 

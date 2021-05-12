@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,19 +25,24 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.Assert;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static de.dktk.dd.rpb.core.util.Constants.*;
+import static de.dktk.dd.rpb.core.util.Constants.RPB_PASSWDPARAM;
+import static de.dktk.dd.rpb.core.util.Constants.RPB_UNAMEPARAM;
 
 /**
  * Authentication processing filter for RadPlanBio
  * <p>
  * This is the place where it is decided which authentication token will be used depending on the authentication method
- * selected by user via web GUI
+ * selected by user via web GUI. It is similar to the UsernamePasswordAuthenticationFilter class from Spring,
+ * but this class points hard coded to /login - but we need /login.faces instead. That's why this class extends the
+ * AbstractAuthenticationProcessingFilter directly. Because of that, the filter needs to be placed before the
+ * "BASIC_AUTH_Filter" instead of having the position of such a filter.
  *
  * @author tomas@skripcak.net
  * @since 05 Jun 2013
@@ -46,11 +51,11 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
 
     //region Injects
 
-    private IDefaultAccountRepository IDefaultAccountRepository;
+    private IDefaultAccountRepository defaultAccountRepository;
 
     @Inject
     public void setIDefaultAccountRepository(IDefaultAccountRepository IDefaultAccountRepository) {
-        this.IDefaultAccountRepository = IDefaultAccountRepository;
+        this.defaultAccountRepository = IDefaultAccountRepository;
     }
 
     //endregion
@@ -65,11 +70,11 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
     //region Constructors
 
     public MyAuthenticationFilter() {
-        super("/j_spring_security_check");
+        super(new AntPathRequestMatcher("/login", "POST"));
     }
 
-    protected MyAuthenticationFilter(String defaultFilterProcessesUrl) {
-        super(defaultFilterProcessesUrl);
+    protected MyAuthenticationFilter(String urlPattern) {
+        super(new AntPathRequestMatcher(urlPattern, "POST"));
     }
 
     //endregion
@@ -130,11 +135,20 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
         String username = this.obtainUsername(httpServletRequest).toLowerCase();
         String password = this.obtainPassword(httpServletRequest);
 
+        username = replaceNullWithEmptyString(username);
+        password = replaceNullWithEmptyString(password);
+        username = username.trim();
+
         // Create UsernamePasswordAuthenticationToken according to user selection
         UsernamePasswordAuthenticationToken authRequest;
 
         // Load RPB account first
-        DefaultAccount account = this.IDefaultAccountRepository.getByUsername(username);
+        DefaultAccount account;
+        if (!username.isEmpty()) {
+            account = this.defaultAccountRepository.getByUsername(username);
+        } else {
+            account = null;
+        }
 
         if (account != null) {
             // LDAP account
@@ -194,6 +208,13 @@ public class MyAuthenticationFilter extends AbstractAuthenticationProcessingFilt
      */
     protected void setDetails(HttpServletRequest request, UsernamePasswordAuthenticationToken authRequest) {
         authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
+    }
+
+    private String replaceNullWithEmptyString(String value) {
+        if (value == null) {
+            value = "";
+        }
+        return value;
     }
 
     //endregion

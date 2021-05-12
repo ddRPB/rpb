@@ -176,7 +176,7 @@ public class ItemGroupDefinition implements Identifiable<Integer>, Serializable 
     //region IsRepeating
 
     public boolean getIsRepeating() {
-        return this.getIsRepeating();
+        return this.isRepeating;
     }
 
     public void setIsRepeating(boolean value) {

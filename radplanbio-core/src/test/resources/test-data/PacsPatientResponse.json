@@ -1,0 +1,10 @@
+{
+  "Patients": [
+    {
+      "PatientID": "1",
+      "Sex": "O",
+      "PatientBirthDate": "19000101",
+      "Studies": []
+    }
+  ]
+}

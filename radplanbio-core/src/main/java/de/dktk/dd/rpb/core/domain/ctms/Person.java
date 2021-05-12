@@ -99,7 +99,6 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
     private PersonStatus status;
 
     // One-to-Many
-    private List<CurriculumVitaeItem> curriculumVitaeItems; // personnel normally has some profession history
     private List<StudyPerson> participatingInStudies; // person within a study with a specific role
 
     private List<StudySubject> studySubjects; // transient relation to patient StudySubject entities
@@ -108,6 +107,9 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     // Object hash
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
+
+    // DEPRECATED
+    //private List<CurriculumVitaeItem> curriculumVitaeItems; // personnel normally has some profession history
 
     //endregion
 
@@ -395,30 +397,30 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     //region One-To-Many
 
-    //region CurriculumVitaeItems
+    //region DEPRECATED: CurriculumVitaeItems
 
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "person", orphanRemoval = true)
-    public List<CurriculumVitaeItem> getCurriculumVitaeItems() {
-        return this.curriculumVitaeItems;
-    }
-
-    public void setCurriculumVitaeItems(List<CurriculumVitaeItem> curriculumVitaeItems) {
-        this.curriculumVitaeItems = curriculumVitaeItems;
-    }
-
-    public Boolean addCurriculumVitaeItem(CurriculumVitaeItem cvItem) {
-        if (!this.curriculumVitaeItems.contains(cvItem)) {
-            cvItem.setPerson(this);
-            return this.curriculumVitaeItems.add(cvItem);
-        }
-
-        return Boolean.FALSE;
-    }
-
-    public Boolean removeCurriculumVitaeItem(CurriculumVitaeItem cvItem) {
-        return this.curriculumVitaeItems.contains(cvItem) && this.curriculumVitaeItems.remove(cvItem);
-    }
+//    @LazyCollection(LazyCollectionOption.FALSE)
+//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "person", orphanRemoval = true)
+//    public List<CurriculumVitaeItem> getCurriculumVitaeItems() {
+//        return this.curriculumVitaeItems;
+//    }
+//
+//    public void setCurriculumVitaeItems(List<CurriculumVitaeItem> curriculumVitaeItems) {
+//        this.curriculumVitaeItems = curriculumVitaeItems;
+//    }
+//
+//    public Boolean addCurriculumVitaeItem(CurriculumVitaeItem cvItem) {
+//        if (!this.curriculumVitaeItems.contains(cvItem)) {
+//            cvItem.setPerson(this);
+//            return this.curriculumVitaeItems.add(cvItem);
+//        }
+//
+//        return Boolean.FALSE;
+//    }
+//
+//    public Boolean removeCurriculumVitaeItem(CurriculumVitaeItem cvItem) {
+//        return this.curriculumVitaeItems.contains(cvItem) && this.curriculumVitaeItems.remove(cvItem);
+//    }
 
     //endregion
 

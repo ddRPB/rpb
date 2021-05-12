@@ -76,6 +76,14 @@ form .required-pseudo-label {
 	text-align:left !important;
 }
 
+/* mark a specific table item */
+.ui-marked-table-entry {
+    background-color: #BDE5F8;
+!important;
+    color: #000000;
+!important;
+}
+
 /* ICONS for p:commandButon. Note the usage of JSF2 resource facility :-) */
 .iconView { 
 	background-image: url("#{resource['icons/eye.png']}") !important;

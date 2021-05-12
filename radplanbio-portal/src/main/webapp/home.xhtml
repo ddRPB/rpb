@@ -35,14 +35,14 @@
                         The RPB-portal requirements:
                     </p>
                     <ul>
-                        <li>Web browsers: Firefox >= 60, Chrome/Chromium >= 70, Internet Explorer = 11</li>
+                        <li>Web browsers: Firefox >= 78, Chrome/Chromium/Microsoft Edge >= 86</li>
                         <li>DICOM viewer: Java Runtime Environment (JRE) >= 8.0</li>
                     </ul>
                     <p style="text-align:justify;">
                         The RPB-client requirements (for DICOM data de-identification and upload):
                     </p>
                     <ul>
-                        <li>64-bit desktop computer (Windows 7, Windows 10, Linux)</li>
+                        <li>64-bit desktop computer (Windows 10)</li>
                     </ul>
                     <p style="text-align:justify;">
                         The connection to the RPB platform is only allowed for registered <h:outputLink value="collaboration.faces">partner sites</h:outputLink>.
@@ -66,7 +66,6 @@
                         immediate="true"
                         process="@this"
                         update=":form:dlArticles, :growl"
-                        actionListener="#{mbHome.loadRssContent}"
                         />
                 </p:toolbarGroup>
 
@@ -94,24 +93,23 @@
             <!-- RSS data list -->
             <p:dataList
                 id="dlArticles"
-                value="#{mbHome.rssContentList}"
-                var="content"
+                value="#{mbContentLazy}"
+                var="entity"
                 paginator="true"
                 rows="5"
                 paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink}"
                 itemType="square"
                 type="none"
+                lazy="true"
                 >
-                <h:outputText escape="false" value="#{content.title} " style="font-weight:bold" />
+                <h:outputText escape="false" value="#{entity.title} " style="font-weight:bold" />
                 <h:outputText value=" #{msg.rss_createdDate}: " />
                 [
-                <h:outputText value="#{content.createdDate}">
-                    <f:convertDateTime type="date" pattern="dd.MM.yyyy" />
-                </h:outputText>
+                <h:outputText value="#{entity.createdDateString}" />                 
                 ]
                 <br />
                 <br />
-                <h:outputText value="#{content.summary}" escape="false" style="text-align:justify;" />
+                <h:outputText value="#{entity.summary}" escape="false" style="text-align:justify;" />
                 <br />
                 <hr />
             </p:dataList>

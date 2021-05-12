@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2017 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,24 +19,18 @@
 
 package de.dktk.dd.rpb.portal.web.mb.ctms;
 
-import de.dktk.dd.rpb.core.domain.ctms.CurriculumVitaeItem;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
 import de.dktk.dd.rpb.core.domain.ctms.StudyPerson;
 import de.dktk.dd.rpb.core.repository.ctms.IPersonRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-import org.primefaces.component.api.UIColumn;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import javax.annotation.PostConstruct;
-
-import javax.faces.context.FacesContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,39 +78,20 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
 
     @PostConstruct
     public void init() {
-        this.columnVisibilityList = new ArrayList<>();
-        this.columnVisibilityList.add(Boolean.TRUE); // Surname
-        this.columnVisibilityList.add(Boolean.TRUE); // Firstname
-        this.columnVisibilityList.add(Boolean.FALSE); // Birthname
-        this.columnVisibilityList.add(Boolean.TRUE); // Status
-        this.columnVisibilityList.add(Boolean.FALSE); // Titles before
-        this.columnVisibilityList.add(Boolean.FALSE); // Titles after
 
+        this.setColumnVisibilityList(
+                this.buildColumnVisibilityList()
+        );
         this.setPreSortOrder(
                 this.buildSortOrder()
         );
+        
         this.load();
     }
 
     //endregion
 
     //region Commands
-
-    //region CV Items
-
-    public void addNewCvItem(CurriculumVitaeItem cvItem) {
-        if (this.selectedEntity.addCurriculumVitaeItem(cvItem)) {
-            this.doUpdateEntity();
-        }
-    }
-
-    public void removeSelectedCvItem(CurriculumVitaeItem cvItem) {
-        if (this.selectedEntity.removeCurriculumVitaeItem(cvItem)) {
-            this.doUpdateEntity();
-        }
-    }
-
-    //endregion
 
     //region StudyPerson
 
@@ -140,42 +115,42 @@ public class PersonBean extends CrudEntityViewModel<Person, Integer> {
         this.newEntity = this.repository.getNew();
     }
 
+    protected List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> results = new ArrayList<>();
+
+        results.add(Boolean.TRUE); // Surname
+        results.add(Boolean.TRUE); // Firstname
+        results.add(Boolean.FALSE); // Birthname
+        results.add(Boolean.TRUE); // Status
+        results.add(Boolean.FALSE); // Titles before
+        results.add(Boolean.FALSE); // Titles after
+
+        return results;
+    }
+
     /**
      * Need to build an initial sort order for data table multi sort
      */
     @Override
     protected List<SortMeta> buildSortOrder() {
-        List<SortMeta> results = new ArrayList<>();
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colPersonSurname", "colPersonSurname", SortOrder.ASCENDING);
 
-        UIViewRoot viewRoot =  FacesContext.getCurrentInstance().getViewRoot();
-        UIComponent column1 = viewRoot.findComponent(":form:tabView:dtEntities:colPersonSurname");
+        if (results != null) {
 
-        SortMeta sm1 = new SortMeta();
-        sm1.setSortBy((UIColumn) column1);
-        sm1.setSortField("colPersonSurname");
-        sm1.setSortOrder(SortOrder.ASCENDING);
+            List<SortMeta> sm2 = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colPersonFirstname", "colPersonFirstname", SortOrder.ASCENDING);
+            if (sm2 != null) {
+                results.addAll(sm2);
+            }
 
-        results.add(sm1);
+            List<SortMeta> sm3 = DataTableUtil.buildSortOrder(":form:tabView:dtEntities:colPersonStatus", "colPersonStatus", SortOrder.ASCENDING);
+            if (sm3 != null) {
+                results.addAll(sm3);
+            }
+            
+            return results;
+        }
 
-        UIComponent column2 = viewRoot.findComponent(":form:tabView:dtEntities:colPersonFirstname");
-
-        SortMeta sm2 = new SortMeta();
-        sm2.setSortBy((UIColumn) column2);
-        sm2.setSortField("colPersonFirstname");
-        sm2.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm2);
-
-        UIComponent column3 = viewRoot.findComponent(":form:tabView:dtEntities:colPersonStatus");
-
-        SortMeta sm3 = new SortMeta();
-        sm3.setSortBy((UIColumn) column3);
-        sm3.setSortField("colPersonStatus");
-        sm3.setSortOrder(SortOrder.ASCENDING);
-
-        results.add(sm3);
-
-        return results;
+        return new ArrayList<>();
     }
 
     //endregion

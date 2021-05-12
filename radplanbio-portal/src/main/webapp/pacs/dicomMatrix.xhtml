@@ -298,18 +298,6 @@
                                         styleClass="#{mbDicomMatrix.loadDicomStudyStatus(studySubject, event, dicomStudyItemDefinition)}"
                                         readonly="true"
                                         />
-                                    <br />
-                                    <h:link
-                                        value="View"
-                                        outcome="/pacs/studyView.faces"
-                                        target="_blank"
-                                        rendered="#{mbDicomMatrix.loadDicomStudyStatus(studySubject, event, dicomStudyItemDefinition) == 'SUCCESS'}"
-                                        disabled="#{!userContext.hasRole('ROLE_PACS_VIEW')}"
-                                        >
-                                        <f:param name="mode" value="rpbweasisstudyview" />
-                                        <f:param name="patientId" value="#{studySubject.pid}" />
-                                        <f:param name="studyUid" value="#{mbDicomMatrix.loadDicomStudyUid(studySubject, event, dicomStudyItemDefinition)}" />
-                                    </h:link>
                                 </p:columns>
                             </p:dataTable>
                         </p:columns>
@@ -329,8 +317,7 @@
 
                     <!-- Block table -->
                     <p:blockUI block="dtEntities" trigger="dtEntities">
-                        LOADING<br />
-                        <p:graphicImage name="icons/ajaxloading.gif" />
+                        #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
                     </p:blockUI>
 
                     <!-- Export -->

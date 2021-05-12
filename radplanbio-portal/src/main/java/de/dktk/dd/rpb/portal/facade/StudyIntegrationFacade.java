@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,34 +23,32 @@ import de.dktk.dd.rpb.core.domain.bio.AbstractSpecimen;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.edc.*;
-import de.dktk.dd.rpb.core.domain.edc.Subject;
-
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
+import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
+import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
+import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
-
+import de.dktk.dd.rpb.core.repository.edc.IOpenClinicaDataRepository;
 import de.dktk.dd.rpb.core.service.DataTransformationService;
-
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 import de.dktk.dd.rpb.core.service.OpenClinicaService;
 import de.dktk.dd.rpb.core.util.Constants;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
-
-import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
-import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
-import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
-
 import org.apache.log4j.Logger;
 import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.io.File;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * This is a facade which tries to simplify the access to RadPlanBio study data
@@ -92,10 +90,13 @@ public class StudyIntegrationFacade {
 
     // TODO: should be removed in a future, bean is only available in web GUI and not in web services access
     private MainBean mainBean;
+
     // When set to true, OC restful services are executed which have performance impact
     private Boolean retrieveStudySubjectOID;
-    // Provided from by facade user
+    // Provided (init) by facade user
     private IOpenClinicaService openClinicaService;
+    // Provided (init) by facade client
+    private IOpenClinicaDataRepository openClinicaDataRepository;
 
     //endregion
 
@@ -114,11 +115,10 @@ public class StudyIntegrationFacade {
     }
 
     public IOpenClinicaService getOpenClinicaService() {
-        
+
         if (this.mainBean != null) {
             return this.mainBean.getOpenClinicaService();
-        }
-        else if (this.openClinicaService != null) {
+        } else if (this.openClinicaService != null) {
             return this.openClinicaService;
         }
 
@@ -132,7 +132,7 @@ public class StudyIntegrationFacade {
     /**
      * Initialise facade with main bean initialised RPB services
      * Web GUI access (using bean member)
-     * 
+     *
      * @param mainBean mainBean have necessary resources to user specific services within RPB
      */
     public void init(MainBean mainBean) {
@@ -154,11 +154,15 @@ public class StudyIntegrationFacade {
         this.retrieveStudySubjectOID = Boolean.FALSE;
     }
 
+    public void init(IOpenClinicaDataRepository openClinicaDataRepository) {
+        this.openClinicaDataRepository = openClinicaDataRepository;
+    }
+
     //endregion
 
     //region Facade methods
 
-    //region RPB Study
+    //region Study
 
     /**
      * Load RPB persistent study domain entity according to current active EDC study (transient)
@@ -172,9 +176,9 @@ public class StudyIntegrationFacade {
         // Load RadPlanBio study according to the user active study obtained from OC
         if (this.mainBean.getActiveStudy() != null) {
             rpbStudy = this.studyRepository.getByOcStudyIdentifier(
-                this.mainBean
-                    .getActiveStudy()
-                    .getOcStudyUniqueIdentifier()
+                    this.mainBean
+                            .getActiveStudy()
+                            .getOcStudyUniqueIdentifier()
             );
         }
 
@@ -183,8 +187,8 @@ public class StudyIntegrationFacade {
 
     /**
      * Load RPB persistent study domain entity according provided EDC study identifier
-     * @param studyIdentifier EDC study identifier
      *
+     * @param studyIdentifier EDC study identifier
      * @return RPB study entity
      */
     public Study loadStudyByIdentifier(String studyIdentifier) {
@@ -216,15 +220,35 @@ public class StudyIntegrationFacade {
 
     /**
      * Load RPB persistent study domain entity according provided EDC study identifier extended about transient EDC study (with metadata)
-     * @param studyIdentifier EDC study identifier
-     * @param siteIdentifier EDC study site identifier
+     * using the user account
      *
+     * @param studyIdentifier EDC study identifier
+     * @param siteIdentifier  EDC study site identifier
      * @return RPB Study entity
      */
     public Study loadStudyWithMetadataByIdentifier(String studyIdentifier, String siteIdentifier) {
         Study rpbStudy = this.loadStudyByIdentifier(studyIdentifier);
 
         Odm odm = this.getMetadataOdmByIdentifier(studyIdentifier, siteIdentifier);
+        if (odm != null) {
+            rpbStudy.setEdcStudy(odm.findFirstStudyOrNone());
+        }
+
+        return rpbStudy;
+    }
+
+    /**
+     * Load RPB persistent study domain entity according provided EDC study identifier extended about transient EDC study (with metadata)
+     * using the engine user account
+     *
+     * @param studyIdentifier EDC study identifier
+     * @param siteIdentifier  EDC study site identifier
+     * @return RPB Study entity
+     */
+    public Study loadStudyWithMetadataByIdentifierViaEngineUser(String studyIdentifier, String siteIdentifier) {
+        Study rpbStudy = this.loadStudyByIdentifier(studyIdentifier);
+
+        Odm odm = this.getMetadataOdmByIdentifierViaEngineUser(studyIdentifier, siteIdentifier);
         if (odm != null) {
             rpbStudy.setEdcStudy(odm.findFirstStudyOrNone());
         }
@@ -241,21 +265,33 @@ public class StudyIntegrationFacade {
     public List<Study> loadStudies() {
         List<Study> rpbStudies = new ArrayList<>();
 
+        // Load available EDC studies
         for (StudyType studyType : this.loadWebServicesStudies()) {
+
+            // Find the corresponding RPB study
             Study rpbStudy = this.studyRepository.getByOcStudyIdentifier(
                     studyType.getIdentifier()
             );
+
             if (rpbStudy != null) {
                 // Setup transient EDC study
                 de.dktk.dd.rpb.core.domain.edc.Study edcStudy = new de.dktk.dd.rpb.core.domain.edc.Study(studyType);
+
                 List<de.dktk.dd.rpb.core.domain.edc.Study> studySites = new ArrayList<>();
+
+                // Multi-centre
                 if (studyType.getSites() != null) {
                     for (SiteType siteType : studyType.getSites().getSite()) {
                         studySites.add(
-                            new de.dktk.dd.rpb.core.domain.edc.Study(edcStudy, siteType)
+                                new de.dktk.dd.rpb.core.domain.edc.Study(edcStudy, siteType)
                         );
                     }
                 }
+                // Mono-centre but keep depth of object graph for binding (create one abstract site)
+                else {
+                    studySites.add(edcStudy);
+                }
+
                 edcStudy.setStudySites(studySites);
                 rpbStudy.setEdcStudy(edcStudy);
 
@@ -272,6 +308,7 @@ public class StudyIntegrationFacade {
 
     /**
      * Load RadPlanBio active study subjects (using multiple information sources)
+     *
      * @return List of Subject included in current user active study
      */
     public List<Subject> loadSubjects() throws OCConnectorException {
@@ -315,76 +352,97 @@ public class StudyIntegrationFacade {
         return subjects;
     }
 
-
-    public List<StudySubject> loadStudySubjects() throws OCConnectorException {
-        return this.loadStudySubjects(this.mainBean.getActiveStudy());
+    public StudySubject loadStudySubjectWithEvents(String studySubjectIdentifier) {
+        return this.loadStudySubjectWithEvents(this.mainBean.getActiveStudy(), studySubjectIdentifier);
     }
 
-    public List<StudySubject> loadStudySubjects(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) throws OCConnectorException {
-        List<StudySubject> subjects = new ArrayList<>();
-
-        // Create query study from the active study
-        de.dktk.dd.rpb.core.ocsoap.types.Study queryStudy = this.createWebServicesQueryStudy(edcStudy);
-
-        List<org.openclinica.ws.beans.StudySubjectWithEventsType> soapSubjects = this.getOpenClinicaService()
-                .listAllStudySubjectsByStudy(queryStudy);
-
-        // StudySubjectOID is possible to retrieve only from restful URL
-        List<de.dktk.dd.rpb.core.ocsoap.types.StudySubject> restSubjects = null;
-        if (this.retrieveStudySubjectOID) {
-            restSubjects = this.getOpenClinicaService()
-                    .getStudyCasebookSubjects(
-                        edcStudy.getOcoid()
-                    );
-        }
-
-        for (org.openclinica.ws.beans.StudySubjectWithEventsType soapSubject : soapSubjects) {
-            StudySubject subject = new StudySubject();
-            subject.setStudySubjectId(soapSubject.getLabel());
-            subject.setSecondaryId(soapSubject.getSecondaryLabel());
-            subject.setEnrollmentDate(soapSubject.getEnrollmentDate());
-
-            if (soapSubject.getSubject() != null) {
-                subject.setPid(soapSubject.getSubject().getUniqueIdentifier());
-                subject.setSex(soapSubject.getSubject().getGender().value());
-            }
-
-            // Matching data about SOAP and REST subjects
-            if (restSubjects != null) {
-                for (de.dktk.dd.rpb.core.ocsoap.types.StudySubject restSubject : restSubjects) {
-                    if (soapSubject.getLabel().equals(restSubject.getStudySubjectLabel())) {
-                        subject.setSubjectKey(restSubject.getStudySubjectOID());
-                    }
-                }
-            }
-
-            subjects.add(subject);
-        }
-
-        return subjects;
-    }
-
-
-    public StudySubject loadOdmStudySubject(String studyIdentifier, String studySubjectIdentifier) {
+    public StudySubject loadStudySubjectWithEvents(de.dktk.dd.rpb.core.domain.edc.Study edcStudy, String studySubjectIdentifier) {
         StudySubject result = null;
 
-        String queryOdmXmlPath = studyIdentifier + "/" + studySubjectIdentifier + "/*/*";
-        Odm odm = this.getOpenClinicaService().getStudyCasebookOdm(
-                OpenClinicaService.CasebookFormat.XML,
-                OpenClinicaService.CasebookMethod.VIEW,
-                queryOdmXmlPath
-        );
-
-        if (odm != null && odm.getClinicalDataList() != null) {
-            if (odm.getClinicalDataList().get(0).getStudySubjects() != null) {
-                result = odm.getClinicalDataList().get(0).getStudySubjects().get(0);
-            }
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
         }
 
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            result = this.mainBean.getOpenClinicaDataRepository().getStudySubjectWithEvents(studyUniqueIdentifier, studySubjectIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            result = this.openClinicaDataRepository.getStudySubjectWithEvents(studyUniqueIdentifier, studySubjectIdentifier);
+        }
 
         return result;
     }
 
+    public StudySubject loadStudySubjectWithEventsWithForms(String studySubjectIdentifier) {
+        return this.loadStudySubjectWithEventsWithForms(this.mainBean.getActiveStudy(), studySubjectIdentifier);
+    }
+
+    public StudySubject loadStudySubjectWithEventsWithForms(de.dktk.dd.rpb.core.domain.edc.Study edcStudy, String studySubjectIdentifier) {
+        StudySubject result = null;
+
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
+        }
+
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            result = this.mainBean.getOpenClinicaDataRepository().getStudySubjectWithEventsWithForms(studyUniqueIdentifier, studySubjectIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            result = this.openClinicaDataRepository.getStudySubjectWithEventsWithForms(studyUniqueIdentifier, studySubjectIdentifier);
+        }
+
+        return result;
+    }
+
+    public List<StudySubject> loadStudySubjects() {
+        return this.loadStudySubjects(this.mainBean.getActiveStudy());
+    }
+
+    /**
+     * Load subjects of study zero if the study zero exists
+     *
+     * @return List of StudySubjects
+     */
+    public List<StudySubject> loadStudyZeroSubjects() {
+        de.dktk.dd.rpb.core.domain.edc.Study edcStudy = new de.dktk.dd.rpb.core.domain.edc.Study();
+        edcStudy.setUniqueIdentifier(Constants.study0Identifier);
+        return this.loadStudySubjects(edcStudy);
+    }
+
+    public List<StudySubject> loadStudySubjects(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) {
+
+        List<StudySubject> results = new ArrayList<>();
+
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
+        }
+
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            results = this.mainBean.getOpenClinicaDataRepository().findStudySubjectsByStudy(studyUniqueIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            results = this.openClinicaDataRepository.findStudySubjectsByStudy(studyUniqueIdentifier);
+        }
+
+        return results;
+    }
+
+    // TODO: this is used currently in Matrix beans, should be replaced with DB access eventually
     public List<StudySubject> loadOdmStudySubjects() {
         String queryOdmXmlPath = this.mainBean.getActiveStudy().getOcoid() + "/*/*/*";
 
@@ -397,14 +455,45 @@ public class StudyIntegrationFacade {
         return result;
     }
 
-    public List<StudySubject> enrolSubjectsReturnFailed(List<StudySubject> subjects, StudyParameterConfiguration conf) {
+    public List<StudySubject> loadStudySubjectsWithEvents() {
+        return this.loadStudySubjectsWithEvents(this.mainBean.getActiveStudy());
+    }
 
+    public List<StudySubject> loadStudySubjectsWithEvents(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) {
+        List<StudySubject> results = new ArrayList<>();
+
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
+        }
+
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            results = this.mainBean.getOpenClinicaDataRepository().findStudySubjectsWithEvents(studyUniqueIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            results = this.openClinicaDataRepository.findStudySubjectsWithEvents(studyUniqueIdentifier);
+        }
+
+        return results;
+    }
+
+    public List<StudySubject> enrolSubjectsReturnFailed(List<StudySubject> subjects, StudyParameterConfiguration conf) throws OCConnectorException {
+        String parentStudyUniqueIdentifier = getParentStudyUniqueStudyIdentifier(this.mainBean.getActiveStudy());
+        String siteIdentifier = this.mainBean.getActiveStudy().getUniqueIdentifier();
         List<StudySubject> subjectFailedToImport = new ArrayList<>();
 
         for (StudySubject ss : subjects) {
-            
-            de.dktk.dd.rpb.core.ocsoap.types.StudySubject wsSubject = this.createWsStudySubject(ss, conf);
-            String ssid = this.getOpenClinicaService().createNewStudySubject(wsSubject);
+
+            String ssid = null;
+            try {
+                ssid = createNewOpenClinicaStudySubject(parentStudyUniqueIdentifier, siteIdentifier, ss, conf);
+            } catch (DatatypeConfigurationException e) {
+                log.error(e);
+            }
             if (ssid == null) {
                 subjectFailedToImport.add(ss);
             }
@@ -412,38 +501,22 @@ public class StudyIntegrationFacade {
 
         return subjectFailedToImport;
     }
-    
-// OLD slow approach via SOAP web services - not scaling well
-//for (StudyType st : studyTypeList) {
-//
-//    // Study query parameter to get StudySubject
-//    de.dktk.dd.rpb.core.ocsoap.types.Study queryStudy = new de.dktk.dd.rpb.core.ocsoap.types.Study(st);
-//    try {
-//
-//        // Study Subjects in that study
-//        List<StudySubjectWithEventsType> sswets = this.getOpenClinicaService().listAllStudySubjectsByStudy(queryStudy);
-//        for (StudySubjectWithEventsType sswet : sswets) {
-//
-//            // Only subjects from logged user site
-//            if (this.mainBean.isMySiteSubject(sswet.getSubject().getUniqueIdentifier())) {
-//
-//                // Compare pure pseudonyms
-//                String pid = this.mainBean.extractMySubjectPurePid(sswet.getSubject().getUniqueIdentifier());
-//                if (pid.equals(patient.getPid())) {
-//
-//                    patient.getStudySubjects().add(
-//                        new StudySubject(sswet, st)
-//                    );
-//
-//                    break;
-//                }
-//            }
-//        }
-//    }
-//    catch (Exception err) {
-//        err.printStackTrace();
-//    }
-//}
+
+    /**
+     * Creates a new study subject within the specific study in OpenClinica
+     *
+     * @param studyIdentifier             String unique identifier of the parent study
+     * @param siteIdentifier              String unique identifier for the site specific study
+     * @param studySubject                EDC StudySubject
+     * @param studyParameterConfiguration EDC StudyParameterConfiguration to validate that the provided studySubject
+     *                                    fulfills the criteria of overall the study configuration
+     * @return StudySubjectId of the created subject or null
+     */
+    public String createNewOpenClinicaStudySubject(String studyIdentifier, String siteIdentifier, StudySubject studySubject, StudyParameterConfiguration studyParameterConfiguration) throws DatatypeConfigurationException, OCConnectorException {
+        de.dktk.dd.rpb.core.ocsoap.types.Study ocsoapStudy = this.createWebServicesQueryStudyByIdentifiers(studyIdentifier, siteIdentifier);
+        de.dktk.dd.rpb.core.ocsoap.types.StudySubject ocsopStudySubject = this.createWsStudySubject(studySubject, studyParameterConfiguration, ocsoapStudy);
+        return this.getOpenClinicaService().createNewStudySubject(ocsopStudySubject);
+    }
 
     public Person fetchPatientStudySubjects(Person patient) {
 
@@ -456,7 +529,7 @@ public class StudyIntegrationFacade {
 
             // Only search in EDC studies where user has access to
             if (this.getOpenClinicaService() != null) {
-                
+
                 List<StudyType> studyTypeList = this.getOpenClinicaService().listAllStudies();
                 if (studyTypeList != null) {
 
@@ -464,7 +537,7 @@ public class StudyIntegrationFacade {
 
                     // Fetch from DB - old approach used web services but that is not scaling properly
                     patient.getStudySubjects().addAll(
-                        this.mainBean.getOpenClinicaDataRepository().findStudySubjectsByPseudonym(pid, studyTypeList)
+                            this.mainBean.getOpenClinicaDataRepository().findStudySubjectsByPseudonym(pid, studyTypeList)
                     );
                 }
             }
@@ -498,26 +571,34 @@ public class StudyIntegrationFacade {
     }
 
     public Person fetchPatientSpecimens(Person patient) {
-        // Reset before fetch
+
         if (patient != null) {
+
+            // Reset before fetch
             patient.getBioSpecimens().clear();
-        }
 
-        if (this.mainBean.getSvcBio() != null) {
+            // Biobank is activated
+            if (this.mainBean.getSvcBio() != null) {
 
-            Person bioPatient = this.mainBean.getSvcBio().loadPatient(
-                    Constants.CXX_RPB,
-                    this.mainBean.constructMySubjectFullPid(patient.getPid())
-            );
-            if (bioPatient != null) {
-                for (AbstractSpecimen s : bioPatient.getBioSpecimens()) {
-                    patient.addBioSpecimen(s);
+                // Patient from other sites are not in study-0
+                String his = patient.findStudySubjectId(Constants.study0Identifier);
+                if (!"".equals(his)) {
+
+                    Person bioPatient = this.mainBean.getSvcBio().loadPatient(
+                            Constants.CXX_HIS,
+                            his.replace(Constants.HISprefix, "")
+                    );
+                    if (bioPatient != null) {
+                        for (AbstractSpecimen s : bioPatient.getBioSpecimens()) {
+                            patient.addBioSpecimen(s);
+                        }
+                    }
                 }
+                //TODO: load biospecimens for patients from other sites (base on what identifier?)
             }
         }
 
         return patient;
-
     }
 
     //endregion
@@ -529,7 +610,7 @@ public class StudyIntegrationFacade {
         List<EventData> result = new ArrayList<>();
 
         // Load ODM resource for selected study subject
-        String queryOdmXmlPath = studyIdentifier  + "/" + studySubjectIdentifier + "/*/*";
+        String queryOdmXmlPath = studyIdentifier + "/" + studySubjectIdentifier + "/*/*";
         Odm selectedStudySubjectOdm = this.getOpenClinicaService().getStudyCasebookOdm(
                 OpenClinicaService.CasebookFormat.XML,
                 OpenClinicaService.CasebookMethod.VIEW,
@@ -557,8 +638,10 @@ public class StudyIntegrationFacade {
         return result;
     }
 
-    public void scheduleStudyEvents(List<StudySubject> studySubjects, Odm metadataOdm) {
+    public List<String> scheduleStudyEvents(List<StudySubject> studySubjects, Odm metadataOdm) {
+        List<String> ocResponseList = new ArrayList<>();
         try {
+            de.dktk.dd.rpb.core.ocsoap.types.Study study = this.createWebServicesQueryStudy(this.mainBean.getActiveStudy());
             for (StudySubject ss : studySubjects) {
                 // Subjects could be excluded from schedule events job
                 if (ss.getIsEnabled()) {
@@ -568,17 +651,19 @@ public class StudyIntegrationFacade {
                         ScheduledEvent newEvent = new ScheduledEvent(ed);
 
                         // WS subject to associate the event with
-                        de.dktk.dd.rpb.core.ocsoap.types.StudySubject subject = this.createWsStudySubject(ss, metadataOdm.getStudyDetails().getStudyParameterConfiguration());
+                        de.dktk.dd.rpb.core.ocsoap.types.StudySubject subject = this.createWsStudySubject(ss, metadataOdm.getStudyDetails().getStudyParameterConfiguration(), study);
 
                         // Schedule
-                        this.getOpenClinicaService().scheduleStudyEvent(subject, newEvent);
+                        String ocResponse = this.getOpenClinicaService().scheduleStudyEvent(subject, newEvent);
+                        ocResponseList.add(ocResponse);
+                        log.debug("Scheduling event: " + ed.getStudyEventOid() + " with original RepeatKey: " + ed.getStudyEventRepeatKey() + " on OpenClinica with RepeatKey: " + ocResponse);
                     }
                 }
             }
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             log.error(err);
         }
+        return ocResponseList;
     }
 
     //endregion
@@ -613,10 +698,10 @@ public class StudyIntegrationFacade {
     }
 
     /**
-     * Get specified study metadata as ODM domain resource via SOAP web services
-     * @param studyIdentifier EDC study identifier
-     * @param siteIdentifier EDC study site identifier
+     * Get specified study metadata as ODM domain resource via SOAP web services using the user account
      *
+     * @param studyIdentifier EDC study identifier
+     * @param siteIdentifier  EDC study site identifier
      * @return ODM EDC study metadata domain entity
      */
     public Odm getMetadataOdmByIdentifier(String studyIdentifier, String siteIdentifier) {
@@ -632,8 +717,34 @@ public class StudyIntegrationFacade {
             // XML to DomainObjects
             result = metadataOdm.unmarshallOdm();
             result.updateHierarchy();
+        } else {
+            log.error("Facade: OC SOAP failed, studyIdentifier: " + studyIdentifier);
         }
-        else {
+
+        return result;
+    }
+
+    /**
+     * Get specified study metadata as ODM domain resource via SOAP web services using the Engine user account
+     *
+     * @param studyIdentifier EDC study identifier
+     * @param siteIdentifier  EDC study site identifier
+     * @return ODM EDC study metadata domain entity
+     */
+    public Odm getMetadataOdmByIdentifierViaEngineUser(String studyIdentifier, String siteIdentifier) {
+        Odm result = null;
+
+        // Query
+        de.dktk.dd.rpb.core.ocsoap.types.Study queryStudy = this.createWebServicesQueryStudy(studyIdentifier, siteIdentifier);
+
+        // Fetch the study metadata
+        MetadataODM metadataOdm = this.mainBean.getEngineOpenClinicaService().getStudyMetadata(queryStudy);
+        if (metadataOdm != null) {
+
+            // XML to DomainObjects
+            result = metadataOdm.unmarshallOdm();
+            result.updateHierarchy();
+        } else {
             log.error("Facade: OC SOAP failed, studyIdentifier: " + studyIdentifier);
         }
 
@@ -648,7 +759,7 @@ public class StudyIntegrationFacade {
         if (odmData != null) {
 
             odmData.cleanAttributesUnnecessaryForImport();
-            List<Odm> odmList =  odmData.splitToList(subjectsPerOdm);
+            List<Odm> odmList = odmData.splitToList(subjectsPerOdm);
 
             for (Odm odm : odmList) {
                 String odmString = this.svcDataTransformation.transformOdmToString(odm);
@@ -663,23 +774,22 @@ public class StudyIntegrationFacade {
         if (odmData != null) {
 
             odmData.cleanAttributesUnnecessaryForImport();
-            List<Odm> odmList =  odmData.splitToList(subjectsPerOdm);
+            List<Odm> odmList = odmData.splitToList(subjectsPerOdm);
 
-            for (Odm odm: odmList) {
+            for (Odm odm : odmList) {
 
                 String filename = "";
                 if (odm.getClinicalDataList().get(0).getStudySubjects().size() == 1) {
                     filename = odm.getClinicalDataList().get(0).getStudySubjects().get(0).getSubjectKey() + ".xml";
-                }
-                else if (odm.getClinicalDataList().get(0).getStudySubjects().size() > 1) {
+                } else if (odm.getClinicalDataList().get(0).getStudySubjects().size() > 1) {
                     filename = odm.getClinicalDataList().get(0).getStudySubjects().get(0).getSubjectKey() +
                             "-" +
                             odm.getClinicalDataList().get(0).getStudySubjects().get(subjectsPerOdm - 1).getSubjectKey() + ".xml";
                 }
 
                 File file = this.svcDataTransformation.transformOdmToXmlFile(
-                    odm,
-                    filename
+                        odm,
+                        filename
                 );
                 results.add(file);
             }
@@ -706,28 +816,25 @@ public class StudyIntegrationFacade {
     }
 
     private de.dktk.dd.rpb.core.ocsoap.types.Study createWebServicesQueryStudy(de.dktk.dd.rpb.core.domain.edc.Study ocDbActiveStudy) {
+        String parentStudyUniqueIdentifier = getParentStudyUniqueStudyIdentifier(ocDbActiveStudy);
+        String siteIdentifier = ocDbActiveStudy.getUniqueIdentifier();
+        return createWebServicesQueryStudyByIdentifiers(parentStudyUniqueIdentifier, siteIdentifier);
+    }
 
-        String ocActiveStudyIdentifier;
-
-        if (ocDbActiveStudy.getParentStudy() != null) {
-            ocActiveStudyIdentifier = ocDbActiveStudy.getParentStudy().getUniqueIdentifier();
-        }
-        else {
-            ocActiveStudyIdentifier = ocDbActiveStudy.getUniqueIdentifier();
-        }
+    private de.dktk.dd.rpb.core.ocsoap.types.Study createWebServicesQueryStudyByIdentifiers(String parentStudyUniqueIdentifier, String siteIdentifier) {
 
         // Complete hierarchical list of studies and sites
         List<org.openclinica.ws.beans.StudyType> ocStudies = this.getOpenClinicaService().listAllStudies();
 
         for (org.openclinica.ws.beans.StudyType wsOcStudy : ocStudies) {
 
-            if (wsOcStudy.getIdentifier().equals(ocActiveStudyIdentifier)) {
+            if (wsOcStudy.getIdentifier().equals(parentStudyUniqueIdentifier)) {
 
                 // Multi-centric study
                 if (wsOcStudy.getSites() != null) {
                     for (org.openclinica.ws.beans.SiteType wsOcStudySite : wsOcStudy.getSites().getSite()) {
 
-                        if (wsOcStudySite.getIdentifier().equals(ocDbActiveStudy.getUniqueIdentifier())) {
+                        if (wsOcStudySite.getIdentifier().equals(siteIdentifier)) {
                             de.dktk.dd.rpb.core.ocsoap.types.Study studySite = new de.dktk.dd.rpb.core.ocsoap.types.Study(wsOcStudy);
 
                             studySite.setSiteName(wsOcStudySite.getIdentifier());
@@ -755,6 +862,23 @@ public class StudyIntegrationFacade {
         return null;
     }
 
+    /***
+     * Finds the unique identifier for the parent study (multi centric approach) or returns the unique identifier if the
+     * study is mono centric and has no parent
+     *
+     * @param ocDbActiveStudy EDC Study
+     * @return String uniqueIdentifier
+     */
+    private String getParentStudyUniqueStudyIdentifier(de.dktk.dd.rpb.core.domain.edc.Study ocDbActiveStudy) {
+        String ocActiveStudyIdentifier;
+        if (ocDbActiveStudy.getParentStudy() != null) {
+            ocActiveStudyIdentifier = ocDbActiveStudy.getParentStudy().getUniqueIdentifier();
+        } else {
+            ocActiveStudyIdentifier = ocDbActiveStudy.getUniqueIdentifier();
+        }
+        return ocActiveStudyIdentifier;
+    }
+
     private de.dktk.dd.rpb.core.ocsoap.types.Study createWebServicesQueryStudy(String studyIdentifier, String siteIdentifier) {
         de.dktk.dd.rpb.core.ocsoap.types.Study queryStudy;
 
@@ -773,10 +897,9 @@ public class StudyIntegrationFacade {
         return queryStudy;
     }
 
-    private de.dktk.dd.rpb.core.ocsoap.types.StudySubject createWsStudySubject(StudySubject odmSubjectData, StudyParameterConfiguration conf) {
-        
+    private de.dktk.dd.rpb.core.ocsoap.types.StudySubject createWsStudySubject(StudySubject odmSubjectData, StudyParameterConfiguration conf, de.dktk.dd.rpb.core.ocsoap.types.Study study) throws DatatypeConfigurationException {
+
         de.dktk.dd.rpb.core.ocsoap.types.StudySubject studySubject = new de.dktk.dd.rpb.core.ocsoap.types.StudySubject();
-        de.dktk.dd.rpb.core.ocsoap.types.Study study = this.createWebServicesQueryStudy(this.mainBean.getActiveStudy());
         studySubject.setStudy(study);
 
         try {
@@ -785,18 +908,15 @@ public class StudyIntegrationFacade {
                 if (conf.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.AUTO)) {
                     if (odmSubjectData.getStudySubjectId() != null && !odmSubjectData.getStudySubjectId().isEmpty()) {
                         studySubject.setStudySubjectLabel(odmSubjectData.getStudySubjectId());
-                    }
-                    else {
+                    } else {
                         studySubject.setStudySubjectLabel(""); // Event if auto I have to provide at least empty string
                     }
-                }
-                else if (conf.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.MANUAL)) {
+                } else if (conf.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.MANUAL)) {
                     if (odmSubjectData.getStudySubjectId() != null) {
                         studySubject.setStudySubjectLabel(odmSubjectData.getStudySubjectId());
                     }
                 }
-            }
-            else {
+            } else {
                 studySubject.setStudySubjectLabel(""); // Could not read this information from parameters, use empty string because something is required
             }
 
@@ -804,7 +924,7 @@ public class StudyIntegrationFacade {
             if (conf.getPersonIdRequired() != null && !conf.getPersonIdRequired().equals(EnumRequired.NOT_USED)) {
                 if (odmSubjectData.getPid() != null && !odmSubjectData.getPid().isEmpty()) {
                     studySubject.setPersonID(
-                        this.mainBean.constructMySubjectFullPid(odmSubjectData.getPid())
+                            this.mainBean.constructMySubjectFullPid(odmSubjectData.getPid())
                     );
                 }
             }
@@ -827,22 +947,30 @@ public class StudyIntegrationFacade {
                     XMLGregorianCalendar birthdateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
                     studySubject.setDateOfBirth(birthdateXML);
                 }
-            }
-            else if (conf.getCollectSubjectDob().equals(EnumCollectSubjectDob.ONLY_YEAR)) {
+            } else if (conf.getCollectSubjectDob().equals(EnumCollectSubjectDob.ONLY_YEAR)) {
                 if (odmSubjectData.getPerson() != null && odmSubjectData.getPerson().getBirthdate() != null) {
                     c.setTime(odmSubjectData.getPerson().getBirthdate());
                     XMLGregorianCalendar birthdateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
                     studySubject.setYearOfBirth(new BigInteger(String.valueOf(birthdateXML.getYear())));
+                } else {
+                    if (odmSubjectData.getYearOfBirth() != null) {
+                        studySubject.setYearOfBirth(new BigInteger(String.valueOf(odmSubjectData.getYearOfBirth())));
+                    }
                 }
             }
 
-            // Always collect enrollment date for subject (the current date)
-            c.setTime(new Date());
+            if (odmSubjectData.getEnrollmentDate() != null) {
+                c.setTime(odmSubjectData.getDateEnrollment());
+            } else {
+                // default is the current date)
+                c.setTime(new Date());
+            }
             XMLGregorianCalendar enrollmentdateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
             studySubject.setDateOfRegistration(enrollmentdateXML);
-        }
-        catch (Exception err) {
-            // NOOP
+
+        } catch (Exception err) {
+            log.error("There was a problem creating the WsStudySubject object", err);
+            throw err;
         }
 
         return studySubject;

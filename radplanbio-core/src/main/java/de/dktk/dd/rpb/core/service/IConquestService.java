@@ -19,6 +19,7 @@
 
 package de.dktk.dd.rpb.core.service;
 
+import com.sun.jersey.api.client.ClientResponse;
 import de.dktk.dd.rpb.core.domain.edc.ItemData;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
@@ -48,6 +49,16 @@ public interface IConquestService {
      */
     void setupConnection(String baseUrl);
 
+    /**
+     * Setup web based communication with Conquest PACS
+     *
+     * @param baseUrl  web location of conquest dgate
+     * @param user     user name for authentication
+     * @param password password for authentication
+     */
+    void setupConnection(String baseUrl, String user, String password);
+
+
     //endregion
 
     //region RT Treatment Case
@@ -57,7 +68,6 @@ public interface IConquestService {
     //endregion
 
     //region DICOM Patient
-
 
     /**
      * Loads an array of patient information including studies per patient
@@ -138,6 +148,16 @@ public interface IConquestService {
     //endregion
 
     //region DICOM Series
+
+    /**
+     * Load a DICOM client response for specific patient and study and series (used by web service for legacy client)
+     *
+     * @param dicomPatientId DICOM PatientID tag value
+     * @param dicomStudyUid  DICOM StudyInstanceUID tag value
+     * @param dicomSeriesUid DICOM SeriesInstanceUID tag value
+     * @return ClientResponse
+     */
+    ClientResponse loadStudySeriesResponse(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid);
 
     /**
      * Load a DICOM series for specific patient and study and series

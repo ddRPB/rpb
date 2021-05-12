@@ -7,7 +7,7 @@
     <entry key="bio">BIO</entry>
     <entry key="bio_plural">BIOs</entry>
     <entry key="bio_reload">Vorhandenen BIOs neu laden</entry>
-    <entry key="bio_print">Tabelle BIOs Drucken</entry>
+    <entry key="bio_print">Tabelle BIOs drucken</entry>
     <entry key="bio_new">Neue BIO definieren</entry>
     <entry key="bio_edit">Ausgewählten BIO bearbeiten</entry>
     <entry key="bio_delete">Ausgewählten BIO löschen</entry>

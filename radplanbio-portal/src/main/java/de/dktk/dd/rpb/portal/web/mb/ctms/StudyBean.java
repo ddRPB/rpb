@@ -28,23 +28,22 @@ import de.dktk.dd.rpb.core.domain.randomisation.BlockRandomisationConfiguration;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IStudyTagTypeRepository;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
-import de.dktk.dd.rpb.core.service.IFileStorageService;
+import de.dktk.dd.rpb.core.util.FilePathUtil;
+import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.FlowEvent;
-import org.primefaces.model.timeline.TimelineEvent;
-import org.primefaces.model.timeline.TimelineModel;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
+import org.primefaces.model.timeline.TimelineEvent;
+import org.primefaces.model.timeline.TimelineModel;
 import org.springframework.context.annotation.Scope;
 
+import javax.annotation.PostConstruct;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,10 +56,12 @@ import java.util.List;
  * @since 01 July 2015
  */
 @Named("mbCtmsStudy")
-@Scope(value="view")
+@Scope(value = "view")
 public class StudyBean extends CrudEntityViewModel<Study, Integer> {
 
     //region Injects
+
+    private final MainBean mainBean;
 
     //region Repository
 
@@ -68,6 +69,7 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
 
     /**
      * Get StudyRepository
+     *
      * @return StudyRepository
      */
     @Override
@@ -78,7 +80,6 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
     //endregion
 
     private IStudyTagTypeRepository tagTypeRepository;
-    private IFileStorageService fileStorageService;
 
     //endregion
 
@@ -197,10 +198,10 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
     //region Constructors
 
     @Inject
-    public StudyBean(IStudyRepository repository, IStudyTagTypeRepository tagTypeRepository, IFileStorageService fileStorageService) {
+    public StudyBean(MainBean mainbean, IStudyRepository repository, IStudyTagTypeRepository tagTypeRepository) {
+        this.mainBean = mainbean;
         this.repository = repository;
         this.tagTypeRepository = tagTypeRepository;
-        this.fileStorageService = fileStorageService;
     }
 
     //endregion
@@ -460,9 +461,10 @@ public class StudyBean extends CrudEntityViewModel<Study, Integer> {
         // Remove from DB
         this.selectedEntity.removeDoc(selectedStudyDoc);
         this.doUpdateEntity();
+        String filePath = mainBean.getLocalPortal().getDataPath();
 
         try {
-            File file = this.fileStorageService.getFile("files//" + "//" + this.selectedEntity.getId() + "//" + selectedStudyDoc.getFilename());
+            File file = new File(FilePathUtil.verifyTrailingSlash(filePath) + "files//" + "//" + this.selectedEntity.getId() + "//" + selectedStudyDoc.getFilename());
             if (!file.delete()) {
                 throw new Exception("Delete failed while deleting file from file system.");
             }

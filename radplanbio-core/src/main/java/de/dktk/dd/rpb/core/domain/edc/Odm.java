@@ -20,11 +20,9 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
-
 import org.apache.log4j.Logger;
 
 import javax.persistence.Transient;
@@ -40,9 +38,9 @@ import java.util.List;
  * @author tomas@skripcak.net
  * @since 15 Dec 2014
  */
-@XmlRootElement(name="ODM")
+@XmlRootElement(name = "ODM")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(namespace="http://www.cdisc.org/ns/odm/v1.3")
+@XmlType(namespace = "http://www.cdisc.org/ns/odm/v1.3")
 public class Odm implements Identifiable<Integer>, Serializable {
 
     //region Finals
@@ -57,32 +55,32 @@ public class Odm implements Identifiable<Integer>, Serializable {
     @XmlTransient
     private Integer id;
 
-    @XmlAttribute(name="FileOID")
+    @XmlAttribute(name = "FileOID")
     private String fileOid;
 
-    @XmlAttribute(name="Description")
+    @XmlAttribute(name = "Description")
     private String description;
 
-    @XmlAttribute(name="CreationDateTime")
+    @XmlAttribute(name = "CreationDateTime")
     private String creationDateTime;
 
-    @XmlAttribute(name="FileType")
+    @XmlAttribute(name = "FileType")
     private String fileType;
 
-    @XmlAttribute(name="ODMVersion")
+    @XmlAttribute(name = "ODMVersion")
     private String odmVersion;
 
     //TODO: added by Mirko for elastic but seems to be braking import to EDC
     //@XmlAttribute(name="expirationDateTime", namespace="http://www.uniklinikum-dresden.de/rpb")
     //private String expirationDateTime;
 
-    @XmlElement(name="Study")
+    @XmlElement(name = "Study")
     private List<Study> studies;
 
-    @XmlElement(name="ClinicalData")
+    @XmlElement(name = "ClinicalData")
     private List<ClinicalData> clinicalDataList;
 
-    @XmlElement(name="AdminData")
+    @XmlElement(name = "AdminData")
     private List<AdminData> adminDataList;
 
     @XmlTransient
@@ -103,6 +101,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     /**
      * Initialise ODM based on another ODM object graph
+     *
      * @param otherOdm object graph
      */
     public Odm(Odm otherOdm) {
@@ -243,7 +242,8 @@ public class Odm implements Identifiable<Integer>, Serializable {
     public StudyDetails getStudyDetails() {
         studyDetails = null;
 
-        if (this.studies != null && this.studies.size() == 1) {
+        if (this.studies != null && this.studies.size() > 0) {
+            // the first study is the parents study and has the correct configuration details
             if (this.studies.get(0).getMetaDataVersion().getStudyDetails() != null) {
                 studyDetails = this.studies.get(0).getMetaDataVersion().getStudyDetails();
             }
@@ -455,7 +455,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
     }
 
     public StudySubject findUniqueStudySubjectOrNone(String studySubjectIdentifier) {
-        if  (studySubjectIdentifier != null) {
+        if (studySubjectIdentifier != null) {
             if (this.clinicalDataList != null) {
                 for (ClinicalData clinicaData : this.clinicalDataList) {
                     if (clinicaData.getStudySubjects() != null && clinicaData.getStudySubjects().size() == 1) {
@@ -604,8 +604,14 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
             // Update form definitions according to form references
             for (EventDefinition ed : mdv.getStudyEventDefinitions()) {
+
+                setOrdinalFromProtocolDefinition(mdv, ed);
+
+                setDefinitionFromEventDefinitionDetails(ed);
+
+
                 for (FormDefinition fr : ed.getFormRefs()) {
-                    for (FormDefinition fd: mdv.getFormDefinitions()) {
+                    for (FormDefinition fd : mdv.getFormDefinitions()) {
                         if (fr.getFormOid() != null && fr.getFormOid().equals(fd.getOid())) {
                             ed.getFormDefs().add(fd);
                             break;
@@ -625,8 +631,8 @@ public class Odm implements Identifiable<Integer>, Serializable {
                     }
 
                     // Update item definitions according to item references
-                    for (ItemGroupDefinition igd: fd.getItemGroupDefs()) {
-                        for (ItemDefinition id: mdv.getItemDefinitions()) {
+                    for (ItemGroupDefinition igd : fd.getItemGroupDefs()) {
+                        for (ItemDefinition id : mdv.getItemDefinitions()) {
                             for (ItemDefinition ir : igd.getItemRefs()) {
                                 if (ir.getItemOid() != null && ir.getItemOid().equals((id.getOid()))) {
                                     igd.addItemDef(id);
@@ -642,8 +648,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
                                         break;
                                     }
                                 }
-                            }
-                            else if (id.getMultiSelectListRef() != null) {
+                            } else if (id.getMultiSelectListRef() != null) {
                                 for (MultiSelectListDefinition msld : mdv.getMultiSelectListDefinitions()) {
                                     if (msld.getId().equals(id.getMultiSelectListRef().getMultiSelectListId())) {
                                         id.setMultiSelectListDef(msld);
@@ -661,10 +666,39 @@ public class Odm implements Identifiable<Integer>, Serializable {
         if (this.getStudyDetails() != null) {
             this.getStudyDetails().reloadParameters();
         }
+
+    }
+
+    /**
+     * If it is null, the definition property will be updated with information from the EventDefinitionDetails
+     *
+     * @param ed EventDefinition
+     */
+    private void setDefinitionFromEventDefinitionDetails(EventDefinition ed) {
+        if (ed.getEventDefinitionDetails() != null && ed.getDescription() == null) {
+            if (ed.getEventDefinitionDetails().getDescription() != null) {
+                ed.setDescription(ed.getEventDefinitionDetails().getDescription());
+            }
+        }
+    }
+
+    /**
+     * In ODM, the ordinal is mapped in the protocol property via StudyEventRef. This function updates the ordinal
+     * property of the EventDefinition object, based on that mapping
+     *
+     * @param mdv MetaDataVersion
+     * @param ed  EventDefinition
+     */
+    private void setOrdinalFromProtocolDefinition(MetaDataVersion mdv, EventDefinition ed) {
+        String oid = ed.getOid();
+        Protocol protocol = mdv.getProtocolDefinitions();
+        EventReference reference = protocol.getEventReferenceByOid(oid);
+        ed.setOrdinal(reference.getOrdinal());
     }
 
     /**
      * Get CDISC ODM item definition entity according to target (StudyEventOID, FormOID, ItemGroupOID, ItemOID)
+     *
      * @param target (StudyEventOID, FormOID, ItemGroupOID, ItemOID)
      * @return ItemDefinition entity
      */
@@ -673,7 +707,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
             for (Study s : this.getStudies()) {
                 if (s.getMetaDataVersion() != null) {
                     for (EventDefinition ed : s.getMetaDataVersion().getStudyEventDefinitions()) {
-                        if (ed.getOid().equals(target.getStudyEventOid()))  {
+                        if (ed.getOid().equals(target.getStudyEventOid())) {
                             for (FormDefinition fd : ed.getFormDefs()) {
                                 if (fd.getOid().equals(target.getFormOid())) {
                                     for (ItemGroupDefinition igd : fd.getItemGroupDefs()) {
@@ -691,13 +725,14 @@ public class Odm implements Identifiable<Integer>, Serializable {
                     }
                 }
             }
-         }
+        }
 
         return null;
     }
 
     /**
      * Change Subject keys of subject in clinical data list with the new ones
+     *
      * @param freshSubjects newly loaded subject with correct subject keys
      */
     public Boolean updateSubjectKeys(List<StudySubject> freshSubjects, EnumStudySubjectIdGeneration idStrategy) {
@@ -722,8 +757,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
                             ss.setSubjectKey(fss.getSubjectKey());
                             break;
                         }
-                    }
-                    else {
+                    } else {
                         if (fss.getStudySubjectId().equals(ss.getStudySubjectId())) {
                             ss.setSubjectKey(fss.getSubjectKey());
                             ss.setPid(fss.getPid());
@@ -741,6 +775,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     /**
      * Set the study subject list in ODM clinical data collection
+     *
      * @param studySubjects subjects
      * @return true when successful
      */
@@ -757,6 +792,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     /**
      * Split this ODM object graph to list of ODM objects with specified limited set of study subjects
+     *
      * @param maxSubjectsPerOdm maximum number of subjects per ODM
      * @return list of ODM objects
      */
@@ -773,9 +809,8 @@ public class Odm implements Identifiable<Integer>, Serializable {
             if (j < maxSubjectsPerOdm) {
                 newOdm.getClinicalDataList().get(0).getStudySubjects().add(ss);
                 j++;
-            }
-            else {
-                newOdm= new Odm(this);
+            } else {
+                newOdm = new Odm(this);
                 newOdm.setDescription(null);
                 result.add(newOdm);
 
@@ -830,9 +865,11 @@ public class Odm implements Identifiable<Integer>, Serializable {
         // Also remove unnecessary attributes from StudySubject clinical data (these are OC extensions)
         for (ClinicalData cd : this.getClinicalDataList()) {
 
+            cd.setMetaDataVersionOid(null);
+
             // Collect keys of disabled subjects (we do not want to import them)
             List<String> subjectList = new ArrayList<>();
-            for (StudySubject ss: cd.getStudySubjects()) {
+            for (StudySubject ss : cd.getStudySubjects()) {
                 if (ss.getIsEnabled() == Boolean.FALSE) {
                     subjectList.add(ss.getSubjectKey());
                 }
@@ -840,7 +877,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
             // Remove disabled subjects (we do not want to import them)
             for (String oid : subjectList) {
-                for (StudySubject ss: cd.getStudySubjects()) {
+                for (StudySubject ss : cd.getStudySubjects()) {
                     if (ss.getSubjectKey().equals(oid)) {
                         cd.getStudySubjects().remove(ss);
                         break;
@@ -849,7 +886,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
             }
 
             // Continue with the rest of enabled subjects
-            for (StudySubject ss: cd.getStudySubjects()) {
+            for (StudySubject ss : cd.getStudySubjects()) {
                 ss.setPid(null);
                 ss.setYearOfBirth(null);
                 ss.setDateOfBirth(null);
@@ -859,8 +896,18 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
                 // Remove empty items from import
                 for (EventData ed : ss.getStudyEventDataList()) {
+
+                    ed.setStatus(null);
+                    ed.setStartDate((String) null);
+
                     for (FormData fd : ed.getFormDataList()) {
-                        for(ItemGroupData igd : fd.getItemGroupDataList()) {
+
+                        fd.setStatus(null);
+                        fd.setInterviewDate(null);
+                        fd.setInterviewerName(null);
+                        fd.setVersion(null);
+
+                        for (ItemGroupData igd : fd.getItemGroupDataList()) {
 
                             // Collect oids of empty items (we do not want to import them)
                             List<String> idList = new ArrayList<>();
@@ -900,6 +947,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     /**
      * Generate entity hash code
+     *
      * @return hash
      */
     @Override
@@ -909,6 +957,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     /**
      * Construct a readable string representation for this entity instance.
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -929,6 +978,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     /**
      * Return the first ODM MetaDataVersion if present, which should represent the main study metadata element
+     *
      * @return First present ODM MetaDataVersion
      */
     private MetaDataVersion findUniqueMetadataOrNone() {

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,24 @@ package de.dktk.dd.rpb.core.domain.pacs;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlTransient;
 
-//Consider to merge this class with DicomRtDose
+//TODO: Consider to merge this class with DicomRtDose
 
 /**
  * {@inheritDoc}
  */
 public class RtDoseDicomSeries extends DicomSeries {
+
+    //region Members
+
     private String doseUnits;
     private String doseType;
     private String doseComment;
     private String doseSummationType;
     private String instanceCreationDate;
+
+    //endregion
+
+    //region Properties
 
     @XmlTransient
     public String getDoseUnits() {
@@ -84,6 +91,8 @@ public class RtDoseDicomSeries extends DicomSeries {
         this.instanceCreationDate = instanceCreationDate;
     }
 
+    //endregion
+
     /**
      * {@inheritDoc}
      */
@@ -96,10 +105,11 @@ public class RtDoseDicomSeries extends DicomSeries {
 
     private String replaceEmptyDescriptionIfNecessary(String originalDescription) {
         if ("".equals(originalDescription)) {
-            if (doseComment != null && !"".equals(doseComment)) {
-                return doseComment;
+            if (this.doseComment != null && !"".equals(this.doseComment)) {
+                return this.doseComment;
             }
         }
+        
         return originalDescription;
     }
 }

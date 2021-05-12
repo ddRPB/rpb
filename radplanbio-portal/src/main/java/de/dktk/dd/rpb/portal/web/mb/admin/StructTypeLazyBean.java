@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Bean for administration of RadPlanBio RtStructTypes
+ * Bean for administration of RPB RtStructTypes
  *
  * @author tomas@skripcak.net
  * @since 01 Apr 2016

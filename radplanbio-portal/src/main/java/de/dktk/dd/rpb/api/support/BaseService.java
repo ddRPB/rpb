@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,25 +46,23 @@ public class BaseService {
 
     //endregion
 
-    //region Injects
+    //region Members
 
     //region Facade
 
     @Inject
     protected StudyIntegrationFacade studyIntegrationFacade;
 
-    @Inject
-    protected IRadPlanBioDataRepository radPlanBioDataRepository;
-
     //endregion
 
     //region Repository
 
     @Inject
-    protected IDefaultAccountRepository userRepository;
-
+    protected IRadPlanBioDataRepository radPlanBioDataRepository;
     @Inject
     protected IOpenClinicaDataRepository openClinicaDataRepository;
+    @Inject
+    protected IDefaultAccountRepository userRepository;
 
     //endregion
 
@@ -72,12 +70,12 @@ public class BaseService {
 
     @Inject
     protected EngineService engineService;
-
     @Inject
     protected EmailService emailService;
-
     @Inject
     protected AuditLogService auditLogService;
+    @Inject
+    protected IPacsConfigService pacsConfigService;
 
     //endregion
 
@@ -147,6 +145,19 @@ public class BaseService {
 
     //endregion
 
+    //region Sleep
+
+    public void sleepSecond() {
+        try {
+            Thread.sleep(1000);
+        }
+        catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    //endregion
+
     //region EDC
 
     protected IOpenClinicaService createEdcConnection(DefaultAccount defaultAccount) {
@@ -189,57 +200,46 @@ public class BaseService {
         return svcEdc;
     }
 
-    protected IOpenClinicaService createEdcConnection(DefaultAccount defaultAccount, IRadPlanBioWebApiService svcRpb) {
-        IOpenClinicaService svcEdc = null;
-
-        // OpenClinica user account
-        if (defaultAccount != null &&
-                defaultAccount.hasOpenClinicaAccount() &&
-                defaultAccount.getPartnerSite().hasEnabledEdc() &&
-                svcRpb != null) {
-
-            // I need to get OC user hash to be able to use SOAP (the RPB and OC password can be different)
-            String ocHash = svcRpb.loadAccountPasswordHash(defaultAccount);
-
-            svcEdc = new OpenClinicaService();
-            svcEdc.connectWithHash(
-                    defaultAccount.getOcUsername(),
-                    ocHash,
-                    defaultAccount.getPartnerSite().getEdc().getSoapBaseUrl(),
-                    defaultAccount.getPartnerSite().getEdc().getEdcBaseUrl()
-            );
-        }
-
-        return svcEdc;
-    }
-
     //endregion
 
     //region PACS
 
-    public IConquestService createPacsConnection(DefaultAccount defaultAccount) {
+    protected IConquestService createPacsConnection(DefaultAccount defaultAccount) {
         IConquestService pacsService = null;
-        // Setup service to communicate with PACS server
-        if (defaultAccount != null &&
-                defaultAccount.getPartnerSite().hasEnabledPacs()) {
 
-            pacsService = new ConquestService();
-            pacsService.setupConnection(
-                    defaultAccount.getPartnerSite().getPacs().getPacsBaseUrl()
-            );
+        if (defaultAccount != null &&
+            defaultAccount.getPartnerSite().hasEnabledPacs()) {
+
+            pacsService = this.createPacsConnectionFromUrl(defaultAccount.getPartnerSite().getPacs().getPacsBaseUrl());
         }
 
         return pacsService;
     }
 
     protected IConquestService createPacsConnection(String apiKey) {
-        IConquestService pacsService = null;
         String url = this.radPlanBioDataRepository.getPacsUrlByAccountApiKey(apiKey);
+        return this.createPacsConnectionFromUrl(url);
+    }
+
+    private IConquestService createPacsConnectionFromUrl(String url) {
+        IConquestService pacsService = null;
+
         // Setup service to communicate with PACS server
         if (url != null && !url.isEmpty()) {
+
             pacsService = new ConquestService();
-            pacsService.setupConnection(url);
+
+            if (this.pacsConfigService.isAuth()) {
+                pacsService.setupConnection(
+                        url,
+                        this.pacsConfigService.getPacsUser(),
+                        this.pacsConfigService.getPacsPassword()
+                );
+            } else {
+                pacsService.setupConnection(url);
+            }
         }
+
         return pacsService;
     }
 

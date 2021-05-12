@@ -22,6 +22,7 @@ package de.dktk.dd.rpb.core.service;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.domain.pacs.*;
@@ -43,6 +44,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -57,6 +59,8 @@ public class ConquestServiceTest {
     private ClientResponse responseMock;
 
     private String baseUrl;
+    private String user;
+    private String password;
 
     public ConquestServiceTest() {
     }
@@ -79,35 +83,60 @@ public class ConquestServiceTest {
         when(responseMock.getStatus()).thenReturn(200);
         when(responseMock.hasEntity()).thenReturn(true);
 
+        conquestService = getConquestService();
+
+    }
+
+    private ConquestService getConquestService() {
         conquestService = new ConquestService();
         baseUrl = "dummyBaseUrl";
         conquestService.setupConnection(baseUrl);
+        return conquestService;
+    }
 
+    private ConquestService getConquestServiceWithBasicAuth() {
+        conquestService = new ConquestService();
+        baseUrl = "dummyBaseUrl";
+        user = "dummyUser";
+        password = "dummyPassword";
+        conquestService.setupConnection(baseUrl, user, password);
+        return conquestService;
+    }
+
+    // region setup connection with authentication
+
+    @Test
+    public void client_has_authentication_filter() throws Exception {
+        conquestService = getConquestServiceWithBasicAuth();
+        when(responseMock.getEntity(String.class)).thenReturn("{}");
+        conquestService.loadPatient("1");
+
+        verify(clientMock).addFilter(any(HTTPBasicAuthFilter.class));
     }
 
     // region loadPatient
 
     @Test
-    public void handles_empty_results_from_pacs() throws Exception {
+    public void loadPatient_handles_empty_results_from_pacs() throws Exception {
         when(responseMock.getEntity(String.class)).thenReturn("{}");
         List<Subject> subjects = conquestService.loadPatient("1");
         assertEquals(subjects.size(), 0);
     }
 
     @Test(expected = Exception.class)
-    public void throws_if_response_status_is_not_200() throws Exception {
+    public void loadPatient_throws_if_response_status_is_not_200() throws Exception {
         when(responseMock.getStatus()).thenReturn(400);
         conquestService.loadPatient("1");
     }
 
     @Test(expected = Exception.class)
-    public void throws_if_response_has_no_entity() throws Exception {
+    public void loadPatient_throws_if_response_has_no_entity() throws Exception {
         when(responseMock.hasEntity()).thenReturn(false);
         conquestService.loadPatient("1");
     }
 
     @Test
-    public void handles_patient_with_study_from_pacs() throws Exception {
+    public void loadPatient_handles_patient_with_study_from_pacs() throws Exception {
         String studyInstanceUIDFakeStudy0 = "2.25.47335512428127212837968588258421836332343594176870791808528";
         String studyDateStudy0 = "00000000";
         String studyDescriptionStudy0 = "fake studyDescriptionStudy0";
@@ -150,9 +179,7 @@ public class ConquestServiceTest {
         when(responseMock.getEntity(String.class)).thenReturn("{}");
 
         List<StudySubject> studySubjectList = new ArrayList<>();
-        StudySubject subjectOne = new StudySubject();
-        subjectOne.setPid("1");
-        studySubjectList.add(subjectOne);
+        studySubjectList.add(getDummyStudySubject("1"));
 
         List<Subject> subjects = conquestService.loadPatients(studySubjectList);
         assertEquals(subjects.size(), 0);
@@ -164,17 +191,49 @@ public class ConquestServiceTest {
 
         List<StudySubject> studySubjectList = new ArrayList<>();
 
-        StudySubject subjectOne = new StudySubject();
-        subjectOne.setPid("1");
-        studySubjectList.add(subjectOne);
-
-        StudySubject subjectTwo = new StudySubject();
-        subjectTwo.setPid("2");
-        studySubjectList.add(subjectTwo);
+        studySubjectList.add(getDummyStudySubject("1"));
+        studySubjectList.add(getDummyStudySubject("2"));
 
         conquestService.loadPatients(studySubjectList);
 
         verify(clientMock).resource(baseUrl + "?mode=rpbjsondicompatients&PatientID=1%2C2");
+    }
+
+    @Test
+    public void loadPatients_calls_client_resource_with_several_requests_if_request_has_more_than_25_subjects() throws Exception {
+        String fileName = "./src/test/resources/test-data/PacsPatientResponse.json";
+
+        JSONObject jsonObject = getJsonFromFile(fileName);
+        when(responseMock.getEntity(String.class)).thenReturn(jsonObject.toString());
+//        when(responseMock.getEntity(String.class)).thenReturn("{}");
+
+        List<StudySubject> studySubjectList = new ArrayList<>();
+        for (int i = 1; i <= 20; i++) {
+            studySubjectList.add(getDummyStudySubject(Integer.toString(i)));
+        }
+
+        List<Subject> subjectList = conquestService.loadPatients(studySubjectList);
+
+        verify(clientMock, times(2)).resource(anyString());
+        verify(clientMock).resource(getDummyRequestUrl(1, 15));
+        verify(clientMock).resource(getDummyRequestUrl(16, 20));
+
+        assertEquals("List has 2 Subjects, because one subject will be returned per invocation",
+                subjectList.size(), 2);
+    }
+
+    private String getDummyRequestUrl(int startId, int endId) {
+        String requestString = baseUrl + "?mode=rpbjsondicompatients&PatientID=" + startId;
+        for (int i = startId + 1; i <= endId; i++) {
+            requestString = requestString + "%2C" + i;
+        }
+        return requestString;
+    }
+
+    private StudySubject getDummyStudySubject(String pid) {
+        StudySubject subjectOne = new StudySubject();
+        subjectOne.setPid(pid);
+        return subjectOne;
     }
 
 
@@ -183,9 +242,7 @@ public class ConquestServiceTest {
         when(responseMock.getStatus()).thenReturn(400);
 
         List<StudySubject> studySubjectList = new ArrayList<>();
-        StudySubject subjectOne = new StudySubject();
-        subjectOne.setPid("1");
-        studySubjectList.add(subjectOne);
+        studySubjectList.add(getDummyStudySubject("1"));
 
         conquestService.loadPatients(studySubjectList);
     }
@@ -197,7 +254,7 @@ public class ConquestServiceTest {
 
     @Test
     public void loadPatientStudy_returns_study() {
-        String fileName = "./src/test/java/de/dktk/dd/rpb/core/service/PacsStudiesResponse.json";
+        String fileName = "./src/test/resources/test-data/PacsStudiesResponse.json";
         String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
 
         JSONObject jsonObject = getJsonFromFile(fileName);
@@ -215,7 +272,7 @@ public class ConquestServiceTest {
 
     @Test
     public void loadPatientStudy_handles_standard_series() {
-        String fileName = "./src/test/java/de/dktk/dd/rpb/core/service/PacsStudiesResponse.json";
+        String fileName = "./src/test/resources/test-data/PacsStudiesResponse.json";
         String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
 
         JSONObject jsonObject = getJsonFromFile(fileName);
@@ -234,7 +291,7 @@ public class ConquestServiceTest {
 
     @Test
     public void loadPatientStudy_handles_rtImage_series() {
-        String fileName = "./src/test/java/de/dktk/dd/rpb/core/service/PacsStudiesResponse.json";
+        String fileName = "./src/test/resources/test-data/PacsStudiesResponse.json";
         String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
 
         JSONObject jsonObject = getJsonFromFile(fileName);
@@ -259,7 +316,7 @@ public class ConquestServiceTest {
 
     @Test
     public void loadPatientStudy_handles_rtPlan_series() {
-        String fileName = "./src/test/java/de/dktk/dd/rpb/core/service/PacsStudiesResponse.json";
+        String fileName = "./src/test/resources/test-data/PacsStudiesResponse.json";
         String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
 
         JSONObject jsonObject = getJsonFromFile(fileName);
@@ -284,7 +341,7 @@ public class ConquestServiceTest {
 
     @Test
     public void loadPatientStudy_handles_rtDose_series() {
-        String fileName = "./src/test/java/de/dktk/dd/rpb/core/service/PacsStudiesResponse.json";
+        String fileName = "./src/test/resources/test-data/PacsStudiesResponse.json";
         String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
 
         JSONObject jsonObject = getJsonFromFile(fileName);
@@ -309,7 +366,7 @@ public class ConquestServiceTest {
 
     @Test
     public void loadPatientStudy_handles_rtStruct_series() {
-        String fileName = "./src/test/java/de/dktk/dd/rpb/core/service/PacsStudiesResponse.json";
+        String fileName = "./src/test/resources/test-data/PacsStudiesResponse.json";
         String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
 
         JSONObject jsonObject = getJsonFromFile(fileName);

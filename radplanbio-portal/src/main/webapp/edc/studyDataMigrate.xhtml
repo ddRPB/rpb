@@ -13,16 +13,19 @@
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="Data" title="Data" url="#" />
-            <p:menuitem value="#{msg.study} Data Migrate" title=" #{msg.study} Data Migrate" url="/edc/studyDataMigrate.faces" />
+            <p:menuitem value="#{msg.data}" title="#{msg.data}" url="#" />
+            <p:menuitem value="#{msg.study} #{msg.data} Migrate" title=" #{msg.study} #{msg.data} Migrate" url="/edc/studyDataMigrate.faces" />
         </p:breadCrumb>
     </ui:define>
 
+    <!-- Definition of page content place holder -->
     <ui:define name="content">
 
+        <!-- Main Tab -->
         <p:tabView id="tabView">
 
-            <p:tab title="#{msg.study} Data Migrate">
+            <!--  Cross study migrate data -->
+            <p:tab title="#{msg.study} #{msg.data} Migrate">
 
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -42,101 +45,270 @@
                 <p:panelGrid
                     columns="2"
                     cellpadding="4"
-                    style="margin:0 auto;float: left;"
+                    style="margin:0 auto;float: left;width: 100%"
                     >
 
-                    <!-- Show user the active study (source of data) -->
-                    <h:outputLabel value="Source-#{msg.study}:" for="txtStudyIdentifier" />
-                    <h:outputText id="txtStudyIdentifier" value="#{mbQueryData.mainBean.activeStudy.uniqueIdentifier}" />
+                    <!-- Active Study Site = Target -->
+                    <h:outputLabel value="#{msg.study}:#{msg.label_required_suffix}" for="txtStudyIdentifier" />
+                    <h:outputText id="txtStudyIdentifier" value="#{mbMigrateData.mainBean.activeStudy.uniqueIdentifier}" />
 
-                    <!-- Event -->
-
-                    <!-- Ocurrence -->
-
-                    <!-- Form -->
-
-                    <!-- Target Study -->
-                    <h:outputLabel value="Target-#{msg.study}:#{msg.label_required_suffix}" for="ddlStudies" />
+                    <!-- Target Study Subject -->
+                    <h:outputLabel value="#{msg.studySubject}:#{msg.label_required_suffix}" for="ddlSubjects" />
                     <p:selectOneMenu
-                        id="ddlStudies"
-                        value="#{mbQueryData.selectedStudy}"
-                        converter="omnifaces.SelectItemsConverter"
-                        filter="true"
-                        filterMatchMode="contains"
-                        var="studyIter"
-                        required="true"
-                        panelStyle="width:150px"
-                        style="width:300px"
-                        >
-                        <p:ajax update=":form:tabView:ddlSites" />
+                            id="ddlSubjects"
+                            value="#{mbMigrateData.selectedSubject}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="subjectIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+                        <p:ajax
+                                update=":form:tabView:ddlStudyEvents"
+                                listener="#{mbMigrateData.loadSubjectEvents()}"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
                         <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems
-                            value="#{mbQueryData.studies}"
-                            itemLabel="#{study.name}"
-                            itemValue="#{study}"
-                            var="study"
-                            />
+                                value="#{mbMigrateData.subjectList}"
+                                itemLabel="#{subject.studySubjectId}"
+                                itemValue="#{subject}"
+                                var="subject"
+                        />
                         <p:column>
-                            <h:outputText value="#{studyIter.name}" title="#{studyIter.title}" />
+                            <h:outputText value="#{subjectIter.studySubjectId}" />
                         </p:column>
                     </p:selectOneMenu>
 
-                    <!-- Target Study Sites -->
-                    <h:outputLabel value="Target-Site:" for="ddlSites" />
+                    <!-- Target Event Ocurrence -->
+                    <h:outputLabel value="#{msg.studyEvent}:#{msg.label_required_suffix}" for="ddlStudyEvents" />
                     <p:selectOneMenu
-                        id="ddlSites"
-                        value="#{mbQueryData.selectedStudySite}"
-                        converter="omnifaces.SelectItemsConverter"
-                        filter="true"
-                        filterMatchMode="contains"
-                        var="siteIter"
-                        panelStyle="width:150px"
-                        style="width:300px"
-                        disabled="#{not mbQueryData.selectedStudy.isEdcStudyMultiCentre}"
-                        >
+                            id="ddlStudyEvents"
+                            value="#{mbMigrateData.selectedSubjectEvent}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="eventIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+
+                        <p:ajax
+                                update=":form:tabView:ddlEventForms"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
                         <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems
-                            value="#{mbQueryData.selectedStudy.edcStudy.studySites}"
-                            var="site"
-                            itemLabel="#{site.name}"
-                            itemValue="#{site}"
-                            />
+                                value="#{mbMigrateData.subjectEventList}"
+                                itemLabel="#{event.eventName}"
+                                itemValue="#{event}"
+                                var="event"
+                        />
+                        <p:column>
+                            <h:outputText value="#{eventIter.eventName}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Target Form -->
+                    <h:outputLabel value="Form:#{msg.label_required_suffix}" for="ddlEventForms" />
+                    <p:selectOneMenu
+                            id="ddlEventForms"
+                            value="#{mbMigrateData.selectedEventForm}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="formIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbMigrateData.selectedSubjectEvent.eventDefinition.formDefs}"
+                                itemLabel="#{form.name}"
+                                itemValue="#{form}"
+                                var="form"
+                        />
+                        <p:column>
+                            <h:outputText value="#{formIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Source Study -->
+                    <h:outputLabel value="Source-#{msg.study}:#{msg.label_required_suffix}" for="ddlSourceStudies" />
+                    <p:selectOneMenu
+                            id="ddlSourceStudies"
+                            value="#{mbMigrateData.selectedSourceStudy}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="studyIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+                        <p:ajax
+                                update=":form:tabView:ddlSourceSites"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbMigrateData.sourceStudies}"
+                                itemLabel="#{study.edcStudy.name}"
+                                itemValue="#{study}"
+                                var="study"
+                        />
+                        <p:column>
+                            <h:outputText value="#{studyIter.name}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Source Study Site -->
+                    <h:outputLabel value="Source-Site:#{msg.label_required_suffix}" for="ddlSourceSites" />
+                    <p:selectOneMenu
+                            id="ddlSourceSites"
+                            value="#{mbMigrateData.selectedSourceStudySite}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="siteIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                        >
+                        <p:ajax
+                                update=":form:tabView:ddlSourceSubjects"
+                                listener="#{mbMigrateData.loadSourceStudySubjects()}"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbMigrateData.selectedSourceStudy.edcStudy.studySites}"
+                                itemLabel="#{site.name}"
+                                itemValue="#{site}"
+                                var="site"
+                        />
                         <p:column>
                             <h:outputText value="#{siteIter.name}" />
                         </p:column>
                     </p:selectOneMenu>
+
+                    <!-- Source Study Subjects -->
+                    <h:outputLabel value="Source-#{msg.studySubject}:#{msg.label_required_suffix}" for="ddlSourceSubjects" />
+                    <p:selectOneMenu
+                            id="ddlSourceSubjects"
+                            value="#{mbMigrateData.selectedSourceSubject}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="subjectIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+                        <p:ajax
+                                update=":form:tabView:ddlSourceStudyEvents"
+                                listener="#{mbMigrateData.loadSourceSubjectEvents}"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbMigrateData.sourceSubjectList}"
+                                itemLabel="#{subject.studySubjectId}"
+                                itemValue="#{subject}"
+                                var="subject"
+                        />
+                        <p:column>
+                            <h:outputText value="#{subjectIter.studySubjectId}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Source Event Ocurrence -->
+                    <h:outputLabel value="Source-#{msg.studyEvent}:#{msg.label_required_suffix}" for="ddlSourceStudyEvents" />
+                    <p:selectOneMenu
+                            id="ddlSourceStudyEvents"
+                            value="#{mbMigrateData.selectedSourceSubjectEvent}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="eventIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+                        <p:ajax
+                                update=":form:tabView:ddlSourceEventForms"
+                                onstart="PF('buiTab').show()"
+                                oncomplete="PF('buiTab').hide()"
+                        />
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbMigrateData.sourceSubjectEventList}"
+                                itemLabel="#{event.eventName}"
+                                itemValue="#{event}"
+                                var="event"
+                        />
+                        <p:column>
+                            <h:outputText value="#{eventIter.eventName}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- Source Form -->
+                    <h:outputLabel value="Source Form:#{msg.label_required_suffix}" for="ddlSourceEventForms" />
+                    <p:selectOneMenu
+                            id="ddlSourceEventForms"
+                            value="#{mbMigrateData.selectedSourceEventForm}"
+                            converter="omnifaces.SelectItemsConverter"
+                            filter="true"
+                            filterMatchMode="contains"
+                            var="formDataIter"
+                            required="true"
+                            panelStyle="width:150px"
+                            style="width:300px"
+                    >
+                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems
+                                value="#{mbMigrateData.selectedSourceSubjectEvent.formDataList}"
+                                itemLabel="#{formData.formName}"
+                                itemValue="#{formData}"
+                                var="formData"
+                        />
+                        <p:column>
+                            <h:outputText value="#{formDataIter.formName}" />
+                        </p:column>
+                    </p:selectOneMenu>
+
+                    <!-- TODO: form mapping, in case of migration between none standard (study specific) forms -->
+
+                    <!-- Footer -->
+                    <f:facet name="footer">
+                        <p:commandButton
+                                id="btnImportData"
+                                value="Import"
+                                icon="ui-icon-play"
+                                immediate="true"
+                                process="@this"
+                                actionListener="#{mbMigrateData.importData()}"
+                                update=":growl"
+                        />
+                    </f:facet>
                 </p:panelGrid>
             </p:tab>
-
-            <p:tab title="#{msg.studySubject_plural}">
-                <!-- Toolbar -->
-                <p:toolbar>
-
-                    <!-- Left -->
-                    <p:toolbarGroup align="left">
-
-                    </p:toolbarGroup>
-
-                    <!-- Right -->
-                    <p:toolbarGroup align="right">
-                        <!--<p:commandButton-->
-                            <!--value="#{msg.menu_print}"-->
-                            <!--title="#{msg.studySubject_print}"-->
-                            <!--icon="ui-icon-print"-->
-                            <!--&gt;-->
-                            <!--<p:printer target="dtEntities" />-->
-                        <!--</p:commandButton>-->
-                        <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="#{msg.menu_help}"
-                            icon="ui-icon-help"
-                            disabled="True"
-                            />
-                    </p:toolbarGroup>
-
-                </p:toolbar>
-            </p:tab>
+            
         </p:tabView>
+
+        <!-- Block UI for whole TabView -->
+        <p:blockUI block="tabView" widgetVar="buiTab">
+            #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
+        </p:blockUI>
     </ui:define>
 
     <!-- Definition of dialogs place holder -->

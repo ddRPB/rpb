@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,15 @@ import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
 import de.dktk.dd.rpb.core.domain.edc.Study;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
+import de.dktk.dd.rpb.core.domain.rpb.Portal;
 import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
 import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
 import de.dktk.dd.rpb.core.repository.admin.IPartnerSiteRepository;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
 import de.dktk.dd.rpb.core.repository.edc.IOpenClinicaDataRepository;
 import de.dktk.dd.rpb.core.service.*;
-
 import de.dktk.dd.rpb.core.util.Constants;
+import de.dktk.dd.rpb.core.util.PatientIdentifierUtil;
 import de.dktk.dd.rpb.core.util.ResourcesUtil;
 import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
@@ -40,16 +41,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
+import javax.annotation.PostConstruct;
 import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import javax.annotation.PostConstruct;
-import javax.faces.context.FacesContext;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -57,7 +54,7 @@ import java.io.Serializable;
  * Managed bean for main master view (layout template)
  * <p>
  * Contains session scoped objects like user accounts and service directly related to user accounts
- * Other view scoped beans can just inject main been to get access to preinitialised RPB services (for logged in user)
+ * Other view scoped beans can just inject main been to get access to pre-initialised RPB services (for logged in user)
  *
  * @author tomas@skripcak.net
  * @since 01 Oct 2013
@@ -84,14 +81,6 @@ public class MainBean implements Serializable {
     }
 
     // Do not inject this service, otherwise it will be created just one and used across all sessions
-    // this is a root service that have access to all root user studies (only SOAP)
-    private IOpenClinicaService rootOpenClinicaService;
-
-    public IOpenClinicaService getRootOpenClinicaService() {
-        return this.rootOpenClinicaService;
-    }
-
-    // Do not inject this service, otherwise it will be created just one and used across all sessions
     // this is engine service that have low privilege access to all iengine user studies (SOAP + REST)
     private IOpenClinicaService engineOpenClinicaService;
 
@@ -110,6 +99,13 @@ public class MainBean implements Serializable {
         return this.pacsService;
     }
 
+    // Do not inject this service, otherwise it will be created just one and used across all sessions
+    private IConquestService clinicalPacsService;
+
+    public IConquestService getClinicalPacsService() {
+        return this.clinicalPacsService;
+    }
+
     //endregion
 
     //region Mainzelliste PID service
@@ -119,17 +115,6 @@ public class MainBean implements Serializable {
 
     public IMainzellisteService getSvcPid() {
         return this.svcPid;
-    }
-
-    //endregion
-
-    //region RadPlanBio Web-API service (python server)
-
-    // Do not inject this service, otherwise it will be created just one and used across all sessions
-    private IRadPlanBioWebApiService svcRpb;
-
-    public IRadPlanBioWebApiService getSvcRpb() {
-        return this.svcRpb;
     }
 
     //endregion
@@ -184,6 +169,7 @@ public class MainBean implements Serializable {
 
     private ResourcesUtil resourcesUtil;
     private MessageUtil messageUtil;
+    private IPacsConfigService pacsConfigService;
 
     //endregion
 
@@ -196,7 +182,8 @@ public class MainBean implements Serializable {
                     IOpenClinicaDataRepository openClinicaDataRepository,
                     EngineService engineService,
                     ResourcesUtil resourcesUtil,
-                    MessageUtil messageUtil) {
+                    MessageUtil messageUtil,
+                    IPacsConfigService pacsConfigService) {
 
         this.defaultAccountRepository = defaultAccountRepository;
         this.partnerSiteRepository = partnerSiteRepository;
@@ -207,6 +194,8 @@ public class MainBean implements Serializable {
 
         this.resourcesUtil = resourcesUtil;
         this.messageUtil = messageUtil;
+
+        this.pacsConfigService = pacsConfigService;
     }
 
     //endregion
@@ -276,19 +265,17 @@ public class MainBean implements Serializable {
             // First init user defaultAccount (that is aggregate root)
             this.initAccount();
 
-            // Than connection to WebAPI need the be initialised
-            this.initRpbWebApiConnection(); // python server
+            // Then connection to WebAPI need the be initialised
             this.initWebApiConnection(); // new api
 
-            // Than rest of RPB services
+            // Then rest of RPB services
             this.initEdcConnection();
-            this.initRootEdcConnection();
             this.initEngineEdcConnection();
             this.initPacsConnection();
             this.initPidConnection();
             this.initBioConnection();
 
-            // Than refresh data active study user data
+            // Then refresh data active study user data
             this.refreshActiveStudy();
             this.refreshClientIpAddress();
 
@@ -370,22 +357,24 @@ public class MainBean implements Serializable {
         return false;
     }
 
+    // replaced by PatientIdentifierUtil.removePatientIdPrefix
     /**
      * Extract pseudonym without prefix (RPB partner site identifier) to search local PID
      *
      * @param pid RPB subject pseudonym
      * @return pseudonym without prefix (RPB partner site identifier) to search local PID
      */
-    public String extractMySubjectPurePid(String pid) {
+    /*public String extractMySubjectPurePid(String pid) {
         String result = "";
 
         if (pid != null && !pid.isEmpty()) {
+            pid = pid.trim();
             String prefix = this.getMyAccount().getPartnerSite().getIdentifier() + Constants.RPB_IDENTIFIERSEP;
             result = pid.startsWith(prefix) ? pid.replace(prefix, "") : pid;
         }
 
         return result;
-    }
+    }*/
 
     /**
      * Construct full pseudonym with prefix (RPB partner site identifier)
@@ -413,31 +402,14 @@ public class MainBean implements Serializable {
     }
 
     /**
-     * Extract site (RPB partner site) identifier from any study subject PID (pseudonym)
-     *
-     * @param pid RPB subject pseudonym
-     * @return partner site identifier
-     */
-    public String extractSubjectSiteIdentifier(String pid) {
-        String result = "";
-
-        if (pid != null && !pid.isEmpty()) {
-            int index = pid.indexOf(Constants.RPB_IDENTIFIERSEP);
-            result = pid.substring(0, index);
-        }
-
-        return result;
-    }
-
-    /**
-     * Find the RPB partner site to whome specified RPB subject pseudonym belong
+     * Find the RPB partner site where specified RPB subject pseudonym belong to
      *
      * @param pid RPB subject pseudonym
      * @return subject partner site
      */
     public PartnerSite findSubjectSite(String pid) {
         PartnerSite siteExample = new PartnerSite();
-        String siteIdentifier = this.extractSubjectSiteIdentifier(pid);
+        String siteIdentifier = PatientIdentifierUtil.getPatientIdPrefix(pid);
         siteExample.setIdentifier(siteIdentifier);
 
         return partnerSiteRepository.findUniqueOrNone(siteExample);
@@ -571,6 +543,22 @@ public class MainBean implements Serializable {
 
     //endregion
 
+    // region Portal
+
+    /**
+     * Getter for the RPB Portal domain entity bound to the installed portal that is currently used.
+     *
+     * @return Portal
+     */
+    public Portal getLocalPortal() {
+        PartnerSite partnerSite = new PartnerSite();
+        partnerSite.setIdentifier(this.messageUtil.getResourcesUtil().getProperty("partner_site_identifier"));
+        Portal portal = this.partnerSiteRepository.findUnique(partnerSite).getPortal();
+        return portal;
+    }
+
+    // endregion
+
     //endregion
 
     //region Private
@@ -596,47 +584,19 @@ public class MainBean implements Serializable {
         String ocHash = "";
         if (this.myAccount != null &&
                 this.myAccount.hasOpenClinicaAccount() &&
-                this.svcWebApi != null) {
+                this.openClinicaDataRepository != null) {
 
-            // Load via portal web API
-            ocHash = this.svcWebApi.loadDefaultAccount(
-                    myAccount.getUsername(),
-                    myAccount.getApiKey()
-            )
-                    .getOcPasswordHash();
+            // Load hash direction from EDC DB
+            ocHash = this.openClinicaDataRepository.getUserAccountHash(myAccount.getUsername());
         }
 
         // EDC connection for logged user
         this.openClinicaService = this.initEdcConnection(this.myAccount, ocHash);
 
         // Enable caching to speed up study-0
-        this.openClinicaService.setCacheIsEnabled(Boolean.TRUE);
-    }
-
-    /**
-     * Initialise EDC SOAP connection for root user
-     */
-    private void initRootEdcConnection() {
-        DefaultAccount rootAccount = this.defaultAccountRepository.getByUsername(Constants.OC_ROOT);
-
-        // I need to get OC user password hash to be allow to use SOAP (the RPB and OC password can be different)
-        String ocHash = "";
-        if (rootAccount != null &&
-                rootAccount.hasOpenClinicaAccount() &&
-                this.svcWebApi != null) {
-
-            // Load via portal web API
-            ocHash = this.svcWebApi.loadDefaultAccount(
-                    rootAccount.getUsername(),
-                    rootAccount.getApiKey()
-            )
-                    .getOcPasswordHash();
+        if (this.openClinicaService != null) {
+            this.openClinicaService.setCacheIsEnabled(Boolean.TRUE);
         }
-
-        this.rootOpenClinicaService = this.initEdcConnection(rootAccount, ocHash);
-
-        // Enable caching to speed up study-0
-        this.rootOpenClinicaService.setCacheIsEnabled(Boolean.TRUE);
     }
 
     /**
@@ -691,15 +651,47 @@ public class MainBean implements Serializable {
      * Initialise PACS connection for RadPlanBio user
      */
     private void initPacsConnection() {
-        // Setup service to communicate with PACS server
+        // Is PACS component enabled for user partner site
         if (this.myAccount != null &&
-                this.myAccount.getPartnerSite().hasEnabledPacs()) {
+            this.myAccount.getPartnerSite().hasEnabledPacs()) {
 
-            this.pacsService = new ConquestService();
-            this.pacsService.setupConnection(
-                    this.myAccount.getPartnerSite().getPacs().getPacsBaseUrl()
-            );
+            // Research PACS cluster
+            this.pacsService = this.createPacsConnectionFromUrl(this.myAccount.getPartnerSite().getPacs().getPacsBaseUrl());
+
+            // Clinical PACS cluster
+            if (this.pacsConfigService.getClinicalUrl() != null &&
+                !this.pacsConfigService.getClinicalUrl().isEmpty()) {
+
+                this.clinicalPacsService = this.createPacsConnectionFromUrl(this.pacsConfigService.getClinicalUrl());
+            }
         }
+    }
+
+    /**
+     * Create new PACS Service for specified API endpoint
+     * @param url web service API endpoint for PACS component
+     * @return ConquestService
+     */
+    private IConquestService createPacsConnectionFromUrl(String url) {
+        IConquestService pacsService = null;
+
+        // Setup service to communicate with PACS server
+        if (url != null && !url.isEmpty()) {
+
+            pacsService = new ConquestService();
+
+            if (this.pacsConfigService.isAuth()) {
+                pacsService.setupConnection(
+                        url,
+                        this.pacsConfigService.getPacsUser(),
+                        this.pacsConfigService.getPacsPassword()
+                );
+            } else {
+                pacsService.setupConnection(url);
+            }
+        }
+
+        return pacsService;
     }
 
     /**
@@ -717,8 +709,10 @@ public class MainBean implements Serializable {
 
             String apiKey = this.myAccount.getPartnerSite().getPid().getApiKey();
             String generatorBaseUrl = this.myAccount.getPartnerSite().getPid().getGeneratorBaseUrl();
-            String callback = this.myAccount.getPartnerSite().getPortal().getPortalBaseUrl();
             String apiVersion = this.myAccount.getPartnerSite().getPid().getApiVersion();
+
+            // No callback necessary for direct portal to PID communication
+            String callback = "";
 
             this.svcPid.setupConnectionInfo(
                     generatorBaseUrl,
@@ -736,24 +730,12 @@ public class MainBean implements Serializable {
     /**
      * Initialise RPB Web-API connection
      */
-    private void initRpbWebApiConnection() {
-        if (this.myAccount != null &&
-                this.myAccount.getPartnerSite().getServer() != null) {
-
-            this.svcRpb = new RadPlanBioWebApiService();
-            this.svcRpb.setupConnection(this.myAccount.getPartnerSite().getServer().getPublicUrl());
-        }
-    }
-
-    /**
-     * Initialise RPB Web-API connection
-     */
     private void initWebApiConnection() {
         if (this.myAccount != null &&
                 this.myAccount.getPartnerSite().getPortal() != null) {
 
             this.svcWebApi = new PortalWebApiService();
-            this.svcWebApi.setupConnection(this.myAccount.getPartnerSite().getPortal().getPublicUrl());
+            this.svcWebApi.setupConnection(this.myAccount.getPartnerSite().getPortal().getPortalBaseUrl());
         }
     }
 
@@ -765,7 +747,6 @@ public class MainBean implements Serializable {
         if (this.myAccount != null &&
                 this.myAccount.getPartnerSite().hasEnabledBio()) {
 
-            this.svcBio = null;
 //            this.svcBio = new CentraxxService();
 //            this.svcBio.setupConnection(
 //                    this.myAccount.getPartnerSite().getBio().getBaseUrl(),

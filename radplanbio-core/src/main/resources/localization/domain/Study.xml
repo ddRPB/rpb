@@ -47,4 +47,6 @@
     <entry key="study_tumourEntities">Entities</entry>
     <entry key="study_partnerSites">Partner Sites</entry>
 
+    <entry key="study_ctp_lookup_table">CTP Lookup Table</entry>
+
 </properties>

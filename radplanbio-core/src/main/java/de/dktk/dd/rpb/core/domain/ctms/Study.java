@@ -20,7 +20,6 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
@@ -1174,7 +1173,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
 
     public CrfFieldAnnotation findAnnotation(String annotationTypeName, CrfFieldAnnotation example) {
         List<CrfFieldAnnotation> result = this.findMatchingAnnotations(annotationTypeName, example);
-        return result.size() > 0 ? result.get(1) : null;
+        return result.size() > 0 ? result.get(0) : null;
     }
 
     public List<CrfFieldAnnotation> findAnnotations(String annotationTypeName) {

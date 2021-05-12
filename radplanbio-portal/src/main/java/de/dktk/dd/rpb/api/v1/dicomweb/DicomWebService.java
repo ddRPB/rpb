@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,7 @@
 package de.dktk.dd.rpb.api.v1.dicomweb;
 
 import de.dktk.dd.rpb.api.support.BaseService;
-import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.service.CtpService;
-import de.dktk.dd.rpb.core.service.IConquestService;
 
 import org.apache.log4j.Logger;
 
@@ -58,10 +56,18 @@ public class DicomWebService extends BaseService {
 
     //endregion
 
-    //region Injects
+    //region Members
+    
+    private CtpService svcCtp;
+
+    //endregion
+
+    //region Constructors
 
     @Inject
-    private CtpService svcCtp;
+    public DicomWebService(CtpService svcCtp) {
+        this.svcCtp = svcCtp;
+    }
 
     //endregion
 
@@ -76,7 +82,7 @@ public class DicomWebService extends BaseService {
 
     //endregion
 
-    //region POST (STOWRS)
+    //region POST (STOW-RS)
 
     @POST
     @Path("/studies")
@@ -101,15 +107,11 @@ public class DicomWebService extends BaseService {
         }
 
         // Find user that corresponds to that specific apiKey
-        // TODO: this requires expensive load of full userAccount object but I only need pacs base url
-        // TODO: user RPB DAO to query directly from DB
-        DefaultAccount userAccount = this.getAuthenticatedUser(apiKey);
-        if (userAccount == null) {
+        String username = this.radPlanBioDataRepository.getDefaultAccountUsernameByApiKey(apiKey);
+        if (username == null || username.isEmpty()) {
             log.info("No apiKey corresponding user, unauthorised");
             return javax.ws.rs.core.Response.status(401).build();
         }
-        
-        IConquestService svcPacs = this.createPacsConnection(userAccount);
 
         // Supported mime type (also parse multi value content type)
         String contentType = headers.getRequestHeader("content-type").get(0);
@@ -232,19 +234,9 @@ public class DicomWebService extends BaseService {
                                 return Response.status(400).build();
                             }
 
-                            //TODO: remove verification file by file (too slow), client should trigger verification series by series
-                            // Check the availability of uploaded data in research PACS
-                            if (importSuccessful && this.svcCtp.getIsHttpImportPacsVerificationEnabled()) {
-                                importSuccessful = false;
-                                long endTime = System.currentTimeMillis() + this.svcCtp.getHttpImportPacsVerificationTimeout();
-                                while (!importSuccessful && System.currentTimeMillis() < endTime) {
-                                    importSuccessful = svcPacs.instanceExists(patientId, studyInstanceUid, seriesInstanceUid, instanceUid);
-                                }
-
-                                // Part stored
-                                if (importSuccessful) {
-                                    importedParts++;
-                                }
+                            // Part stored
+                            if (importSuccessful) {
+                                importedParts++;
                             }
                         }
                         else {

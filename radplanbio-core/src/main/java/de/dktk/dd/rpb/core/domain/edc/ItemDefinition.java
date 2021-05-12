@@ -20,10 +20,8 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-
 import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.log4j.Logger;
 
@@ -40,8 +38,8 @@ import java.util.List;
  * @since 04 Jun 2013
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ItemDef")
-public class ItemDefinition implements Identifiable<Integer>, Serializable {
+@XmlType(name = "ItemDef")
+public class ItemDefinition implements Identifiable<Integer>, Serializable, Comparable<ItemDefinition> {
 
     //region Finals
 
@@ -94,17 +92,20 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
 
     private Boolean decode = false;
 
-    @XmlElement(name="CodeListRef")
+    @XmlElement(name = "CodeListRef")
     private CodeListDefinition codeListRef;
     private CodeListDefinition codeListDef;
 
+    @XmlAttribute(name = "OrderNumber")
+    private Integer OrderNumber;
+
     //region OpenClinica
 
-    @XmlElement(name="MultiSelectListRef", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlElement(name = "MultiSelectListRef", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private MultiSelectListDefinition multiSelectListRef;
     private MultiSelectListDefinition multiSelectListDef;
 
-    @XmlElement(name="ItemDetails", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlElement(name = "ItemDetails", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private ItemDetails itemDetails;
 
     //endregion
@@ -303,6 +304,15 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    public Integer getOrderNumber() {
+        return OrderNumber;
+    }
+
+    public void setOrderNumber(Integer orderNumber) {
+        OrderNumber = orderNumber;
+    }
+
+
     //region Value
 
     public String getValue() {
@@ -310,7 +320,7 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
         String result = "PHI";
 
         // Only get value of non PHI items
-        if (this.isPhi!= null) {
+        if (this.isPhi != null) {
             if (!this.isPhi) {
                 result = this.value;
             }
@@ -538,6 +548,41 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable {
                 .add("isPhi", this.isPhi)
                 .add("isRequired", this.isRequired)
                 .toString();
+    }
+
+    /**
+     * Compares this object with the specified object for order.  Returns a
+     * negative integer, zero, or a positive integer as this object is less
+     * than, equal to, or greater than the specified object.
+     *
+     * @param itemDefinition the object to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     * is less than, equal to, or greater than the specified object.
+     * @throws ClassCastException if the specified object's type prevents it
+     *                            from being compared to this object.
+     */
+    @Override
+    public int compareTo(ItemDefinition itemDefinition) {
+
+        try {
+            if (this.getOrderNumber() < itemDefinition.getOrderNumber()) {
+                return -1;
+            }
+            if (this.getOrderNumber() > itemDefinition.getOrderNumber()) {
+                return 1;
+            }
+        } catch (NullPointerException e) {
+            // null value goes is less
+            if (this.getOrderNumber() == null) {
+                return -1;
+            }
+            if (itemDefinition.getOrderNumber() == null) {
+                return 1;
+            }
+        }
+        // else values are equal or both null
+        return 0;
+
     }
 
     //endregion

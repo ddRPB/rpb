@@ -22,9 +22,9 @@ package de.dktk.dd.rpb.portal.web.mb.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.ctms.StudyDoc;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyDocRepository;
-import de.dktk.dd.rpb.core.service.IFileStorageService;
+import de.dktk.dd.rpb.core.util.FilePathUtil;
+import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-
 import org.apache.commons.io.FilenameUtils;
 import org.primefaces.component.api.UIColumn;
 import org.primefaces.event.FileUploadEvent;
@@ -34,15 +34,12 @@ import org.primefaces.model.SortOrder;
 import org.primefaces.model.StreamedContent;
 import org.springframework.context.annotation.Scope;
 
+import javax.annotation.PostConstruct;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIViewRoot;
+import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import javax.annotation.PostConstruct;
-
-import javax.faces.context.FacesContext;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +67,13 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
     @Inject
     private IStudyDocRepository repository;
 
+    public StudyDocBean(MainBean mainBean) {
+        this.mainBean = mainBean;
+    }
+
     /**
      * Get StructTypeRepository
+     *
      * @return StructTypeRepository
      */
     @SuppressWarnings("unused")
@@ -94,12 +96,7 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
     //region Services
 
     @Inject
-    private IFileStorageService fileStorageService;
-
-    @SuppressWarnings("unused")
-    public void setFileStorageService(IFileStorageService fileStorageService) {
-        this.fileStorageService = fileStorageService;
-    }
+    private final MainBean mainBean;
 
     //endregion
 
@@ -117,7 +114,8 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
 
         InputStream stream = null;
         try {
-            File file = this.fileStorageService.getFile("files/" + this.selectedEntity.getStudy().getId() + "/" + this.selectedEntity.getFilename());
+            String dataPath = mainBean.getLocalPortal().getDataPath();
+            File file = new File(FilePathUtil.verifyTrailingSlash(dataPath) + "files/" + this.selectedEntity.getStudy().getId() + "/" + this.selectedEntity.getFilename());
             stream = new FileInputStream(file);
         }
         catch (Exception err) {
@@ -193,7 +191,8 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
 
         try {
             // Check folder structure
-            File studyFolder = this.fileStorageService.getFile("files//" + study.getId() + "//");
+            String dataPath = mainBean.getLocalPortal().getDataPath();
+            File studyFolder = new File(FilePathUtil.verifyTrailingSlash(dataPath) + "files/" + study.getId() + "/");
             if (!studyFolder.exists()) {
                 if (!studyFolder.mkdir()) {
                     throw new IOException("Failed to create a folder for study docs.");
@@ -201,7 +200,7 @@ public class StudyDocBean extends CrudEntityViewModel<StudyDoc, Integer> {
             }
 
             // Check file if it exists
-            File result = this.fileStorageService.getFile("files//" + study.getId() + "//" + event.getFile().getFileName());
+            File result = new File(FilePathUtil.verifyTrailingSlash(dataPath) + "files/" + study.getId() + "//" + event.getFile().getFileName());
             if (result.exists()) {
                 throw new IOException("Study doc with the same filename already exists for the study.");
             }

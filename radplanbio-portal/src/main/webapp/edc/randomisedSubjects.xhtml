@@ -90,7 +90,7 @@
                     >
 
                     <!-- Row -->
-                    <p:column headerText="#" exportable="false" toggleable="false" style="width:5%">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -101,7 +101,6 @@
                         sortBy="#{subject.studySubjectId}"
                         filterBy="#{subject.studySubjectId}"
                         filterMatchMode="contains"
-                        style="width:20%"
                         >
                         <h:outputText value="#{subject.studySubjectId}" style="float:left;" />
                     </p:column>
@@ -112,7 +111,6 @@
                         sortBy="#{subject.uniqueIdentifier}"
                         filterBy="#{subject.uniqueIdentifier}"
                         filterMatchMode="contains"
-                        style="width:20%"
                         >
                         <h:outputText value="#{subject.uniqueIdentifier}" style="font-family:consolas, courier new,monospace; float: left;" />
                     </p:column>
@@ -123,7 +121,6 @@
                         sortBy="#{subject.arm.name}"
                         filterBy="#{subject.arm.name}"
                         filterMatchMode="in"
-                        style="width:30%"
                         >
                         <f:facet name="filter">
                             <p:selectCheckboxMenu
@@ -149,7 +146,6 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:17%"
                         >
                         <!-- Randomise -->
                         <p:commandButton

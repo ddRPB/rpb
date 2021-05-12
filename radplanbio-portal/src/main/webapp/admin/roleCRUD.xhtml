@@ -91,7 +91,7 @@
                     </f:facet>
 
                     <!-- Row -->
-                    <p:column headerText="#" style="width:5%" exportable="false" toggleable="false">
+                    <p:column headerText="#" exportable="false" toggleable="false">
                         <h:outputText value="#{rowIndex + 1}" />
                     </p:column>
 
@@ -102,7 +102,6 @@
                         filterBy="#{entity.id}"
                         visible="#{mbRoleLazy.columnVisibilityList[0]}"
                         filterMatchMode="equals"
-                        style="width:5%"
                         >
                         <h:outputText value="#{entity.id}" style="float: left;" />
                     </p:column>
@@ -115,7 +114,6 @@
                         filterBy="#{entity.name}"
                         visible="#{mbRoleLazy.columnVisibilityList[1]}"
                         filterMatchMode="contains"
-                        style="width:30%"
                         >
                         <h:outputText value="#{entity.name}" style="float: left;" />
                     </p:column>
@@ -127,7 +125,6 @@
                         filterBy="#{entity.description}"
                         visible="#{mbRoleLazy.columnVisibilityList[2]}"
                         filterMatchMode="contains"
-                        style="width:55%"
                         >
                         <h:outputText value="#{entity.description}" style="float: left;" />
                     </p:column>
@@ -137,7 +134,6 @@
                         headerText="#{msg.menu_commands}"
                         exportable="false"
                         toggleable="false"
-                        style="width:10%"
                         >
                         <!-- Edit -->
                         <p:commandButton
@@ -170,7 +166,7 @@
 
                 <!-- Block table -->
                 <p:blockUI trigger="btnReload dtEntities" block="dtEntities">
-                    LOADING<br /><p:graphicImage name="icons/ajaxloading.gif" />
+                    #{msg.loading}<br /><p:graphicImage name="icons/ajaxloading.gif" />
                 </p:blockUI>
 
                 <!-- Export -->

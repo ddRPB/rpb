@@ -108,7 +108,7 @@
                             <h:outputText value="#{msg.auditLog_eventDate}"/>
                         </f:facet>
                         <h:outputText value="#{entity.eventDate}" style="float: left;">
-                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss" type="date" timeZone="GMT+2"/>
+                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm:ss" type="date"/>
                         </h:outputText>
                     </p:column>
 
@@ -213,7 +213,7 @@
 
                 <!-- Block table -->
                 <p:blockUI trigger="btnReload dtEntities" block="dtEntities">
-                    LOADING<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
 
                 <!-- Export -->

@@ -64,12 +64,6 @@
         <filter-name>springSecurityFilterChain</filter-name>
         <servlet-name>facesServlet</servlet-name>
     </filter-mapping>
-    <!-- TODO: I would like to get rid of this in a future - should be implemented in jersey REST layer -->
-    <!-- Map the Spring security filter to Spring MVC dispatcher servlet-->
-<!--    <filter-mapping>-->
-<!--        <filter-name>springSecurityFilterChain</filter-name>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--    </filter-mapping>-->
 
     <!-- The openEntityManagerInViewFilter (since it is placed after the conversationFilter) either reuses the conversation's entity manager or create one just for the request. -->
     <filter>
@@ -83,12 +77,6 @@
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>INCLUDE</dispatcher>
     </filter-mapping>
-    <!-- TODO: I would like to get rid of this in a future - should be implemented in jersey REST layer -->
-<!--    <filter-mapping>-->
-<!--        <filter-name>openEntityManagerInViewFilter</filter-name>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/*</url-pattern>-->
-<!--    </filter-mapping>-->
 
     <!-- Monitoring with java melody -->
     <filter>
@@ -154,6 +142,10 @@
         <param-name>javax.faces.FACELETS_SKIP_COMMENTS</param-name>
         <param-value>true</param-value>
     </context-param>
+    <context-param>
+        <param-name>javax.faces.DATETIMECONVERTER_DEFAULT_TIMEZONE_IS_SYSTEM_TIMEZONE</param-name>
+        <param-value>true</param-value>
+    </context-param>
 
     <!-- Just here so the JSF implementation can initialize, *not* used at runtime -->
     <servlet>
@@ -176,58 +168,6 @@
         <param-value>org.jboss.el.ExpressionFactoryImpl</param-value>
     </context-param>
 
-    <!-- TODO: I would like to get rid of this in a future - should be implemented in jersey REST layer -->
-    <!-- Servlet for Spring MVC controller -->
-<!--    <servlet>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>-->
-<!--        <init-param>-->
-<!--            <param-name>contextConfigLocation</param-name>-->
-<!--            <param-value>-->
-<!--                classpath*:spring/applicationContext-web.xml-->
-<!--                WEB-INF/applicationContext-security-http.xml-->
-<!--            </param-value>-->
-<!--        </init-param>-->
-<!--        <load-on-startup>2</load-on-startup>-->
-<!--    </servlet>-->
-    <!-- Use the dispatcher servlet of Spring as a controller for ConQuest PACS integration -->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/studySubjectView.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/dicomStudyDownload.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/dicomSeriesDownload.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/dicomImage.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/viewXml.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/wado.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/studyView.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/studyUpload.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>DispatcherServlet</servlet-name>-->
-<!--        <url-pattern>/pacs/apiKey.faces</url-pattern>-->
-<!--    </servlet-mapping>-->
-
     <!-- Servlet for JAX-RS Web-API -->
     <servlet>
         <servlet-name>Jersey REST Service</servlet-name>
@@ -237,7 +177,6 @@
             <param-name>com.sun.jersey.config.property.packages</param-name>
             <param-value>de.dktk.dd.rpb.api</param-value>
         </init-param>
-        <!-- TODO: should be 2 after we get rid of DispatcherServlet -->
         <load-on-startup>2</load-on-startup>
     </servlet>
     <!-- What is the base URL for accessing web services -->

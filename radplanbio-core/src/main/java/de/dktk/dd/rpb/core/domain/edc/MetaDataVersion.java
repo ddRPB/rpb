@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,19 +50,22 @@ public class MetaDataVersion implements Serializable {
 
     //region CDISC ODM
 
-    @XmlAttribute(name="OID")
+    @XmlAttribute(name = "OID")
     private String oid;
 
-    @XmlAttribute(name="Name")
+    @XmlAttribute(name = "Name")
     private String name;
 
-    @XmlElement(name="StudyEventDef")
+    @XmlElement(name = "Protocol")
+    private Protocol protocolDefinition;
+
+    @XmlElement(name = "StudyEventDef")
     private List<EventDefinition> studyEventDefinitions;
 
-    @XmlElement(name="FormDef")
+    @XmlElement(name = "FormDef")
     private List<FormDefinition> formDefinitions;
 
-    @XmlElement(name="ItemGroupDef")
+    @XmlElement(name = "ItemGroupDef")
     private List<ItemGroupDefinition> itemGroupDefinitions;
 
     @XmlElement(name="ItemDef")
@@ -118,7 +121,7 @@ public class MetaDataVersion implements Serializable {
     //region Name
 
     public String getName() {
-        return  this.name;
+        return this.name;
     }
 
     public void setName(String value) {
@@ -126,6 +129,18 @@ public class MetaDataVersion implements Serializable {
     }
 
     //endregion
+
+    //region protocol
+
+    public Protocol getProtocolDefinitions() {
+        return protocolDefinition;
+    }
+
+    public void setProtocolDefinitions(Protocol protocolDefinition) {
+        this.protocolDefinition = protocolDefinition;
+    }
+
+    // endregion
 
     //region StudyEventDefinitions
 

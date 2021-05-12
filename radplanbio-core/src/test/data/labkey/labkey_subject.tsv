@@ -1,0 +1,2 @@
+SequenceNum	Id	ParticipantId	SecondaryId	PatientId	Gender	DateOfBirth	Enrollment_Date	Status	Is_Enabled
+0.0	1	studySubjectId	secondaryId	uniqueIdentifier	f	1900-01-01	2000-01-03	status	true

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tables xmlns="http://labkey.org/data/xml">
+    <table tableName="Participants" tableDbType="TABLE">
+        <description>Contains up to one row of Participants data for each Participant/Visit combination.</description>
+        <columns>
+            <column columnName="ParticipantId">
+                <datatype>varchar</datatype>
+                <columnTitle>Participant ID</columnTitle>
+                <description>Subject identifier</description>
+                <propertyURI>http://cpas.labkey.com/Study#ParticipantId</propertyURI>
+                <nullable>false</nullable>
+                <importAliases>
+                    <importAlias>ptid</importAlias>
+                </importAliases>
+                <fk>
+                    <fkDbSchema>study</fkDbSchema>
+                    <fkTable>Participant</fkTable>
+                    <fkColumnName>ParticipantId</fkColumnName>
+                </fk>
+                <scale>32</scale>
+            </column>
+            <column columnName="SequenceNum">
+                <datatype>double</datatype>
+                <columnTitle>Sequence Num</columnTitle>
+                <propertyURI>http://cpas.labkey.com/Study#SequenceNum</propertyURI>
+                <nullable>false</nullable>
+                <importAliases>
+                    <importAlias>visit</importAlias>
+                    <importAlias>visitid</importAlias>
+                </importAliases>
+            </column>
+            <column columnName="date">
+                <datatype>timestamp</datatype>
+                <columnTitle>Date</columnTitle>
+                <propertyURI>http://cpas.labkey.com/Study#VisitDate</propertyURI>
+                <formatString>Date</formatString>
+            </column>
+            <column columnName="Id">
+                <datatype>varchar</datatype>
+                <columnTitle>Id</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+            <column columnName="SecondaryId">
+                <datatype>varchar</datatype>
+                <columnTitle>Secondary Id</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+            <column columnName="PatientId">
+                <datatype>varchar</datatype>
+                <columnTitle>Patient Id</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+            <column columnName="Gender">
+                <datatype>varchar</datatype>
+                <columnTitle>Gender</columnTitle>
+                <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
+                <scale>4000</scale>
+            </column>
+        </columns>
+        <tableTitle>Participants</tableTitle>
+    </table>
+</tables>

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,23 @@ package de.dktk.dd.rpb.core.domain.pacs;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlTransient;
 
+//TODO: Consider creating new class DicomRtImage
+
 /**
  * {@inheritDoc}
  */
 public class RtImageDicomSeries extends DicomSeries {
+
+    //region Members
+
     private String rtImageLabel;
     private String rtImageName;
     private String rtImageDescription;
     private String instanceCreationDate;
 
+    //endregion
+
+    //region Properties
 
     @XmlTransient
     public String getRtImageLabel() {
@@ -72,6 +80,8 @@ public class RtImageDicomSeries extends DicomSeries {
         this.instanceCreationDate = instanceCreationDate;
     }
 
+    //endregion
+
     /**
      * {@inheritDoc}
      */
@@ -84,16 +94,17 @@ public class RtImageDicomSeries extends DicomSeries {
 
     private String replaceEmptyDescriptionIfNecessary(String originalDescription) {
         if ("".equals(originalDescription)) {
-            if (rtImageName != null && !"".equals(rtImageName)) {
-                return rtImageName;
+            if (this.rtImageName != null && !"".equals(this.rtImageName)) {
+                return this.rtImageName;
             }
-            if (rtImageLabel != null && !"".equals(rtImageLabel)) {
-                return rtImageLabel;
+            if (this.rtImageLabel != null && !"".equals(this.rtImageLabel)) {
+                return this.rtImageLabel;
             }
-            if (rtImageDescription != null && !"".equals(rtImageDescription)) {
-                return rtImageDescription;
+            if (this.rtImageDescription != null && !"".equals(this.rtImageDescription)) {
+                return this.rtImageDescription;
             }
         }
+        
         return originalDescription;
     }
 }

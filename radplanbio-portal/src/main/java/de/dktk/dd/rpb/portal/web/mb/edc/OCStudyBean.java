@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,53 +19,54 @@
 
 package de.dktk.dd.rpb.portal.web.mb.edc;
 
-import java.io.Serializable;
-import java.math.BigInteger;
-import java.util.*;
+import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
+import de.dktk.dd.rpb.core.domain.ctms.Person;
+import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.exception.DataBaseItemNotFoundException;
+import de.dktk.dd.rpb.core.exception.MissingPropertyException;
+import de.dktk.dd.rpb.core.ocsoap.types.Study;
+import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
+import de.dktk.dd.rpb.core.repository.edc.IStudySubjectRepository;
+import de.dktk.dd.rpb.core.service.AuditEvent;
+import de.dktk.dd.rpb.core.service.AuditLogService;
+import de.dktk.dd.rpb.core.service.ICtpService;
+import de.dktk.dd.rpb.core.service.LabKeyService;
+import de.dktk.dd.rpb.core.util.Constants;
+import de.dktk.dd.rpb.core.util.PatientIdentifierUtil;
+import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
+import de.dktk.dd.rpb.portal.web.mb.MainBean;
+import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
+import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.log4j.Logger;
+import org.json.JSONObject;
+import org.openclinica.ws.beans.SiteType;
+import org.openclinica.ws.beans.StudyType;
+import org.primefaces.component.tabview.TabView;
+import org.primefaces.model.SortMeta;
+import org.primefaces.model.SortOrder;
+import org.primefaces.model.chart.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.*;
 
-import de.dktk.dd.rpb.core.domain.edc.*;
-import de.dktk.dd.rpb.core.domain.ctms.Person;
-
-import de.dktk.dd.rpb.core.service.AuditEvent;
-import de.dktk.dd.rpb.core.service.AuditLogService;
-
-import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
-import de.dktk.dd.rpb.core.ocsoap.types.Event;
-import de.dktk.dd.rpb.core.ocsoap.types.Study;
-import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
-import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
-
-import de.dktk.dd.rpb.core.service.OpenClinicaService;
-import de.dktk.dd.rpb.core.util.Constants;
-import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
-import de.dktk.dd.rpb.portal.web.mb.MainBean;
-import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
-import de.dktk.dd.rpb.portal.web.util.MessageUtil;
-
-import de.dktk.dd.rpb.portal.web.util.TabBean;
-import org.json.JSONObject;
-import org.openclinica.ws.beans.*;
-
-import org.primefaces.context.RequestContext;
-import org.primefaces.event.ToggleEvent;
-import org.primefaces.model.SortMeta;
-import org.primefaces.model.SortOrder;
-import org.primefaces.model.Visibility;
-import org.primefaces.model.chart.*;
-import org.springframework.context.annotation.Scope;
-
-import org.apache.commons.lang.math.NumberUtils;
+import static de.dktk.dd.rpb.core.util.Constants.RPB_IDENTIFIERSEP;
 
 /**
- * OpenClinica Study Managed Bean
- *
+ * EDC system OpenClinica Study Managed Bean
+ * <p>
  * This is a ViewModel for ecrfStudies.faces View
  *
  * @author tomas@skripcak.net
@@ -73,108 +74,112 @@ import org.apache.commons.lang.math.NumberUtils;
  */
 @Named("mbStudy")
 @Scope("view")
-public class OCStudyBean implements Serializable {
+public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.edc.StudySubject, Integer> {
 
     //region Finals
 
+    private static final Logger log = Logger.getLogger(OCStudyBean.class);
     private static final long serialVersionUID = 1L;
+
+    private static Map<String, Object> genderValues;
+
+    static {
+        genderValues = new LinkedHashMap<>();
+        genderValues.put("Male", "m"); //label, value
+        genderValues.put("Female", "f");
+    }
 
     //endregion
 
     //region Injects
 
+    private final ICtpService svcCtp;
+    private final LabKeyService labKeyService;
     private MainBean mainBean;
     private AuditLogService auditLogService;
-    private MessageUtil messageUtil;
-
     private StudyIntegrationFacade studyIntegrationFacade;
+
+    //region Repository - Dummy
+
+    @SuppressWarnings("unused")
+    private IStudySubjectRepository repository;
+
+    //endregion
 
     //endregion
 
     //region Members
 
-    private TabBean tab = new TabBean();
-
     // GUI
-    private List<Boolean> subjectsColumnVisibilityList;
-    private List<Boolean> eventsColumnVisibilityList;
-
     private List<SortMeta> sitesPreSortOrder;
-    private List<SortMeta> subjectsPreSortOrder;
-
+    private TabView newSubjectTabView;
     // RPB study
     private de.dktk.dd.rpb.core.domain.ctms.Study rpbStudy;
     private StudyParameterConfiguration studyConfiguration;
-
     // Parent study
     private List<StudyType> studyTypeList;
     private StudyType selectedStudyType;
-
     // StudySite
     private List<Study> studyList;
     private List<Study> filteredStudies;
+    private List<de.dktk.dd.rpb.core.domain.edc.StudySubject> studyZeroStudySubjectList;
     private Study selectedStudy;
-
-    // StudySubject
-    private List<StudySubject> studySubjectsList;
-    private List<StudySubject> filteredStudySubjects;
-    private StudySubject selectedStudySubject;
-
     //TODO: this should be the main study subject type used in this bean
     private de.dktk.dd.rpb.core.domain.edc.StudySubject rpbSelectedStudySubject;
-
-    // Scheduled StudyEvent
-    private ScheduledEvent selectedScheduledEvent;
-
     //TODO: this should be the main study event type used in this bean
     private EventData selectedEventData;
-
     // Subject
     private Subject newSubject;
+    private de.dktk.dd.rpb.core.domain.edc.StudySubject selectedStudySubject;
     private Subject selectedSubject;
-
-    private static Map<String, Object> genderValues;
     private boolean isSure;
     private boolean usePidGenerator;
 
+    private EnumPidGenerationStrategy enumPidGenerationStrategy = EnumPidGenerationStrategy.PID_GENERATOR;
+
     // StudyEvent
-    private List<Event> eventList;
-    private String selectedEvent;
-    private Date newEventDate;
-    private ScheduledEvent newEvent;
     private Integer originalEventRepeatKey;
 
     // QueryStrings
     private String studyParam;
     private String studySubjectParam;
 
+    // RPBLite URL
+    @Value("${rpb.lite.url}")
+    private String rpbLiteUrl;
+
+    // CCP identity manager URL
+    @Value("${ccp.idmanager.url}")
+    private String ccpIdentityManagerUrl;
+
     // Graphs
     private LineChartModel siteEnrolmentGraphModel;
-
-    public LineChartModel getSiteEnrolmentGraphModel() {
-        return this.siteEnrolmentGraphModel;
-    }
 
     //endregion
 
     //region Constructors
 
     @Inject
-    public OCStudyBean(MainBean mainBean, StudyIntegrationFacade studyIntegrationFacade, AuditLogService auditLogService, MessageUtil messageUtil) {
+    public OCStudyBean(MainBean mainBean,
+                       StudyIntegrationFacade studyIntegrationFacade,
+                       AuditLogService auditLogService,
+                       ICtpService svcCtp,
+                       LabKeyService labKeyService) {
         this.mainBean = mainBean;
         this.studyIntegrationFacade = studyIntegrationFacade;
         this.auditLogService = auditLogService;
-        this.messageUtil = messageUtil;
+        this.svcCtp = svcCtp;
+        this.labKeyService = labKeyService;
     }
 
     //endregion
 
     //region Properties
 
-    //region Tab
+    //region Graph
 
-    public TabBean getTab() {
-        return this.tab;
+    public LineChartModel getSiteEnrolmentGraphModel() {
+        return this.siteEnrolmentGraphModel;
     }
 
     //endregion
@@ -279,44 +284,8 @@ public class OCStudyBean implements Serializable {
 
     //endregion
 
-    //region StudySubject DataTable Properties
-
-    //region StudySubjectsList Property
-
-    public List<StudySubject> getStudySubjectsList() {
-        return this.studySubjectsList;
-    }
-
-    public void setStudySubjectsList(List<StudySubject> studySubjectsList) {
-        this.studySubjectsList = studySubjectsList;
-    }
-
-    //endregion
-
-    //region FilteredStudySubjects Property
-
-    public List<StudySubject> getFilteredStudySubjects() {
-        return this.filteredStudySubjects;
-    }
-
-    public void setFilteredStudySubjects(List<StudySubject> filteredStudySubjects) {
-        this.filteredStudySubjects = filteredStudySubjects;
-    }
-
-    //endregion
-
     //region SelectedStudySubject Property
 
-    public StudySubject getSelectedStudySubject() {
-        return this.selectedStudySubject;
-    }
-
-    public void setSelectedStudySubject(StudySubject selectedStudySubject) {
-        this.selectedStudySubject = selectedStudySubject;
-
-        this.selectedStudySubjectChanged();
-    }
-    
     public de.dktk.dd.rpb.core.domain.edc.StudySubject getRpbSelectedStudySubject() {
         return rpbSelectedStudySubject;
     }
@@ -327,43 +296,7 @@ public class OCStudyBean implements Serializable {
 
     //endregion
 
-    //region PreSortOrder
-
-    public List<SortMeta> getSubjectsPreSortOrder() {
-        return this.subjectsPreSortOrder;
-    }
-
-    public void setSubjectsPreSortOrder(List<SortMeta> sortOrder) {
-        this.subjectsPreSortOrder = sortOrder;
-    }
-
-    //endregion
-
-    //endregion
-
-    //region SubjectsColumnVisibilityList
-
-    public List<Boolean> getSubjectColumnVisibilityList() {
-        return this.subjectsColumnVisibilityList;
-    }
-
-    public void setSubjectColumnVisibilityList(List<Boolean> columnVisibilityList) {
-        this.subjectsColumnVisibilityList = columnVisibilityList;
-    }
-
-    //endregion
-
-    //region StudyEvent
-    
     //region SelectedEvent
-
-    public ScheduledEvent getSelectedScheduledEvent() {
-        return this.selectedScheduledEvent;
-    }
-
-    public void setSelectedScheduledEvent(ScheduledEvent value) {
-        this.selectedScheduledEvent = value;
-    }
 
     public EventData getSelectedEventData() {
         return this.selectedEventData;
@@ -373,19 +306,26 @@ public class OCStudyBean implements Serializable {
         this.selectedEventData = selectedEventData;
     }
 
-    //endregion
-
-    //region OriginalEventRepeatKey
-
     public Integer getOriginalEventRepeatKey() {
         return this.originalEventRepeatKey;
     }
 
+    public TabView getNewSubjectTabView() {
+        return newSubjectTabView;
+    }
+
+    public void setNewSubjectTabView(TabView newSubjectTabView) {
+        this.newSubjectTabView = newSubjectTabView;
+    }
+
+
+    //endregion
+
+    //region OriginalEventRepeatKey
+
     public void setOriginalEventRepeatKey(Integer originalEventRepeatKey) {
         this.originalEventRepeatKey = originalEventRepeatKey;
     }
-
-    //endregion
 
     //endregion
 
@@ -399,21 +339,13 @@ public class OCStudyBean implements Serializable {
 
     //region StudyParameterConfiguration
 
-    public StudyParameterConfiguration getStudyConfiguration() {
+    public StudyParameterConfiguration getStudyParameterConfiguration() {
         return this.studyConfiguration;
     }
 
     //endregion
 
     //region Subject
-
-    public Subject getNewSubject() {
-        return this.newSubject;
-    }
-
-    public void setNewSubject(Subject value) {
-        this.newSubject = value;
-    }
 
     public Subject getSelectedSubject() {
         return this.selectedSubject;
@@ -423,25 +355,6 @@ public class OCStudyBean implements Serializable {
         this.selectedSubject = value;
     }
 
-
-    //endregion
-
-    //region GenderValues
-
-    static {
-        genderValues = new LinkedHashMap<String,Object>();
-        genderValues.put("Male", "m"); //label, value
-        genderValues.put("Female", "f");
-    }
-
-    public Map<String,Object> getGenderValues() {
-        return genderValues;
-    }
-
-    //endregion
-
-    //region IsSure
-
     public boolean getIsSure() {
         return this.isSure;
     }
@@ -449,10 +362,6 @@ public class OCStudyBean implements Serializable {
     public void setIsSure(boolean value) {
         this.isSure = value;
     }
-
-    //endregion
-
-    //region UsePidGenerator
 
     public boolean getUsePidGenerator() {
         return this.usePidGenerator;
@@ -462,9 +371,31 @@ public class OCStudyBean implements Serializable {
         this.usePidGenerator = value;
     }
 
-    //endregion
+    public Subject getNewSubject() {
+        return this.newSubject;
+    }
 
-    //region CanReIdentifyPatient
+    public void setNewSubject(Subject value) {
+        this.newSubject = value;
+    }
+
+    public de.dktk.dd.rpb.core.domain.edc.StudySubject getSelectedStudySubject() {
+        return selectedStudySubject;
+    }
+
+    public void setSelectedStudySubject(de.dktk.dd.rpb.core.domain.edc.StudySubject selectedStudySubject) {
+        this.selectedStudySubject = selectedStudySubject;
+    }
+
+    public EnumPidGenerationStrategy getEnumPidGenerationStrategy() {
+        return enumPidGenerationStrategy;
+    }
+
+    public void setEnumPidGenerationStrategy(EnumPidGenerationStrategy enumPidGenerationStrategy) {
+        // In the past, usePidGenerator was set within the UI and it is used within the bean. Need to keep it in sync.
+        this.usePidGenerator = enumPidGenerationStrategy == EnumPidGenerationStrategy.PID_GENERATOR;
+        this.enumPidGenerationStrategy = enumPidGenerationStrategy;
+    }
 
     public boolean getCanDepseudonymisePatient() {
         if (this.selectedStudy != null && this.selectedStudy.isMulticentric()) {
@@ -477,64 +408,10 @@ public class OCStudyBean implements Serializable {
 
     //endregion
 
-    //region EventList
+    //region GenderValues
 
-    public List<Event> getEventList() {
-        return this.eventList;
-    }
-
-    public void setEventList(List<Event> events) {
-        this.eventList = events;
-    }
-
-    //endregion
-
-    //region SelectedEvent
-
-    public String getSelectedEvent() {
-        return this.selectedEvent;
-    }
-
-    public void setSelectedEvent(String event) {
-        this.selectedEvent = event;
-    }
-
-    //endregion
-
-    //region NewEventDate
-
-    public Date getNewEventDate() {
-        return this.newEventDate;
-    }
-
-    public void setNewEventDate(Date value) {
-        this.newEventDate = value;
-    }
-
-    //endregion
-
-    //region NewEvent
-
-    @SuppressWarnings("unused")
-    public ScheduledEvent getNewEvent() {
-        return this.newEvent;
-    }
-
-    @SuppressWarnings("unused")
-    public void setScheduledEvent(ScheduledEvent value) {
-        this.newEvent = value;
-    }
-
-    //endregion
-
-    //region EventsColumnVisibilityList
-
-    public List<Boolean> getEventsColumnVisibilityList() {
-        return eventsColumnVisibilityList;
-    }
-
-    public void setEventsColumnVisibilityList(List<Boolean> eventsColumnVisibilityList) {
-        this.eventsColumnVisibilityList = eventsColumnVisibilityList;
+    public Map<String, Object> getGenderValues() {
+        return genderValues;
     }
 
     //endregion
@@ -586,8 +463,7 @@ public class OCStudyBean implements Serializable {
         try {
             if (this.mainBean.getMyAccount().getPartnerSite() == null) {
                 throw new Exception("Your account is not associated with any partner site.");
-            }
-            else if (this.mainBean.getMyAccount().getPartnerSite().getEdc() == null) {
+            } else if (this.mainBean.getMyAccount().getPartnerSite().getEdc() == null) {
                 throw new Exception("Your partner site does not have associated OpenClinica EDC");
             }
 
@@ -600,16 +476,16 @@ public class OCStudyBean implements Serializable {
                 throw new Exception("There is now OpenClinica user account for you.");
             }
 
-            this.setSubjectColumnVisibilityList(
-                    this.buildSubjectsVisibilityList()
+            this.setColumnVisibilityList(
+                    this.buildColumnVisibilityList()
             );
             this.setSitesPreSortOrder(
                     this.buildSitesSortOrder()
             );
-            this.setSubjectsPreSortOrder(
-                    this.buildSubjectsSortOrder()
+            this.setPreSortOrder(
+                    this.buildSortOrder()
             );
-            
+
             // Init Facade to use service that are valid for logged user PartnerSite (from mainBean)
             this.studyIntegrationFacade.init(this.mainBean);
             this.studyIntegrationFacade.setRetrieveStudySubjectOID(Boolean.FALSE);
@@ -617,8 +493,7 @@ public class OCStudyBean implements Serializable {
             // Load initial data
             this.reloadStudies();
             this.selectedParentStudyChanged();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
@@ -638,33 +513,7 @@ public class OCStudyBean implements Serializable {
                     }
                 }
             }
-        }
-    }
 
-    //endregion
-
-    //region EventHandlers
-
-    public void onSubjectEntityToggle(ToggleEvent e) {
-        try {
-            this.subjectsColumnVisibilityList.set(((Integer) e.getData() - 1), e.getVisibility() == Visibility.VISIBLE);
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    public void onStudySubjectIdChange() {
-        // Only apply this pseudonym generation strategy when PID generator is not used and PID is required
-        if (!this.usePidGenerator &&
-            this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.REQUIRED)) {
-            
-            if (this.newSubject != null) {
-                this.newSubject.generateUniqueIdentifier(
-                        this.rpbStudy,
-                        this.mainBean.getMyAccount().getPartnerSite()
-                );
-            }
         }
     }
 
@@ -680,14 +529,36 @@ public class OCStudyBean implements Serializable {
     public void clearSelection() {
         this.setSelectedStudy(null);
         this.setSelectedSubject(null);
-        this.setSelectedStudySubject(null);
-        this.setStudySubjectsList(null);
-        this.setSelectedScheduledEvent(null);
+        this.setSelectedEntity(null);
+        this.setEntityList(null);
     }
 
     //endregion
 
     //region Study
+
+    /**
+     * Reload studies from OpenClinica
+     * This fills the StudyType list (this represents the hierarchy study/sites)
+     * It also automatically select active study of user
+     */
+    public void reloadStudies() {
+        try {
+            // EDC services available
+            if (this.mainBean.getOpenClinicaService() != null) {
+
+                // Load open clinica studies
+                this.studyTypeList = this.mainBean.getOpenClinicaService().listAllStudies();
+
+                // Automatically select active study/site from OC database
+                if (this.mainBean.getActiveStudy() != null) {
+                    this.selectedStudyType = this.studyTypeLookup(this.mainBean.getActiveStudy().getUniqueIdentifier());
+                }
+            }
+        } catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
 
     private StudyType studyTypeLookup(String studyIdentifier) {
         if (studyTypeList != null) {
@@ -714,30 +585,6 @@ public class OCStudyBean implements Serializable {
     }
 
     /**
-     * Reload studies from OpenClinica
-     * This fills the StudyType list (this represents the hierarchy study/sites)
-     * It also automatically select active study of user
-     */
-    public void reloadStudies() {
-        try {
-            // EDC services available
-            if (this.mainBean.getOpenClinicaService() != null) {
-
-                // Load open clinica studies
-                this.studyTypeList = this.mainBean.getOpenClinicaService().listAllStudies();
-
-                // Automatically select active study/site from OC database
-                if (this.mainBean.getActiveStudy() != null) {
-                    this.selectedStudyType = this.studyTypeLookup(this.mainBean.getActiveStudy().getUniqueIdentifier());
-                }
-            }
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
      * Selected parent EDC study changed
      */
     public void selectedParentStudyChanged() {
@@ -751,7 +598,7 @@ public class OCStudyBean implements Serializable {
             // Multi-centre with recruiting site -> search for site according identifier
             if (this.studyList.size() > 1) {
                 for (Study s : this.studyList) {
-                    if (s.getSiteName().startsWith(this.mainBean.getMyAccount().getPartnerSite().getIdentifier() + Constants.RPB_IDENTIFIERSEP)) {
+                    if (s.getSiteName().startsWith(this.mainBean.getMyAccount().getPartnerSite().getIdentifier() + RPB_IDENTIFIERSEP)) {
                         this.selectedStudy = s;
                         break;
                     }
@@ -761,16 +608,16 @@ public class OCStudyBean implements Serializable {
 
         // Load corresponding RPB study entity
         if (this.selectedStudy != null) {
-            this.rpbStudy = this.mainBean.getStudyRepository().getByOcStudyIdentifier(this.selectedStudy.getStudyIdentifier());
+            // Using the parent study always to get valid the studyParameterConfiguration.
+            // OpenClinica does not propagate these settings from the parent study to the side specific studies.
+            this.rpbStudy = this.mainBean.getStudyIntegrationFacade().loadStudyWithMetadataByIdentifierViaEngineUser(this.selectedStudy.getStudyIdentifier(), this.selectedStudy.getStudyIdentifier());
 
-            // Need to have this study as active otherwise cannot use restful URLs
-            //this.changeActiveStudy();
+            // Reload study configuration details
+            this.studyConfiguration = this.rpbStudy.getEdcStudy().getMetaDataVersion().getStudyDetails().getStudyParameterConfiguration();
+
+            // Reload study subjects
+            this.reloadStudySubjects();
         }
-
-        // Reload study configuration details
-        this.reloadParentStudyConfiguration();
-        // Reload study subjects
-        this.reloadStudySubjects();
     }
 
     /**
@@ -802,455 +649,112 @@ public class OCStudyBean implements Serializable {
                             tempStudyList.add(study);
                         }
 
-                       this.studyList = tempStudyList;
+                        this.studyList = tempStudyList;
                     }
                 }
             }
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
 
     /**
-     * Selected study site changed
-     */
-    public void selectedStudySiteChanged() {
-        this.reloadStudySubjects();
-    }
-
-    /**
-     * Load study configuration information of selected study/site from metadata
-     */
-    public void reloadParentStudyConfiguration() {
-        try {
-            // Always read the parent study metadata
-            MetadataODM studyMetadata = this.mainBean
-                    .getOpenClinicaService()
-                    .getStudyMetadata(
-                        this.selectedStudy.getStudyIdentifier()
-                    );
-            // What to do if user does not have access to parent study? OC bug: site metadata are reporting wrong studySubjectID generation
-            // Use the root access to the parent study metadata
-            if (studyMetadata == null) {
-                studyMetadata = this.mainBean
-                        .getRootOpenClinicaService()
-                        .getStudyMetadata(
-                            this.selectedStudy.getStudyIdentifier()
-                        );
-            }
-
-            // Setup study configuration from metadata
-            if (studyMetadata != null) {
-                this.studyConfiguration.setCollectSubjectDob(
-                        studyMetadata.getCollectDobStudyParameter()
-                );
-                this.studyConfiguration.setSexRequired(
-                        studyMetadata.getCollectSexStudyParameter()
-                );
-                this.studyConfiguration.setAllowDiscrepancyManagement(
-                        studyMetadata.getAllowDiscrepancyManagementStudyParameter()
-                );
-                this.studyConfiguration.setStudySubjectIdGeneration(
-                        studyMetadata.getSubjectIdGenerationStudyParameter()
-                );
-                this.studyConfiguration.setPersonIdRequired(
-                        studyMetadata.getSubjectPersonIdRequiredStudyParameter()
-                );
-                this.studyConfiguration.setSecondaryLabelViewable(
-                        studyMetadata.getSecondaryLabelViewableStudyParameter()
-                );
-            }
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     *  Change active study in open clinica for current user
+     * Change active study in open clinica for current user
      */
     public void changeActiveStudy() {
         try {
             this.mainBean.changeUserActiveStudy(
-                this.mainBean.getSvcWebApi().loadEdcStudy(
-                    this.mainBean.getMyAccount().getApiKey(),
-                    this.selectedStudy.getSiteName()
-                )
+                    this.mainBean.getSvcWebApi().loadEdcStudy(
+                            this.mainBean.getMyAccount().getApiKey(),
+                            this.selectedStudy.getSiteName()
+                    )
             );
 
             this.mainBean.refreshActiveStudy();
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
 
-    /**
-     * Need to build an initial sort order for data table multi sort
-     * @return list of sort meta elements for data table sorting
+    /***
+     * Verifies if the selectedStudy has the study zero identifier
+     * @return boolean true if the selected study is study zero
      */
-    private List<SortMeta> buildSitesSortOrder() {
-        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtStudies:colSiteIdentifier", "colSiteIdentifier", SortOrder.ASCENDING);
-        if (results != null) {
-            return results;
+    public boolean selectedStudyIsStudyZero() {
+
+        if (this.selectedStudy.getStudyIdentifier().equals(Constants.study0Identifier)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns the IDAT flag of the selected study. Default value is true if the flag is null
+     *
+     * @return boolean tag value
+     */
+    public boolean hasIdatFlag() {
+        if (this.rpbStudy.getTagValue("IDAT") != null) {
+            return Boolean.parseBoolean(this.rpbStudy.getTagValue("IDAT"));
+        } else {
+            // study without tag == study has IDAT
+            return true;
+        }
+    }
+
+    /**
+     * Returns the CCP Flag of the selected study. Default value is false.
+     *
+     * @return boolean tag value
+     */
+    public boolean hasCcpFlag() {
+        if (this.rpbStudy.getTagValue("CCP") != null) {
+            return Boolean.parseBoolean(this.rpbStudy.getTagValue("CCP"));
+        } else {
+            // CCP Tag
+            return false;
+        }
+    }
+
+    /**
+     * Returns the CCP Code of the selected study. Default value is an empty string.
+     *
+     * @return String CCP code of the selected study
+     */
+    public String getCcpCode() {
+        if (this.rpbStudy.getTagValue("CCP-code") != null) {
+            return this.rpbStudy.getTagValue("CCP-code");
+        } else {
+            // CCP Tag
+            return "";
+        }
+    }
+
+    /**
+     * returns true if users are on the portal of their partner side and they are allowed to access study zero
+     *
+     * @return boolean study zero can be used
+     */
+    public boolean canUseStudyZeroPatients() {
+
+        if (!portalRunsOnSamePartnerSide()) {
+            return false;
         }
 
-        return new ArrayList<>();
+        for(StudyType study : this.studyTypeList){
+
+            if(study.getIdentifier().equals(Constants.study0Identifier)){
+                return true;
+            }
+
+        }
+
+        return false;
     }
 
     //endregion
 
     //region StudySubject
-
-    public boolean canEnrollIntoSelectedTreatmentArm() {
-        // Check whether enrollment is possible (enrollment rules)
-        if (this.rpbStudy != null && this.rpbStudy.getIsEnrollmentArmAssignmentRequired() != null &&
-            this.rpbStudy.getIsEnrollmentArmAssignmentRequired()){
-            if (this.getNewSubject().getArm() == null) {
-                return false;
-            }
-            else if (this.getNewSubject().getArm().getIsEnabled() == null ||
-                    !this.getNewSubject().getArm().getIsEnabled()) {
-                FacesContext.getCurrentInstance().validationFailed();
-                this.messageUtil.warningText("Subject assignment to selected treatment arm is disabled.");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private StudySubject studySubjectLookup(String studySubjectId) {
-        if (this.studySubjectsList != null) {
-            for (StudySubject studySubject : this.studySubjectsList) {
-                if (studySubject.getStudySubjectLabel().equals(studySubjectId)) {
-                    return studySubject;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Create a new study subject in OC using web service
-     */
-    public void createNewStudySubject() {
-        try {
-            // Check whether enrollment is possible (enrollment rules)
-            if (this.rpbStudy != null && this.rpbStudy.getIsEnrollmentArmAssignmentRequired() != null &&
-                this.rpbStudy.getIsEnrollmentArmAssignmentRequired()){
-
-                if (this.getNewSubject().getArm() == null) {
-                    throw new Exception("Enrollment arm assignment is required!");
-                }
-                else {
-                    if (!this.getNewSubject().getArm().getIsEnabled()) {
-                        throw new Exception("Subject assignment to selected treatment arm is disabled.");
-                    }
-                }
-            }
-
-            // Prepare SOAP StudySubject from Subject data
-            StudySubject studySubject = new StudySubject();
-
-            // Whether StudySubjectID is provided depends on study configuration
-            if (this.studyConfiguration.getStudySubjectIdGeneration() != null) {
-
-                // Auto
-                if (this.studyConfiguration.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.AUTO)) {
-                    studySubject.setStudySubjectLabel(""); // Event if auto I have to provide at least empty string
-                }
-                // Manual
-                else if (this.studyConfiguration.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.MANUAL)) {
-
-                    // Manually entered StudySubjectID should never be number, because it hinders the automatic StudySubjectID generation
-                    if (NumberUtils.isNumber(this.getNewSubject().getStudySubjectId())) {
-                        throw new Exception("Number is not allowed for manually entered StudySubjectID!");
-                    }
-                    else {
-                        studySubject.setStudySubjectLabel(
-                                this.getNewSubject().getStudySubjectId()
-                        );
-                    }
-                }
-            }
-            // Could not read this information from parameters, use empty string because something is required
-            else {
-                studySubject.setStudySubjectLabel("");
-            }
-
-            // When PID is required
-            if (this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.REQUIRED)) {
-
-                // Determine whether subject has PID assigned
-                if (this.getNewSubject().getUniqueIdentifier() == null ||
-                    this.getNewSubject().getUniqueIdentifier().equals("")) {
-
-                    throw new Exception("Patient PID (pseudonym) should not be empty!");
-                }
-
-                // Use partner site prefix and pure PID to create cross site unique Person ID
-                if (this.usePidGenerator) {
-                    studySubject.setPersonID(
-                            this.mainBean.constructMySubjectFullPid(
-                                    this.getNewSubject().getUniqueIdentifier()
-                            )
-                    );
-                }
-                // Use manually assigned PID
-                else {
-                    studySubject.setPersonID(
-                            this.getNewSubject().getUniqueIdentifier()
-                    );
-                }
-            }
-            else if (this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.OPTIONAL)) {
-
-                // Determine whether subject has PID assigned
-                if (this.getNewSubject().getUniqueIdentifier() != null &&
-                    !this.getNewSubject().getUniqueIdentifier().equals("")) {
-
-                    // Use partner site prefix and pure PID to create cross site unique Person ID
-                    if (this.usePidGenerator) {
-                        studySubject.setPersonID(
-                                this.mainBean.constructMySubjectFullPid(
-                                        this.getNewSubject().getUniqueIdentifier()
-                                )
-                        );
-                    }
-                    // Use manually assigned PID
-                    else {
-                        studySubject.setPersonID(
-                                this.getNewSubject().getUniqueIdentifier()
-                        );
-                    }
-                }
-            }
-
-            // If secondary ID is provided use it
-            if (this.getNewSubject().getSecondaryId() != null && !this.getNewSubject().getSecondaryId().equals("")) {
-                studySubject.setStudySubjectSecondaryLabel(this.getNewSubject().getSecondaryId());
-            }
-
-            if (this.selectedStudy != null) {
-                studySubject.setStudy(this.selectedStudy);
-            }
-            else {
-                throw new Exception("Study site has to be selected!");
-            }
-
-            // Gender is always required (there is a bug in OC web service)
-            studySubject.setSex(this.getNewSubject().getGender());
-
-            // Calendar
-            GregorianCalendar c = new GregorianCalendar();
-
-            // Whether day of birth will be collected for subject depend on study configuration
-            if (this.studyConfiguration.getCollectSubjectDob().equals(EnumCollectSubjectDob.YES)) {
-                c.setTime(this.getNewSubject().getPerson().getBirthdate());
-                XMLGregorianCalendar birthDateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-                studySubject.setDateOfBirth(birthDateXML);
-            }
-            else if (this.studyConfiguration.getCollectSubjectDob().equals(EnumCollectSubjectDob.ONLY_YEAR)) {
-                c.setTime(this.getNewSubject().getPerson().getBirthdate());
-                XMLGregorianCalendar birthDateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-                studySubject.setYearOfBirth(new BigInteger(String.valueOf(birthDateXML.getYear())));
-            }
-
-            // Always collect enrollment date for subject
-            studySubject.setDateOfRegistration(this.getNewSubject().getEnrollmentDate());
-
-            // Enroll subject into EDC study
-            String ssid = this.mainBean.getOpenClinicaService().createNewStudySubject(studySubject);
-            if (ssid != null) {
-                this.auditLogService.event(
-                        AuditEvent.EDCStudySubjectEnrollment,
-                        studySubject.getPersonID(), // PID
-                        this.selectedStudy.getStudyIdentifier(), // Study
-                        ssid // SSID
-                );
-                this.messageUtil.infoText("Study Subject: " + ssid + " successfully created.");
-                this.reloadStudySubjects();
-            }
-            else {
-                throw new Exception("EDC web-service could not create a new study subject.");
-            }
-
-            // Register enrolled study subject into BIO bank
-            // TODO: automatic registering in BIO bank is disabled for now (need more time for testing)
-//            if (ssid != null && Boolean.valueOf(this.rpbStudy.getTagValue("BIO")) && this.mainBean.getSvcBio() != null) {
-//
-//                boolean bioRegistrationResult = false;
-//
-//                String bioStudyIdType = Constants.CXX_ID + Constants.CXX_CODESEP + this.rpbStudy.getTagValue("BIO-code");
-//
-//                de.dktk.dd.rpb.core.domain.edc.StudySubject ss = new de.dktk.dd.rpb.core.domain.edc.StudySubject();
-//                ss.setStudySubjectId(ssid);
-//                ss.setPid(studySubject.getPersonID());
-//                ss.setSex(studySubject.getSex());
-//
-//                // For principal site patients
-//                if (this.mainBean.isPrincipalSiteSubject(studySubject.getPersonID())) {
-//
-//                    // Fetch IDAT
-//                    Person person = this.mainBean.getSvcPid().loadPatient(
-//                            this.mainBean.extractMySubjectPurePid(
-//                                    studySubject.getPersonID()
-//                            )
-//                    );
-//                    // Fetch StudySubjects
-//                    ss.setPerson(
-//                            this.studyIntegrationFacade.fetchPatientStudySubjects(person)
-//                    );
-//
-//                    // Patient MPI
-//                    String mpi = ss.extractStudy0PureSSID();
-//
-//                    // Determine whether patient with MPI exists in BIO
-//                    Person bioMpiPatient = null;
-//                    if (mpi != null) {
-//                        bioMpiPatient = this.mainBean.getSvcBio().loadPatient(mpi);
-//                    }
-//
-//                    //Patient with MPI that does not exists in BIO
-//                    if (mpi != null && bioMpiPatient == null) {
-//
-//                        // Create patient with MPI, PID, IDAT, SSID
-//                        bioRegistrationResult = this.mainBean.getSvcBio().createPatient(
-//                                bioStudyIdType,
-//                                ss,
-//                                this.mainBean.getMyAccount().getPartnerSite(),
-//                                true,
-//                                true,
-//                                true
-//                        );
-//                    }
-//                    // Patient with MPI that exists in BIO
-//                    else if (mpi != null) {
-//
-//                        //  Update patient with MPI and provide additional PID, SSID
-//                        bioRegistrationResult = this.mainBean.getSvcBio().createPatient(
-//                                bioStudyIdType,
-//                                ss,
-//                                this.mainBean.getMyAccount().getPartnerSite(),
-//                                true,
-//                                true,
-//                                false
-//                        );
-//                    }
-//                    // Patient is not in Study0
-//                    else {
-//                        this.messageUtil.info("Principal site patient is not enrolled in Study0. In order to create patient in BIO it first need to be enrolled in Study0.");
-//                    }
-//                }
-//                // For other site patients
-//                else {
-//
-//                    // Create patient with PID, SSID
-//                    bioRegistrationResult = this.mainBean.getSvcBio().createPatient(
-//                            bioStudyIdType,
-//                            ss,
-//                            this.mainBean.getMyAccount().getPartnerSite(),
-//                            false,
-//                            false,
-//                            false
-//                    );
-//                }
-//
-//                if (bioRegistrationResult) {
-//
-//                    // Audit BIO bank patient registration
-//                    this.auditLogService.event(
-//                            AuditEvent.BIOPatientCreation,
-//                            studySubject.getPersonID(), // PID
-//                            this.rpbStudy.getTagValue("BIO-code"), // Study
-//                            ssid // SSID
-//                    );
-//                    this.messageUtil.infoText("Study Subject: " + ssid + " successfully registered in BIO bank.");
-//                }
-//            }
-
-            // Prepare data structure for the new study subject object binding
-            Person person = new Person();
-            this.newSubject = new Subject();
-            this.newSubject.setPerson(person);
-            this.isSure = true;
-        }
-        catch (Exception err) {
-            FacesContext.getCurrentInstance().validationFailed();
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     * Reset new study subject attributes (also with generated PID withing Subject entity)
-     */
-    public void resetNewStudySubject() {
-        if (this.newSubject != null) {
-            this.newSubject.initDefaultValues();
-        }
-
-        RequestContext.getCurrentInstance().reset(":newSubjectForm");
-    }
-
-    /**
-     * Reload study subject registered for selected study/site from OC using web service
-     */
-    public void reloadStudySubjects() {
-        try {
-            if (this.mainBean.getOpenClinicaService() != null) {
-                // Study was selected
-                if (this.selectedStudy != null) {
-                    List<StudySubject> subjectList = new ArrayList<>();
-
-                    for (StudySubjectWithEventsType sswe : this.mainBean.getOpenClinicaService().listAllStudySubjectsByStudy(this.selectedStudy)) {
-                        StudySubject ss = new StudySubject(this.selectedStudy, sswe);
-
-                        // Assign scheduled events
-                        ArrayList<ScheduledEvent> scheduledEvents = new ArrayList<>();
-                        if (sswe.getEvents() != null) {
-                            for (EventType eventType : sswe.getEvents().getEvent()){
-                                ScheduledEvent newEvent = new ScheduledEvent(eventType);
-                                scheduledEvents.add(newEvent);
-                            }
-
-                            ss.setScheduledEvents(scheduledEvents);
-                        }
-
-                        subjectList.add(ss);
-                    }
-
-                    this.studySubjectsList = subjectList;
-                }
-            }
-
-            // Enrollment graph
-            this.reloadSitePatientEnrollmentLineModel();
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     * Selected study subject changed
-     */
-    public void selectedStudySubjectChanged() {
-        if (this.selectedStudySubject != null) {
-
-            // Prepare subject object for UI data binding
-            Subject s = new Subject();
-            s.setUniqueIdentifier(this.selectedStudySubject.getPersonID());
-            s.setGender(this.selectedStudySubject.getSex());
-            this.selectedSubject = s;
-
-            // TODO: refactor Event available for scheduling
-            this.loadSelectedSubjectDetails();
-            //this.reloadStudyEvents();
-        }
-    }
 
     /**
      * Reload view models for study partner site enrollment graphs
@@ -1288,154 +792,725 @@ public class OCStudyBean implements Serializable {
         this.siteEnrolmentGraphModel.getAxes().put(AxisType.X, xAxis);
         this.siteEnrolmentGraphModel.getAxes().put(AxisType.Y2, y2Axis);
 
-        // Only if some patients are enrolled
-        if (this.studySubjectsList != null) {
+        try {
+            // Only if some patients are enrolled
+            if (this.entityList != null) {
 
-            // These will serve as base data structures for graphs models
-            HashMap<String, Integer> sumProgress = new HashMap<>();
-            HashMap<String, Integer> monthlyProgress = new HashMap<>();
+                // These will serve as base data structures for graphs models
+                HashMap<String, Integer> sumProgress = new HashMap<>();
+                HashMap<String, Integer> monthlyProgress = new HashMap<>();
 
-            // Initialise hash maps for
-            for (StudySubject ss : this.studySubjectsList) {
+                // Initialise hash maps for
+                for (de.dktk.dd.rpb.core.domain.edc.StudySubject ss : this.entityList) {
 
-                // Sum enrollment report
-                if (sumProgress.get(ss.getDateOfRegistration().getYear() + "-" + String.format("%02d", ss.getDateOfRegistration().getMonth())) != null) {
-                    Integer value = sumProgress.get(ss.getDateOfRegistration().getYear() + "-" +
-                            String.format("%02d", ss.getDateOfRegistration().getMonth()));
-                    sumProgress.put(ss.getDateOfRegistration().getYear() + "-" +
-                            String.format("%02d", ss.getDateOfRegistration().getMonth()), value + 1);
+                    GregorianCalendar c = new GregorianCalendar();
+                    c.setTime(ss.getDateEnrollment());
+                    XMLGregorianCalendar cXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+
+                    // Sum enrollment report
+                    if (sumProgress.get(cXML.getYear() + "-" + String.format("%02d", cXML.getMonth())) != null) {
+                        Integer value = sumProgress.get(cXML.getYear() + "-" +
+                                String.format("%02d", cXML.getMonth()));
+                        sumProgress.put(cXML.getYear() + "-" +
+                                String.format("%02d", cXML.getMonth()), value + 1);
+                    } else {
+                        sumProgress.put(cXML.getYear() + "-" +
+                                String.format("%02d", cXML.getMonth()), 1);
+                    }
+
+                    // Monthly enrollment report
+                    if (monthlyProgress.get(cXML.getYear() + "-" + String.format("%02d", cXML.getMonth())) != null) {
+                        Integer value = monthlyProgress.get(cXML.getYear() + "-" +
+                                String.format("%02d", cXML.getMonth()));
+                        monthlyProgress.put(cXML.getYear() + "-" +
+                                String.format("%02d", cXML.getMonth()), value + 1);
+                    } else {
+                        monthlyProgress.put(cXML.getYear() + "-" +
+                                String.format("%02d", cXML.getMonth()), 1);
+                    }
                 }
-                else {
-                    sumProgress.put(ss.getDateOfRegistration().getYear() + "-" +
-                            String.format("%02d", ss.getDateOfRegistration().getMonth()), 1);
-                }
 
-                // Monthly enrollment report
-                if (monthlyProgress.get(ss.getDateOfRegistration().getYear() + "-" + String.format("%02d", ss.getDateOfRegistration().getMonth())) != null) {
-                    Integer value = monthlyProgress.get(ss.getDateOfRegistration().getYear() + "-" +
-                            String.format("%02d", ss.getDateOfRegistration().getMonth()));
-                    monthlyProgress.put(ss.getDateOfRegistration().getYear() + "-" +
-                            String.format("%02d", ss.getDateOfRegistration().getMonth()), value + 1);
-                }
-                else {
-                    monthlyProgress.put(ss.getDateOfRegistration().getYear() + "-" +
-                            String.format("%02d", ss.getDateOfRegistration().getMonth()), 1);
-                }
-            }
+                // Sort monthly by key
+                TreeMap<String, Integer> sortedMonthly = new TreeMap<>(monthlyProgress);
 
-            // Sort monthly by key
-            TreeMap<String, Integer> sortedMonthly = new TreeMap<>(monthlyProgress);
+                if (!sortedMonthly.isEmpty()) {
+                    int countingYear = Integer.parseInt(sortedMonthly.firstKey().substring(0, 4));
+                    int countingMonth = Integer.parseInt(sortedMonthly.firstKey().substring(5, 7));
+                    for (String key : sortedMonthly.keySet()) {
 
-            if (!sortedMonthly.isEmpty()) {
-                int countingYear = Integer.parseInt(sortedMonthly.firstKey().substring(0, 4));
-                int countingMonth = Integer.parseInt(sortedMonthly.firstKey().substring(5, 7));
-                for (String key : sortedMonthly.keySet()) {
+                        // Current year-month bar
+                        int year = Integer.parseInt(key.substring(0, 4));
+                        int month = Integer.parseInt(key.substring(5, 7));
 
-                    // Current year-month bar
-                    int year = Integer.parseInt(key.substring(0, 4));
-                    int month = Integer.parseInt(key.substring(5, 7));
+                        // If there is a gap in recruitment
+                        if (year > countingYear || month < countingMonth) {
 
-                    // If there is a gap in recruitment
-                    if (year > countingYear || month < countingMonth) {
+                            // Fill the gap for missing years
+                            for (int i = countingYear; i < year; i++) {
+                                // Fill the gap in recruitment until the end of year with zero bars
+                                for (int j = countingMonth; j <= 12; j++) {
+                                    series1.set(i + "-" + String.format("%02d", j), 0);
+                                }
 
-                        // Fill the gap for missing years
-                        for (int i = countingYear; i < year; i++) {
-                            // Fill the gap in recruitment until the end of year with zero bars
-                            for (int j = countingMonth; j <= 12; j++) {
-                                series1.set(i + "-" + String.format("%02d", j), 0);
+                                countingMonth = 1;
                             }
 
-                            countingMonth = 1;
-                        }
+                            countingYear = year;
 
-                        countingYear = year;
-
-                        // Fill the gap for missing months with zero bars
-                        for (int i = countingMonth; i < month; i++) {
-                            series1.set(year + "-" + String.format("%02d", i), 0);
-                        }
-
-                        countingMonth = month;
-                    }
-                    // Gab is within a same year
-                    else if (year == countingYear) {
-                        if (month > countingMonth) {
-                            // Fill the gap in recruitment with zero bars
+                            // Fill the gap for missing months with zero bars
                             for (int i = countingMonth; i < month; i++) {
                                 series1.set(year + "-" + String.format("%02d", i), 0);
                             }
 
                             countingMonth = month;
                         }
+                        // Gab is within a same year
+                        else if (year == countingYear) {
+                            if (month > countingMonth) {
+                                // Fill the gap in recruitment with zero bars
+                                for (int i = countingMonth; i < month; i++) {
+                                    series1.set(year + "-" + String.format("%02d", i), 0);
+                                }
+
+                                countingMonth = month;
+                            }
+                        }
+
+                        // And always create the current recruitment bar
+                        series1.set(key, monthlyProgress.get(key));
+
+                        // Setup what should be the following year-month key
+                        if (countingMonth == 12) {
+                            countingMonth = 1;
+                            countingYear += 1;
+                        } else {
+                            countingMonth += 1;
+                            countingYear = year;
+                        }
                     }
 
-                    // And always create the current recruitment bar
-                    series1.set(key, monthlyProgress.get(key));
+                    // Scale for X axis
+                    xAxis.setMin(sortedMonthly.firstKey());
+                    xAxis.setMax(sortedMonthly.lastKey());
+                }
 
-                    // Setup what should be the following year-month key
-                    if (countingMonth == 12) {
-                        countingMonth = 1;
-                        countingYear += 1;
+                // Sort sum be key
+                TreeMap<String, Integer> sortedSum = new TreeMap<>(sumProgress);
+
+                if (!sortedSum.isEmpty()) {
+                    int sum = 0;
+                    for (String key : sortedSum.keySet()) {
+                        sum += sortedSum.get(key);
+                        series2.set(key, sum);
+                    }
+                }
+
+                this.siteEnrolmentGraphModel.addSeries(series1);
+                this.siteEnrolmentGraphModel.addSeries(series2);
+            }
+        } catch (Exception err) {
+            this.messageUtil.error(err);
+        }
+    }
+
+    public void onStudySubjectIdChange() {
+        // Only apply this pseudonym generation strategy when PID generator is not used and PID is required
+        if (!this.usePidGenerator &&
+                this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.REQUIRED)) {
+
+            if (this.newSubject != null) {
+                this.newSubject.generateUniqueIdentifier(
+                        this.rpbStudy,
+                        this.mainBean.getMyAccount().getPartnerSite()
+                );
+            }
+        }
+    }
+
+    /**
+     * Listener verifies that the secondary identifier has the CCP identifier-prefix
+     * if the CCP flag is true which indicates that the secondary identifier is used for the CCP identifier
+     */
+    public void onCcpIdentifierChange() {
+        // skip adding a prefix for the CCP for now
+//        if (this.hasCcpFlag() && this.newSubject.getSecondaryId() != null) {
+//            // Id is empty
+//            if (this.newSubject.getSecondaryId().isEmpty()) {
+//                return;
+//            }
+//
+//            String updatedSecondaryId = this.getCcpIdentifier(this.newSubject.getSecondaryId());
+//            this.newSubject.setSecondaryId(updatedSecondaryId);
+//        }
+    }
+
+    /**
+     * Reload study subject registered for selected study/site from OC using web service
+     */
+    public void reloadStudySubjects() {
+        try {
+            // Study was selected
+            if (this.selectedStudy != null) {
+
+                // Setup EDC study as query parameter
+                de.dktk.dd.rpb.core.domain.edc.Study edcStudy = this.createEdcStudyQuery();
+                this.entityList = this.studyIntegrationFacade.loadStudySubjects(edcStudy);
+            }
+
+            // Enrollment graph
+            this.reloadSitePatientEnrollmentLineModel();
+
+        } catch (Exception err) {
+
+            this.messageUtil.error(err);
+        }
+    }
+
+    /**
+     * Reset new study subject attributes (also with generated PID withing Subject entity)
+     */
+    public void resetNewStudySubject() {
+        if (this.newSubject != null) {
+            this.newSubject.initDefaultValues();
+            Person dummyPerson = new Person();
+            this.newSubject.setPerson(dummyPerson);
+        }
+
+        // Reset the autocomplete component
+        this.selectedStudySubject = null;
+    }
+
+    /**
+     * OnClose newSubjectDialog
+     */
+    public void onCloseNewSubjectDialog() {
+        resetNewStudySubject();
+        this.selectedStudySubject = null;
+    }
+
+    public void loadSelectedSubjectDetails() {
+
+        // Only load details if new subject is selected
+        if (this.rpbSelectedStudySubject == null ||
+                this.selectedEntity != null && !this.rpbSelectedStudySubject.getStudySubjectId().equals(this.selectedEntity.getStudySubjectId())) {
+
+            // Reset
+            this.rpbSelectedStudySubject = null;
+
+            // Clear loaded collections
+            this.resetSubjectEvents();
+
+            try {
+                // Setup EDC study as query parameter - because active study may be different
+                de.dktk.dd.rpb.core.domain.edc.Study edcStudy = this.createEdcStudyQuery();
+                this.rpbSelectedStudySubject = this.studyIntegrationFacade.loadStudySubjectWithEvents(
+                        edcStudy,
+                        this.selectedEntity.getStudySubjectId()
+                );
+            } catch (Exception err) {
+                this.messageUtil.error(err);
+            }
+        }
+    }
+
+    /**
+     * Selected study site changed
+     */
+    public void selectedStudySiteChanged() {
+        this.reloadStudySubjects();
+    }
+
+    public boolean canEnrollIntoSelectedTreatmentArm() {
+        // Check whether enrollment is possible (enrollment rules)
+        if (this.rpbStudy != null && this.rpbStudy.getIsEnrollmentArmAssignmentRequired() != null &&
+                this.rpbStudy.getIsEnrollmentArmAssignmentRequired()) {
+            if (this.getNewSubject().getArm() == null) {
+                return false;
+            } else if (this.getNewSubject().getArm().getIsEnabled() == null ||
+                    !this.getNewSubject().getArm().getIsEnabled()) {
+                FacesContext.getCurrentInstance().validationFailed();
+                this.messageUtil.warningText("Subject assignment to selected treatment arm is disabled.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Enrolls a new subject to EDC
+     *
+     * @throws IOException
+     * @throws MissingPropertyException
+     */
+    public void handleNewSubjectDialogSubmit() throws IOException, MissingPropertyException {
+
+        // TODO: Bridge head approach is on hold
+//        if (this.enumPidGenerationStrategy == EnumPidGenerationStrategy.BRIDGEHEAD_PID_GENERATOR) {
+//            this.createStudySubjectWithCcpRedirect();
+//        } else {
+//            System.out.println(this.newSubject.getSecondaryId());
+//
+//        }
+//        if (this.hasCcpFlag() && this.newSubject.getSecondaryId() != null && !this.newSubject.getSecondaryId().isEmpty()) {
+//            String updatedSecondaryId = this.getCcpIdentifier(this.newSubject.getSecondaryId());
+//            this.newSubject.setSecondaryId(updatedSecondaryId);
+//        }
+
+        this.createNewStudySubject();
+    }
+
+    /**
+     * Updates the subject data in the EDC system
+     */
+    public void handleSubjectUpdate() throws DataBaseItemNotFoundException {
+        int updatedRows = 0;
+
+        if (this.rpbSelectedStudySubject.getSecondaryId() != null && !this.rpbSelectedStudySubject.getSecondaryId().isEmpty()) {
+            // skip adding a CCP prefix
+//            String updatedSecondaryId = this.getCcpIdentifier(this.rpbSelectedStudySubject.getSecondaryId());
+//            this.rpbSelectedStudySubject.setSecondaryId(updatedSecondaryId);
+
+            String ocUserName = this.mainBean.getMyAccount().getOcUsername();
+            updatedRows = this.mainBean.getOpenClinicaDataRepository().setSecondaryIdOnExistingStudySubject(
+                    this.rpbSelectedStudySubject, ocUserName);
+        }
+
+        if (updatedRows == 0) {
+            this.messageUtil.warning("No item updated!");
+        } else {
+            this.messageUtil.info("StudySubject updated!");
+        }
+        // reload data for the UI
+        this.reloadStudySubjects();
+    }
+
+//    public void handleNewCcPPseudonymSubmit() {
+//        if (this.newSubject.getSecondaryId() != null) {
+//            String updatedSecondaryId = this.getCcpIdentifier(this.newSubject.getSecondaryId());
+//            this.newSubject.setSecondaryId(updatedSecondaryId);
+//        }
+//
+//        // default setting - back to the first tab
+//        this.newSubjectTabView.setActiveIndex(0);
+//        RequestContext.getCurrentInstance().update("newSubjectFormTabView");
+//    }
+
+    /**
+     * Adds the prefix to the CCP identifier if it is not already part of the identifier
+     *
+     * @param identifier
+     * @return String identifier with prefix
+     */
+    public String getCcpIdentifier(String identifier) {
+        String edcCode;
+        if (this.selectedStudy.isMulticentric()) {
+            edcCode = PatientIdentifierUtil.getPatientIdPrefix(this.selectedStudy.getSiteName());
+        } else {
+            edcCode = this.mainBean.getMyAccount().getPartnerSite().getIdentifier();
+        }
+
+        String prefix = edcCode + Constants.CCP_PREFIX_PART;
+        String candidatePrefix = PatientIdentifierUtil.getPatientIdPrefix(identifier);
+        if (prefix.equals(candidatePrefix)) {
+            return identifier;
+        } else {
+            return prefix + Constants.RPB_IDENTIFIERSEP + identifier;
+        }
+    }
+
+    /**
+     * Returns a list of subjects that match the query string and an empty array if the String does not match.
+     * Thereby the Pid and the StudySubject identifier are compared.
+     *
+     * @param studySubjectIdQuery String query
+     * @return List of Subjects
+     */
+    public List<de.dktk.dd.rpb.core.domain.edc.StudySubject> filterMatchingStudyZeroSubjects(String studySubjectIdQuery) {
+        List<de.dktk.dd.rpb.core.domain.edc.StudySubject> resultList = new ArrayList<>();
+
+        if (this.studyZeroStudySubjectList == null) {
+            this.studyZeroStudySubjectList = this.mainBean.getOpenClinicaDataRepository()
+                    .findStudySubjectsByStudy(Constants.study0Identifier);
+        }
+
+
+        for (de.dktk.dd.rpb.core.domain.edc.StudySubject subject : this.studyZeroStudySubjectList) {
+            if (subject.getStudySubjectId() != null && subject.getPid() != null) {
+                String studySubjectId = subject.getStudySubjectId();
+                String pid = subject.getPid();
+                if (studySubjectId.contains(studySubjectIdQuery)) {
+                    resultList.add(subject);
+                } else if (pid.contains(studySubjectIdQuery)) {
+                    resultList.add(subject);
+                }
+            }
+        }
+        return resultList;
+    }
+
+    /**
+     * List of StudySubjects if a study zero exists for the site
+     *
+     * @return
+     */
+    public List<de.dktk.dd.rpb.core.domain.edc.StudySubject> getStudyZeroStudySubjectLists() {
+        return this.studyZeroStudySubjectList;
+    }
+
+    /**
+     * Re-identification of the patient based on the Pid
+     */
+    public void identifySelectedPatient() {
+        String uniqueIdentifier = this.selectedStudySubject.getPid();
+        if (uniqueIdentifier.isEmpty()) {
+            this.messageUtil.warning("Pid is empty");
+            return;
+        }
+
+        this.newSubject.setUniqueIdentifier(uniqueIdentifier);
+        Person person = getIdentity(uniqueIdentifier);
+
+        if (person != null) {
+            this.newSubject.setPerson(person);
+            this.newSubject.setGender(this.selectedStudySubject.getSex());
+        }
+    }
+
+    /**
+     * Create a new study subject in OC using web service
+     */
+    public void createNewStudySubject() {
+        try {
+            // Check whether enrollment is possible (enrollment rules)
+            if (this.rpbStudy != null && this.rpbStudy.getIsEnrollmentArmAssignmentRequired() != null &&
+                    this.rpbStudy.getIsEnrollmentArmAssignmentRequired()) {
+
+                if (this.getNewSubject().getArm() == null) {
+                    throw new Exception("Enrollment arm assignment is required!");
+                } else {
+                    if (!this.getNewSubject().getArm().getIsEnabled()) {
+                        throw new Exception("Subject assignment to selected treatment arm is disabled.");
+                    }
+                }
+            }
+
+            // skip adding prefixes to CCP for now
+//            if (this.newSubject.getSecondaryId() != null && !this.newSubject.getSecondaryId().isEmpty()) {
+//                String updatedSecondaryId = this.getCcpIdentifier(this.newSubject.getSecondaryId());
+//                this.newSubject.setSecondaryId(updatedSecondaryId);
+//            }
+
+            // Prepare SOAP StudySubject from Subject data
+            StudySubject studySubject = new StudySubject();
+
+            // Whether StudySubjectID is provided depends on study configuration
+            if (this.studyConfiguration.getStudySubjectIdGeneration() != null) {
+
+                // Auto
+                if (this.studyConfiguration.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.AUTO)) {
+                    studySubject.setStudySubjectLabel(""); // Event if auto I have to provide at least empty string
+                }
+                // Manual
+                else if (this.studyConfiguration.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.MANUAL)) {
+
+                    // Manually entered StudySubjectID should never be number, because it hinders the automatic StudySubjectID generation
+                    if (NumberUtils.isNumber(this.getNewSubject().getStudySubjectId())) {
+                        throw new Exception("Number is not allowed for manually entered StudySubjectID!");
                     } else {
-                        countingMonth += 1;
-                        countingYear = year;
+                        studySubject.setStudySubjectLabel(
+                                this.getNewSubject().getStudySubjectId()
+                        );
                     }
                 }
-
-                // Scale for X axis
-                xAxis.setMin(sortedMonthly.firstKey());
-                xAxis.setMax(sortedMonthly.lastKey());
+            }
+            // Could not read this information from parameters, use empty string because something is required
+            else {
+                studySubject.setStudySubjectLabel("");
             }
 
-            // Sort sum be key
-            TreeMap<String, Integer> sortedSum = new TreeMap<>(sumProgress);
+            // When PID is required
+            if (this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.REQUIRED)) {
 
-            if (!sortedSum.isEmpty()) {
-                int sum = 0;
-                for (String key : sortedSum.keySet()) {
-                    sum += sortedSum.get(key);
-                    series2.set(key, sum);
+                boolean autoGeneratedStudySubjectId = this.studyConfiguration.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.AUTO_NONEDITABLE);
+                if (this.newSubject.getUniqueIdentifier() != null && autoGeneratedStudySubjectId) {
+                    this.newSubject.setUniqueIdentifier("tmp-" + UUID.randomUUID().toString());
+                }
+
+                // Determine whether subject has PID assigned
+                if (this.getNewSubject().getUniqueIdentifier() == null ||
+                        this.getNewSubject().getUniqueIdentifier().equals("")) {
+
+                    throw new Exception("Patient PID (pseudonym) should not be empty!");
+                }
+
+                // Use partner site prefix and pure PID to create cross site unique Person ID
+                if (this.usePidGenerator && !autoGeneratedStudySubjectId) {
+                    studySubject.setPersonID(
+                            this.mainBean.constructMySubjectFullPid(
+                                    this.getNewSubject().getUniqueIdentifier()
+                            )
+                    );
+                }
+                // Use manually assigned PID
+                else {
+                    studySubject.setPersonID(
+                            this.getNewSubject().getUniqueIdentifier()
+                    );
+                }
+            } else if (this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.OPTIONAL)) {
+
+                // Determine whether subject has PID assigned
+                if (this.getNewSubject().getUniqueIdentifier() != null &&
+                        !this.getNewSubject().getUniqueIdentifier().equals("")) {
+
+                    // Use partner site prefix and pure PID to create cross site unique Person ID
+                    if (this.usePidGenerator) {
+                        studySubject.setPersonID(
+                                this.mainBean.constructMySubjectFullPid(
+                                        this.getNewSubject().getUniqueIdentifier()
+                                )
+                        );
+                    }
+                    // Use manually assigned PID
+                    else {
+                        studySubject.setPersonID(
+                                this.getNewSubject().getUniqueIdentifier()
+                        );
+                    }
                 }
             }
 
-            this.siteEnrolmentGraphModel.addSeries(series1);
-            this.siteEnrolmentGraphModel.addSeries(series2);
+            // If secondary ID is provided use it
+            if (this.getNewSubject().getSecondaryId() != null && !this.getNewSubject().getSecondaryId().equals("")) {
+                studySubject.setStudySubjectSecondaryLabel(this.getNewSubject().getSecondaryId());
+            }
+
+            if (this.selectedStudy != null) {
+                studySubject.setStudy(this.selectedStudy);
+            } else {
+                throw new Exception("Study site has to be selected!");
+            }
+
+            // Gender is always required (there is a bug in OC web service)
+            studySubject.setSex(this.getNewSubject().getGender());
+
+            // Calendar
+            GregorianCalendar c = new GregorianCalendar();
+
+            // Whether day of birth will be collected for subject depend on study configuration
+            if (this.studyConfiguration.getCollectSubjectDob().equals(EnumCollectSubjectDob.YES)) {
+                c.setTime(this.getNewSubject().getPerson().getBirthdate());
+                XMLGregorianCalendar birthDateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+                studySubject.setDateOfBirth(birthDateXML);
+            } else if (this.studyConfiguration.getCollectSubjectDob().equals(EnumCollectSubjectDob.ONLY_YEAR)) {
+                c.setTime(this.getNewSubject().getPerson().getBirthdate());
+                XMLGregorianCalendar birthDateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+                studySubject.setYearOfBirth(new BigInteger(String.valueOf(birthDateXML.getYear())));
+            }
+
+            // Always collect enrollment date for subject
+            studySubject.setDateOfRegistration(this.getNewSubject().getEnrollmentDate());
+
+            // Enroll subject into EDC study
+            String ssid = this.mainBean.getOpenClinicaService().createNewStudySubject(studySubject);
+
+            if (ssid != null) {
+                studySubject.setStudySubjectLabel(ssid);
+
+                if (portalRunsOnSamePartnerSide()) {
+                    this.updateCtpLookupTable(studySubject, ssid);
+                } else {
+                    log.debug("Most likely, the portal does not run within the same side as the study. " +
+                            "Since we invoke a service that is bound to the specific location, " +
+                            "please trigger an update of the overall list on the portal that is located on this side." +
+                            " As an admin you can find this functionality under /admin/ctms/edcStudyCRUD.faces");
+                }
+
+                boolean studySubjectIdIsAutoNonEditable = this.studyConfiguration.getStudySubjectIdGeneration().equals(EnumStudySubjectIdGeneration.AUTO_NONEDITABLE);
+                boolean pidUsed = !this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.NOT_USED);
+                if (studySubjectIdIsAutoNonEditable && pidUsed) {
+
+                    this.reloadStudySubjects();
+                    de.dktk.dd.rpb.core.domain.edc.StudySubject edcSubject = getStudySubjectFromEntityList(ssid);
+
+                    this.newSubject.setStudySubjectId(ssid);
+
+                    PartnerSite rpbPartnerSite = new PartnerSite();
+                    rpbPartnerSite.setIdentifier(this.getSideIdentifierPrefix());
+                    this.newSubject.generateUniqueIdentifier(this.rpbStudy, rpbPartnerSite);
+
+                    String updatedPid = this.newSubject.getUniqueIdentifier();
+                    studySubject.setPersonID(updatedPid);
+
+
+                    try {
+                        updatePidOnExistingEdcSubject(edcSubject, updatedPid);
+                    } catch (DataBaseItemNotFoundException e) {
+                        this.messageUtil.error("Updating the Pid for the new created subject in the EDC system failed.", e);
+                    }
+
+                }
+
+                String studyIdentifier = this.selectedStudy.getStudyIdentifier();
+                this.auditLogService.event(
+                        AuditEvent.EDCStudySubjectEnrollment,
+                        studySubject.getPersonID(), // PID
+                        studyIdentifier, // Study
+                        ssid // SSID
+                );
+                this.messageUtil.infoText("Study Subject: " + ssid + " successfully created.");
+                this.reloadStudySubjects();
+            } else {
+                throw new Exception("EDC web-service could not create a new study subject.");
+            }
+
+            // Prepare data structure for the new study subject object binding
+            Person person = new Person();
+            this.newSubject = new Subject();
+            this.newSubject.setPerson(person);
+            this.isSure = true;
+        } catch (Exception err) {
+            FacesContext.getCurrentInstance().validationFailed();
+            this.messageUtil.error(err);
         }
     }
 
-    /**
-     * Need to build an initial sort order for data table multi sort
-     * @return list of sort meta elements for data table sorting
-     */
-    private List<SortMeta> buildSubjectsSortOrder() {
-        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtStudySubjects:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
-        if (results != null) {
-            return results;
+    private de.dktk.dd.rpb.core.domain.edc.StudySubject getStudySubjectFromEntityList(String ssid) {
+        de.dktk.dd.rpb.core.domain.edc.StudySubject edcSubject = null;
+        for (de.dktk.dd.rpb.core.domain.edc.StudySubject updatedSubject : this.entityList) {
+            if (updatedSubject.getStudySubjectId().equals(ssid)) {
+                edcSubject = updatedSubject;
+            }
         }
-
-        return new ArrayList<>();
+        return edcSubject;
     }
 
-    /**
-     * Create column visibility list
-     * @return List of Boolean values determining column visibility
-     */
-    private List<Boolean> buildSubjectsVisibilityList() {
-        List<Boolean> results = new ArrayList<>();
+    private void updatePidOnExistingEdcSubject(de.dktk.dd.rpb.core.domain.edc.StudySubject edcSubject, String updatedPid) throws DataBaseItemNotFoundException {
+        String ocUserName = this.mainBean.getMyAccount().getOcUsername();
+        if (edcSubject != null) {
+            edcSubject.setPid(updatedPid);
+        }
+        this.mainBean.getOpenClinicaDataRepository().setPidOnExistingStudySubject(edcSubject, ocUserName);
+    }
 
-        results.add(Boolean.TRUE); // StudySubjectID
-        results.add(Boolean.TRUE); // PID
-        results.add(Boolean.FALSE); // Secondary ID
-        results.add(Boolean.TRUE); // Gender
-        results.add(Boolean.FALSE); // Date of Birth
-        results.add(Boolean.TRUE); // Enrollment date
+    private boolean portalRunsOnSamePartnerSide() {
+        String partnerSideIdentifierPortal = this.messageUtil.getResourcesUtil().getProperty("partner_site_identifier");
 
-        return results;
+        if (partnerSideIdentifierPortal == null || partnerSideIdentifierPortal.isEmpty()) {
+            log.debug("The partner side identifier should never be null or empty.");
+            return false;
+        }
+
+        String studySideIdentifierPrefix = getSideIdentifierPrefix();
+
+        return partnerSideIdentifierPortal.equals(studySideIdentifierPrefix);
+    }
+
+    private String getSideIdentifierPrefix() {
+        String studySideIdentifierPrefix;
+
+        if (this.selectedStudy.isMulticentric()) {
+            //multi centric study
+            String siteIdentifier = this.selectedStudy.getSiteName();
+            studySideIdentifierPrefix = PatientIdentifierUtil.getPatientIdPrefix(siteIdentifier);
+        } else {
+            //mono centric study
+            studySideIdentifierPrefix = this.rpbStudy.getPartnerSite().getIdentifier();
+        }
+        return studySideIdentifierPrefix;
+    }
+
+    private void updateCtpLookupTable(StudySubject studySubject, String ssid) {
+        try {
+            String edcCode = this.rpbStudy.getTagValue("EDC-code");
+
+            de.dktk.dd.rpb.core.domain.edc.StudySubject edcSubject = new de.dktk.dd.rpb.core.domain.edc.StudySubject();
+            edcSubject.setPid(studySubject.getPersonID());
+            edcSubject.setStudySubjectId(ssid);
+
+            this.svcCtp.updateSubjectLookupEntry(edcCode, edcSubject);
+        } catch (Exception e) {
+            log.error("Problem updating CTP entry " + "ssid: " + ssid, e);
+        }
+    }
+
+    //TODO: we can remove it if the CCP does not support this approach
+    public void createStudySubjectWithCcpRedirect() throws IOException, MissingPropertyException {
+        String callbackParameters = createCallbackParameterStringForNewPatientRedirect();
+
+        if (this.rpbLiteUrl == null || this.rpbLiteUrl.isEmpty()) {
+            throw new MissingPropertyException("rpb.lite.url parameter is missing or empty. " +
+                    "Please provide a valid URL with the format \"https://host:port\"");
+        }
+
+        UriComponents uriComponents = getUriComponentsForNewPatientCcpRedirect(callbackParameters);
+
+        if (uriComponents.getScheme().equalsIgnoreCase("http")) {
+            messageUtil.warning("You are using http for your request. " +
+                    "Please consider using https for better security and privacy.");
+        }
+
+        ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
+        externalContext.redirect(uriComponents.toUriString());
+    }
+
+    public void redirectToCcpIdentityManager() throws IOException {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
+
+        UriComponents uriComponents = UriComponentsBuilder
+                .fromUriString("http://carusnet.med.tu-dresden.de")
+                .build()
+                .encode();
+
+        ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
+        externalContext.redirect(uriComponents.toUriString());
     }
 
     //endregion
 
     //region Patient
+
+    private UriComponents getUriComponentsForNewPatientCcpRedirect(String callbackParameters) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
+
+        return UriComponentsBuilder
+                .fromUriString(this.rpbLiteUrl)
+                .path("/patient/new")
+                .queryParam("study", this.selectedStudy.getStudyIdentifier())
+                .queryParam("site", this.selectedStudy.getSiteName())
+                .queryParam("subject_id", this.newSubject.getStudySubjectId())
+                .queryParam("second_subject_id", this.newSubject.getSecondaryId())
+                .queryParam("enrollment_date", this.newSubject.getEnrollmentDateString())
+                .queryParam("enrollment_arm", (this.newSubject.getArm() != null) ? this.newSubject.getArm().getId() : "")
+                .queryParam("birth_date", newSubject.getPerson().getBirthdateString())
+                .queryParam("gender", this.newSubject.getGender())
+                .queryParam("callback_parameters", callbackParameters)
+                .build()
+                .encode();
+    }
+
+    private String createCallbackParameterStringForNewPatientRedirect() {
+        String callbackParameters = "";
+
+        if (this.studyConfiguration.getSexRequired()) {
+            callbackParameters = ",gender";
+        }
+
+        EnumCollectSubjectDob collectBirthdate = this.studyConfiguration.getCollectSubjectDob();
+        if (collectBirthdate == EnumCollectSubjectDob.YES) {
+            callbackParameters += ",birth_date";
+        }
+        if (collectBirthdate == EnumCollectSubjectDob.ONLY_YEAR) {
+            callbackParameters += ",birth_year";
+        }
+
+        if (!callbackParameters.isEmpty()) {
+            // remove leading comma
+            callbackParameters = callbackParameters.substring(1);
+        }
+        return callbackParameters;
+    }
 
     /**
      * Use patient personal information to generate pseudonym PID
@@ -1482,8 +1557,7 @@ public class OCStudyBean implements Serializable {
 
             // Delete session if it exists (however session cleanup can be also automaticaly done by Mainzelliste)
             this.mainBean.getSvcPid().deleteSession(sessionId);
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
 
             // Unsure patient
@@ -1503,8 +1577,8 @@ public class OCStudyBean implements Serializable {
     public void getPersonalInformation() {
         try {
             // Pure PID (without partner site identifier)
-            String pid = this.mainBean.extractMySubjectPurePid(
-                this.selectedStudySubject.getPersonID()
+            String pid = PatientIdentifierUtil.removePatientIdPrefix(
+                    this.selectedEntity.getPid()
             );
 
             // Fetch IDAT
@@ -1513,25 +1587,26 @@ public class OCStudyBean implements Serializable {
 
             this.auditLogService.event(AuditEvent.PIDDepseudonymisation, pid);
             this.messageUtil.infoText("Patient identity data for " + pid + " loaded.");
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
             this.messageUtil.error(err);
         }
     }
 
-    //TODO: need to change the view model to work with RPB StudySubject that can hold the reference to person
-    public void depseudonymiseAllPids() {
+    private Person getIdentity(String uniqueIdentifier) {
+        String pid = PatientIdentifierUtil.removePatientIdPrefix(uniqueIdentifier);
+        // Fetch IDAT
+        Person patient = null;
         try {
-//            List<Person> pseudonymisedPatients = this.mainBean.getSvcPid().getAllPatientPIDs();
-//            this.entityList = this.mainBean.getSvcPid().getPatientListByPIDs(pseudonymisedPatients);
-//
-//            this.auditLogService.event(AuditEvent.PIDDepseudonymisation, "All PIDs");
-//            this.messageUtil.infoText("Patient identity data for " + entityList.size() + " pseudonyms loaded.");
+            patient = this.mainBean.getSvcPid().loadPatient(pid);
+            this.auditLogService.event(AuditEvent.PIDDepseudonymisation, pid);
+            this.messageUtil.infoText("Patient identity data for " + pid + " loaded.");
+        } catch (Exception e) {
+            this.messageUtil.error(e);
         }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
+        return patient;
+
     }
+
 
     //endregion
 
@@ -1541,128 +1616,34 @@ public class OCStudyBean implements Serializable {
         this.selectedEventData = null;
     }
 
-    public void loadSelectedSubjectDetails() {
-
-        // Only load details if new subject is selected
-        if (this.rpbSelectedStudySubject == null ||
-            this.selectedStudySubject != null && !this.rpbSelectedStudySubject.getStudySubjectId().equals(this.selectedStudySubject.getStudySubjectLabel())) {
-
-            // Reset
-            this.rpbSelectedStudySubject = null;
-
-            // Clear loaded collections
-            this.resetSubjectEvents();
-            //this.resetSubjectCrfs();
-
-            try {
-                // Load ODM resource for selected study subject
-                String soid = this.selectedStudy.getSiteOID() != null ? this.selectedStudy.getSiteOID() : this.selectedStudy.getStudyOID();
-                String queryOdmXmlPath = soid + "/" + this.selectedStudySubject.getStudySubjectLabel() + "/*/*";
-                if (this.mainBean.getEngineOpenClinicaService() != null) {
-
-                    Odm selectedStudySubjectOdm = this.mainBean.getEngineOpenClinicaService().getStudyCasebookOdm(
-                            OpenClinicaService.CasebookFormat.XML,
-                            OpenClinicaService.CasebookMethod.VIEW,
-                            queryOdmXmlPath
-                    );
-
-                    // Crate Defs from Refs
-                    selectedStudySubjectOdm.updateHierarchy();
-
-                    // Replace selected SOAP subject with REST subject that has clinical data
-                    this.rpbSelectedStudySubject = selectedStudySubjectOdm.findUniqueStudySubjectOrNone(
-                            this.selectedStudySubject.getStudySubjectLabel()
-                    );
-
-                    // Link clinical data with definitions from ODM
-                    this.rpbSelectedStudySubject.linkOdmDefinitions(selectedStudySubjectOdm);
-                }
-                else {
-                    this.messageUtil.warning("RPB iengine EDC service is not initiated (most likely iengine user does not exist).");
-                }
-            }
-            catch (Exception err) {
-                this.messageUtil.error(err);
-            }
-        }
-    }
-
-    public void reloadStudyEvents() {
+    public void updateStudyEvent() {
         try {
-            List<Event> eventDefinitions = null;
-            this.eventList = new ArrayList<>();
+            // Update OC database
+            boolean modified = this.mainBean.getOpenClinicaDataRepository().swapEventDataOrder(
+                    this.rpbSelectedStudySubject,
+                    this.selectedEventData,
+                    this.originalEventRepeatKey
+            );
 
-            // Load event definitions according to study setup
-            if (this.mainBean.getOpenClinicaService() != null && this.selectedStudy != null) {
-                eventDefinitions = this.mainBean
-                        .getOpenClinicaService()
-                        .listAllEventDefinitionsByStudy(
-                                this.selectedStudy
-                        );
-            }
-
-            // Use only not scheduled events and scheduled repeating events
-            if (eventDefinitions != null) {
-                for (Event e : eventDefinitions) {
-                    boolean isScheduled = false;
-
-                    for (ScheduledEvent se : this.selectedStudySubject.getScheduledEvents()) {
-                        if (se.getEventOID().equals(e.getEventOID())) {
-                            isScheduled = true;
-                            if (e.getIsRepeating()) {
-                                this.eventList.add(e);
-                            }
-                            break;
-                        }
-                    }
-
-                    if (!isScheduled){
-                        this.eventList.add(e);
-                    }
-                }
-            }
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
-    }
-
-    /**
-     * Schedule new study event occurrence for selected study subject
-     */
-    public void scheduleNewStudyEvent() {
-        try {
-            // New scheduled event for EDC
-            this.newEvent = new ScheduledEvent();
-
-            // Event OID
-            this.newEvent.setEventOID(this.selectedEvent);
-
-            // Calendar
-            GregorianCalendar c = new GregorianCalendar();
-            c.setTime(this.newEventDate);
-            XMLGregorianCalendar dateXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-            newEvent.setStartDate(dateXML);
-
-            // Schedule
-            String scheduledRepeatKey = this.mainBean.getOpenClinicaService().scheduleStudyEvent(this.selectedStudySubject, this.newEvent);
-            if (scheduledRepeatKey != null && !scheduledRepeatKey.isEmpty()) {
+            // When successful create an audit log entry
+            if (modified) {
                 this.auditLogService.event(
-                    AuditEvent.EDCStudyEventSchedule,
-                    this.newEvent.getEventOID() + "["+ scheduledRepeatKey +"]",
-                    selectedStudySubject.getStudySubjectLabel()
+                        AuditEvent.EDCDataModification,
+                        "StudyEventData",
+                        this.selectedStudyType.getOid() + "/" + this.rpbSelectedStudySubject.getSubjectKey() + "/" + this.selectedEventData.getEventDefinition().getOid(),
+                        "studyEventRepeatKey changed from [" + this.originalEventRepeatKey + "] to [" + this.selectedEventData.getStudyEventRepeatKey() + "]"
                 );
+
+                this.messageUtil.infoText("Study Event Data: successfully saved.");
+
+                // Reload
+                this.rpbSelectedStudySubject = null;
+                this.loadSelectedSubjectDetails();
+                this.selectedEventData = null;
+                this.originalEventRepeatKey = null;
             }
-
-            // Reload scheduled events
-            this.reloadStudySubjects();
-            this.selectedStudySubjectChanged();
-
-            // Reset new event
-            this.newEventDate = null;
-            this.selectedEvent = "";
-        }
-        catch (Exception err) {
+        } catch (Exception err) {
+            FacesContext.getCurrentInstance().validationFailed();
             this.messageUtil.error(err);
         }
     }
@@ -1680,40 +1661,121 @@ public class OCStudyBean implements Serializable {
         }
     }
 
-    public void updateStudyEvent() {
-        try {
-            // Update OC database
-            boolean modified = this.mainBean.getOpenClinicaDataRepository().swapEventDataOrder(
-                    this.rpbSelectedStudySubject,
-                    this.selectedEventData,
-                    this.originalEventRepeatKey
-            );
+    // region ccp
 
-            // When successful create an audit log entry
-            if (modified) {
-                this.auditLogService.event(
-                    AuditEvent.EDCDataModification,
-                    "StudyEventData",
-                    this.selectedStudyType.getOid() + "/" + this.rpbSelectedStudySubject.getSubjectKey() + "/" + this.selectedEventData.getEventDefinition().getOid(),
-                    "studyEventRepeatKey changed from [" + this.originalEventRepeatKey + "] to [" + this.selectedEventData.getStudyEventRepeatKey() + "]"
-                );
+    public String getCcpUrl() {
+        String projectId = this.getCcpCode();
+        return this.ccpIdentityManagerUrl + "?projectId=" + projectId;
+    }
 
-                this.messageUtil.infoText("Study Event Data: successfully saved.");
+    // endregion
 
-                // Reload
-                this.rpbSelectedStudySubject = null;
+    //endregion
+
+    //endregion
+
+    //region Overrides
+
+    /**
+     * Prepare new transient entity object for UI binding
+     */
+    @Override
+    public void prepareNewEntity() {
+        // NOOP
+    }
+
+    /**
+     * Get StudySubjectRepository
+     *
+     * @return StudySubjectRepository
+     */
+    @Override
+    public IStudySubjectRepository getRepository() {
+        return this.repository;
+    }
+
+    @Override
+    public void setSelectedEntity(de.dktk.dd.rpb.core.domain.edc.StudySubject selectedStudySubject) {
+
+        if (selectedStudySubject == null || !selectedStudySubject.equals(this.selectedEntity)) {
+            this.selectedEntity = selectedStudySubject;
+
+            // Prepare new Subject object for UI data binding
+            if (this.selectedEntity != null) {
+                Subject s = new Subject();
+
+                s.setUniqueIdentifier(this.selectedEntity.getPid());
+                s.setGender(this.selectedEntity.getSex());
+                this.selectedSubject = s;
+
                 this.loadSelectedSubjectDetails();
-                this.selectedEventData = null;
-                this.originalEventRepeatKey = null;
             }
-        }
-        catch (Exception err) {
-            FacesContext.getCurrentInstance().validationFailed();
-            this.messageUtil.error(err);
         }
     }
 
+    /**
+     * Need to build an initial sort order for data table multi sort
+     *
+     * @return list of sort meta elements for data table sorting
+     */
+    protected List<SortMeta> buildSortOrder() {
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtStudySubjects:colStudySubjectId", "colStudySubjectId", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Need to build an initial sort order for data table multi sort
+     *
+     * @return list of sort meta elements for data table sorting
+     */
+    private List<SortMeta> buildSitesSortOrder() {
+        List<SortMeta> results = DataTableUtil.buildSortOrder(":form:tabView:dtStudies:colSiteIdentifier", "colSiteIdentifier", SortOrder.ASCENDING);
+        if (results != null) {
+            return results;
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Create column visibility list
+     *
+     * @return List of Boolean values determining column visibility
+     */
+    private List<Boolean> buildColumnVisibilityList() {
+        List<Boolean> results = new ArrayList<>();
+
+        results.add(Boolean.TRUE); // StudySubjectID
+        results.add(Boolean.TRUE); // PID
+        results.add(Boolean.FALSE); // Secondary ID
+        results.add(Boolean.TRUE); // Gender
+        results.add(Boolean.FALSE); // Date of Birth
+        results.add(Boolean.TRUE); // Enrollment date
+
+        return results;
+    }
+
     //endregion
+
+    //region Private methods
+
+    private de.dktk.dd.rpb.core.domain.edc.Study createEdcStudyQuery() {
+        // Setup EDC study as query parameter
+        de.dktk.dd.rpb.core.domain.edc.Study edcStudy = new de.dktk.dd.rpb.core.domain.edc.Study();
+        if (this.selectedStudy != null) {
+            if (this.selectedStudy.isMulticentric()) {
+                edcStudy.setUniqueIdentifier(this.selectedStudy.getSiteName());
+            } else {
+                edcStudy.setUniqueIdentifier(this.selectedStudy.getStudyIdentifier());
+            }
+        }
+
+        return edcStudy;
+    }
 
     //endregion
 

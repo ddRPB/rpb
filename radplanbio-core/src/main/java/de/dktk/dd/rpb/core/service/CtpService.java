@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2019 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,15 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import de.dktk.dd.rpb.core.domain.edc.StudySubject;
+import de.dktk.dd.rpb.core.util.PatientIdentifierUtil;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.inject.Named;
 import java.io.InputStream;
+
+import static de.dktk.dd.rpb.core.util.Constants.study0EdcCode;
 
 /**
  * CTP (ClinicaTrialProcessor) service
@@ -109,6 +113,9 @@ public class CtpService implements ICtpService {
 
     //region StudySubject
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean updateStudySubjectPseudonym(String edcCode, String subjectIdentifier, String pid) {
         boolean result = false;
 
@@ -131,6 +138,9 @@ public class CtpService implements ICtpService {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean updateStudySubjectId(String edcCode, String subjectIdentifier, String studySubjectId) {
         boolean result = false;
 
@@ -151,6 +161,32 @@ public class CtpService implements ICtpService {
         }
 
         return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean updateSubjectLookupEntry(String edcCode, StudySubject studySubject) {
+        if (edcCode == null || edcCode.isEmpty()) {
+            log.error("There is a problem with the edcCode: " + edcCode);
+            return false;
+        }
+
+        if (studySubject == null || studySubject.getStudySubjectId().isEmpty() || studySubject.getPid().isEmpty()) {
+            log.error("There is a problem with the studySubject: " + studySubject);
+            return false;
+        }
+
+        if (edcCode.equals(study0EdcCode)) {
+            String hospitalId = PatientIdentifierUtil.removePatientIdPrefix(studySubject.getStudySubjectId());
+            String pid = studySubject.getPid();
+            return this.updateStudySubjectPseudonym(edcCode, hospitalId, pid);
+
+        } else {
+            String Ssid = studySubject.getStudySubjectId();
+            String Pid = studySubject.getPid();
+            return this.updateStudySubjectId(edcCode, Pid, Ssid);
+        }
     }
 
     //endregion

@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,13 +43,20 @@ public class FormDetails implements Serializable {
 
     //region Members
 
-    @XmlAttribute(name="FormOID")
+    @XmlAttribute(name = "FormOID")
     private String formOid;
 
-    @XmlAttribute(name="ParentFormOID")
+    @XmlAttribute(name = "ParentFormOID")
     private String parentFormOid;
 
-    @XmlElement(name="PresentInEventDefinition", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlElement(name = "VersionDescription")
+    private String versionDescription;
+
+    @XmlElement(name = "RevisionNotes")
+    private String revisionNotes;
+
+    // TODO: this should be changed to list because CRF can be used in multiple events with different settings
+    @XmlElement(name = "PresentInEventDefinition", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private PresentInEventDefinition presentInEventDefinition;
 
     //endregion
@@ -87,6 +94,15 @@ public class FormDetails implements Serializable {
     public void setPresentInEventDefinition(PresentInEventDefinition presentInEventDefinition) {
         this.presentInEventDefinition = presentInEventDefinition;
     }
+
+    public String getVersionDescription() {
+        return versionDescription;
+    }
+
+    public String getRevisionNotes() {
+        return revisionNotes;
+    }
+
 
     //endregion
 

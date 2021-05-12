@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2020 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,23 @@ package de.dktk.dd.rpb.core.domain.pacs;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlTransient;
 
+//TODO: consider merging or integrating with DicomRtStructureSet
+
 /**
  * {@inheritDoc}
  */
 public class RtStructDicomSeries extends DicomSeries {
+
+    //region Members
+
     private String structureSetLabel;
     private String structureSetDate;
     private String structureSetDescription;
     private String structureSetName;
+
+    //endregion
+
+    //region Properties
 
     public String getStructureSetName() {
         return structureSetName;
@@ -69,6 +78,8 @@ public class RtStructDicomSeries extends DicomSeries {
         this.structureSetDate = structureSetDate;
     }
 
+    //endregion
+
     /**
      * {@inheritDoc}
      */
@@ -81,16 +92,17 @@ public class RtStructDicomSeries extends DicomSeries {
 
     private String replaceEmptyDescriptionIfNecessary(String originalDescription) {
         if ("".equals(originalDescription)) {
-            if (structureSetLabel != null && !"".equals(structureSetLabel)) {
-                return structureSetLabel;
+            if (this.structureSetLabel != null && !"".equals(this.structureSetLabel)) {
+                return this.structureSetLabel;
             }
-            if (structureSetName != null && !"".equals(structureSetName)) {
-                return structureSetName;
+            if (this.structureSetName != null && !"".equals(this.structureSetName)) {
+                return this.structureSetName;
             }
-            if (structureSetDescription != null && !"".equals(structureSetDescription)) {
-                return structureSetDescription;
+            if (this.structureSetDescription != null && !"".equals(this.structureSetDescription)) {
+                return this.structureSetDescription;
             }
         }
+        
         return originalDescription;
     }
 
