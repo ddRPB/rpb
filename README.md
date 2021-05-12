@@ -1,16 +1,45 @@
-# ddRPB [![Build Status](https://travis-ci.org/ddRPB/rpb.svg?branch=master)](https://travis-ci.org/ddRPB/rpb) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/68002af0bc8f4f648873235f3e2b75e4)](https://www.codacy.com/app/toskrip/rpb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ddRPB/rpb&amp;utm_campaign=Badge_Grade)
+# ddRPB
 
-RadiationDosePlan- Image/Biomarker-Outcome-platform (RPB) is a collection of open source software systems, namely electronic data capture system (EDC - OpenClinica), medical image archive (PACS - Conquest) and patient identity management system (PIDG - Mainzelliste), which are integrated in order to deliver a core software infrastructure necessary to support translational radiotherapy research projects. It provides fundamental data management features for efficient conduction of multi-centre clinical studies. RPB alone represents integration engine that handles communication between the core components but also extends the platform about new features. RPB can be used to:
-* Manage trials with simple Clinical Trial Management System (CTMS)
-* Pseudonymise patients participating in multi-centre clinical trial
-* Randomise patients in randomised trials
-* Track patient participation across multiple studies
-* Collect medical imaging and treatment plans in DICOM format
-* Handles DICOM data de-identification and harmonisation
-* Enable patient reported outcomes (ePRO) and clinician outcome assessment (eCOA) data collection
+## Radiotherapy clinical research IT infrastructure
 
-## RPB Publications
+RadiationDosePlan- Image/Biomarker-Outcome-platform (RPB) is a collection of open source software systems integrated via portal to deliver a core software infrastructure necessary to support the operation of non-commercial trials unit.
 
-June 2015, IEEE Journal of Biomedical and Health Informatics: [10.1109/JBHI.2015.2450833](http://dx.doi.org/10.1109/JBHI.2015.2450833 "Towards Distributed Conduction of Large Scale Studies in Radiation Therapy and Oncology: open source system integration approach")
+The RPB platform is a web-based solution which supports collection and exchange of radiotherapy specific research data in large scale multi-centre clinical and pre-clinical studies. It delivers a study management and electronic data capture system with special extensions dedicated to secure upload of medical imaging and treatment plans in DICOM format. These tools allow the trial personnel to handle multi-modal data conduction activities that yield to finalised patient cohort datasets.
 
-## Getting Started
+## Platform features
+
+* Managing multi-centre clinical trials
+* Patient identity management and pseudonymisation
+* Study subject randomisation (permuted block + strata)
+* Electronic case report forms (eCRFs) for clinical data collection
+* Patient reported outcomes (ePRO)
+* Linked medical imaging (DICOM) and treatment plans (DICOM-RT)
+* DICOM data de-identification and RTSTRUCT ROI naming harmonisation
+* DICOM viewer with DICOM-RT plugin
+* WebDAV access to DICOM data collected in particular project
+* Storage for laboratory assays and other tabulated data
+
+## Acknowledgment
+
+For people who do use the RPB software platform as managed or self-operated solution supporting the conduction of their trials, when it is possible, we would appreciate your acknowledgement in publications and citation of the relevant papers:
+
+* "This work was conducted in part using the RadPlanBio software platform."           
+
+```
+@article{skripcak_toward_2016,
+    title = {Toward {Distributed} {Conduction} of {Large}-{Scale} {Studies} in {Radiation} {Therapy} and {Oncology}: {Open}-{Source} {System} {Integration} {Approach}},
+    volume = {20},
+    issn = {2168-2194, 2168-2208},
+    shorttitle = {Toward {Distributed} {Conduction} of {Large}-{Scale} {Studies} in {Radiation} {Therapy} and {Oncology}},
+    url = {http://ieeexplore.ieee.org/document/7138574/},
+    doi = {10.1109/JBHI.2015.2450833},
+    number = {5},
+    urldate = {2017-12-08},
+    journal = {IEEE Journal of Biomedical and Health Informatics},
+    author = {Skripcak, Tomas and Just, Uwe and Simon, Monique and Buttner, Daniel and Luhr, Armin and Baumann, Michael and Krause, Mechthild},
+    month = sep,
+    year = {2016},
+    pages = {1397--1403}
+}
+```
+Note: In case RPB managed service utilisation (such as dedicated Institute/Department operating RPB platform instance used by others) additional acknowledgements/citations usually defined by service provider may apply.
