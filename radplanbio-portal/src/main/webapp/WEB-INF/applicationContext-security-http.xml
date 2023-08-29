@@ -49,7 +49,6 @@
         <!-- EDC users -->
         <intercept-url pattern="/edc/openEdc.faces*" access="hasRole('ROLE_EDC_OPEN')"/>
         <intercept-url pattern="/edc/edcMatrix.faces*" access="hasRole('ROLE_EDC_MATRIX')"/>
-        <intercept-url pattern="/edc/edcLookup.faces*" access="hasRole('ROLE_EDC_LOOKUP')"/>
         <intercept-url pattern="/edc/studyMetadata.faces*" access="hasRole('ROLE_EDC_METADATA')"/>
         <intercept-url pattern="/edc/ecrfStudies.faces*" access="hasRole('ROLE_EDC_USER')"/>
         <intercept-url pattern="/edc/oCEnrolmentCallback.faces*" access="hasRole('ROLE_EDC_USER')"/>
@@ -68,6 +67,7 @@
         <intercept-url pattern="/pacs/dicomPatientStudies.faces*" access="hasRole('ROLE_PACS_USER')"/>
         <intercept-url pattern="/pacs/dicomMatrix.faces*" access="hasRole('ROLE_PACS_MATRIX')"/>
         <intercept-url pattern="/pacs/dicomLookup.faces*" access="hasRole('ROLE_PACS_LOOKUP')"/>
+        <intercept-url pattern="/pacs/rpbUploader.faces*" access="hasRole('ROLE_PACS_UPLOAD')"/>
 
         <!-- BIO users -->
         <intercept-url pattern="/bio/bioMatrix.faces*" access="hasRole('ROLE_BIO_MATRIX')"/>

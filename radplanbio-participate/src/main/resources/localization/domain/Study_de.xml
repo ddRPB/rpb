@@ -13,12 +13,14 @@
     <entry key="study_delete">Ausgewählte Studie löschen</entry>
 
     <entry key="study_id">Id</entry>
+    <entry key="study_protocolId">Prüfplan code</entry>
     <entry key="study_edcIdentifier">EDC Identifier</entry>
     <entry key="study_name">Kurztitel</entry>
     <entry key="study_title">Titel</entry>
     <entry key="study_description">Beschreibung</entry>
     <entry key="study_expectedTotalEnrollment">Voraussichtlichen Teilnahme</entry>
     <entry key="study_comment">Kommentar</entry>
+    <entry key="study_isEnrollmentArmAssignmentRequired">Registrierungsarm erforderlich</entry>
 
     <entry key="study_randomisationConf">Randomisierung</entry>
 
@@ -27,6 +29,7 @@
     <entry key="study_sponsoringType">Sponsor</entry>
     <entry key="study_protocolType">Protokolltyp</entry>
     <entry key="study_status">Status</entry>
+    <entry key="study_timing">Timing</entry>
 
     <!-- one-to-many -->
     <entry key="study_studyTags">Tags</entry>

@@ -8,7 +8,7 @@
     template="/WEB-INF/layouts/main.xhtml"
     >
 
-    <!-- Definition of breadcrumbs place holder -->
+    <!-- Definition of breadcrumbs placeholder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
@@ -16,13 +16,13 @@
         </p:breadCrumb>
     </ui:define>
 
-    <!-- Definition of content place holder content -->
+    <!-- Definition of content placeholder content -->
     <ui:define name="content">
         <p:panel header="Manuals">
             <p>
                 <p:outputPanel>
                     <p style="text-align:justify;">
-                        Welcome! The RPB manual provides comprehensive user and technical reference information, which provide first level of support while using RPB platform. We hope you'll find it useful.
+                        Welcome! The RPB manual is comprehensive user and technical reference information, which provides first level of support while using RPB platform. We hope you'll find it useful.
                     </p>
                     Links to manuals (Read the Docs):
                     <ul>
@@ -110,6 +110,7 @@
                     </ul>
                     Links to official manuals (third-party systems):
                     <ul>
+                        <li><h:outputLink target="_blank" value="https://libreclinica.org/documentation/">[EN] Documentation [LibreClinica - EDC]</h:outputLink></li>
                         <li><h:outputLink target="_blank" value="https://docs.openclinica.com/">[EN] Reference Guide [OpenClinica - EDC]</h:outputLink></li>
                         <li><h:outputLink target="_blank" value="https://www.labkey.org/">[EN] Support [LabKey - LAB]</h:outputLink></li>
                     </ul>

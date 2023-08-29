@@ -17,6 +17,7 @@
     <entry key="treatmentArm_name">Name</entry>
     <entry key="treatmentArm_description">Beschreibung</entry>
     <entry key="treatmentArm_plannedSubjectsCount">Patienten Zahl</entry>
+    <entry key="treatmentArm_isEnabled">Aktiviert</entry>
 
     <!-- many-to-one -->
     <entry key="treatmentArm_study">Studie</entry>

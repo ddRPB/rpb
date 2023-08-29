@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,19 @@ import com.sun.jersey.api.client.ClientResponse;
 import de.dktk.dd.rpb.core.domain.edc.ItemData;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
-import de.dktk.dd.rpb.core.domain.pacs.*;
+import de.dktk.dd.rpb.core.domain.pacs.DicomImage;
+import de.dktk.dd.rpb.core.domain.pacs.DicomRtStructureSet;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeriesRtDose;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeriesRtPlan;
+import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
+import de.dktk.dd.rpb.core.domain.pacs.RtTreatmentCase;
 import org.dcm4che3.data.Attributes;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Conquest PACS service interface
@@ -47,18 +55,17 @@ public interface IConquestService {
      *
      * @param baseUrl web location of conquest dgate
      */
-    void setupConnection(String baseUrl);
+    void setupConnection(String baseUrl, int threadPoolSize);
 
     /**
      * Setup web based communication with Conquest PACS
      *
      * @param baseUrl  web location of conquest dgate
-     * @param user     user name for authentication
+     * @param user     username for authentication
      * @param password password for authentication
      */
-    void setupConnection(String baseUrl, String user, String password);
-
-
+    void setupConnection(String baseUrl, int threadPoolSize, String user, String password);
+    
     //endregion
 
     //region RT Treatment Case
@@ -85,6 +92,13 @@ public interface IConquestService {
      */
     List<Subject> loadPatients(List<StudySubject> studySubjectList) throws Exception;
 
+    /**
+     * C-MOVE specified patient to specified destination AET
+     *
+     * @param dicomPatientId PatientID
+     * @param destinationAet Destination AET
+     * @return true if successful
+     */
     boolean movePatient(String dicomPatientId, String destinationAet);
 
     //endregion
@@ -169,6 +183,8 @@ public interface IConquestService {
      */
     DicomSeries loadStudySeries(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid);
 
+    List<DicomImage> loadStudySeriesImages(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid);
+
     /**
      * Cache specified DICOM series into the DICOM proxy (if present) from DICOM leaf nodes
      *
@@ -199,7 +215,24 @@ public interface IConquestService {
      */
     boolean moveDicomSeries(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid, String destinationAet);
 
+    /**
+     * Sends a specific DICOM SOP instance for a specific study, series of a patient to another DICOM provider
+     *
+     * @param dicomPatientId DICOM PatientID tag value
+     * @param dicomStudyUid  DICOM StudyInstanceUID tag value
+     * @param dicomSeriesUid DICOM SeriesInstanceUID tag value
+     * @param dicomSopInstanceId
+     * @param destinationAet DICOM Application Entity of the destination
+     * @return boolean success
+     */
+    boolean moveDicomSopInstance(String dicomPatientId, String dicomStudyUid, String dicomSeriesUid, String dicomSopInstanceId, String destinationAet);
+
     //endregion
+
+    // region Dicom images
+    public Future<String> getDicomImagesOfSeriesAsFuture(String dicomPatientId, String dicomStudyId, String dicomSeriesUid, ExecutorService service);
+
+    // endregion
 
     //region DICOM Instances
 
@@ -215,13 +248,13 @@ public interface IConquestService {
 
     //region DICOM RTDOSE
 
-    DicomRtDose loadDicomRtDose(String studyInstanceUid, String seriesInstanceUid, String sopInstanceUid);
+    DicomSeriesRtDose loadDicomRtDose(String studyInstanceUid, String seriesInstanceUid, String sopInstanceUid);
 
     //endregion
 
     //region DICOM RTPLAN
 
-    DicomRtPlan loadDicomRtPlan(String studyInstanceUid, String seriesInstanceUid, String sopInstanceUid);
+    DicomSeriesRtPlan loadDicomRtPlan(String studyInstanceUid, String seriesInstanceUid, String sopInstanceUid);
 
     //endregion
 

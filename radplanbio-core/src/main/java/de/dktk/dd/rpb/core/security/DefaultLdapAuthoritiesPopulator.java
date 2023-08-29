@@ -19,23 +19,21 @@
 
 package de.dktk.dd.rpb.core.security;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
-
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.AuditLogService;
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * DefaultLdapAuthoritiesPopulator
@@ -49,7 +47,7 @@ public class DefaultLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DefaultLdapAuthoritiesPopulator.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultLdapAuthoritiesPopulator.class);
 
     //endregion
 

@@ -20,17 +20,16 @@
 package de.dktk.dd.rpb.core.domain.edc.mapping;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-
 import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -52,7 +51,7 @@ public class Mapping implements Identifiable<Integer>, Named, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Mapping.class);
+    private static final Logger log = LoggerFactory.getLogger(Mapping.class);
 
     //endregion
 

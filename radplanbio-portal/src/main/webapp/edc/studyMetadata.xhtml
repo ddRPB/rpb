@@ -9,7 +9,7 @@
     template="/WEB-INF/layouts/main.xhtml"
     >
 
-    <!-- Definition of breadcrumbs place holder -->
+    <!-- Definition of breadcrumbs placeholder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
@@ -18,7 +18,7 @@
         </p:breadCrumb>
     </ui:define>
 
-    <!-- Definition of page content place holder -->
+    <!-- Definition of page content placeholder -->
     <ui:define name="content">
         <p:tabView id="tabView">
 
@@ -143,12 +143,12 @@
                     <!-- Label-->
                     <p:column
                         headerText="Label"
-                        sortBy="#{entity.itemDetails.itemPresentInForm.leftItemText}"
-                        filterBy="#{entity.itemDetails.itemPresentInForm.leftItemText}"
+                        sortBy="#{entity.itemDetails.itemPresentInForm[0].leftItemText}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm[0].leftItemText}"
                         filterMatchMode="contains"
                         visible="#{mbMetadata.columnVisibilityList[4]}"
                         >
-                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.leftItemText}" style="float:left;" />
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm[0].leftItemText}" style="float:left;" />
                     </p:column>
 
                     <!-- DataType -->
@@ -174,23 +174,23 @@
                     <!-- Response Type -->
                     <p:column
                         headerText="Kind"
-                        sortBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseType}"
-                        filterBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseType}"
+                        sortBy="#{entity.itemDetails.itemPresentInForm[0].itemResponse.responseType}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm[0].itemResponse.responseType}"
                         filterMatchMode="contains"
                         visible="#{mbMetadata.columnVisibilityList[7]}"
                         >
-                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.itemResponse.responseType}" style="float:left;" />
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm[0].itemResponse.responseType}" style="float:left;" />
                     </p:column>
 
                     <!-- Response Layout -->
                     <p:column
                         headerText="Layout"
-                        sortBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseLayout}"
-                        filterBy="#{entity.itemDetails.itemPresentInForm.itemResponse.responseLayout}"
+                        sortBy="#{entity.itemDetails.itemPresentInForm[0].itemResponse.responseLayout}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm[0].itemResponse.responseLayout}"
                         filterMatchMode="contains"
                         visible="#{mbMetadata.columnVisibilityList[8]}"
                         >
-                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.itemResponse.responseLayout}" style="float:left;" />
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm[0].itemResponse.responseLayout}" style="float:left;" />
                     </p:column>
 
                     <!-- Response -->
@@ -224,12 +224,12 @@
                     <!-- Default Value -->
                     <p:column
                         headerText="Default"
-                        sortBy="#{entity.itemDetails.itemPresentInForm.defaultValue}"
-                        filterBy="#{entity.itemDetails.itemPresentInForm.defaultValue}"
+                        sortBy="#{entity.itemDetails.itemPresentInForm[0].defaultValue}"
+                        filterBy="#{entity.itemDetails.itemPresentInForm[0].defaultValue}"
                         filterMatchMode="contains"
                         visible="#{mbMetadata.columnVisibilityList[10]}"
                         >
-                        <h:outputText value="#{entity.itemDetails.itemPresentInForm.defaultValue}" style="float:left;" />
+                        <h:outputText value="#{entity.itemDetails.itemPresentInForm[0].defaultValue}" style="float:left;" />
                     </p:column>
 
                     <!-- PHI -->

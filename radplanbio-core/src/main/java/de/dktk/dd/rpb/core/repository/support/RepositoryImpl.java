@@ -19,16 +19,15 @@
 
 package de.dktk.dd.rpb.core.repository.support;
 
-import java.io.Serializable;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import org.springframework.transaction.annotation.Transactional;
-
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.dao.support.SearchParameters;
 import de.dktk.dd.rpb.core.domain.Identifiable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Default implementation of the {@link Repository}
@@ -40,7 +39,7 @@ public abstract class RepositoryImpl<T extends Identifiable<PK>, PK extends Seri
     private Logger log;
 
     public RepositoryImpl() {
-        this.log = Logger.getLogger(getClass());
+        this.log = LoggerFactory.getLogger(getClass());
     }
 
     abstract public GenericDao<T, PK> getDao();

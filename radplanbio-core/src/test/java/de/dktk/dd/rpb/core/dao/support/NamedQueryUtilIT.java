@@ -5,7 +5,7 @@
 //import javax.inject.Inject;
 //
 //import de.dkfz.portal.domain.admin.DefaultAccount;
-//import org.apache.log4j.Logger;
+//import org.apache.logging.log4j.Logger;
 //
 //import org.junit.Test;
 //import org.junit.runner.RunWith;
@@ -18,7 +18,7 @@
 //@Transactional
 //public class NamedQueryUtilIT {
 //
-//    private static final Logger log = Logger.getLogger(NamedQueryUtilIT.class);
+//    private static final Logger log = LoggerFactory.getLogger(NamedQueryUtilIT.class);
 //
 //    @Inject
 //    private NamedQueryUtil namedQueryUtil;

@@ -23,9 +23,8 @@ import de.dktk.dd.rpb.core.dao.rpb.SoftwareDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.rpb.Software;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -49,7 +48,7 @@ public class SoftwareRepository extends RepositoryImpl<Software, Integer> implem
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(SoftwareRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(SoftwareRepository.class);
 
     //endregion
 

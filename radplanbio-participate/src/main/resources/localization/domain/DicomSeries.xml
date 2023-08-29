@@ -15,8 +15,12 @@
     <!-- attributes -->
     <entry key="dicomSeries_id">Id</entry>
     <entry key="dicomSeries_seriesInstanceUID">UID</entry>
-    <entry key="dicomSeries_seriesDescription">Series Description</entry>
+    <entry key="dicomSeries_seriesDescription">Description</entry>
     <entry key="dicomSeries_modality">Modality</entry>
     <entry key="dicomSeries_seriesTime">Time</entry>
+    <entry key="dicomSeries_seriesDate">Date</entry>
+    <entry key="dicomSeries_details">Details</entry>
+    <entry key="dicomSeries_dicomDetails">DICOM Details</entry>
+    <entry key="dicomSeries_regions_of_interest">Regions of Interest</entry>
 
 </properties>

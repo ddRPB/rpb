@@ -15,12 +15,26 @@
     <!-- use-expressions - allows restrictions like permitAll(), etc. -->
 	<http
         auto-config="false"
-        entry-point-ref="loginUrlAuthenticationEntryPoint"
         use-expressions="true"
         >
 
+		<!-- Refers to the URL where Spring Security expects a post request to get involved in the login process -->
+		<!-- Not all possible parameters will work, because the project uses a self defined filter-->
+		<form-login
+				login-page="/login.faces"
+		/>
+
+		<!--csrf is disabled - all forms need a hidden input with _csrf.parameterName and _csrf.token -->
+		<csrf disabled="true"/>
+
         <!-- Define logout pages (.faces -> .xhtml)-->
 		<logout logout-url="/logout.faces" logout-success-url="/home.faces" />
+
+		<!-- URL when the session will become invalid, like in case of a times out -->
+		<session-management invalid-session-url="/login.faces"/>
+
+		<!-- Declare the usage of myAuthentication filter which is defined in /src/main/resources/spring/applicationContext.xml -->
+		<custom-filter before="BASIC_AUTH_FILTER" ref="myAuthenticationFilter"/>
 
         <!-- Define rules for the user access -->
 

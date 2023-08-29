@@ -19,18 +19,17 @@
 
 package de.dktk.dd.rpb.core.repository.rpb;
 
-import javax.inject.Inject;
-
 import de.dktk.dd.rpb.core.dao.rpb.ServerDao;
-import org.apache.log4j.Logger;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.domain.rpb.Server;
+import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.dktk.dd.rpb.core.domain.rpb.Server;
-import de.dktk.dd.rpb.core.dao.support.GenericDao;
-import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * Default implementation of the {@link IServerRepository} interface.
@@ -47,7 +46,7 @@ import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
 public class ServerRepository extends RepositoryImpl<Server, Integer> implements IServerRepository {
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(ServerRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(ServerRepository.class);
 
     private ServerDao dao;
 

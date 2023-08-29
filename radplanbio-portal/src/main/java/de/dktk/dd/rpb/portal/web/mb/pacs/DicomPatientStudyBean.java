@@ -23,13 +23,23 @@ import de.dktk.dd.rpb.core.builder.edc.OdmBuilder;
 import de.dktk.dd.rpb.core.builder.edc.OdmBuilderDirector;
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.ClinicalData;
+import de.dktk.dd.rpb.core.domain.edc.CrfFieldAnnotation;
+import de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemData;
+import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemGroupData;
+import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.exception.MissingPropertyException;
 import de.dktk.dd.rpb.core.repository.admin.IPartnerSiteRepository;
 import de.dktk.dd.rpb.core.repository.edc.IStudySubjectRepository;
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.AuditLogService;
+import de.dktk.dd.rpb.core.service.IUploaderService;
 import de.dktk.dd.rpb.core.service.OpenClinicaService;
 import de.dktk.dd.rpb.core.util.Constants;
 import de.dktk.dd.rpb.core.util.DicomStudyDescriptionEdcCodeUtil;
@@ -37,22 +47,30 @@ import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
-import org.apache.log4j.Logger;
 import org.omnifaces.util.Faces;
 import org.primefaces.event.FlowEvent;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import static de.dktk.dd.rpb.core.util.Constants.*;
+import static javax.faces.context.FacesContext.getCurrentInstance;
 
 /**
  * ViewModel bean for DICOM patient study subjects
@@ -66,85 +84,115 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
 
     //region Injects
 
-    //region Repository - Dummy
-
-    @SuppressWarnings("unused")
-    private IStudySubjectRepository repository;
-
-    /**
-     * Get StudyRepository
-     *
-     * @return StudyRepository
-     */
-    @Override
-    public IStudySubjectRepository getRepository() {
-        return this.repository;
-    }
-
-    //endregion
-
     private MainBean mainBean;
     private StudyIntegrationFacade studyIntegrationFacade;
     private IPartnerSiteRepository partnerSiteRepository;
+    private IUploaderService uploaderService;
 
     //endregion
 
     //region Members
 
-    private static final Logger log = Logger.getLogger(OdmBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(DicomPatientStudyBean.class);
     private final AuditLogService auditLogService;
     private Study rpbStudy; // RPB study
+    @SuppressWarnings("unused")
+    private IStudySubjectRepository repository;
     private PartnerSite selectedSubjectSite; // RPB partner site
     private List<EventDefinition> dicomEventDefinitions;
 
     private EventData selectedDicomEventData;
     private List<DicomStudy> dicomStudyList;
+    private List<DicomStudy> assignableDicomStudies;
 
     private List<Boolean> dicomStudyColumnVisibilityList;
 
     private String newDicomViewType;
     private ItemDefinition uploadSlotItemDefinition;
 
-    public List<DicomStudy> getAssignableDicomStudies() {
-        return assignableDicomStudies;
-    }
-
-    public void setAssignableDicomStudies(List<DicomStudy> assignableDicomStudies) {
-        this.assignableDicomStudies = assignableDicomStudies;
-    }
-
-    private List<DicomStudy> assignableDicomStudies;
-
-    public List<DicomStudy> getAssignableDicomStudyCandidates() {
-        if (this.assignableDicomStudies == null || this.uploadSlotItemDefinition == null) {
-            return new ArrayList<>();
-        }
-
-        return this.assignableDicomStudies;
-    }
-
+    private ItemDefinition selectedSlotItemDefinition;
     private DicomStudy associatedDicomStudy;
 
-    public DicomStudy getAssociatedDicomStudy() {
-        return associatedDicomStudy;
-    }
+    private String redirectUrl = "";
 
-    public void setAssociatedDicomStudy(DicomStudy associatedDicomStudy) {
-        this.associatedDicomStudy = associatedDicomStudy;
-    }
-//endregion
+    //endregion
+
+    // region URL parameters
+
+    private String pid;
+    private String eventId;
+    private String eventRepeatKey;
+
+    // endregion
 
     //region Constructor
 
     @Inject
-    public DicomPatientStudyBean(MainBean mainBean, StudyIntegrationFacade studyIntegrationFacade, IPartnerSiteRepository partnerSiteRepository, AuditLogService auditLogService) {
+    public DicomPatientStudyBean(
+            MainBean mainBean,
+            StudyIntegrationFacade studyIntegrationFacade,
+            IPartnerSiteRepository partnerSiteRepository,
+            AuditLogService auditLogService,
+            IUploaderService uploaderService
+    ) {
         this.mainBean = mainBean;
         this.studyIntegrationFacade = studyIntegrationFacade;
         this.partnerSiteRepository = partnerSiteRepository;
         this.auditLogService = auditLogService;
+        this.uploaderService = uploaderService;
     }
 
     //endregion
+
+    // region Getter and Setter Members
+
+    public StudySubject getSelectedEntity() {
+        return selectedEntity;
+    }
+
+    public void setSelectedEntity(StudySubject selectedEntity) {
+        this.selectedEntity = selectedEntity;
+    }
+
+    /**
+     * Get StudyRepository
+     *
+     * @return StudyRepository
+     */
+    public IStudySubjectRepository getRepository() {
+        return this.repository;
+    }
+
+    // endregion
+
+    // region Getter and Setter URL parameters
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public String getEventRepeatKey() {
+        return eventRepeatKey;
+    }
+
+    public void setEventRepeatKey(String eventRepeatKey) {
+        this.eventRepeatKey = eventRepeatKey;
+    }
+
+    // endregion
+
 
     //region Properties
 
@@ -159,6 +207,8 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
     }
 
     //endregion
+
+    //region FilteredEntities
 
     //region RPB PartnerSite
 
@@ -204,6 +254,15 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
 
     //endregion
 
+    public List<DicomStudy> getAssignableDicomStudyCandidates() {
+        if (this.assignableDicomStudies == null || this.uploadSlotItemDefinition == null) {
+            return new ArrayList<>();
+        }
+
+        return this.assignableDicomStudies;
+    }
+
+
     //region DICOM StudyColumnVisibilityList
 
     public List<Boolean> getDicomStudyColumnVisibilityList() {
@@ -236,6 +295,27 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
 
     //endregion
 
+    public ItemDefinition getSelectedSlotItemDefinition() {
+        return selectedSlotItemDefinition;
+    }
+
+    public void setSelectedSlotItemDefinition(ItemDefinition selectedSlotItemDefinition) {
+        this.selectedSlotItemDefinition = selectedSlotItemDefinition;
+    }
+
+    public DicomStudy getAssociatedDicomStudy() {
+        return associatedDicomStudy;
+    }
+
+    public void setAssociatedDicomStudy(DicomStudy associatedDicomStudy) {
+        this.associatedDicomStudy = associatedDicomStudy;
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+        this.redirectUrl = redirectUrl;
+    }
+
+
     //endregion
 
     //region Init
@@ -261,6 +341,16 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
         this.studyIntegrationFacade.setRetrieveStudySubjectOID(Boolean.FALSE);
 
         this.load();
+    }
+
+    public void onLoad() {
+        if (!FacesContext.getCurrentInstance().isPostback()) {
+            if (this.pid != null && this.selectedEntity == null) {
+                this.setFirstMatchingStudySubjectAsSelectedEntity();
+                this.setFirstMatchingEventOccurrenceAsSelectedDicomEvent();
+
+            }
+        }
     }
 
     //endregion
@@ -340,6 +430,7 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
 
     public void resetSubjectDicomStudies() {
         this.dicomStudyList = null;
+        this.selectedSlotItemDefinition = null;
     }
 
     /**
@@ -385,7 +476,7 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
                 );
             }
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(), err);
             this.messageUtil.error(err);
         }
     }
@@ -419,6 +510,143 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
 
         List<DicomStudy> dicomStudies = this.mainBean.getPacsService().loadPatientStudies(studySubjectPid);
         this.assignableDicomStudies = getFilteredDicomStudiesByEdcCode(edcCodePrefix, dicomStudies);
+    }
+
+    public URL getRedirectUrlToUploaderForSelectedSlot() throws MalformedURLException, UnsupportedEncodingException {
+        if (this.selectedSlotItemDefinition != null) {
+            return this.getRedirectUrlToUploader(this.selectedSlotItemDefinition);
+        }
+        return null;
+    }
+
+    /***
+     * Creates a URL to the uploader component including the parameters of the upload slot that was selected in UI
+     *
+     * @param itemDefinition selected ItemDefinition (Upload Slot) to be used to generate the URL parameters
+     * @return URL to the RPB Uploader component
+     * @throws MalformedURLException
+     */
+    public URL getRedirectUrlToUploader(ItemDefinition itemDefinition) throws MalformedURLException, UnsupportedEncodingException {
+
+        this.uploadSlotItemDefinition = itemDefinition;
+
+        List<String> parametersArray = new ArrayList<>();
+
+        if (this.rpbStudy != null && itemDefinition != null) {
+            if (this.rpbStudy.getEdcStudy() != null) {
+                extractUploadSlotParametersFromRpbStudy(itemDefinition, parametersArray);
+            }
+        }
+
+        if (this.selectedDicomEventData != null) {
+            extractUploadSlotParameterFromEvent(parametersArray);
+        }
+
+        if (itemDefinition != null) {
+            extractUploadSlotParameterFromItemDefinition(itemDefinition, parametersArray);
+        }
+
+        if (this.selectedEntity != null) {
+            extractUploadSlotParameterFromSelectedEntity(parametersArray);
+        }
+
+        return uploaderService.getUploaderUrl(parametersArray);
+    }
+
+    private void extractUploadSlotParameterFromSelectedEntity(List<String> parametersArray) {
+
+        if (this.selectedEntity.getStudySubjectId() != null) {
+            parametersArray.add(UPLOADER_URL_SUBJECT_IDENTIFIER + "=" + this.selectedEntity.getStudySubjectId());
+        }
+
+        if (this.selectedEntity.getPid() != null) {
+            parametersArray.add(UPLOADER_URL_PATIENT_IDENTIFIER + "=" + this.selectedEntity.getPid());
+        }
+        if (this.selectedEntity.getSubjectKey() != null) {
+            parametersArray.add(UPLOADER_URL_SUBJECT_KEY + "=" + this.selectedEntity.getSubjectKey());
+        }
+
+        if (this.selectedEntity.getDateOfBirth() != null) {
+            parametersArray.add(UPLOADER_URL_DATE_OF_BIRTH + "=" + this.selectedEntity.getDateOfBirth());
+        }
+        if (this.selectedEntity.getYearOfBirth() > 0) {
+            parametersArray.add(UPLOADER_URL_YEAR_OF_BIRTH + "=" + String.valueOf(this.selectedEntity.getYearOfBirth()));
+        }
+        if (this.selectedEntity.getSex() != null) {
+            parametersArray.add(UPLOADER_URL_GENDER + "=" + this.selectedEntity.getSex());
+        }
+    }
+
+    private void extractUploadSlotParameterFromItemDefinition(ItemDefinition itemDefinition, List<String> parametersArray) {
+        if (itemDefinition.getFormOids() != null) {
+            parametersArray.add(UPLOADER_URL_FORM_IDENTIFIER + "=" + itemDefinition.getFormOids());
+        }
+
+        if (itemDefinition.getItemGroupDefinition() != null) {
+            if (!itemDefinition.getItemGroupDefinition().getOid().isEmpty()) {
+                parametersArray.add(UPLOADER_URL_ITEM_GROUP_IDENTIFIER + "=" + itemDefinition.getItemGroupDefinition().getOid());
+            }
+            parametersArray.add(UPLOADER_URL_ITEM_GROUP_REPEATKEY + "=" + "1");
+        }
+
+        if (itemDefinition.getLabel() != null) {
+            parametersArray.add(UPLOADER_URL_ITEM_LABEL + "=" + itemDefinition.getLabel());
+        }
+
+        // dicomStudyInstanceItemOid
+        if (itemDefinition.getOid() != null) {
+            parametersArray.add(UPLOADER_URL_STUDY_INSTANCE_ITEM_OID + "=" + itemDefinition.getOid());
+        }
+
+        if (itemDefinition.getDescription() != null) {
+            parametersArray.add(UPLOADER_URL_ITEM_DESCRIPTION + "=" + itemDefinition.getDescription());
+        }
+    }
+
+    private void extractUploadSlotParameterFromEvent(List<String> parametersArray) {
+        if (this.selectedDicomEventData.getStudyEventOid() != null) {
+            parametersArray.add(UPLOADER_URL_EVENT_IDENTIFIER + "=" + this.selectedDicomEventData.getStudyEventOid());
+        }
+        if (this.selectedDicomEventData.getStudyEventRepeatKey() != null) {
+            parametersArray.add(UPLOADER_URL_EVENT_REPEATKEY + "=" + this.selectedDicomEventData.getStudyEventRepeatKey());
+        }
+        if (this.selectedDicomEventData.getStartDate() != null) {
+            parametersArray.add(UPLOADER_URL_EVENT_START_DATE + "=" + this.selectedDicomEventData.getStartDate());
+        }
+        if (this.selectedDicomEventData.getEndDate() != null) {
+            parametersArray.add(UPLOADER_URL_EVENT_END_DATE + "=" + this.selectedDicomEventData.getEndDate());
+        }
+        if (this.selectedDicomEventData.getEventDefinition() != null) {
+            parametersArray.add(UPLOADER_URL_EVENT_NAME + "=" + this.selectedDicomEventData.getEventDefinition().getName());
+            parametersArray.add(UPLOADER_URL_EVENT_DESCRIPTION + "=" + this.selectedDicomEventData.getEventDefinition().getDescription());
+        }
+    }
+
+    private void extractUploadSlotParametersFromRpbStudy(ItemDefinition itemDefinition, List<String> parametersArray) {
+        if (!this.rpbStudy.getEdcStudy().extractStudyIdentifier().isEmpty()) {
+            parametersArray.add(UPLOADER_URL_STUDY_IDENTIFIER + "=" + this.rpbStudy.getEdcStudy().extractStudyIdentifier());
+        }
+        if (!this.rpbStudy.getEdcStudy().extractStudySiteIdentifier().isEmpty()) {
+            parametersArray.add(UPLOADER_URL_SITE_IDENTIFIER + "=" + this.rpbStudy.getEdcStudy().extractStudySiteIdentifier());
+        }
+
+        if (this.rpbStudy.getTagValue("EDC-code") != null) {
+            parametersArray.add(UPLOADER_URL_STUDY_EDC_CODE + "=" + this.rpbStudy.getTagValue("EDC-code"));
+        }
+
+        if (this.rpbStudy.getEdcStudy().getOid() != null) {
+            parametersArray.add(UPLOADER_URL_STUDY_OID + "=" + this.rpbStudy.getEdcStudy().getOid());
+        }
+
+        CrfFieldAnnotation exampleCrfFieldAnnotation = new CrfFieldAnnotation();
+        exampleCrfFieldAnnotation.setEventDefinitionOid(this.selectedDicomEventData.getStudyEventOid());
+        exampleCrfFieldAnnotation.setFormOid(itemDefinition.getItemGroupDefinition().getFormDefinition().getOid());
+        exampleCrfFieldAnnotation.setGroupOid(itemDefinition.getItemGroupDefinition().getOid());
+
+        CrfFieldAnnotation patientIdField = this.rpbStudy.findAnnotation("DICOM_PATIENT_ID", exampleCrfFieldAnnotation);
+
+        String dicomPatientIdItemOid = patientIdField.getCrfItemOid();
+        parametersArray.add(UPLOADER_URL_PATIENT_IDENTIFIER_ITEM_OID + "=" + dicomPatientIdItemOid);
     }
 
     private List<DicomStudy> getFilteredDicomStudiesByEdcCode(String edcCodePrefix, List<DicomStudy> dicomStudies) {
@@ -646,14 +874,14 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
         if (event.getOldStep().equalsIgnoreCase("UploadSlotAssignment")) {
             // do not step further if no study is chosen
             if (this.associatedDicomStudy == null) {
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Please choose a DicomStudy to be assigned!"));
+                getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Please choose a DicomStudy to be assigned!"));
                 return event.getOldStep();
             }
             // assigning the same study is not necessary
             if (this.findAssociatedDicomStudies(this.uploadSlotItemDefinition.getOid()) != null) {
                 DicomStudy alreadyAssociatedStudy = this.findAssociatedDicomStudies(this.uploadSlotItemDefinition.getOid());
                 if (this.associatedDicomStudy.getStudyInstanceUID().equalsIgnoreCase(alreadyAssociatedStudy.getStudyInstanceUID())) {
-                    FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Warning", "This DicomStudy data is already assigned to the DICOM item."));
+                    getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Warning", "This DicomStudy data is already assigned to the DICOM item."));
                     return event.getOldStep();
                 }
             }
@@ -721,10 +949,9 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
         // Active study is mono-centre or it is parent study in multi-centre setup
         if (this.mainBean.getActiveStudy().getUniqueIdentifier().equals(this.rpbStudy.getOcStudyIdentifier())) {
 
-            String parentStudyProtocolId = this.rpbStudy.getOcStudyIdentifier();
             ClinicalData cd = studySubjectOdm.findUniqueClinicalDataOrNone();
             de.dktk.dd.rpb.core.domain.edc.Study studySite = studySubjectOdm.findUniqueStudyOrNone(cd.getStudyOid());
-            siteIdentifier = studySite.extractPartnerSiteIdentifier(parentStudyProtocolId);
+            siteIdentifier = studySite.extractPartnerSiteIdentifier();
         }
         // Otherwise it is site study in multi-centre setup
         else {
@@ -774,7 +1001,7 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
             this.clearDlgAssignDicomStudy();
 
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(), err);
             String studyData = this.associatedDicomStudy.toString();
             String uploadSlot = this.uploadSlotItemDefinition.toString();
             String message = "There was problem associating the study " + studyData + " to " + uploadSlot + ".";
@@ -937,6 +1164,68 @@ public class DicomPatientStudyBean extends CrudEntityViewModel<StudySubject, Int
 
         // Link clinical data with definitions from ODM
         this.selectedEntity.linkOdmDefinitions(selectedStudySubjectOdm);
+    }
+
+    /**
+     * The URL parameter "pid" allows to pre-select a subject and activate the next tab in the UI.
+     */
+    private void setFirstMatchingStudySubjectAsSelectedEntity() {
+
+        if (this.pid != null) {
+            for (StudySubject subject : this.entityList) {
+                if (subject.getPid().equals(this.pid) && !this.pid.isEmpty()) {
+                    this.selectedEntity = subject;
+                    this.loadSelectedSubjectDetails();
+                    this.tab.setActiveIndex(1);
+                    return;
+                }
+            }
+        }
+
+    }
+
+    /**
+     * The URL parameters "event" and "eventrepeatkey" allow to pre-select a event occurrence and activate the next tab
+     * in the UI. Precondition is the pre-selection of the subject via "pid".
+     */
+    private void setFirstMatchingEventOccurrenceAsSelectedDicomEvent() {
+
+        if (this.eventId != null && this.eventRepeatKey != null && selectedEntity != null) {
+            int repeatKey = Integer.parseInt(this.eventRepeatKey);
+            this.selectedDicomEventData = this.selectedEntity.getEventOccurrenceForEventDef(eventId, repeatKey);
+            this.loadDicomStudies();
+            this.tab.setActiveIndex(2);
+        }
+
+    }
+
+    public boolean selectedSlotIsAlreadyAssociated() {
+        if (this.selectedSlotItemDefinition != null) {
+            return this.findAssociatedDicomStudies(this.selectedSlotItemDefinition.getOid()) != null;
+        }
+        return false;
+    }
+
+
+    /**
+     * Redirects to the Uploader page if the selected slot is not assigned to another DICOM study
+     */
+    public void handleOpenConfirmDialog() {
+        if (this.findAssociatedDicomStudies(this.selectedSlotItemDefinition.getOid()) == null) {
+            try {
+                redirectToUploader();
+            } catch (Exception e) {
+                String errorMessage = "There is a problem, redirecting to the Uploader";
+                this.messageUtil.error(errorMessage, e);
+                this.log.error(errorMessage, e);
+            }
+        }
+    }
+
+    private void redirectToUploader() throws IOException {
+        ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
+        URL redirectUrl = this.getRedirectUrlToUploader(this.selectedSlotItemDefinition);
+        externalContext.redirect(redirectUrl.toString());
     }
 
     //endregion

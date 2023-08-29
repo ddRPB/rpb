@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@ import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.json.JSONObject;
-import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.primefaces.model.TreeNode;
@@ -196,7 +195,8 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
             }
         }
 
-        this.loadSpecimensTree();
+        // Postponed until vendor neutral interfaces are available for Biobank
+        //this.loadSpecimensTree();
     }
 
     //endregion
@@ -299,7 +299,9 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
 
         this.loadPatientStudySubjects();
         this.loadPatientDicomStudies();
-        this.loadPatientSpecimens();
+
+        // Postponed until vendor neutral interfaces are available for Biobank
+        //this.loadPatientSpecimens();
     }
 
     //endregion
@@ -383,47 +385,49 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
 
     //region Specimen
 
+    // Postponed until vendor neutral interfaces are available for Biobank
     public void loadPatientSpecimens() {
-        try {
-            // Load Specimens
-            this.setSelectedEntity(
-                    this.studyIntegrationFacade.fetchPatientSpecimens(
-                            this.selectedEntity
-                    )
-            );
-
-            // Create root
-            if (this.selectedEntity != null) {
-                this.loadSpecimensTree();
-            }
-
-            // Audit BIO lookup
-            this.auditLogService.event(
-                    AuditEvent.BIOPatientLoad,
-                    this.mainBean.constructMySubjectFullPid(this.selectedEntity.getPid()), // RPB pseudonym
-                    Constants.CXX_RPB // RPB
-            );
-
-            this.messageUtil.infoText(
-                    "BIO specimens data for " +
-                            this.mainBean.constructMySubjectFullPid(this.selectedEntity.getPid()) +
-                            " loaded.");
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
+//        try {
+//            // Load Specimens
+//            this.setSelectedEntity(
+//                    this.studyIntegrationFacade.fetchPatientSpecimens(
+//                            this.selectedEntity
+//                    )
+//            );
+//
+//            // Create root
+//            if (this.selectedEntity != null) {
+//                this.loadSpecimensTree();
+//            }
+//
+//            // Audit BIO lookup
+//            this.auditLogService.event(
+//                    AuditEvent.BIOPatientLoad,
+//                    this.mainBean.constructMySubjectFullPid(this.selectedEntity.getPid()), // RPB pseudonym
+//                    Constants.CXX_RPB // RPB
+//            );
+//
+//            this.messageUtil.infoText(
+//                    "BIO specimens data for " +
+//                            this.mainBean.constructMySubjectFullPid(this.selectedEntity.getPid()) +
+//                            " loaded.");
+//        }
+//        catch (Exception err) {
+//            this.messageUtil.error(err);
+//        }
     }
 
+    // Postponed until vendor neutral interfaces are available for Biobank
     public void loadSpecimensTree() {
-        try {
-            this.specimenRoot = new DefaultTreeNode();
-            if (this.selectedEntity != null) {
-                this.buildSpecimensChildrenNodes(this.specimenRoot, this.selectedEntity.getBioSpecimens());
-            }
-        }
-        catch (Exception err) {
-            this.messageUtil.error(err);
-        }
+//        try {
+//            this.specimenRoot = new DefaultTreeNode();
+//            if (this.selectedEntity != null) {
+//                this.buildSpecimensChildrenNodes(this.specimenRoot, this.selectedEntity.getBioSpecimens());
+//            }
+//        }
+//        catch (Exception err) {
+//            this.messageUtil.error(err);
+//        }
     }
 
     //endregion
@@ -588,15 +592,16 @@ public class PatientBean extends CrudEntityViewModel<Person, Integer> {
      * Recursively build the tree structure
      * @param parent parent node in graph
      */
+    // Postponed until vendor neutral interfaces are available for Biobank
     private void buildSpecimensChildrenNodes(TreeNode parent, List<AbstractSpecimen> children) {
 
-        for (AbstractSpecimen specimen : children) {
-            TreeNode tn = new DefaultTreeNode(specimen, parent);
-
-            if (specimen.getChildren() != null) {
-                this.buildSpecimensChildrenNodes(tn, specimen.getChildren());
-            }
-        }
+//        for (AbstractSpecimen specimen : children) {
+//            TreeNode tn = new DefaultTreeNode(specimen, parent);
+//
+//            if (specimen.getChildren() != null) {
+//                this.buildSpecimensChildrenNodes(tn, specimen.getChildren());
+//            }
+//        }
     }
 
     /**

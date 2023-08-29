@@ -25,7 +25,8 @@ import de.dktk.dd.rpb.core.domain.ctms.Person;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -64,7 +65,7 @@ public class Subject implements Identifiable<Integer>, Serializable {
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(Subject.class);
+    private static final Logger log = LoggerFactory.getLogger(Subject.class);
 
     //endregion
 

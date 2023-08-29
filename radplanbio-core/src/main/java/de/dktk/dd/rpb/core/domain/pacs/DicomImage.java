@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,15 @@ package de.dktk.dd.rpb.core.domain.pacs;
 import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * RPB DICOM Image domain object to encapsulate data coming from PACS
@@ -41,7 +44,7 @@ public class DicomImage implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(DicomImage.class);
+    private static final Logger log = LoggerFactory.getLogger(DicomImage.class);
 
     //endregion
 
@@ -110,6 +113,28 @@ public class DicomImage implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    // region methods
+
+    /**
+     * Extracts the DicomSeries UID if the DICOM Image references another Series
+     * Will be overwritten in Subclasses
+     *
+     * @return String Dicom UID of the referenced series if available otherwise an empty String will be returned
+     */
+    public String getReferencedDicomSeriesUID() {
+        return null;
+    }
+
+    public List<String> getMetaParameterList() {
+        return new ArrayList<>();
+    }
+
+    public String getDescription() {
+        return "";
+    }
+
+    // endregion
+
     //region Overrides
 
     /**
@@ -127,6 +152,7 @@ public class DicomImage implements Identifiable<Integer>, Serializable {
 
     /**
      * Construct a readable string representation for this Study instance.
+     *
      * @see java.lang.Object#toString()
      */
     @Override

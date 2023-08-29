@@ -20,13 +20,11 @@
 package de.dktk.dd.rpb.core.domain.randomisation;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
-
-import org.apache.log4j.Logger;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.GenericGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 
 /*
@@ -47,7 +45,7 @@ public abstract class AbstractRandomisationData implements Identifiable<Integer>
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(AbstractRandomisationData.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractRandomisationData.class);
 
     //endregion
 

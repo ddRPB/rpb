@@ -27,29 +27,40 @@ import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.service.IConquestService;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
-
 import de.dktk.dd.rpb.core.util.Constants;
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
-import net.java.dev.webdav.jaxrs.xml.elements.*;
+import net.java.dev.webdav.jaxrs.xml.elements.HRef;
+import net.java.dev.webdav.jaxrs.xml.elements.MultiStatus;
+import net.java.dev.webdav.jaxrs.xml.elements.Prop;
+import net.java.dev.webdav.jaxrs.xml.elements.PropStat;
+import net.java.dev.webdav.jaxrs.xml.elements.Response;
 import net.java.dev.webdav.jaxrs.xml.elements.Status;
 import net.java.dev.webdav.jaxrs.xml.properties.CreationDate;
 import net.java.dev.webdav.jaxrs.xml.properties.DisplayName;
 import net.java.dev.webdav.jaxrs.xml.properties.GetLastModified;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
-import java.util.*;
 import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
 
 import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.Response.Status.OK;
-import static net.java.dev.webdav.jaxrs.Headers.*;
+import static net.java.dev.webdav.jaxrs.Headers.DAV;
+import static net.java.dev.webdav.jaxrs.Headers.DEPTH;
+import static net.java.dev.webdav.jaxrs.Headers.DEPTH_0;
+import static net.java.dev.webdav.jaxrs.Headers.DEPTH_INFINITY;
 import static net.java.dev.webdav.jaxrs.ResponseStatus.MULTI_STATUS;
 import static net.java.dev.webdav.jaxrs.xml.properties.ResourceType.COLLECTION;
 
@@ -62,7 +73,7 @@ public class WebDavEventAgnosticDicomSeriesService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(WebDavEventAgnosticDicomSeriesService.class);
+    private static final Logger log = LoggerFactory.getLogger(WebDavEventAgnosticDicomSeriesService.class);
 
     //endregion
 

@@ -26,10 +26,15 @@ import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
 import de.dktk.dd.rpb.core.domain.pacs.EnumConquestMode;
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.IConquestService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -40,12 +45,12 @@ import java.util.Date;
  * Service handling PACS specific archiving API that RPB exposes
  */
 @Component
-@Path("/v1/pacs")
+@Path("/v1/pacs/archive")
 public class PacsArchiveService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(PacsArchiveService.class);
+    private static final Logger log = LoggerFactory.getLogger(PacsArchiveService.class);
 
     //endregion
 
@@ -53,7 +58,7 @@ public class PacsArchiveService extends BaseService {
 
     //TODO: @RolesAllowed("ROLE_PACS_DOWNLOAD")
     @GET
-    @Path("/archive/{pacsObjectIdentifier}")
+    @Path("/{pacsObjectIdentifier}")
     @Produces("application/zip")
     public Response createArchive(@PathParam("pacsObjectIdentifier") String pacsObjectIdentifier,
                                   @QueryParam("mode") String zipMode,
@@ -123,7 +128,7 @@ public class PacsArchiveService extends BaseService {
                 );
 
             } catch(Exception err) {
-                log.error(err);
+                log.error(err.getMessage(), err);
                 return Response.status(500).build();
             }
 
@@ -160,7 +165,7 @@ public class PacsArchiveService extends BaseService {
                 );
 
             } catch(Exception err) {
-                log.error(err);
+                log.error(err.getMessage(), err);
                 return Response.status(500).build();
             }
         }

@@ -20,8 +20,8 @@
 package de.dktk.dd.rpb.core.domain.criteria;
 
 import de.dktk.dd.rpb.core.domain.criteria.constraints.DichotomousConstraint;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -49,7 +49,7 @@ public class DichotomousCriterion extends AbstractCriterion<String, DichotomousC
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(DichotomousCriterion.class);
+    private static final Logger log = LoggerFactory.getLogger(DichotomousCriterion.class);
 
     //endregion
 

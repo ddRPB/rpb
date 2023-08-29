@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2017 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ public class RtTreatmentCase {
     //region Members
 
     private List<DicomRtStructureSet> rtStructureSets;
-    private List<DicomRtPlan> rtPlans;
-    private List<DicomRtDose> rtDoses;
+    private List<DicomSeriesRtPlan> rtPlans;
+    private List<DicomSeriesRtDose> rtDoses;
 
     private Map<String, ArrayList<DicomRtContour>> contourMap = new HashMap<>();
 
@@ -52,19 +52,19 @@ public class RtTreatmentCase {
         this.rtStructureSets = rtStructureSets;
     }
 
-    public List<DicomRtPlan> getRtPlans() {
+    public List<DicomSeriesRtPlan> getRtPlans() {
         return this.rtPlans;
     }
 
-    public void setRtPlans(List<DicomRtPlan> rtPlans) {
+    public void setRtPlans(List<DicomSeriesRtPlan> rtPlans) {
         this.rtPlans = rtPlans;
     }
 
-    public List<DicomRtDose> getRtDoses() {
+    public List<DicomSeriesRtDose> getRtDoses() {
         return rtDoses;
     }
 
-    public void setRtDoses(List<DicomRtDose> rtDoses) {
+    public void setRtDoses(List<DicomSeriesRtDose> rtDoses) {
         this.rtDoses = rtDoses;
     }
 

@@ -22,7 +22,8 @@ package de.dktk.dd.rpb.core.builder.edc;
 import de.dktk.dd.rpb.core.domain.edc.FormData;
 import de.dktk.dd.rpb.core.domain.edc.ItemGroupData;
 import de.dktk.dd.rpb.core.exception.MissingPropertyException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Builder for the FormData object,
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
 public class FormDataBuilder {
     //region Finals
 
-    private static final Logger log = Logger.getLogger(FormDataBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(FormDataBuilder.class);
     private final FormData formData = new FormData();
 
     // endregion

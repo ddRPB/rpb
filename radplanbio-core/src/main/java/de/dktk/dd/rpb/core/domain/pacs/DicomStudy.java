@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,9 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
+import de.dktk.dd.rpb.core.util.DicomDateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -34,7 +36,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(DicomStudy.class);
+    private static final Logger log = LoggerFactory.getLogger(DicomStudy.class);
 
     //endregion
 
@@ -61,6 +62,10 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
     private String studyInstanceUID;
     private String studyDescription;
     private String studyDate;
+    private String studyTime;
+
+    private String modalitiesInStudy;
+
     private List<DicomSeries> studySeries;
 
     // Details for CRF item that is referencing this DICOM study
@@ -143,25 +148,11 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
 
         Date result = null;
 
-        // Check whether DICOM study date is set
-        if (this.studyDate != null && !this.studyDate.isEmpty() &&
-            !this.studyDate.equals("00000000") &&
-            !this.studyDate.equals("Unknown")) {
-            DateFormat format = new SimpleDateFormat(Constants.DICOM_DATEFORMAT);
-            try {
-                result = format.parse(this.studyDate);
-            }
-            catch (ParseException e) {
-                log.error(e);
-            }
+        try {
+            result = DicomDateUtil.convertStringDateToDate(this.studyDate);
         }
-        // Set the RPB default DICOM date 01.01.1900
-        else {
-            Calendar defaultCalendar = Calendar.getInstance();
-            defaultCalendar.set(Calendar.YEAR, 1900);
-            defaultCalendar.set(Calendar.MONTH, 0);
-            defaultCalendar.set(Calendar.DAY_OF_MONTH, 1);
-            result = defaultCalendar.getTime();
+        catch (ParseException e) {
+            log.error(e.getMessage(), e);
         }
 
         return result;
@@ -171,6 +162,30 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
         DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
         Date date = this.getDateStudy();
         return date != null ? format.format(date) : null;
+    }
+
+    //endregion
+
+    //region StudyTime
+
+    public String getStudyTime() {
+        return studyTime;
+    }
+
+    public void setStudyTime(String studyTime) {
+        this.studyTime = studyTime;
+    }
+
+    //endregion
+
+    //region ModalitiesInStudy
+
+    public String getModalitiesInStudy() {
+        return this.modalitiesInStudy;
+    }
+
+    public void setModalitiesInStudy(String modalitiesInStudy) {
+        this.modalitiesInStudy = modalitiesInStudy;
     }
 
     //endregion
@@ -248,7 +263,6 @@ public class DicomStudy implements Identifiable<Integer>, Serializable {
      * Study type depending on modality of study series
      *
      * @return string representation
-     *
      */
     public String getStudyType() {
         String result;

@@ -27,10 +27,9 @@ import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.AuditLogService;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 import de.dktk.dd.rpb.core.service.OpenClinicaService;
-
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -54,7 +53,7 @@ public class OpenClinicaRestApiAuthenticationProvider implements AuthenticationP
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(OpenClinicaRestApiAuthenticationProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenClinicaRestApiAuthenticationProvider.class);
 
     //endregion
 

@@ -19,21 +19,13 @@
 
 package de.dktk.dd.rpb.core.domain.ctms;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
+import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
-import de.dktk.dd.rpb.core.domain.admin.*;
-
+import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.bio.Bio;
+import de.dktk.dd.rpb.core.domain.edc.Edc;
 import de.dktk.dd.rpb.core.domain.edc.FormEngine;
 import de.dktk.dd.rpb.core.domain.lab.Lab;
 import de.dktk.dd.rpb.core.domain.pacs.Pacs;
@@ -42,15 +34,19 @@ import de.dktk.dd.rpb.core.domain.rpb.AbstractComponent;
 import de.dktk.dd.rpb.core.domain.rpb.PacsComponent;
 import de.dktk.dd.rpb.core.domain.rpb.Portal;
 import de.dktk.dd.rpb.core.domain.rpb.Server;
-import org.apache.log4j.Logger;
-
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Objects;
-
-import de.dktk.dd.rpb.core.domain.edc.Edc;
+import javax.persistence.*;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * PartnerSite domain entity
@@ -69,7 +65,7 @@ public class PartnerSite implements Identifiable<Integer>, Named, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(PartnerSite.class);
+    private static final Logger log = LoggerFactory.getLogger(PartnerSite.class);
 
     //endregion
 

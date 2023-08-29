@@ -24,10 +24,15 @@ import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -53,7 +58,7 @@ public class ItemData implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(ItemData.class);
+    private static final Logger log = LoggerFactory.getLogger(ItemData.class);
 
     //endregion
 
@@ -187,8 +192,8 @@ public class ItemData implements Identifiable<Integer>, Serializable {
         if (this.itemDefinition != null) {
             if (this.itemDefinition.getItemDetails() != null) {
                 if (this.itemDefinition.getItemDetails().getItemPresentInForm() != null) {
-                    if (this.itemDefinition.getItemDetails().getItemPresentInForm().getOrderInForm() != null) {
-                        return this.itemDefinition.getItemDetails().getItemPresentInForm().getOrderInForm();
+                    if (this.itemDefinition.getItemDetails().getItemPresentInForm().get(0).getOrderInForm() != null) {
+                        return this.itemDefinition.getItemDetails().getItemPresentInForm().get(0).getOrderInForm();
                     }
                 }
             }

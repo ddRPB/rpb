@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Portal</comment>
+
+    <entry key="portal">Portal</entry>
+    <entry key="portal_plural">Portals</entry>
+    <entry key="portal_reload">Vorhandenen Portals neu laden</entry>
+    <entry key="portal_print">Tabelle Portals Drucken</entry>
+    <entry key="portal_new">Neue Portal definieren</entry>
+    <entry key="portal_edit">Ausgewählten Portal bearbeiten</entry>
+    <entry key="portal_delete">Ausgewählten Portal löschen</entry>
+
+    <!-- attributes -->
+    <entry key="portal_id">ID</entry>
+    <entry key="portal_baseUrl">Base URL</entry>
+    <entry key="portal_publicUrl">Öffentliche URL</entry>
+    <entry key="portal_dataPath">Data Pfad</entry>
+    <entry key="portal_isEnabled">Aktiviert</entry>
+    <entry key="portal_version">Version</entry>
+
+    <!-- Many-to-Many -->
+    <entry key="portal_software">Software</entry>
+
+</properties>

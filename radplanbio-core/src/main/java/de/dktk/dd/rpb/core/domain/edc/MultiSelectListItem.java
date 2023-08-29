@@ -20,9 +20,15 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * MultiSelectListItem CDISC ODM entity
@@ -36,7 +42,7 @@ public class MultiSelectListItem extends ListItem {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(MultiSelectListItem.class);
+    private static final Logger log = LoggerFactory.getLogger(MultiSelectListItem.class);
 
     //endregion
 

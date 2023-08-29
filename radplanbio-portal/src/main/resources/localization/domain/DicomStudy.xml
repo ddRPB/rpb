@@ -12,6 +12,8 @@
     <entry key="dicomStudy_edit">Edit selected DICOM Study</entry>
     <entry key="dicomStudy_delete">Delete selected DICOM Study</entry>
     <entry key="dicomStudy_assign">Assign DICOM Study</entry>
+    <entry key="dicomStudy_assign_existing">Assign Existing</entry>
+    <entry key="dicomStudy_upload_new">Upload New</entry>
 
 
     <!-- attributes -->

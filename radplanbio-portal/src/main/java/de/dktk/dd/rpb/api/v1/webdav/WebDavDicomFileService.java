@@ -29,13 +29,29 @@ import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.service.IConquestService;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
-import net.java.dev.webdav.jaxrs.xml.elements.*;
-import net.java.dev.webdav.jaxrs.xml.properties.*;
-import org.apache.log4j.Logger;
+import net.java.dev.webdav.jaxrs.xml.elements.HRef;
+import net.java.dev.webdav.jaxrs.xml.elements.MultiStatus;
+import net.java.dev.webdav.jaxrs.xml.elements.Prop;
+import net.java.dev.webdav.jaxrs.xml.elements.PropStat;
+import net.java.dev.webdav.jaxrs.xml.elements.Response;
+import net.java.dev.webdav.jaxrs.xml.elements.Status;
+import net.java.dev.webdav.jaxrs.xml.properties.CreationDate;
+import net.java.dev.webdav.jaxrs.xml.properties.DisplayName;
+import net.java.dev.webdav.jaxrs.xml.properties.GetContentLength;
+import net.java.dev.webdav.jaxrs.xml.properties.GetContentType;
+import net.java.dev.webdav.jaxrs.xml.properties.GetLastModified;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -47,7 +63,10 @@ import java.util.LinkedList;
 
 import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.Response.Status.OK;
-import static net.java.dev.webdav.jaxrs.Headers.*;
+import static net.java.dev.webdav.jaxrs.Headers.DAV;
+import static net.java.dev.webdav.jaxrs.Headers.DEPTH;
+import static net.java.dev.webdav.jaxrs.Headers.DEPTH_0;
+import static net.java.dev.webdav.jaxrs.Headers.DEPTH_INFINITY;
 import static net.java.dev.webdav.jaxrs.ResponseStatus.MULTI_STATUS;
 import static net.java.dev.webdav.jaxrs.xml.properties.ResourceType.COLLECTION;
 
@@ -60,7 +79,7 @@ public class WebDavDicomFileService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(WebDavDicomFileService.class);
+    private static final Logger log = LoggerFactory.getLogger(WebDavDicomFileService.class);
 
     //endregion
 

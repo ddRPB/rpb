@@ -19,18 +19,17 @@
 
 package de.dktk.dd.rpb.core.repository.rpb;
 
-import javax.inject.Inject;
-
-import org.apache.log4j.Logger;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import de.dktk.dd.rpb.core.dao.rpb.PortalDao;
+import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.domain.rpb.Portal;
+import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.dktk.dd.rpb.core.dao.support.GenericDao;
-import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-import de.dktk.dd.rpb.core.domain.rpb.Portal;
-import de.dktk.dd.rpb.core.dao.rpb.PortalDao;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * Default implementation of the {@link IPortalRepository} interface.
@@ -47,7 +46,7 @@ import de.dktk.dd.rpb.core.dao.rpb.PortalDao;
 public class PortalRepository extends RepositoryImpl<Portal, Integer> implements IPortalRepository {
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(PortalRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(PortalRepository.class);
 
     private PortalDao dao;
 

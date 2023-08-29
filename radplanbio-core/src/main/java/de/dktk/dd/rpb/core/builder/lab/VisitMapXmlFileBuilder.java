@@ -56,7 +56,17 @@ public class VisitMapXmlFileBuilder {
                 visit.setMaxSequenceNum(new Double(ordinal) + 0.9999);
             }
 
-            visit.setDescription("Description: " + eventDefinitionDetails.getDescription() + " Category: " + eventDefinitionDetails.getCategory());
+            String description = "";
+            String category = "";
+
+            if (eventDefinitionDetails.getDescription() != null) {
+                description = "Description: " + eventDefinitionDetails.getDescription();
+            }
+            if (eventDefinitionDetails.getCategory() != null) {
+                category = "Category: " + eventDefinitionDetails.getCategory();
+            }
+
+            visit.setDescription(String.join(" ", description, category));
 
         }
     }

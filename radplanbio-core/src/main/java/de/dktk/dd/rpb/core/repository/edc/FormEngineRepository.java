@@ -23,7 +23,8 @@ import de.dktk.dd.rpb.core.dao.edc.FormEngineDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.edc.FormEngine;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -47,7 +48,7 @@ public class FormEngineRepository extends RepositoryImpl<FormEngine, Integer> im
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(FormEngineRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(FormEngineRepository.class);
 
     //endregion
 

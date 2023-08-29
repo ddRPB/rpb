@@ -19,9 +19,13 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 
 /**
@@ -38,7 +42,7 @@ public class Decode implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(Decode.class);
+    private static final Logger log = LoggerFactory.getLogger(Decode.class);
 
     //endregion
 

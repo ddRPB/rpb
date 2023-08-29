@@ -1,7 +1,15 @@
 package de.dktk.dd.rpb.core.builder.lab;
 
+import de.dktk.dd.rpb.core.builder.pacs.StagedSubjectPacsResultBuilder;
 import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.transform.stream.StreamSource;
@@ -11,9 +19,24 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.xmlunit.matchers.ValidationMatcher.valid;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.xml.bind.annotation.*")
+@PrepareForTest({StagedSubjectPacsResultBuilder.class, Logger.class, LoggerFactory.class})
 public class VisitMapXmlFileBuilderTest {
+
+    @Before
+    public void setUp() {
+        mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
+        Logger logger = mock(Logger.class);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
+    }
 
     //region empty constructor
     @Test

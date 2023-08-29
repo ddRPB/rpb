@@ -39,7 +39,6 @@ import de.dktk.dd.rpb.core.ocsoap.types.StudySubject;
 import de.dktk.dd.rpb.core.util.CacheUtil;
 import de.dktk.dd.rpb.core.util.Constants;
 import net.sf.ehcache.Element;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +52,8 @@ import org.openclinica.ws.study.v1.ListAllResponse;
 import org.openclinica.ws.studysubject.v1.CreateResponse;
 import org.openclinica.ws.studysubject.v1.IsStudySubjectResponse;
 import org.openclinica.ws.studysubject.v1.ListAllByStudyResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Named;
@@ -128,7 +129,7 @@ public class OpenClinicaService implements IOpenClinicaService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(OpenClinicaService.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenClinicaService.class);
 
     //endregion
 
@@ -194,7 +195,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             this.restBaseUrl = restBaseUrl;
         }
         catch (MalformedURLException | ParserConfigurationException | DatatypeConfigurationException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
     }
 
@@ -216,7 +217,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             this.restBaseUrl = restBaseUrl;
         }
         catch (MalformedURLException | ParserConfigurationException | DatatypeConfigurationException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
     }
 
@@ -259,7 +260,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             }
         }
         catch (OCConnectorException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return metadata;
@@ -295,7 +296,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             }
         }
         catch (OCConnectorException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return metadata;
@@ -320,7 +321,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             }
         }
         catch (OCConnectorException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
     }
 
@@ -342,7 +343,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             }
         }
         catch (OCConnectorException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return allStudies != null ? allStudies.getStudies().getStudy() : null;
@@ -370,7 +371,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 }
             }
         } catch (DatatypeConfigurationException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return result;
@@ -401,16 +402,16 @@ public class OpenClinicaService implements IOpenClinicaService {
                 // Workaround: consider study subject as existing for locked study
                 if (err.getMessage().contains(Constants.OC_ERROR_WRONGSTATUS)) {
                     result = Boolean.TRUE;
-                    log.info(err);
+                    log.info(err.getMessage(), err);
                 }
                 // Subject does not exists
                 else {
-                    log.warn(err);
+                    log.warn(err.getMessage(), err);
                 }
             }
             // Other error with unrecognised code
             else {
-                log.error(err);
+                log.error(err.getMessage(), err);
             }
         }
 
@@ -464,7 +465,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 ss = new StudySubject(ocStudy, sswe);
             }
             catch (DatatypeConfigurationException err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
 
             // Assign events
@@ -477,7 +478,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                         newEvent = new ScheduledEvent(eventType);
                     }
                     catch (DatatypeConfigurationException err) {
-                        log.error(err);
+                        log.error(err.getMessage(),err);
                     }
 
                     scheduledEvents.add(newEvent);
@@ -511,7 +512,7 @@ public class OpenClinicaService implements IOpenClinicaService {
             }
         }
         catch (OCConnectorException | DatatypeConfigurationException err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return events;
@@ -595,7 +596,7 @@ public class OpenClinicaService implements IOpenClinicaService {
 
             }
             catch (JSONException err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
         // 401 Bad Credentials
@@ -677,7 +678,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 }
             }
             catch (Exception err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
 
@@ -744,7 +745,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 }
             }
             catch (JSONException err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
 
@@ -790,7 +791,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 result = subject;
             }
             catch (JSONException err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
 
@@ -846,7 +847,7 @@ public class OpenClinicaService implements IOpenClinicaService {
                 }
             }
             catch (Exception err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
 
@@ -885,16 +886,15 @@ public class OpenClinicaService implements IOpenClinicaService {
             // http://www.cdisc.org/ns/odm/v1.3-api -> http://www.cdisc.org/ns/odm/v1.3
             output = output.replace("ns5:", "");
 
-            InputStream xmlStream = new ByteArrayInputStream(output.getBytes());
-
             Odm odm = null;
             try {
                 JAXBContext context = JAXBContext.newInstance(Odm.class);
                 Unmarshaller un = context.createUnmarshaller();
-                odm = (Odm) un.unmarshal(xmlStream);
+                StringReader reader = new StringReader(output);
+                odm = (Odm) un.unmarshal(reader);
             }
             catch (Exception err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
 
             // Extract results

@@ -43,6 +43,9 @@ public class PacsConfigService implements IPacsConfigService {
     @Value("${pacs.password:''}")
     private String pacsPassword;
 
+    @Value("${pacs.threadPoolSize:1}")
+    private int threadPoolSize;
+
     public String getClinicalUrl() {
         return clinicalUrl;
     }
@@ -61,5 +64,9 @@ public class PacsConfigService implements IPacsConfigService {
 
     public String getPacsPassword() {
         return pacsPassword;
+    }
+
+    public int getThreadPoolSize() {
+        return threadPoolSize;
     }
 }

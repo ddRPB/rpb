@@ -19,7 +19,8 @@
 
 package de.dktk.dd.rpb.core.domain.ctms;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * EventImportance domain entity
@@ -35,7 +36,7 @@ public class EventImportance {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(EventImportance.class);
+    private static final Logger log = LoggerFactory.getLogger(EventImportance.class);
 
     //endregion
 

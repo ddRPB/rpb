@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,11 @@ import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,7 +41,7 @@ import java.util.List;
  * @since 2019
  */
 public class PacsPatientResponseUnmashaller {
-    private static final Logger log = Logger.getLogger(PacsPatientResponseUnmashaller.class);
+    private static final Logger log = LoggerFactory.getLogger(PacsPatientResponseUnmashaller.class);
 
     /**
      * Unmarshal JSONArray with Patient JSON objects to List of Subjects
@@ -98,9 +99,13 @@ public class PacsPatientResponseUnmashaller {
 
     private static DicomStudy unmarshalPacsStudyToDicomStudy(JSONObject patientStudy) throws JSONException {
         DicomStudy study = new DicomStudy();
+
         study.setStudyInstanceUID(patientStudy.getString("StudyInstanceUID"));
-        study.setStudyDate(patientStudy.getString("StudyDate"));
         study.setStudyDescription(patientStudy.optString("StudyDescription"));
+        study.setModalitiesInStudy(patientStudy.optString("ModalitiesInStudy"));
+        study.setStudyDate(patientStudy.optString("StudyDate"));
+        study.setStudyTime(patientStudy.optString("StudyTime"));
+
         return study;
     }
 }

@@ -23,18 +23,29 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static de.dktk.dd.rpb.core.util.Constants.OC_DATEFORMAT;
+import static de.dktk.dd.rpb.core.util.Constants.OC_TIMESTAMPFORMAT;
 
 /**
  * EventData domain entity (based on CDISC ODM StudyEventData)
@@ -49,7 +60,7 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(EventData.class);
+    private static final Logger log = LoggerFactory.getLogger(EventData.class);
 
     //endregion
 
@@ -167,7 +178,7 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
 
     public Date getComparableStartDate() {
         if (this.startDate != null && !this.startDate.equals("")) {
-            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+            DateFormat format = new SimpleDateFormat(OC_DATEFORMAT);
             try {
                 return format.parse(this.startDate);
             } catch (ParseException e) {
@@ -176,6 +187,16 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
         }
 
         return null;
+    }
+
+    public LocalDateTime getStartDateAsLocalDate(){
+        if(this.startDate.isEmpty()){
+            return null;
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(OC_TIMESTAMPFORMAT);
+        return LocalDateTime.parse(this.startDate, formatter);
+
     }
 
     public String getComparableStartDateString() {
@@ -189,7 +210,7 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
     }
 
     public void setStartDate(Date startDate) {
-        DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+        DateFormat format = new SimpleDateFormat(OC_DATEFORMAT);
         this.startDate = format.format(startDate);
     }
 
@@ -207,7 +228,7 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
 
     public Date getComparableEndDate() {
         if (this.endDate != null && !this.endDate.equals("")) {
-            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+            DateFormat format = new SimpleDateFormat(OC_DATEFORMAT);
             try {
                 return format.parse(this.startDate);
             } catch (ParseException e) {
@@ -216,6 +237,16 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
         }
 
         return null;
+    }
+
+    public LocalDateTime getEndDateAsLocalDate(){
+        if(this.endDate.isEmpty()){
+            return null;
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(OC_TIMESTAMPFORMAT);
+        return LocalDateTime.parse(this.endDate, formatter);
+
     }
 
     public String getComparableEndDateString() {
@@ -229,7 +260,7 @@ public class EventData implements Identifiable<Integer>, Serializable, Comparabl
     }
 
     public void setEndDate(Date endDate) {
-        DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+        DateFormat format = new SimpleDateFormat(OC_DATEFORMAT);
         this.endDate = format.format(endDate);
     }
 

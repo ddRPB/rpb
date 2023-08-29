@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Software</comment>
+
+    <entry key="software">Software</entry>
+    <entry key="software_plural">Software</entry>
+    <entry key="software_reload">Vorhandenen Software neu laden</entry>
+    <entry key="software_print">Tabelle Software drucken</entry>
+    <entry key="software_new">Neue Software definieren</entry>
+    <entry key="software_edit">Ausgewählte Software bearbeiten</entry>
+    <entry key="software_delete">Ausgewählte Software löschen</entry>
+
+    <!-- attributes -->
+    <entry key="software_id">ID</entry>
+    <entry key="software_name">Name</entry>
+    <entry key="software_description">Beschreibung</entry>
+    <entry key="software_version">Version</entry>
+    <entry key="software_filename">Filename</entry>
+    <entry key="software_platform">Platform</entry>
+    <entry key="software_latest">Latest</entry>
+
+    <!-- Many-to-One -->
+    <entry key="software_portal">Portal</entry>
+
+</properties>

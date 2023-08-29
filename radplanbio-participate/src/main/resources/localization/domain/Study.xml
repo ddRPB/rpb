@@ -14,18 +14,21 @@
 
     <!-- attributes -->
     <entry key="study_id">Id</entry>
+    <entry key="study_protocolId">Protocol code</entry>
     <entry key="study_edcIdentifier">EDC identifier</entry>
     <entry key="study_name">Short label</entry>
     <entry key="study_title">Title</entry>
     <entry key="study_description">Description</entry>
     <entry key="study_expectedTotalEnrollment">Expected total enrollment</entry>
     <entry key="study_comment">Comment</entry>
+    <entry key="study_isEnrollmentArmAssignmentRequired">Enrollment arm required</entry>
 
     <entry key="study_principalSite">Principal site</entry>
     <entry key="study_phase">Phase</entry>
     <entry key="study_sponsoringType">Sponsoring</entry>
     <entry key="study_protocolType">Protocol</entry>
     <entry key="study_status">Status</entry>
+    <entry key="study_timing">Timing</entry>
 
     <entry key="study_randomisationConf">Randomisation</entry>
 
@@ -43,5 +46,7 @@
     <!-- many-to-many -->
     <entry key="study_tumourEntities">Entities</entry>
     <entry key="study_partnerSites">Partner Sites</entry>
+
+    <entry key="study_ctp_lookup_table">CTP Lookup Table</entry>
 
 </properties>

@@ -18,15 +18,15 @@
 
 package de.dktk.dd.rpb.core.ocsoap.soap;
 
-import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
-
-import org.apache.log4j.Logger;
+import java.util.Set;
 
 /**
  * A quick and dirty logging handler of SOAP messages.
@@ -38,7 +38,7 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 
 	//region Finals
 
-	private static final Logger log = Logger.getLogger(LoggingHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(LoggingHandler.class);
 
 	//endregion
 
@@ -72,7 +72,7 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 			}
 		}
 		catch (Exception e) {
-			log.error(e);
+			log.error(e.getMessage(), e);
 		}
 
 		return Boolean.TRUE;
@@ -86,7 +86,7 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 			log.debug("Fault:\n"
 					+ Util.documentToString(msg.getSOAPBody().getOwnerDocument()));
 		} catch (Exception e) {
-			log.error(e);
+			log.error(e.getMessage(), e);
 		}
 
 		return Boolean.TRUE;

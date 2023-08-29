@@ -23,8 +23,8 @@ import de.dktk.dd.rpb.core.dao.ctms.TreatmentArmDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -46,7 +46,7 @@ public class TreatmentArmRepository extends RepositoryImpl<TreatmentArm, Integer
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(TreatmentArmRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(TreatmentArmRepository.class);
 
     //endregion
 

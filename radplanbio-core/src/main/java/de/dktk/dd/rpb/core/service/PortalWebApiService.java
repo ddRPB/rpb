@@ -25,8 +25,9 @@ import com.sun.jersey.api.client.WebResource;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.domain.edc.Study;
 import de.dktk.dd.rpb.core.domain.pacs.EnumConquestMode;
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import java.io.InputStream;
@@ -42,7 +43,7 @@ public class PortalWebApiService implements IPortalWebApiService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(PortalWebApiService.class);
+    private static final Logger log = LoggerFactory.getLogger(PortalWebApiService.class);
 
     //endregion
 
@@ -239,7 +240,7 @@ public class PortalWebApiService implements IPortalWebApiService {
             }
 
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return result;
@@ -270,7 +271,7 @@ public class PortalWebApiService implements IPortalWebApiService {
             }
 
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return result;

@@ -21,19 +21,17 @@ package de.dktk.dd.rpb.core.security;
 
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.AuditLogService;
-
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import javax.inject.Inject;
 
@@ -48,7 +46,7 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DefaultAuthenticationProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultAuthenticationProvider.class);
 
     //endregion
 

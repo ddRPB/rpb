@@ -28,16 +28,27 @@ import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
 import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
 import de.dktk.dd.rpb.core.ocsoap.types.Study;
-import de.dktk.dd.rpb.core.service.*;
+import de.dktk.dd.rpb.core.service.AuditEvent;
+import de.dktk.dd.rpb.core.service.CtpService;
+import de.dktk.dd.rpb.core.service.IMainzellisteService;
+import de.dktk.dd.rpb.core.service.IOpenClinicaService;
+import de.dktk.dd.rpb.core.service.MainzellisteService;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openclinica.ws.beans.StudySubjectWithEventsType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -58,7 +69,7 @@ public class StudySubjectService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(StudySubjectService.class);
+    private static final Logger log = LoggerFactory.getLogger(StudySubjectService.class);
 
     //endregion
 
@@ -264,7 +275,7 @@ public class StudySubjectService extends BaseService {
             Person newPerson = this.unmarshallPerson(newJsonPerson);
             newStudySubject = this.prepareStudySubject(newPerson, newJsonPerson, studyIdentifier);
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
             this.emailService.sendMailToAdmin(userAccount.getEmail(), "POST: JSON parsing failed", err.toString());
         }
 
@@ -332,7 +343,7 @@ public class StudySubjectService extends BaseService {
             }
         } catch (Exception err) {
             // Generation failed or unsure patient continue with enrollment (without PID)
-            log.info(err);
+            log.info(err.getMessage(), err);
 
             String message = "PID generation failed";
             String details = "Failed to create pseudonym for patient with HIS ID: " + newStudySubject.getStudySubjectId() + ". Enrollment will continue without pseudonym.";
@@ -449,7 +460,7 @@ public class StudySubjectService extends BaseService {
             Person modifiedPerson = this.unmarshallPerson(modifiedJsonPerson);
             modifiedStudySubject = this.prepareStudySubject(modifiedPerson, modifiedJsonPerson, studyIdentifier);
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
             this.emailService.sendMailToAdmin(userAccount.getEmail(), "Update Study Subject: JSON parsing failed", err.toString());
         }
 
@@ -748,7 +759,7 @@ public class StudySubjectService extends BaseService {
             }
 
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
             this.emailService.sendMailToAdmin(
                     userAccount.getEmail(),
                     "JSON parsing failed",

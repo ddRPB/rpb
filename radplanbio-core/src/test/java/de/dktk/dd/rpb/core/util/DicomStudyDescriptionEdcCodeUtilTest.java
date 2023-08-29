@@ -20,28 +20,34 @@
 package de.dktk.dd.rpb.core.util;
 
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static de.dktk.dd.rpb.core.util.Constants.study0EdcCode;
 import static de.dktk.dd.rpb.core.util.DicomStudyDescriptionEdcCodeUtil.getEdcCodePattern;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Logger.class})
+@PrepareForTest({Logger.class, LoggerFactory.class})
 public class DicomStudyDescriptionEdcCodeUtilTest {
 
     @Before
     public void executedBeforeEach() {
         mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
         Logger logger = mock(Logger.class);
-        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
     }
 
     // region getEdcCodePattern

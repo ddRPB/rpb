@@ -19,26 +19,25 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import static com.google.common.collect.Lists.newArrayList;
+import de.dktk.dd.rpb.core.context.UserContext;
+import de.dktk.dd.rpb.core.domain.admin.AuditLog;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.apache.log4j.Logger;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Scheduled;
-
-import de.dktk.dd.rpb.core.context.UserContext;
-import de.dktk.dd.rpb.core.domain.admin.AuditLog;
+import static com.google.common.collect.Lists.newArrayList;
 
 //TODO: It looks like this Singleton exist twice - it may be that there are two spring IoC contexts
 /**
@@ -57,7 +56,7 @@ public class AuditLogService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(AuditLogService.class);
+    private static final Logger log = LoggerFactory.getLogger(AuditLogService.class);
     private static final int DEFAULT_BATCH_INSERT_SIZE = 50;
 
     //endregion

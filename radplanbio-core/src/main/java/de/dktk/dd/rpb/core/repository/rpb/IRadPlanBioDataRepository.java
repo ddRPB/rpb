@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2018 Tomas Skripcak
+ * Copyright (C) 2013-2023 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,10 @@
 
 package de.dktk.dd.rpb.core.repository.rpb;
 
+import de.dktk.dd.rpb.core.domain.ctms.Person;
+
+import java.util.List;
+
 /**
  * OpenClinica Database Repository - operation layer abstraction
  *
@@ -35,11 +39,19 @@ public interface IRadPlanBioDataRepository {
 
     //endregion
 
+    //region API Key
+
+    String getDefaultAccountApiKeyByUsername(String userName);
+
+    // endregion
+
     //region Pacs
 
     String getPacsUrlByAccountApiKey(String apiKey);
 
     //endregion
+
+    public List<Person> getPersonsWithMatchingName(String searchString, int maxResults);
 
     //endregion
 }

@@ -5,7 +5,8 @@
         xmlns:ui="http://java.sun.com/jsf/facelets"
         xmlns:f="http://java.sun.com/jsf/core"
         xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui" xmlns:o="http://omnifaces.org/ui"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:o="http://omnifaces.org/ui"
         template="/WEB-INF/layouts/main.xhtml"
 >
 
@@ -33,11 +34,11 @@
 
         <p:tabView id="tabView">
             <!-- Show empty page when no DICOM data collection in active study -->
-            <p:tab title="DICOM #{msg.subject} Lookup"  rendered="#{!mbDicomLookup.collectsDicomData()}" />
+            <p:tab title="DICOM #{msg.subject} Lookup" rendered="#{!mbDicomLookup.collectsDicomData()}"/>
             <!-- Otherwise show the lookup GUI -->
             <p:tab title="DICOM #{msg.subject} Lookup"
-                rendered="#{mbDicomLookup.collectsDicomData()}"
-                >
+                   rendered="#{mbDicomLookup.collectsDicomData()}"
+            >
                 <p:panelGrid
                         columns="1"
                         style="width: 100%"
@@ -60,7 +61,7 @@
                                         itemValue="#{studySubject}"
                                         inputStyle="width:300px"
                                         dropdown="true"
-                                        maxResults="10"
+                                        maxResults="#{mbDicomLookup.maxSubjectsPerSearch}"
                                         moreText="There are more results."
                                 >
                                     <p:ajax
@@ -163,7 +164,6 @@
                                             update="form:tabView:dtPacsResults,growl,form:tabView:reloadButtonDtPacsResults"
                                     />
 
-
                                 </p:selectOneMenu>
                             </p:panelGrid>
                         </p:tab>
@@ -172,17 +172,21 @@
                 </p:panelGrid>
 
                 <p:blockUI block="tabView" trigger="form:tabView:pnlSearch:ddlStudySubjects">
-                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                    #{msg.loading}<br/>
+                    <p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
 
                 <p:blockUI block="tabView" trigger="form:tabView:pnlSearch:selectOneMenuStudyZeroBulkSearch">
-                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                    #{msg.loading}<br/>
+                    <p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
                 <p:blockUI block="tabView" trigger="form:tabView:pnlSearch:searchSubjectsFromBulkTextButton">
-                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                    #{msg.loading}<br/>
+                    <p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
                 <p:blockUI block="tabView" trigger="form:tabView:reloadButtonDtPacsResults">
-                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                    #{msg.loading}<br/>
+                    <p:graphicImage name="icons/ajaxloading.gif"/>
                 </p:blockUI>
                 <p:toolbar>
                     <p:toolbarGroup align="left">
@@ -337,22 +341,7 @@
                         >
                         </h:outputText>
                     </p:column>
-                    <p:column
-                            headerText="#{msg.menu_commands}"
-                            style="width:20px"
-                            exportable="false"
-                            filterable="false"
-                            toggleable="false"
-                    >
-                        <p:commandButton
-                                id="editStagedSubject"
-                                icon="ui-icon-contact"
-                                title="#{msg.menu_edit}"
-                                update="dlgDicomStudyEdit"
-                                disabled="true"
-                        >
-                        </p:commandButton>
-                    </p:column>
+
                     <f:facet name="footer">
                         <h:outputText value="#{msg.search_results_status_0}"
                                       rendered="#{mbDicomLookup.stagedSubjects.size() == 0}"/>
@@ -443,7 +432,18 @@
                                 />
                             </p:column>
                             <p:column
-                                    headerText="#{msg.study_description}"
+                                    headerText="#{msg.dicomStudy_modalities}"
+                                    sortBy="#{study.modalitiesInStudy}"
+                                    filterBy="#{study.modalitiesInStudy}"
+                                    filterMatchMode="contains"
+                            >
+                                <h:outputText
+                                        style="float: left"
+                                        value="#{study.modalitiesInStudy}"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomStudy_studyDescription}"
                                     sortBy="#{study.studyDescription}"
                                     filterBy="#{study.studyDescription}"
                             >
@@ -453,6 +453,7 @@
                                 />
                             </p:column>
                             <p:column
+                                    id="colDicomStudyDate"
                                     headerText="#{msg.dicomStudy_studyDate}"
                                     sortBy="#{study.getDateStudy()}"
                                     filterBy="#{study.getDateStudyString()}"
@@ -565,9 +566,9 @@
                                             value="#{subject}"
                                             target="#{mbDicomLookup.selectedSubject}"/>
                                 </p:commandButton>
-
                                 <p:blockUI block="form:tabView" trigger="searchSeriesDataButton">
-                                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
+                                    #{msg.loading}<br/>
+                                    <p:graphicImage name="icons/ajaxloading.gif"/>
                                 </p:blockUI>
                             </p:column>
                             <f:facet name="footer">
@@ -596,14 +597,22 @@
                 header="#{msg.dicomStudy_edit}"
                 widgetVar="editEntityDialog"
                 resizable="true"
+                height="90%"
                 width="70%"
-                ajax="true"
                 appendToBody="true"
                 modal="true"
                 closeOnEscape="true"
+                onHide="PF('editEntityDialogTabView').select(0)"
         >
             <p:ajax event="close" listener="#{mbDicomLookup.clearSelectedDicomSeries()}"/>
             <h:form id="dicomStagedSeriesDialogForm">
+
+                <p:blockUI block="dicomStagedSeriesDialogForm"
+                           widgetVar="dicomStagedSeriesDialogFormBlockUi"
+                >
+                    #{msg.loading}<br/>
+                    <p:graphicImage name="icons/ajaxloading.gif"/>
+                </p:blockUI>
                 <p:panel style="width: auto; height: auto">
                     <p:panelGrid id="dicomStagedSeriesGrid">
                         <p:row>
@@ -665,264 +674,668 @@
                                 <h:outputText value="#{mbDicomLookup.selectedDicomStudy.stageTwoStudyInstanceUid}"/>
                             </p:column>
                         </p:row>
-                        <p:row>
-                            <p:column>
-                                <h:outputText value="#{msg.menu_commands}:"/>
-                            </p:column>
-                            <p:column>
-                                <p:commandButton
-                                        id="stageCompleteDicomSeries"
-                                        icon="ui-icon-play"
-                                        value="#{msg.menu_stage} #{msg.dicomStudy}"
-                                        title="#{msg.menu_stage}"
-                                        action="#{mbDicomLookup.stageCompleteDicomStudy()}"
-                                        oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
-                                        ajax="true"
-                                        style="float: left;"
-                                        disabled="#{!userContext.hasRole('ROLE_PACS_UPLOAD')}"
-                                />
-                                <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageCompleteDicomSeries">
-                                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
-                                </p:blockUI>
-                            </p:column>
-                        </p:row>
+                        <!-- Staging complete study is a bit too powerful - it is better to force users to do selection per series -->
+                        <!-- otherwise it was observed that they grab unnecessary data  -->
+                        <!--                        <p:row>-->
+                        <!--                            <p:column>-->
+                        <!--                                <h:outputText value="#{msg.menu_commands}:"/>-->
+                        <!--                            </p:column>-->
+                        <!--                            <p:column>-->
+                        <!--                                <p:commandButton-->
+                        <!--                                        id="stageCompleteDicomSeries"-->
+                        <!--                                        icon="ui-icon-play"-->
+                        <!--                                        value="#{msg.menu_stage} #{msg.dicomStudy}"-->
+                        <!--                                        title="#{msg.menu_stage}"-->
+                        <!--                                        action="#{mbDicomLookup.stageCompleteDicomStudy()}"-->
+                        <!--                                        oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"-->
+                        <!--                                        ajax="true"-->
+                        <!--                                        style="float: left;"-->
+                        <!--                                        disabled="#{!userContext.hasRole('ROLE_PACS_UPLOAD') || !mbDicomLookup.selectedStudyCanBeStaged() }"-->
+                        <!--                                />-->
+                        <!--                                <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageCompleteDicomSeries">-->
+                        <!--                                    #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>-->
+                        <!--                                </p:blockUI>-->
+                        <!--                            </p:column>-->
+                        <!--                        </p:row>-->
                     </p:panelGrid>
                 </p:panel>
-                <p:toolbar>
-                    <f:facet name="right">
-                        <p:commandButton
-                                id="DicomStudyDetailTableToggler"
-                                type="button"
-                                value="#{msg.menu_columns}"
-                                style="float:right"
-                                icon="ui-icon-calculator"/>
-                        <p:columnToggler
-                                datasource="DicomStudyDetailTable"
-                                trigger="DicomStudyDetailTableToggler"/>
-                    </f:facet>
-                </p:toolbar>
-                <p:dataTable
-                        id="DicomStudyDetailTable"
-                        var="dicomSeries"
-                        value="#{mbDicomLookup.stagedDicomSeries}"
-                        resizableColumns="true"
-                        sortMode="multiple"
-                        paginator="true"
-                        paginatorAlwaysVisible="false"
-                        draggableColumns="false"
-                        rows="10"
-                        rowsPerPageTemplate="10,20,50"
-                        emptyMessage="#{msg.search_empty}"
-                        rowIndexVar="rowIndexDicomSeriesDetailTable"
-                        selection="#{mbDicomLookup.selectedDicomSeries}"
-                        rowKey="#{dicomSeries.seriesInstanceUID}"
-                        widgetVar="DicomStudyDetailTableWidget"
-                        sortBy="#{mbDicomLookup.preSortOrder}"
+                <p:tabView
+                        id="dicomStagedSeriesDialogFormTabView"
+                        dynamic="true"
+                        cache="false"
+                        widgetVar="editEntityDialogTabView"
                 >
-                    <p:ajax event="rowSelectCheckbox" update="dicomStagedSeriesDialogForm"/>
-                    <p:ajax event="rowUnselectCheckbox" update="dicomStagedSeriesDialogForm"/>
-                    <p:ajax event="rowSelect" update="dicomStagedSeriesDialogForm"/>
-                    <p:ajax event="toggleSelect" update="dicomStagedSeriesDialogForm"/>
+                    <p:ajax event="tabChange"
+                            listener="#{mbDicomLookup.onDicomStagedSeriesDialogFormTabViewTabChange}"
+                            onstart="PF('dicomStagedSeriesDialogFormBlockUi').show();"
+                            oncomplete="PF('dicomStagedSeriesDialogFormBlockUi').hide();"
+                    />
 
-                    <p:column
-                            selectionMode="multiple"
-                            exportable="false"
-                            toggleable="false"
-                            style="width:16px"
+                    <p:tab title="Table View"
+                           id="dicomStagedSeriesDialogFormTableTab"
                     >
-                    </p:column>
-                    <p:column headerText="#"
-                              exportable="false"
-                              toggleable="false"
-                              style="width:16px">
-                        <h:outputText
-                                value="#{rowIndexDicomSeriesDetailTable + 1}"
-                                style="float: left;"
-                        />
-                    </p:column>
-                    <p:column
-                            id="seriesClinicalUidColumn"
-                            headerText="#{msg.clinical} #{msg.dicomSeries_seriesInstanceUID}"
-                            sortBy="#{dicomSeries.clinicalSeriesUid}"
-                            filterBy="#{dicomSeries.clinicalSeriesUid}"
-                            visible="false"
-                    >
-                        <h:outputText value="#{dicomSeries.clinicalSeriesUid}"
-                                      style="float: left"
-                        />
-                    </p:column>
-                    <p:column
-                            id="seriesStageOneUidColumn"
-                            headerText="#{msg.stage_one} #{msg.dicomSeries_seriesInstanceUID}"
-                            sortBy="#{dicomSeries.stageOneSeriesUid}"
-                            filterBy="#{dicomSeries.stageOneSeriesUid}"
-                            visible="false"
-                    >
-                        <h:outputText value="#{dicomSeries.stageOneSeriesUid}"
-                                      style="float: left"
-                        />
-                    </p:column>
-                    <p:column
-                            id="seriesStageTwoUidColumn"
-                            headerText="#{msg.stage_two} #{msg.dicomSeries_seriesInstanceUID}"
-                            sortBy="#{dicomSeries.stageTwoSeriesUid}"
-                            filterBy="#{dicomSeries.stageTwoSeriesUid}"
-                            visible="false"
-                    >
-                        <h:outputText value="#{dicomSeries.stageTwoSeriesUid}"
-                                      style="float: left"
-                        />
-                    </p:column>
-                    <p:column
-                            headerText="#{msg.dicomSeries_seriesDescription}"
-                            sortBy="#{dicomSeries.seriesDescription}"
-                            filterBy="#{dicomSeries.seriesDescription}"
-                    >
-                        <h:outputText
-                                value="#{dicomSeries.seriesDescription}"
-                                style="float: left"
-                        />
-                    </p:column>
-                    <p:column
-                            headerText="#{msg.dicomSeries_modality}"
-                            sortBy="#{dicomSeries.seriesModality}"
-                            filterBy="#{dicomSeries.seriesModality}"
-                    >
-                        <h:outputText
-                                value="#{dicomSeries.seriesModality}"
-                                style="float: left;"
-                        />
-                    </p:column>
-                    <p:column
-                            headerText="#{msg.dicomSeries_seriesTime}"
-                            sortBy="#{dicomSeries.getTimeSeries()}"
-                            filterBy="#{dicomSeries.getTimeSeriesString()}"
-                    >
-                        <h:outputText value="#{dicomSeries.getTimeSeriesString()}">
-                        </h:outputText>
-                    </p:column>
-                    <p:column
-                            headerText="#{msg.stage_one}"
-                            sortBy="#{dicomSeries.isStageOneRepresentation()}"
-                            filterBy="#{dicomSeries.isStageOneRepresentation()}"
-                            visible="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
-                            style="width:30px"
-                    >
-                        <f:facet name="filter">
-                            <p:selectOneMenu
-                                    onchange="PF('DicomStudyDetailTableWidget').filter()"
-                                    label="filter"
+                        <p:toolbar>
+                            <f:facet name="right">
+                                <p:commandButton
+                                        id="DicomStudyDetailTableToggler"
+                                        type="button"
+                                        value="#{msg.menu_columns}"
+                                        style="float:right"
+                                        icon="ui-icon-calculator"/>
+                                <p:columnToggler
+                                        datasource="DicomStudyDetailTable"
+                                        trigger="DicomStudyDetailTableToggler"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable
+                                id="DicomStudyDetailTable"
+                                var="dicomSeries"
+                                value="#{mbDicomLookup.stagedDicomSeries}"
+                                resizableColumns="true"
+                                sortMode="multiple"
+                                paginator="true"
+                                paginatorAlwaysVisible="false"
+                                draggableColumns="false"
+                                rows="10"
+                                rowsPerPageTemplate="10,20,50"
+                                emptyMessage="#{msg.search_empty}"
+                                rowIndexVar="rowIndexDicomSeriesDetailTable"
+                                selection="#{mbDicomLookup.selectedDicomSeries}"
+                                rowKey="#{dicomSeries.seriesInstanceUID}"
+                                widgetVar="DicomStudyDetailTableWidget"
+                                sortBy="#{mbDicomLookup.preSortOrder}"
+                        >
+                            <p:ajax event="rowSelectCheckbox" update="dicomStagedSeriesDialogForm"/>
+                            <p:ajax event="rowUnselectCheckbox" update="dicomStagedSeriesDialogForm"/>
+                            <p:ajax event="rowSelect" update="dicomStagedSeriesDialogForm"/>
+                            <p:ajax event="toggleSelect" update="dicomStagedSeriesDialogForm"/>
+
+                            <p:column
+                                    selectionMode="multiple"
+                                    exportable="false"
+                                    toggleable="false"
+                                    style="width:16px"
                             >
-                                <f:converter converterId="javax.faces.Boolean"/>
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
-                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
-                                <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
-                            </p:selectOneMenu>
-                        </f:facet>
-                        <p:selectBooleanButton
-                                value="#{dicomSeries.isStageOneRepresentation()}"
-                                onLabel="#{msg.yes}"
-                                offLabel="#{msg.no}"
-                                onIcon="ui-icon-check"
-                                offIcon="ui-icon-close"
-                                disabled="true"
-                                style="width:60px"
-                        />
-                    </p:column>
-                    <p:column
-                            headerText="#{msg.stage_two}"
-                            sortBy="#{dicomSeries.isStageTwoRepresentation()}"
-                            filterBy="#{dicomSeries.isStageTwoRepresentation()}"
-                            visible="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
-                            style="width:30px"
-                    >
-                        <f:facet name="filter">
-                            <p:selectOneMenu
-                                    onchange="PF('DicomStudyDetailTableWidget').filter()"
-                                    label="filter"
+                            </p:column>
+                            <p:column headerText="#"
+                                      exportable="false"
+                                      toggleable="false"
+                                      style="width:16px">
+                                <h:outputText
+                                        value="#{rowIndexDicomSeriesDetailTable + 1}"
+                                        style="float: left;"
+                                />
+                            </p:column>
+                            <p:column
+                                    id="seriesClinicalUidColumn"
+                                    headerText="#{msg.clinical} #{msg.dicomSeries_seriesInstanceUID}"
+                                    sortBy="#{dicomSeries.clinicalSeriesUid}"
+                                    filterBy="#{dicomSeries.clinicalSeriesUid}"
+                                    visible="false"
                             >
-                                <f:converter converterId="javax.faces.Boolean"/>
-                                <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
-                                <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
-                                <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
-                            </p:selectOneMenu>
-                        </f:facet>
-                        <p:selectBooleanButton
-                                value="#{dicomSeries.isStageTwoRepresentation()}"
-                                onLabel="#{msg.yes}"
-                                offLabel="#{msg.no}"
-                                onIcon="ui-icon-check"
-                                offIcon="ui-icon-close"
-                                disabled="true"
-                                style="width:60px"
-                        />
-                    </p:column>
-                    <p:column
-                            headerText="#{msg.menu_commands}"
-                            style="width:30px"
-                            exportable="false"
-                            filterable="false"
-                            toggleable="false"
+                                <h:outputText value="#{dicomSeries.clinicalSeriesUid}"
+                                              style="float: left"
+                                />
+                            </p:column>
+                            <p:column
+                                    id="seriesStageOneUidColumn"
+                                    headerText="#{msg.stage_one} #{msg.dicomSeries_seriesInstanceUID}"
+                                    sortBy="#{dicomSeries.stageOneSeriesUid}"
+                                    filterBy="#{dicomSeries.stageOneSeriesUid}"
+                                    visible="false"
+                            >
+                                <h:outputText value="#{dicomSeries.stageOneSeriesUid}"
+                                              style="float: left"
+                                />
+                            </p:column>
+                            <p:column
+                                    id="seriesStageTwoUidColumn"
+                                    headerText="#{msg.stage_two} #{msg.dicomSeries_seriesInstanceUID}"
+                                    sortBy="#{dicomSeries.stageTwoSeriesUid}"
+                                    filterBy="#{dicomSeries.stageTwoSeriesUid}"
+                                    visible="false"
+                            >
+                                <h:outputText value="#{dicomSeries.stageTwoSeriesUid}"
+                                              style="float: left"
+                                />
+                            </p:column>
+
+                            <p:column
+                                    headerText="#{msg.dicomSeries_details}"
+                                    style="width:25px"
+                            >
+                                <p:commandButton
+                                        oncomplete="PF('selectedStagedSeriesDetailsOverlayTableView').show('#{component.clientId}')"
+                                        update="dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView"
+                                        icon="ui-icon-info"
+                                        title="#{msg.dicomSeries_dicomDetails}"
+                                >
+
+                                    <f:setPropertyActionListener
+                                            value="#{dicomSeries}"
+                                            target="#{mbDicomLookup.selectedStagedSeries}"
+                                    />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_modality}"
+                                    sortBy="#{dicomSeries.seriesModality}"
+                                    filterBy="#{dicomSeries.seriesModality}"
+                            >
+                                <h:outputText
+                                        value="#{dicomSeries.seriesModality}"
+                                        style="float: left;"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_seriesDescription}"
+                                    sortBy="#{dicomSeries.seriesDescription}"
+                                    filterBy="#{dicomSeries.seriesDescription}"
+                            >
+                                <h:outputText
+                                        id="dicomStagedSeriesDialogFormTableSeriesDescriptionColumn"
+                                        value="#{dicomSeries.seriesDescription}"
+                                        style="float: left"
+                                />
+                                <p:tooltip
+                                        for="dicomStagedSeriesDialogFormTableSeriesDescriptionColumn"
+                                        value="#{dicomSeries.toolTipValue}"
+                                >
+                                </p:tooltip>
+                            </p:column>
+                            <p:column
+                                    id="colDicomSeriesDate"
+                                    headerText="#{msg.dicomSeries_seriesDate}"
+                                    sortBy="#{dicomSeries.getDateSeriesString()}"
+                                    filterBy="#{dicomSeries.getDateSeriesString()}"
+                                    style="text-align:center;"
+                            >
+                                <h:outputText
+                                        value="#{dicomSeries.getDateSeriesString()}"
+                                >
+                                </h:outputText>
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_seriesTime}"
+                                    sortBy="#{dicomSeries.getTimeSeries()}"
+                                    filterBy="#{dicomSeries.getTimeSeriesString()}"
+                                    visible="false"
+                            >
+                                <h:outputText value="#{dicomSeries.getTimeSeriesString()}">
+                                </h:outputText>
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.stage_one}"
+                                    sortBy="#{dicomSeries.isStageOneRepresentation()}"
+                                    filterBy="#{dicomSeries.isStageOneRepresentation()}"
+                                    visible="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                                    style="width:30px"
+                            >
+                                <f:facet name="filter">
+                                    <p:selectOneMenu
+                                            onchange="PF('DicomStudyDetailTableWidget').filter()"
+                                            label="filter"
+                                    >
+                                        <f:converter converterId="javax.faces.Boolean"/>
+                                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
+                                        <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                        <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <p:selectBooleanButton
+                                        value="#{dicomSeries.isStageOneRepresentation()}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.stage_two}"
+                                    sortBy="#{dicomSeries.isStageTwoRepresentation()}"
+                                    filterBy="#{dicomSeries.isStageTwoRepresentation()}"
+                                    visible="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                                    style="width:30px"
+                            >
+                                <f:facet name="filter">
+                                    <p:selectOneMenu
+                                            onchange="PF('DicomStudyDetailTableWidget').filter()"
+                                            label="filter"
+                                    >
+                                        <f:converter converterId="javax.faces.Boolean"/>
+                                        <f:selectItem itemLabel="#{msg.search_select_one}" itemValue=""/>
+                                        <f:selectItem itemLabel="#{msg.yes}" itemValue="true"/>
+                                        <f:selectItem itemLabel="#{msg.no}" itemValue="false"/>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <p:selectBooleanButton
+                                        value="#{dicomSeries.isStageTwoRepresentation()}"
+                                        onLabel="#{msg.yes}"
+                                        offLabel="#{msg.no}"
+                                        onIcon="ui-icon-check"
+                                        offIcon="ui-icon-close"
+                                        disabled="true"
+                                        style="width:60px"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.menu_commands}"
+                                    style="width:30px"
+                                    exportable="false"
+                                    filterable="false"
+                                    toggleable="false"
+                            >
+                                <p:commandButton
+                                        id="downloadSeriesDataButton"
+                                        icon="ui-icon-arrowthick-1-s"
+                                        title="#{msg.menu_download}"
+                                        action="#{mbDicomLookup.downloadDicomSeries()}"
+                                        update=":growl"
+                                        process="@this"
+                                        immediate="true"
+                                        ajax="false"
+                                        disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD') or !dicomSeries.isStaged() }"
+                                >
+                                    <f:setPropertyActionListener
+                                            value="#{dicomSeries}"
+                                            target="#{mbDicomLookup.selectedStagedDicomSeries}"
+                                    />
+                                </p:commandButton>
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <h:outputText value="#{msg.search_results_status_0}"
+                                              rendered="#{mbDicomLookup.stagedDicomSeries.size() == 0}"/>
+                                <h:outputText value="#{msg.search_results_status_1}"
+                                              rendered="#{mbDicomLookup.stagedDicomSeries.size() == 1}"/>
+                                <h:outputFormat
+                                        value="#{msg.search_results_status_n}"
+                                        rendered="#{mbDicomLookup.stagedDicomSeries.size() > 1}"
+                                >
+                                    <f:param value="#{mbDicomLookup.stagedDicomSeries.size()}"/>
+                                </h:outputFormat>
+                                <h:outputText
+                                        value=" #{msg.select_one_item}"
+                                        rendered="#{mbDicomLookup.selectedDicomSeries.size() == 1}"
+                                        style="float: right"/>
+
+                                <h:outputFormat
+                                        value="  #{msg.select_multiple_items}"
+                                        rendered="#{mbDicomLookup.selectedDicomSeries.size() > 1}"
+                                        style="float: right"
+                                >
+                                    <f:param value="#{mbDicomLookup.selectedDicomSeries.size()}"/>
+                                </h:outputFormat>
+                            </f:facet>
+                        </p:dataTable>
+                        <p:toolbar id="dicomStagedSeriesDialogFormToolbar">
+                            <f:facet name="left">
+                                <p:commandButton
+                                        id="stageSelectedDicomSerie"
+                                        icon="ui-icon-play"
+                                        value="#{msg.menu_stage} #{msg.dicomSeries_plural}"
+                                        title="#{msg.menu_stage}"
+                                        disabled="#{mbDicomLookup.selectedDicomSeries.size() == 0 || !userContext.hasRole('ROLE_PACS_UPLOAD') || !mbDicomLookup.selectedStudyCanBeStaged()}"
+                                        action="#{mbDicomLookup.stageChosenDicomSeries()}"
+                                        oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
+                                />
+                                <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageSelectedDicomSerie">
+                                    #{msg.loading}<br/>
+                                    <p:graphicImage name="icons/ajaxloading.gif"/>
+                                </p:blockUI>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:overlayPanel widgetVar="selectedStagedSeriesDetailsOverlayTableView"
+                                        id="selectedStagedSeriesDetailsOverlayTableView"
+                                        my="left top"
+                                        showEffect="fade"
+                                        hideEffect="fade"
+                                        dismissable="false"
+                                        showCloseIcon="true"
+                        >
+                            <p:panelGrid>
+                                <f:facet name="header">
+                                    <h:outputText
+                                            style="text-align:center;"
+                                            value="#{msg.dicomSeries_details}"/>
+                                </f:facet>
+                                <p:dataList value="#{mbDicomLookup.selectedStagedSeries.getDetailsList()}"
+                                            var="detail"
+                                            scrollable="true"
+                                >
+                                    #{detail}
+                                </p:dataList>
+                            </p:panelGrid>
+                        </p:overlayPanel>
+                    </p:tab>
+                    <p:tab title="RT View"
+                           id="dicomStagedSeriesDialogFormTreeTableTab"
+                           scrollable="true"
+                           rendered="#{mbDicomLookup.getDicomSeriesTree().getChildCount() > 0}"
                     >
-                        <p:commandButton
-                                id="downloadSeriesDataButton"
-                                icon="ui-icon-arrowthick-1-s"
-                                title="#{msg.menu_download}"
-                                action="#{mbDicomLookup.downloadDicomSeries()}"
-                                update=":growl"
-                                process="@this"
-                                immediate="true"
-                                ajax="false"
-                                disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD') or !dicomSeries.isStaged() }"
-                        >
-                            <f:setPropertyActionListener
-                                    value="#{dicomSeries}"
-                                    target="#{mbDicomLookup.selectedStagedDicomSeries}"
-                            />
-                        </p:commandButton>
-                    </p:column>
+                        <!--                        <p:toolbar>-->
+                        <!--                            <f:facet name="right">-->
+                        <!--                                <p:commandButton-->
+                        <!--                                        id="DicomStagedSeriesDialogFormTreeTableToggler"-->
+                        <!--                                        type="button"-->
+                        <!--                                        value="#{msg.menu_columns}"-->
+                        <!--                                        style="float:right"-->
+                        <!--                                        icon="ui-icon-calculator"/>-->
+                        <!--                                <p:columnToggler-->
+                        <!--                                        datasource="dicomStagedSeriesDialogFormTreeTable"-->
+                        <!--                                        trigger="DicomStagedSeriesDialogFormTreeTableToggler"/>-->
+                        <!--                            </f:facet>-->
+                        <!--                        </p:toolbar>-->
 
-                    <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}"
-                                      rendered="#{mbDicomLookup.stagedDicomSeries.size() == 0}"/>
-                        <h:outputText value="#{msg.search_results_status_1}"
-                                      rendered="#{mbDicomLookup.stagedDicomSeries.size() == 1}"/>
-                        <h:outputFormat
-                                value="#{msg.search_results_status_n}"
-                                rendered="#{mbDicomLookup.stagedDicomSeries.size() > 1}"
+                        <p:accordionPanel id="updateRTView" multiple="true" activeIndex="false">
+                            <p:tab title="#{msg.search_criteria }">
+                                <p:panelGrid
+                                        id="pnlSearchCriteria"
+                                        columnClasses="column"
+                                        columns="2"
+                                >
+                                    <p:selectCheckboxMenu
+                                            id="selectModalitiesFilterCheckboxMenu"
+                                            value="#{mbDicomLookup.queriedDicomSeriesModality }"
+                                            label="Filtered Modalities RT View"
+                                            multiple="true"
+                                            showHeader="false"
+                                            title="Queried Modalities"
+                                            style="padding: 3px"
+                                    >
+                                        <f:selectItems value="#{mbDicomLookup.availableSeriesModalities }"/>
+                                        <!--                                    <p:ajax-->
+                                        <!--                                            event="change"-->
+                                        <!--                                            listener="#{mbDicomLookup.updateSeriesTreeWithDetails()}"-->
+                                        <!--                                            onstart="PF('dicomStagedSeriesDialogFormBlockUi').show();"-->
+                                        <!--                                            oncomplete="PF('dicomStagedSeriesDialogFormBlockUi').hide();"-->
+                                        <!--                                            update="dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView"-->
+                                        <!--                                    />-->
+                                    </p:selectCheckboxMenu>
+                                    <p:commandButton
+                                            id="updateRTViewWithSelectedModalities"
+                                            title="#{msg.menu_update }"
+                                            value="#{msg.menu_update}"
+                                            action="#{mbDicomLookup.updateSeriesTreeWithDetails()}"
+                                            icon="ui-icon-refresh"
+                                            ajax="true"
+                                            update="dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView"
+                                            onstart="PF('dicomStagedSeriesDialogFormBlockUi').show();"
+                                            oncomplete="PF('dicomStagedSeriesDialogFormBlockUi').hide();"
+                                            style="padding: 3px"
+                                    />
+                                </p:panelGrid>
+                            </p:tab>
+                        </p:accordionPanel>
+                        <p:treeTable
+                                id="dicomStagedSeriesDialogFormTreeTable"
+                                value="#{mbDicomLookup.dicomSeriesTree}"
+                                selection="#{mbDicomLookup.selectedDicomSeriesNodes}"
+                                selectionMode="checkbox"
+                                widgetVar="DicomSeriesDetailTreeTable"
+                                rowIndexVar="rowIndexDicomSeriesDetailTreeTable"
+                                var="dicomSeries"
+                                dynamic="true"
+                                liveResize="true"
+                                resizableColumns="true"
+                                sortMode="multiple"
+                                paginator="true"
+                                paginatorAlwaysVisible="false"
+                                draggableColumns="false"
+                                rows="10"
+                                rowsPerPageTemplate="10,20,50"
+                                emptyMessage="#{msg.search_empty}"
                         >
-                            <f:param value="#{mbDicomLookup.stagedDicomSeries.size()}"/>
-                        </h:outputFormat>
-                        <h:outputText
-                                value=" #{msg.select_one_item}"
-                                rendered="#{mbDicomLookup.selectedDicomSeries.size() == 1}"
-                                style="float: right"/>
+                            <p:ajax
+                                    event="select"
+                                    update="dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView:stageSelectedDicomSeriesTreeView"/>
+                            <p:ajax event="unselect"
+                                    update="growl,dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView:stageSelectedDicomSeriesTreeView"/>
+                            <p:column
+                                    selectionMode="multiple"
+                                    exportable="false"
+                                    toggleable="false"
+                                    style="width:75px"
+                            ></p:column>
+                            <!--                            <p:column-->
+                            <!--                                    id="seriesClinicalUidTreeTableColumn"-->
+                            <!--                                    headerText="#{msg.clinical} #{msg.dicomSeries_seriesInstanceUID}"-->
+                            <!--                                    sortBy="#{dicomSeries.clinicalSeriesUid}"-->
+                            <!--                                    filterBy="#{dicomSeries.clinicalSeriesUid}"-->
+                            <!--                                    visible="false"-->
+                            <!--                            >-->
+                            <!--                                <h:outputText value="#{dicomSeries.clinicalSeriesUid}"-->
+                            <!--                                              style="float: left"-->
+                            <!--                                />-->
+                            <!--                            </p:column>-->
+                            <!--                            <p:column-->
+                            <!--                                    id="seriesStageOneUidTreeTableColumn"-->
+                            <!--                                    headerText="#{msg.stage_one} #{msg.dicomSeries_seriesInstanceUID}"-->
+                            <!--                                    sortBy="#{dicomSeries.stageOneSeriesUid}"-->
+                            <!--                                    filterBy="#{dicomSeries.stageOneSeriesUid}"-->
+                            <!--                                    visible="false"-->
+                            <!--                            >-->
+                            <!--                                <h:outputText value="#{dicomSeries.stageOneSeriesUid}"-->
+                            <!--                                              style="float: left"-->
+                            <!--                                />-->
+                            <!--                            </p:column>-->
+                            <!--                            <p:column-->
+                            <!--                                    id="seriesStageTwoUidTreeTableColumn"-->
+                            <!--                                    headerText="#{msg.stage_two} #{msg.dicomSeries_seriesInstanceUID}"-->
+                            <!--                                    sortBy="#{dicomSeries.stageTwoSeriesUid}"-->
+                            <!--                                    filterBy="#{dicomSeries.stageTwoSeriesUid}"-->
+                            <!--                                    visible="false"-->
+                            <!--                            >-->
+                            <!--                                <h:outputText value="#{dicomSeries.stageTwoSeriesUid}"-->
+                            <!--                                              style="float: left"-->
+                            <!--                                />-->
+                            <!--                            </p:column>-->
 
-                        <h:outputFormat
-                                value="  #{msg.select_multiple_items}"
-                                rendered="#{mbDicomLookup.selectedDicomSeries.size() > 1}"
-                                style="float: right"
+
+                            <p:column
+                                    headerText="#{msg.dicomSeries_details}"
+                                    style="width:25px"
+                            >
+                                <p:commandButton
+                                        oncomplete="PF('selectedStagedSeriesDetailsOverlay').show('#{component.clientId}')"
+                                        update="dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView"
+                                        icon="ui-icon-info"
+                                        title="#{msg.dicomSeries_dicomDetails}"
+                                >
+
+                                    <f:setPropertyActionListener
+                                            value="#{dicomSeries}"
+                                            target="#{mbDicomLookup.selectedStagedSeries}"
+                                    />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_modality}"
+                                    sortBy="#{dicomSeries.seriesModality}"
+                                    filterBy="#{dicomSeries.seriesModality}"
+                            >
+                                <h:outputText
+                                        value="#{dicomSeries.seriesModality}"
+                                        style="float: left;"
+                                />
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_seriesDescription}"
+                                    sortBy="#{dicomSeries.seriesDescription}"
+                                    filterBy="#{dicomSeries.seriesDescription}"
+                            >
+                                <h:outputText
+                                        id="dicomStagedSeriesDialogFormTreeTableDescriptionColumn"
+                                        value="#{dicomSeries.seriesDescription}"
+                                        style="float: left">
+
+                                </h:outputText>
+                                <p:tooltip
+                                        for="dicomStagedSeriesDialogFormTreeTableDescriptionColumn"
+                                        value="#{dicomSeries.toolTipValue}"
+                                >
+                                </p:tooltip>
+
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_seriesTime}"
+                                    sortBy="#{dicomSeries.getTimeSeries()}"
+                                    filterBy="#{dicomSeries.getTimeSeriesString()}"
+                                    rendered="false"
+                            >
+                                <h:outputText value="#{dicomSeries.getTimeSeriesString()}">
+                                </h:outputText>
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.dicomSeries_seriesDate}"
+                                    sortBy="#{dicomSeries.getDateSeriesString()}"
+                                    filterBy="#{dicomSeries.getDateSeriesString()}"
+                                    style="text-align:center;"
+                            >
+                                <h:outputText
+                                        value="#{dicomSeries.getDateSeriesString()}"
+                                >
+                                </h:outputText>
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.stage_one}"
+                                    rendered="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                                    style="text-align:center; width:30px"
+                            >
+                                <p:triStateCheckbox
+                                        headerText="#{msg.stage_one}"
+                                        visible="#{mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                                        value="#{dicomSeries.stagingState}"
+                                        disabled="true"
+                                        stateOneTitle="#{msg.not_staged}  #{dicomSeries.stagedImagesToAvailableImagesCount()}"
+                                        stateTwoTitle="#{msg.complete}  #{dicomSeries.stagedImagesToAvailableImagesCount()}"
+                                        stateThreeTitle="#{msg.complete} #{dicomSeries.stagedImagesToAvailableImagesCount()}"
+                                />
+
+                            </p:column>
+                            <p:column
+                                    headerText="#{msg.stage_two}"
+                                    rendered="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                                    style="text-align:center; width:30px"
+                            >
+                                <p:triStateCheckbox
+                                        headerText="#{msg.stage_two}"
+                                        visible="#{!mbDicomLookup.getCurrentStudyEdcCode().equals(Constants.study0EdcCode)}"
+                                        value="#{dicomSeries.stagingState}"
+                                        disabled="true"
+                                        stateOneTitle="#{msg.not_staged}  #{dicomSeries.stagedImagesToAvailableImagesCount()}"
+                                        stateTwoTitle="#{msg.complete}  #{dicomSeries.stagedImagesToAvailableImagesCount()}"
+                                        stateThreeTitle="#{msg.complete} #{dicomSeries.stagedImagesToAvailableImagesCount()}"
+                                />
+
+                            </p:column>
+
+                            <p:column
+                                    headerText="#{msg.menu_commands}"
+                                    style="width:30px"
+                                    exportable="false"
+                                    filterable="false"
+                                    toggleable="false"
+                            >
+                                <p:commandButton
+                                        id="downloadSeriesDataButton2"
+                                        icon="ui-icon-arrowthick-1-s"
+                                        title="#{msg.menu_download}"
+                                        action="#{mbDicomLookup.downloadDicomSeries()}"
+                                        update=":growl"
+                                        process="@this"
+                                        immediate="true"
+                                        ajax="false"
+                                        disabled="#{!userContext.hasRole('ROLE_PACS_DOWNLOAD') or !dicomSeries.isStaged() }"
+                                >
+                                    <f:setPropertyActionListener
+                                            value="#{dicomSeries}"
+                                            target="#{mbDicomLookup.selectedStagedDicomSeries}"
+                                    />
+                                </p:commandButton>
+                                <p:commandButton
+                                        oncomplete="PF('regionsOfInterestOverlay').show('#{component.clientId}')"
+                                        update="dicomStagedSeriesDialogForm:dicomStagedSeriesDialogFormTabView"
+                                        icon="ui-icon-circle-zoomin"
+                                        title="#{msg.dicomSeries_regions_of_interest}"
+                                        rendered="#{dicomSeries.getRegionsOfInterestList().size() > 0}"
+                                >
+
+                                    <f:setPropertyActionListener value="#{dicomSeries}"
+                                                                 target="#{mbDicomLookup.selectedStagedSeries}"/>
+                                </p:commandButton>
+                            </p:column>
+                        </p:treeTable>
+
+
+                        <p:toolbar id="dicomStagedSeriesDialogTreeViewFormToolbar">
+                            <f:facet name="left">
+                                <p:commandButton
+                                        id="stageSelectedDicomSeriesTreeView"
+                                        icon="ui-icon-play"
+                                        value="#{msg.menu_stage} #{msg.dicomSeries_plural}"
+                                        title="#{msg.menu_stage}"
+                                        disabled="#{!mbDicomLookup.hasSelectedDicomSeriesNodes() || !userContext.hasRole('ROLE_PACS_UPLOAD') || !mbDicomLookup.selectedStudyCanBeStaged()}"
+                                        action="#{mbDicomLookup.stageChosenDicomSeriesFromTreeView()}"
+                                        oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
+                                />
+                                <p:blockUI block="dicomStagedSeriesDialogForm"
+                                           trigger="stageSelectedDicomSeriesTreeView">
+                                    #{msg.loading}<br/>
+                                    <p:graphicImage name="icons/ajaxloading.gif"/>
+                                </p:blockUI>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:overlayPanel widgetVar="regionsOfInterestOverlay"
+                                        id="regionsOfInterestOverlay"
+                                        my="right top"
+                                        showEffect="fade"
+                                        hideEffect="fade"
+                                        dismissable="false"
+                                        showCloseIcon="true"
                         >
-                            <f:param value="#{mbDicomLookup.selectedDicomSeries.size()}"/>
-                        </h:outputFormat>
-                    </f:facet>
-                </p:dataTable>
-                <p:toolbar id="dicomStagedSeriesDialogFormToolbar">
-                    <f:facet name="left">
-                        <p:commandButton
-                                id="stageSelectedDicomSerie"
-                                icon="ui-icon-play"
-                                value="#{msg.menu_stage} #{msg.dicomSeries_plural}"
-                                title="#{msg.menu_stage}"
-                                disabled="#{mbDicomLookup.selectedDicomSeries.size() == 0 || !userContext.hasRole('ROLE_PACS_UPLOAD')}"
-                                action="#{mbDicomLookup.stageChosenDicomSeries()}"
-                                oncomplete="handleSubmitRequest(xhr, status, args, 'dlgDicomStudyEdit','dicomStagedSeriesDialogForm');"
-                        />
-                        <p:blockUI block="dicomStagedSeriesDialogForm" trigger="stageSelectedDicomSerie">
-                            #{msg.loading}<br/><p:graphicImage name="icons/ajaxloading.gif"/>
-                        </p:blockUI>
-                    </f:facet>
-                </p:toolbar>
+                            <p:panelGrid>
+                                <f:facet name="header">
+                                    <h:outputText
+                                            style="text-align:center;"
+                                            value="Regions of Interest"/>
+                                </f:facet>
+                                <p:dataList value="#{mbDicomLookup.selectedStagedSeries.getRegionsOfInterestList()}"
+                                            var="region"
+                                            scrollable="true"
+                                >
+                                    #{region}
+                                </p:dataList>
+                            </p:panelGrid>
+
+                        </p:overlayPanel>
+                        <p:overlayPanel widgetVar="selectedStagedSeriesDetailsOverlay"
+                                        id="selectedStagedSeriesDetailsOverlay"
+                                        my="left top"
+                                        showEffect="fade"
+                                        hideEffect="fade"
+                                        dismissable="false"
+                                        showCloseIcon="true"
+                        >
+                            <p:panelGrid>
+                                <f:facet name="header">
+                                    <h:outputText
+                                            style="text-align:center;"
+                                            value="#{msg.dicomSeries_details}"/>
+                                </f:facet>
+                                <p:dataList value="#{mbDicomLookup.selectedStagedSeries.getDetailsList()}"
+                                            var="detail"
+                                            scrollable="true"
+                                >
+                                    #{detail}
+                                </p:dataList>
+                            </p:panelGrid>
+
+                        </p:overlayPanel>
+                    </p:tab>
+                </p:tabView>
             </h:form>
         </p:dialog>
 

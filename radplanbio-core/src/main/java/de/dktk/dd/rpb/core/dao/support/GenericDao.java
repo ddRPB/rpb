@@ -19,13 +19,10 @@
 
 package de.dktk.dd.rpb.core.dao.support;
 
-import static de.dktk.dd.rpb.core.dao.support.JpaUtil.buildJpaOrders;
-import static de.dktk.dd.rpb.core.dao.support.ByEntitySelectorUtil.byEntitySelectors;
-import static de.dktk.dd.rpb.core.dao.support.ByPropertySelectorUtil.byPropertySelectors;
-import static de.dktk.dd.rpb.core.dao.support.ByRangeUtil.byRanges;
-
-import java.io.Serializable;
-import java.util.List;
+import de.dktk.dd.rpb.core.domain.Identifiable;
+import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -39,11 +36,13 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.SingularAttribute;
+import java.io.Serializable;
+import java.util.List;
 
-import org.apache.commons.lang.Validate;
-import org.apache.log4j.Logger;
-
-import de.dktk.dd.rpb.core.domain.Identifiable;
+import static de.dktk.dd.rpb.core.dao.support.ByEntitySelectorUtil.byEntitySelectors;
+import static de.dktk.dd.rpb.core.dao.support.ByPropertySelectorUtil.byPropertySelectors;
+import static de.dktk.dd.rpb.core.dao.support.ByRangeUtil.byRanges;
+import static de.dktk.dd.rpb.core.dao.support.JpaUtil.buildJpaOrders;
 
 /**
  * JPA 2 Generic DAO with find by example/range/pattern and CRUD support.
@@ -102,7 +101,7 @@ public abstract class GenericDao<E extends Identifiable<PK>, PK extends Serializ
      */
     public GenericDao(Class<E> type) {
         this.type = type;
-        this.log = Logger.getLogger(getClass());
+        this.log = LoggerFactory.getLogger(getClass());
         this.cacheRegion = type.getCanonicalName();
     }
 

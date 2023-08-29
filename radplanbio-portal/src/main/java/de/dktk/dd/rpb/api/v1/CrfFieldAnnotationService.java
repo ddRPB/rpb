@@ -25,9 +25,10 @@ import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.edc.CrfFieldAnnotation;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -49,7 +50,7 @@ public class CrfFieldAnnotationService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(CrfFieldAnnotationService.class);
+    private static final Logger log = LoggerFactory.getLogger(CrfFieldAnnotationService.class);
 
     //endregion
 
@@ -169,7 +170,7 @@ public class CrfFieldAnnotationService extends BaseService {
             }
         }
         catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(), err);
             return javax.ws.rs.core.Response.status(500).build();
         }
 

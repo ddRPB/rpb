@@ -21,21 +21,25 @@ package de.dktk.dd.rpb.portal.web.util;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.util.ResourcesUtil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 
 import javax.faces.application.FacesMessage;
-import javax.faces.application.FacesMessage.*;
 import javax.faces.application.ViewExpiredException;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import static javax.faces.application.FacesMessage.*;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static javax.faces.application.FacesMessage.SEVERITY_FATAL;
+import static javax.faces.application.FacesMessage.SEVERITY_INFO;
+import static javax.faces.application.FacesMessage.SEVERITY_WARN;
+import static javax.faces.application.FacesMessage.Severity;
 
 /**
  * Message utility for which helps to create info/warn/error messages in JSF controllers
@@ -50,7 +54,7 @@ public class MessageUtil {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(MessageUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(MessageUtil.class);
 
     //endregion
 

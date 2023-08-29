@@ -19,9 +19,14 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 import java.util.List;
 
@@ -39,7 +44,7 @@ public class CodeListDefinition implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(CodeListDefinition.class);
+    private static final Logger log = LoggerFactory.getLogger(CodeListDefinition.class);
 
     //endregion
 
@@ -132,5 +137,29 @@ public class CodeListDefinition implements Serializable {
     //endregion
 
     //endregion
+
+    /**
+     * Returns the first decoded value from the CodeItem list where the coded value String matches
+     * @param codedValue String coded value
+     * @return String decoded value
+     */
+    public String getDecodedText(String codedValue){
+        if(codedValue == null){
+            return null;
+        }
+
+        for(CodeListItem codeListItem:this.codeListItems){
+            if(codeListItem.getCodedValue() != null){
+                if(codedValue.equals(codeListItem.getCodedValue())){
+                    return codeListItem.getDecodedText();
+                }
+            }
+        }
+
+        // empty string if codedValue does not match
+        return "";
+    }
+
+
 
 }

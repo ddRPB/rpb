@@ -19,9 +19,9 @@
 
 package de.dktk.dd.rpb.core.dao.support;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import de.dktk.dd.rpb.core.context.UserContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -29,10 +29,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-
-import org.apache.log4j.Logger;
-
-import de.dktk.dd.rpb.core.context.UserContext;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Helper class to create named query supporting dynamic sort order and pagination
@@ -46,7 +45,7 @@ public class NamedQueryUtil {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(NamedQueryUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(NamedQueryUtil.class);
 
     private static final String NAMED_PARAMETER_CURRENT_USER_ID = "currentUserId";
     private static final String NAMED_PARAMETER_NOW = "now";

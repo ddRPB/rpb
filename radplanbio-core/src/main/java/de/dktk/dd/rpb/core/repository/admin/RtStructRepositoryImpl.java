@@ -19,18 +19,17 @@
 
 package de.dktk.dd.rpb.core.repository.admin;
 
-import javax.inject.Inject;
-
 import de.dktk.dd.rpb.core.dao.admin.RtStructDao;
-import de.dktk.dd.rpb.core.domain.admin.RtStruct;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.domain.admin.RtStruct;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.apache.log4j.Logger;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of the {@link RtStruct} interface.
@@ -49,7 +48,7 @@ public class RtStructRepositoryImpl extends RepositoryImpl<RtStruct, Integer> im
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(RtStructRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RtStructRepositoryImpl.class);
 
     //endregion
 

@@ -1,0 +1,195 @@
+{ "Series": [
+  { "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.11853713898355626080385777481078164",
+    "Modality": "RTSTRUCT",
+    "Images": [
+      {
+        "StructureSetLabel": "Gloiblastom",
+        "StructureSetDate": "20140724",
+        "ROIs": [
+          { "ROINumber": "1",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Ref",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "2",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Aussenkontur",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "3",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Hirnstamm",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "4",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Linse re",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "5",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Linse li",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "6",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "N.Opticus re.",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "7",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "N.Opticus li.",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "8",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Chiasma",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "9",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Traenendruese li.",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "10",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Traenendruese re.",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "11",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "GTV MR_OP Defekt",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "12",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Hirn",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "13",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Retina li",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "14",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Retina re",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "16",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "CTV 50 Gy",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "17",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "PTV 50 Gy",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "18",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "CTV Boost",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "19",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "PTV Boost",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "20",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Innenohr re",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ,
+          { "ROINumber": "21",
+            "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+            "ROIName": "Innenohr L",
+            "ROIGenerationAlgorithm": "SEMIAUTOMATIC" }
+        ],
+        "RTROIObservations": [
+          { "ObservationNumber": "1",
+            "ReferencedROINumber": "1",
+            "RTROIInterpretedType": "ISOCENTER" }
+        ,
+          { "ObservationNumber": "2",
+            "ReferencedROINumber": "2",
+            "RTROIInterpretedType": "EXTERNAL" }
+        ,
+          { "ObservationNumber": "3",
+            "ReferencedROINumber": "3",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "4",
+            "ReferencedROINumber": "4",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "5",
+            "ReferencedROINumber": "5",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "6",
+            "ReferencedROINumber": "6",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "7",
+            "ReferencedROINumber": "7",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "8",
+            "ReferencedROINumber": "8",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "9",
+            "ReferencedROINumber": "9",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "10",
+            "ReferencedROINumber": "10",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "11",
+            "ReferencedROINumber": "11",
+            "RTROIInterpretedType": "GTV" }
+        ,
+          { "ObservationNumber": "12",
+            "ReferencedROINumber": "12",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "13",
+            "ReferencedROINumber": "13",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "14",
+            "ReferencedROINumber": "14",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "16",
+            "ReferencedROINumber": "16",
+            "RTROIInterpretedType": "CTV" }
+        ,
+          { "ObservationNumber": "17",
+            "ReferencedROINumber": "17",
+            "RTROIInterpretedType": "PTV" }
+        ,
+          { "ObservationNumber": "18",
+            "ReferencedROINumber": "18",
+            "RTROIInterpretedType": "CTV" }
+        ,
+          { "ObservationNumber": "19",
+            "ReferencedROINumber": "19",
+            "RTROIInterpretedType": "PTV" }
+        ,
+          { "ObservationNumber": "20",
+            "ReferencedROINumber": "20",
+            "RTROIInterpretedType": "ORGAN" }
+        ,
+          { "ObservationNumber": "21",
+            "ReferencedROINumber": "21",
+            "RTROIInterpretedType": "ORGAN" }
+        ],
+        "ReferencedFrameOfReferenceUID": "1.2.826.0.1.3680043.9.7275.0.76144633654213532954969271880615139",
+        "ReferencedRTSeriesUID": "1.2.826.0.1.3680043.9.7275.0.12484414159556553853953222969357983",
+        "SOPInstanceUID": "1.2.826.0.1.3680043.9.7275.0.16463378578534197289764939418188051",
+        "Size": "1173514" }
+    ] }
+] }

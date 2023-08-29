@@ -94,7 +94,7 @@ public class TablesTypeTest {
         ColumnType columnType = new ColumnType();
         columnType.setColumnName("SecondaryId");
         columnType.setDatatype("varchar");
-        columnType.setColumnTitle("Secondary Id");
+        columnType.setColumnTitle("SecondaryId");
         columnType.setRangeURI("http://www.w3.org/2001/XMLSchema#string");
         columnType.setScale(4000);
         return columnType;

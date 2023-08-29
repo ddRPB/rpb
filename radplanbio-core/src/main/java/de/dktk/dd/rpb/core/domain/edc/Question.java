@@ -20,10 +20,13 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.log4j.Logger;
-
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 
 /**
@@ -40,7 +43,7 @@ public class Question implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(Question.class);
+    private static final Logger log = LoggerFactory.getLogger(Question.class);
 
     //endregion
 

@@ -21,9 +21,17 @@ package de.dktk.dd.rpb.core.domain.randomisation;
 
 import de.dktk.dd.rpb.core.service.BlockRandomisationStrategy;
 import de.dktk.dd.rpb.core.service.IRandomisationStrategy;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 /**
  * Configuration of block randomisation (both fixed and variable block size)
@@ -50,7 +58,7 @@ public class BlockRandomisationConfiguration extends AbstractRandomisationConfig
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(BlockRandomisationConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(BlockRandomisationConfiguration.class);
 
     //endregion
 

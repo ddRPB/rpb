@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,9 +92,11 @@ public class StagedDicomStudyBuilder {
     private StagedDicomStudy getStagedDicomStudy(DicomStudy study) {
         StagedDicomStudy researchStudy = new StagedDicomStudy();
         researchStudy.setStudyDescription(DicomStudyDescriptionEdcCodeUtil.removeEdcCodePrefix(study.getStudyDescription()));
+        researchStudy.setModalitiesInStudy(study.getModalitiesInStudy());
         researchStudy.setStudyInstanceUID(study.getStudyInstanceUID());
         researchStudy.setStageOneStudyInstanceUid(study.getStudyInstanceUID());
         researchStudy.setStudyDate(study.getStudyDate());
+        researchStudy.setStudyTime(study.getStudyTime());
         researchStudy.setHasStageOneRepresentation(true);
         return researchStudy;
     }
@@ -129,7 +131,9 @@ public class StagedDicomStudyBuilder {
                 stagedStudy.setStageOneStudyInstanceUid(studyZeroStudyInstanceUid);
                 stagedStudy.setClinicalStudyInstanceUid(clinicalStudyInstanceUid);
                 stagedStudy.setStudyDescription(clinicalStudy.getStudyDescription());
+                stagedStudy.setModalitiesInStudy(clinicalStudy.getModalitiesInStudy());
                 stagedStudy.setStudyDate(clinicalStudy.getStudyDate());
+                stagedStudy.setStudyTime(clinicalStudy.getStudyTime());
 
                 this.stagedStudies.add(stagedStudy);
             }

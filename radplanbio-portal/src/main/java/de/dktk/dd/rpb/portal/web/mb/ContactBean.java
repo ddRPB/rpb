@@ -19,16 +19,19 @@
 
 package de.dktk.dd.rpb.portal.web.mb;
 
+import de.dktk.dd.rpb.core.context.UserContext;
+import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
+import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
 import de.dktk.dd.rpb.core.service.EmailService;
 import org.springframework.context.annotation.Scope;
 
-import java.io.*;
-
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
-
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.io.Serializable;
+
+import static de.dktk.dd.rpb.core.context.UserContext.ANONYMOUS_USER;
 
 /**
  * Bean for contact view
@@ -51,7 +54,6 @@ public class ContactBean implements Serializable {
 
     private EmailService emailService;
 
-    private String name;
     private String to;
     private String from;
     private String subject;
@@ -62,23 +64,23 @@ public class ContactBean implements Serializable {
     //region Constructors
 
     @Inject
-    public ContactBean(EmailService emailService) {
+    public ContactBean(EmailService emailService, IDefaultAccountRepository repository) {
         this.emailService = emailService;
+        String userName = UserContext.getUsername();
+
+        setFromPropertyIfUserIsLoggedIn(repository, userName);
+    }
+
+    private void setFromPropertyIfUserIsLoggedIn(IDefaultAccountRepository repository, String userName) {
+        if (!userName.equals(ANONYMOUS_USER)) {
+            DefaultAccount account = repository.getByUsername(userName);
+            this.from = account.getEmail();
+        }
     }
 
     //endregion
 
     //region Properties
-
-    //region Name
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String value) {
-        this.name = value;
-    }
 
     //endregion
 
@@ -155,7 +157,6 @@ public class ContactBean implements Serializable {
     //region Private Methods
 
     private void clearFields() {
-        this.name = "";
         this.from = "";
         this.to = "";
         this.subject = "";

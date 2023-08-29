@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2020 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,10 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.util.Constants;
+import de.dktk.dd.rpb.core.util.DicomDateUtil;
 import de.dktk.dd.rpb.core.util.DicomStudyDescriptionEdcCodeUtil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -33,6 +35,7 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -48,7 +51,7 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(DicomSeries.class);
+    private static final Logger log = LoggerFactory.getLogger(DicomSeries.class);
 
     //endregion
 
@@ -61,8 +64,10 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     private String seriesDescription;
     private String seriesModality;
     private String seriesTime;
+    private String seriesDate;
+    private String seriesNumber = "";
 
-    private List<DicomImage> seriesImages;
+    protected List<DicomImage> seriesImages;
 
     private IdentifiableHashBuilder identifiableHashBuilder = new IdentifiableHashBuilder();
 
@@ -96,7 +101,7 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
 
     //endregion
 
-    //region Uid
+    //region SeriesInstanceUID
 
     public String getSeriesInstanceUID() {
         return seriesInstanceUID;
@@ -107,7 +112,8 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     }
 
     //endregion
-    // region FrameOfReferencingUid
+
+    // region FrameOfReferenceUID
 
     @Transient
     public String getFrameOfReferenceUid() {
@@ -141,6 +147,48 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     @XmlTransient
     public String getUserViewSeriesDescription() {
         return DicomStudyDescriptionEdcCodeUtil.removeEdcCodePrefix(seriesDescription);
+    }
+
+    /**
+     * Combines Series Meta Parameters to a String for UI activities of the user depending on the modality.
+     *
+     * @return String modified SeriesDescription
+     */
+    @XmlTransient
+    public String getSeriesMetaParameterString() {
+        String description = DicomStudyDescriptionEdcCodeUtil.removeEdcCodePrefix(seriesDescription);
+
+        if (!getSeriesNumber().isEmpty()) {
+            description += Constants.SERIES_NUMBER + ": " + getSeriesNumber() + "; ";
+        }
+
+        return description.trim();
+    }
+
+    @XmlTransient
+    public List<String> getSeriesMetaParameterList() {
+        List<String> metaParameterList = new ArrayList<>();
+        String description = DicomStudyDescriptionEdcCodeUtil.removeEdcCodePrefix(seriesDescription);
+
+        if (!description.isEmpty()) {
+            metaParameterList.add(Constants.DICOM_SERIES_DESCRIPTION + ": " + description);
+        }
+
+        if (!getSeriesNumber().isEmpty()) {
+            metaParameterList.add(Constants.SERIES_NUMBER + ": " + getSeriesNumber());
+        }
+
+        return metaParameterList;
+    }
+
+    @XmlTransient
+    public String getSeriesNumber() {
+        return seriesNumber;
+    }
+
+    @Transient
+    public void setSeriesNumber(String seriesNumber) {
+        this.seriesNumber = seriesNumber;
     }
 
     //endregion
@@ -188,6 +236,38 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    // region SeriesDate
+
+    public String getSeriesDate() {
+        return seriesDate;
+    }
+
+    public void setSeriesDate(String seriesDate) {
+        this.seriesDate = seriesDate;
+    }
+
+    public Date getDateSeries() {
+
+        Date result = null;
+
+        try {
+            result = DicomDateUtil.convertStringDateToDate(this.seriesDate);
+        }
+        catch (ParseException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return result;
+    }
+    
+    public String getDateSeriesString() {
+        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
+        Date date = this.getDateSeries();
+        return date != null ? format.format(date) : null;
+    }
+
+    // endregion
+
     //region Images
 
     public List<DicomImage> getSeriesImages() {
@@ -199,6 +279,31 @@ public class DicomSeries implements Identifiable<Integer>, Serializable {
     }
 
     //endregion
+
+    //endregion
+
+    //region Methods
+
+    /**
+     * Checks if DICOM series has RT modality
+     *
+     * @return true if RT modality series
+     */
+    public boolean isRtRelated() {
+        String modality = this.getSeriesModality();
+
+        if (modality != null && !modality.isEmpty()) {
+            switch (modality) {
+                case Constants.DICOM_RTSTRUCT:
+                case Constants.DICOM_RTIMAGE:
+                case Constants.DICOM_RTDOSE:
+                case Constants.DICOM_RTPLAN:
+                    return true;
+            }
+        }
+
+        return false;
+    }
 
     //endregion
 

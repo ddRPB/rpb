@@ -23,8 +23,8 @@ import de.dktk.dd.rpb.core.dao.admin.StudyDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -53,7 +53,7 @@ public class StudyRepository extends RepositoryImpl<Study, Integer> implements I
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(StudyRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(StudyRepository.class);
 
     //endregion
 

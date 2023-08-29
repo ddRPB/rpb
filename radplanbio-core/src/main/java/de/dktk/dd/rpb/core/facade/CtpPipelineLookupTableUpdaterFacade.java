@@ -31,9 +31,10 @@ import de.dktk.dd.rpb.core.service.ICtpService;
 import de.dktk.dd.rpb.core.service.IEngineService;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
 import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
@@ -45,7 +46,7 @@ import java.util.List;
  */
 @Named
 public class CtpPipelineLookupTableUpdaterFacade {
-    private static final Logger log = Logger.getLogger(CtpPipelineLookupTableUpdaterFacade.class);
+    private static final Logger log = LoggerFactory.getLogger(CtpPipelineLookupTableUpdaterFacade.class);
     private final IOpenClinicaDataRepository openClinicaDataRepository;
     private final IOpenClinicaService engineOpenClinicaService;
     private final ICtpService svcCtp;

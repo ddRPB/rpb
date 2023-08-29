@@ -20,11 +20,10 @@
 package de.dktk.dd.rpb.core.domain.edc.mapping;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -45,7 +44,7 @@ public abstract class AbstractMappedItem implements Identifiable<Integer>, Seria
     //region Finals
 
     protected static final long serialVersionUID = 1L;
-    protected static final Logger log = Logger.getLogger(AbstractMappedItem.class);
+    protected static final Logger log = LoggerFactory.getLogger(AbstractMappedItem.class);
 
     //endregion
 

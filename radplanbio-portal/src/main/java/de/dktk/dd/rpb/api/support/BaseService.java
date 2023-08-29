@@ -23,11 +23,18 @@ import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
 import de.dktk.dd.rpb.core.repository.edc.IOpenClinicaDataRepository;
 import de.dktk.dd.rpb.core.repository.rpb.IRadPlanBioDataRepository;
-import de.dktk.dd.rpb.core.service.*;
+import de.dktk.dd.rpb.core.service.AuditLogService;
+import de.dktk.dd.rpb.core.service.ConquestService;
+import de.dktk.dd.rpb.core.service.EmailService;
+import de.dktk.dd.rpb.core.service.EngineService;
+import de.dktk.dd.rpb.core.service.IConquestService;
+import de.dktk.dd.rpb.core.service.IOpenClinicaService;
+import de.dktk.dd.rpb.core.service.IPacsConfigService;
+import de.dktk.dd.rpb.core.service.OpenClinicaService;
 import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -42,7 +49,7 @@ public class BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(BaseService.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseService.class);
 
     //endregion
 
@@ -63,6 +70,9 @@ public class BaseService {
     protected IOpenClinicaDataRepository openClinicaDataRepository;
     @Inject
     protected IDefaultAccountRepository userRepository;
+
+    protected IOpenClinicaService openClinicaService;
+    protected IOpenClinicaService engineOpenClinicaService;
 
     //endregion
 
@@ -160,6 +170,16 @@ public class BaseService {
 
     //region EDC
 
+    /**
+     * Setup for the EDC web service connection, based on the user account of the user
+     *
+     * @param userAccount DefaultAccount user account of the authenticated user
+     */
+    protected void initializeOpenClinicaService(DefaultAccount userAccount){
+        this.openClinicaService = this.createEdcConnection(userAccount);
+        this.studyIntegrationFacade.init(this.openClinicaService);
+    }
+
     protected IOpenClinicaService createEdcConnection(DefaultAccount defaultAccount) {
         IOpenClinicaService svcEdc = null;
 
@@ -200,6 +220,26 @@ public class BaseService {
         return svcEdc;
     }
 
+    protected void initEngineEdcConnection() {
+        DefaultAccount engineAccount = this.userRepository.getByUsername(this.engineService.getUsername());
+
+        if (engineAccount != null &&
+                engineAccount.hasOpenClinicaAccount() &&
+                engineAccount.getPartnerSite().hasEnabledEdc()) {
+
+            this.engineOpenClinicaService = new OpenClinicaService();
+            this.engineOpenClinicaService.connect(
+                    this.engineService.getUsername(),
+                    this.engineService.getPassword(),
+                    engineAccount.getPartnerSite().getEdc().getSoapBaseUrl(),
+                    engineAccount.getPartnerSite().getEdc().getEdcBaseUrl()
+            );
+
+            // Enable caching to speed up study-0
+            this.engineOpenClinicaService.setCacheIsEnabled(Boolean.TRUE);
+        }
+    }
+
     //endregion
 
     //region PACS
@@ -232,11 +272,15 @@ public class BaseService {
             if (this.pacsConfigService.isAuth()) {
                 pacsService.setupConnection(
                         url,
+                        this.pacsConfigService.getThreadPoolSize(),
                         this.pacsConfigService.getPacsUser(),
                         this.pacsConfigService.getPacsPassword()
                 );
             } else {
-                pacsService.setupConnection(url);
+                pacsService.setupConnection(
+                        url,
+                        this.pacsConfigService.getThreadPoolSize()
+                );
             }
         }
 

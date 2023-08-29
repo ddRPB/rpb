@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2017 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 
 package de.dktk.dd.rpb.core.domain.pacs;
 
-import org.apache.log4j.Logger;
-import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class DicomWebQuery {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DicomWebQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(DicomWebQuery.class);
 
     //endregion
 

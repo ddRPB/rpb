@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2020 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,14 @@ package de.dktk.dd.rpb.portal.facade;
 import de.dktk.dd.rpb.core.domain.bio.AbstractSpecimen;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob;
+import de.dktk.dd.rpb.core.domain.edc.EnumRequired;
+import de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.StudyParameterConfiguration;
+import de.dktk.dd.rpb.core.domain.edc.StudySubject;
+import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.ocsoap.connect.OCConnectorException;
 import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
@@ -34,9 +41,10 @@ import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 import de.dktk.dd.rpb.core.service.OpenClinicaService;
 import de.dktk.dd.rpb.core.util.Constants;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
-import org.apache.log4j.Logger;
 import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -45,6 +53,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -64,7 +73,7 @@ public class StudyIntegrationFacade {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(StudyIntegrationFacade.class);
+    private static final Logger log = LoggerFactory.getLogger(StudyIntegrationFacade.class);
 
     //endregion
 
@@ -481,6 +490,74 @@ public class StudyIntegrationFacade {
         return results;
     }
 
+    public List<StudySubject> loadStudySubjectsWithEventsAndTreatmentGroups(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) {
+        List<StudySubject> results = new ArrayList<>();
+
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
+        }
+
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            results = this.mainBean.getOpenClinicaDataRepository().findStudySubjectsWithEventsAndTreatmentGroups(studyUniqueIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            results = this.openClinicaDataRepository.findStudySubjectsWithEventsAndTreatmentGroups(studyUniqueIdentifier);
+        }
+
+        return results;
+    }
+
+    public List<StudySubject> loadStudySubjectsOfChildrenStudiesWithEvents(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) {
+        List<StudySubject> results = new ArrayList<>();
+
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
+        }
+
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            results = this.mainBean.getOpenClinicaDataRepository().findStudySubjectsOfChildrenStudiesWithEvents(studyUniqueIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            results = this.openClinicaDataRepository.findStudySubjectsOfChildrenStudiesWithEvents(studyUniqueIdentifier);
+        }
+
+        return results;
+    }
+
+    public List<StudySubject> loadStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(de.dktk.dd.rpb.core.domain.edc.Study edcStudy) {
+        List<StudySubject> results = new ArrayList<>();
+
+        // TODO: if we want to support fetch by parent study identifier, we need to implement different SQL
+        // if active study in parent study (usually there are no patients enrolled on parent study lvl) -> empty list
+        String studyUniqueIdentifier = "";
+        if (edcStudy != null) {
+            studyUniqueIdentifier = edcStudy.getUniqueIdentifier();
+        }
+
+        // Invoked from GUI context
+        if (this.mainBean != null) {
+            results = this.mainBean.getOpenClinicaDataRepository().findStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(studyUniqueIdentifier);
+        }
+        // Invoked from API context
+        else if (this.openClinicaDataRepository != null) {
+            results = this.openClinicaDataRepository.findStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(studyUniqueIdentifier);
+        }
+
+        return results;
+    }
+
+
+
     public List<StudySubject> enrolSubjectsReturnFailed(List<StudySubject> subjects, StudyParameterConfiguration conf) throws OCConnectorException {
         String parentStudyUniqueIdentifier = getParentStudyUniqueStudyIdentifier(this.mainBean.getActiveStudy());
         String siteIdentifier = this.mainBean.getActiveStudy().getUniqueIdentifier();
@@ -492,7 +569,7 @@ public class StudyIntegrationFacade {
             try {
                 ssid = createNewOpenClinicaStudySubject(parentStudyUniqueIdentifier, siteIdentifier, ss, conf);
             } catch (DatatypeConfigurationException e) {
-                log.error(e);
+                log.error(e.getMessage(), e);
             }
             if (ssid == null) {
                 subjectFailedToImport.add(ss);
@@ -661,7 +738,7 @@ public class StudyIntegrationFacade {
                 }
             }
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
         return ocResponseList;
     }
@@ -960,7 +1037,9 @@ public class StudyIntegrationFacade {
             }
 
             if (odmSubjectData.getEnrollmentDate() != null) {
-                c.setTime(odmSubjectData.getDateEnrollment());
+                SimpleDateFormat formatter = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+                Date enrollmentDate = formatter.parse(odmSubjectData.getEnrollmentDate());
+                c.setTime(enrollmentDate);
             } else {
                 // default is the current date)
                 c.setTime(new Date());
@@ -970,7 +1049,7 @@ public class StudyIntegrationFacade {
 
         } catch (Exception err) {
             log.error("There was a problem creating the WsStudySubject object", err);
-            throw err;
+            throw new Error(err);
         }
 
         return studySubject;

@@ -23,10 +23,16 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +50,7 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(ItemDefinition.class);
+    private static final Logger log = LoggerFactory.getLogger(ItemDefinition.class);
 
     //endregion
 
@@ -100,6 +106,9 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
     private Integer OrderNumber;
 
     //region OpenClinica
+
+    @XmlAttribute(name="FormOIDs", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    private String formOids;
 
     @XmlElement(name = "MultiSelectListRef", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private MultiSelectListDefinition multiSelectListRef;
@@ -196,8 +205,9 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
 
     public String getLabel() {
         // If OC extensions item details are available
+        // needs context of the form, because the ItemDefinition can be present in several forms
         if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
-            return this.itemDetails.getItemPresentInForm().getLeftItemText();
+            return this.itemDetails.getItemPresentInForm().get(0).getLeftItemText();
         }
         // Otherwise go for standard ODM question text
         else if (this.question != null) {
@@ -213,8 +223,9 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
             this.question.setTranslatedText(value);
         }
 
+        // needs context of the form, because the ItemDefinition can be present in several forms
         if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
-            this.itemDetails.getItemPresentInForm().setLeftItemText(value);
+            this.itemDetails.getItemPresentInForm().get(0).setLeftItemText(value);
         }
     }
 
@@ -382,11 +393,20 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
     //region isPhi
 
     public Boolean getIsPhi() {
+
         if (this.isPhi != null) {
             return this.isPhi;
         }
         else if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
-            return this.itemDetails.getItemPresentInForm().getPhi().equals(Constants.OC_YES);
+            List<ItemPresentInForm> itemPresentInFormList = this.itemDetails.getItemPresentInForm();
+
+            for (ItemPresentInForm item: itemPresentInFormList){
+
+                if (item.getPhi().equals(Constants.OC_YES)) return Boolean.TRUE;
+
+            }
+
+            return Boolean.FALSE;
         }
 
         return null;
@@ -418,7 +438,14 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
 
     public Boolean getIsShown() {
         if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
-            this.itemDetails.getItemPresentInForm().getShowItem().equals(Constants.OC_YES);
+
+            List<ItemPresentInForm> itemPresentInFormList = this.itemDetails.getItemPresentInForm();
+
+            for (ItemPresentInForm item: itemPresentInFormList){
+                if (item.getShowItem().equals(Constants.OC_YES)) return Boolean.TRUE;
+            }
+
+            return Boolean.FALSE;
         }
 
         return null;
@@ -444,13 +471,22 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
         this.codeListDef = codeList;
     }
 
-    //endgregion
+    //endregion
 
     //endregion
 
     //endregion
 
     //region OpenClinica
+
+    public String getFormOids() {
+        return formOids;
+    }
+
+    public void setFormOids(String formOids) {
+        this.formOids = formOids;
+    }
+
 
     //region MultiSelectList
 
@@ -658,7 +694,15 @@ public class ItemDefinition implements Identifiable<Integer>, Serializable, Comp
 
     public Boolean isPresentInForm(String formOid) {
         if (this.itemDetails != null && this.itemDetails.getItemPresentInForm() != null) {
-            return this.itemDetails.getItemPresentInForm().getFormOid().equals(formOid);
+
+            List<ItemPresentInForm> itemPresentInFormList = this.itemDetails.getItemPresentInForm();
+
+            for (ItemPresentInForm item: itemPresentInFormList){
+
+                if (item.getFormOid().equals(formOid)) return Boolean.TRUE;
+
+            }
+
         }
 
         return Boolean.FALSE;

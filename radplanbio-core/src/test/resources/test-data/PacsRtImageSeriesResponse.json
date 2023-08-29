@@ -1,0 +1,21 @@
+{ "Series": [
+  { "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.20019536076655294930043869623690777",
+    "Modality": "RTIMAGE",
+    "Images": [
+      {
+        "ImageType": "ORIGINAL\\PRIMARY\\SIMULATOR\\SMX_VERIFICATION",
+        "RTImageLabel": "4",
+        "InstanceCreationDate": "20131015",
+        "ReferencedRTPlanUID": "1.2.826.0.1.3680043.9.7275.0.14017962418464852965840573030698134",
+        "SOPInstanceUID": "1.2.826.0.1.3680043.9.7275.0.20008247965125248249010366344894057",
+        "Size": "2103652" }
+    ,
+      {
+        "ImageType": "ORIGINAL\\PRIMARY\\SIMULATOR\\SMX_VERIFICATION",
+        "RTImageLabel": "4",
+        "InstanceCreationDate": "20131015",
+        "ReferencedRTPlanUID": "1.2.826.0.1.3680043.9.7275.0.14017962418464852965840573030698134",
+        "SOPInstanceUID": "1.2.826.0.1.3680043.9.7275.0.20816618810998259165976838350139444",
+        "Size": "2103664" }
+    ] }
+] }

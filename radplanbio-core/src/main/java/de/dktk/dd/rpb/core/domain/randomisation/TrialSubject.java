@@ -20,20 +20,19 @@
 package de.dktk.dd.rpb.core.domain.randomisation;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
-import javax.persistence.Transient;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Randomised trial subject domain entity
@@ -50,7 +49,7 @@ public class TrialSubject implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(TrialSubject.class);
+    private static final Logger log = LoggerFactory.getLogger(TrialSubject.class);
 
     //endregion
 

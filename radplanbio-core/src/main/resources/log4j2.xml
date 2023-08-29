@@ -1,0 +1,45 @@
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1} - %m%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="[%d{ISO8601}] [%t] [%X{login}] [%C{3}.%M] %m%n"/>
+        </Console>
+        <RollingFile
+                name="file"
+                fileName="${catalina.home}@project.name@-@project.version@.log"
+                filePattern="${catalina.home}@project.name@-@project.version@-%d{yyyy-MM-dd-HH}-%i.log.gz"
+        >
+            <Policies>
+                <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+                <SizeBasedTriggeringPolicy size="1 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+            <PatternLayout pattern="[%d{ISO8601}] [%t] [%X{session_id}] [%X{login}] [%C{3}.%M] %m%n">
+            </PatternLayout>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="de.dktk.dd.rpb.core" level="@log4j.level@"/>
+        <Logger name="de.dktk.dd.rpb.core.dao" level="@log4j.level@"/>
+        <Logger name="org.springframework.transaction" level="warn"/>
+        <Logger name="org.springframework.orm.hibernate3" level="warn"/>
+        <Logger name="org.hibernate.cache.EhCacheProvider" level="error"/>
+        <Logger name="org.hibernate" level="warn"/>
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false">
+            <AppenderRef ref="file"/>
+        </Logger>
+        <Logger name="org.springframework.security" level="warn"/>
+        <Logger name="org.apache.commons" level="warn"/>
+        <Logger name="org.springframework" level="warn"/>
+        <Logger name="org.springframework.beans.factory.support" level="warn"/>
+
+        <Root level="warn">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Root>
+    </Loggers>
+</Configuration>

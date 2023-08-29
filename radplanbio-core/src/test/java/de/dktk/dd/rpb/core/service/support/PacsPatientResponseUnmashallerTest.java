@@ -22,7 +22,6 @@ package de.dktk.dd.rpb.core.service.support;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,6 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,18 +40,21 @@ import java.util.List;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({PacsPatientResponseUnmashallerTest.class, Logger.class})
+@PrepareForTest({PacsPatientResponseUnmashallerTest.class, Logger.class, LoggerFactory.class})
 public class PacsPatientResponseUnmashallerTest {
     Logger logger;
 
     @Before
     public void executedBeforeEach() {
         mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
         logger = mock(Logger.class);
-        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
     }
 
     // region unmarshalPacsPatientsResponse tests

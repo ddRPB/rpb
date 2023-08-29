@@ -12,8 +12,8 @@
     lang="${userContext.locale}"
     >
     <!-- This is the main template (MasterPage) -->
-    <!-- f:view is wrapping the root of markup language to ensure that all childs are part of the same view-->
-    <!-- Specifying contentType, encoding and language for I18N internationalisation-->
+    <!-- f:view is wrapping the root of markup language to ensure that all children are part of the same view -->
+    <!-- Specifying contentType, encoding and language for I18N internationalisation -->
     <f:view
         contentType="text/html"
         encoding="UTF-8"
@@ -26,11 +26,11 @@
         <!-- HTML head-->
         <h:head>
             <f:facet name="first">
-                <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+                <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
                 <meta name="description" content="RadPlanBio - radiotherapy clinical research IT infrastructure" />
                 <meta name="keywords" content="DICOM, CDISC ODM, web services, software integration" />
                 <meta name="author" content="DKTK" />
-                <!-- Page title accorging to the Partner site settings -->
+                <!-- Page title according to the Partner site settings -->
                 <title>RPB-portal-#{msg.partner_site_name}</title>
             </f:facet>
 
@@ -70,7 +70,7 @@
                 <p:ajax event="idle" listener="#{mbMain.sessionExpired}" />
             </p:idleMonitor>
 
-            <!-- Display the flag on top of project logo about the environemnt where appliation is running (development, productionm, etc.) -->
+            <!-- Display the flag on top of project logo about the environment where application is running (development, productionm, etc.) -->
             <img class="environment #{environmentService.environment}" />
 
             <!-- Main form HTML element (nested forms are not valid, be sure that there is no form in content page) -->
@@ -288,18 +288,13 @@
                                             icon="ui-icon-star"
                                             rendered="#{userContext.hasRole('ROLE_EDC_USER')}"
                                             />
-                                        <p:menuitem
-                                            value="#{msg.edc} Matrix"
-                                            url="/edc/edcMatrix.faces"
-                                            icon="ui-icon-document"
-                                            rendered="#{userContext.hasRole('ROLE_EDC_MATRIX')}"
-                                            />
-                                        <p:menuitem
-                                            value="#{msg.edc} Lookup"
-                                            url="/edc/edcLookup.faces"
-                                            icon="ui-icon-document"
-                                            rendered="#{userContext.hasRole('ROLE_EDC_LOOKUP')}"
-                                            />
+<!-- EDC Matrix feature is deprecated -->
+<!--                                        <p:menuitem-->
+<!--                                            value="#{msg.edc} Matrix"-->
+<!--                                            url="/edc/edcMatrix.faces"-->
+<!--                                            icon="ui-icon-document"-->
+<!--                                            rendered="#{userContext.hasRole('ROLE_EDC_MATRIX')}"-->
+<!--                                            />-->
                                         <!-- TODO: Extend roles for randomise view (view, randomise) -->
                                         <p:menuitem
                                             value="#{msg.randomisation}"
@@ -350,12 +345,13 @@
                                             icon="ui-icon-image"
                                             rendered="#{userContext.hasRole('ROLE_PACS_USER')}"
                                             />
-                                        <p:menuitem
-                                            value="DICOM Matrix"
-                                            url="/pacs/dicomMatrix.faces"
-                                            icon="ui-icon-image"
-                                            rendered="#{userContext.hasRole('ROLE_PACS_MATRIX')}"
-                                            />
+<!-- PACS Matrix feature is deprecated -->
+<!--                                        <p:menuitem-->
+<!--                                            value="DICOM Matrix"-->
+<!--                                            url="/pacs/dicomMatrix.faces"-->
+<!--                                            icon="ui-icon-image"-->
+<!--                                            rendered="#{userContext.hasRole('ROLE_PACS_MATRIX')}"-->
+<!--                                            />-->
                                         <p:menuitem
                                             value="DICOM Lookup"
                                             url="/pacs/dicomLookup.faces"
@@ -364,53 +360,55 @@
                                             />
                                     </p:submenu>
 
-                                    <!-- LABKey -->
+                                    <!-- LAB data mart tables -->
                                     <p:submenu
                                         label="#{msg.lab} - #{msg.data_tables}"
                                         rendered="#{userContext.hasRole('ROLE_LAB_USER')}"
                                         >
                                         <p:menuitem
-                                            value="Labkey Update"
+                                            value="#{msg.study} #{msg.data_plural} #{msg.menu_update}"
                                             url="/lab/labkeyStudyUpdate.faces"
                                             icon="ui-icon-copy"
                                             rendered="#{userContext.hasRole('ROLE_ADMIN')}"
                                         />
                                     </p:submenu>
 
-                                    <!-- BIObank -->
-                                    <p:submenu
-                                        label="#{msg.bio} - specimens"
-                                        rendered="#{userContext.hasRole('ROLE_BIO_USER')}"
-                                        >
-                                        <p:menuitem
-                                            value="#{msg.studySubject_plural}/#{msg.studyEvent_plural}/BIO"
-                                            url="/bio/bioPatientSpecimens.faces"
-                                            icon="ui-icon-heart"
-                                            rendered="#{userContext.hasRole('ROLE_BIO_USER')}"
-                                            />
-                                        <p:menuitem
-                                                value="#{msg.bio} Matrix"
-                                                url="/bio/bioMatrix.faces"
-                                                icon="ui-icon-heart"
-                                                rendered="#{userContext.hasRole('ROLE_BIO_MATRIX')}"
-                                        />
-                                        <p:menuitem
-                                                value="#{msg.bio} Lookup"
-                                                url="/bio/bioLookup.faces"
-                                                icon="ui-icon-heart"
-                                                rendered="#{userContext.hasRole('ROLE_BIO_LOOKUP')}"
-                                        />
-                                    </p:submenu>
+                                    <!-- BIO bank -->
+<!--  BIO integration is postponed until  availability of vendor neutral interfaces -->
+<!--                                    <p:submenu-->
+<!--                                        label="#{msg.bio} - specimens"-->
+<!--                                        rendered="#{userContext.hasRole('ROLE_BIO_USER')}"-->
+<!--                                        >-->
+<!--                                        <p:menuitem-->
+<!--                                            value="#{msg.studySubject_plural}/#{msg.studyEvent_plural}/BIO"-->
+<!--                                            url="/bio/bioPatientSpecimens.faces"-->
+<!--                                            icon="ui-icon-heart"-->
+<!--                                            rendered="#{userContext.hasRole('ROLE_BIO_USER')}"-->
+<!--                                            />-->
+<!--  BIO Matrix is deprecated -->
+<!--                                        <p:menuitem-->
+<!--                                                value="#{msg.bio} Matrix"-->
+<!--                                                url="/bio/bioMatrix.faces"-->
+<!--                                                icon="ui-icon-heart"-->
+<!--                                                rendered="#{userContext.hasRole('ROLE_BIO_MATRIX')}"-->
+<!--                                        />-->
+<!--                                        <p:menuitem-->
+<!--                                                value="#{msg.bio} Lookup"-->
+<!--                                                url="/bio/bioLookup.faces"-->
+<!--                                                icon="ui-icon-heart"-->
+<!--                                                rendered="#{userContext.hasRole('ROLE_BIO_LOOKUP')}"-->
+<!--                                        />-->
+<!--                                    </p:submenu>-->
 
                                     <!-- PID -->
                                     <p:submenu
-                                            label="#{msg.pid} - patient identity"
-                                            rendered="#{userContext.hasRole('ROLE_PID_USER')}"
-                                    >
+                                        label="#{msg.pid} - patient identity"
+                                        rendered="#{userContext.hasRole('ROLE_PID_USER')}"
+                                        >
                                         <p:menuitem
-                                                value="#{msg.person_patient} #{msg.icon_search}"
-                                                url="/pid/pidCRUD.faces"
-                                                icon="ui-icon-person"
+                                            value="#{msg.person_patient} #{msg.icon_search}"
+                                            url="/pid/pidCRUD.faces"
+                                            icon="ui-icon-person"
                                             rendered="#{userContext.hasRole('ROLE_PID_USER')}"
                                             />
                                     </p:submenu>
@@ -549,7 +547,6 @@
                                     </p:submenu>
                                 </p:submenu>
                             </p:panelMenu>
-                            <!--</p:panel>-->
                         </div>
 
                         <!-- MainContent-->
@@ -575,10 +572,14 @@
                             <p:outputPanel layout="block">
                                 <p>
                                     <br />
-                                    <a href="${facesContext.externalContext.requestContextPath}/home.faces">#{msg.home}</a> | <a href="#{msg.platform_url}" target="_new">#{msg.platform}</a> | <a href="${facesContext.externalContext.requestContextPath}/collaboration.faces">#{msg.collaboration}</a> | <a href="${facesContext.externalContext.requestContextPath}/license.faces">#{msg.licence}</a> | <a href="${facesContext.externalContext.requestContextPath}/software.faces">#{msg.software}</a> | <a href="${facesContext.externalContext.requestContextPath}/help.faces">#{msg.menu_help}</a> | <a href="${facesContext.externalContext.requestContextPath}/api/rss">RSS</a> | <a href="${facesContext.externalContext.requestContextPath}/impressum.faces">#{msg.impressum}</a> | <a href="${facesContext.externalContext.requestContextPath}/privacyPolicy.faces">#{msg.data_privacy}</a> | <a href="${facesContext.externalContext.requestContextPath}/contact.faces">#{msg.contact}</a>
+                                    <a href="${facesContext.externalContext.requestContextPath}/home.faces">#{msg.home}</a> | <a href="#{msg.platform_url}" target="_new">#{msg.platform}</a> | <a href="${facesContext.externalContext.requestContextPath}/license.faces">#{msg.license}</a> | <a href="${facesContext.externalContext.requestContextPath}/software.faces">#{msg.software}</a> | <a href="${facesContext.externalContext.requestContextPath}/help.faces">#{msg.menu_help}</a> | <a href="${facesContext.externalContext.requestContextPath}/api/rss">RSS</a> | <a href="${facesContext.externalContext.requestContextPath}/impressum.faces">#{msg.impressum}</a> | <a href="${facesContext.externalContext.requestContextPath}/privacyPolicy.faces">#{msg.data_privacy}</a> | <a href="${facesContext.externalContext.requestContextPath}/contact.faces">#{msg.contact}</a>
                                     <br />
                                     <br />
-                                    <h:outputText value="#{msg.application_name} version: #{versionService.format()} © 2013-2020 DKTK" />
+                                    <h:outputText value="#{msg.application_name} version: #{versionService.format()} © 2013-" />
+                                    <h:outputText value="#{now}">
+                                        <f:convertDateTime pattern="yyyy" type="date" />
+                                    </h:outputText>
+                                    <h:outputText value=" DKTK" />
                                 </p>
                             </p:outputPanel>
                         </div>
@@ -589,7 +590,7 @@
             <!-- Placeholder for dialogs -->
             <ui:insert name="dialogs" />
 
-            <!-- Menu is automaticaly expanding -->
+            <!-- Menu is automatically expanding -->
             <script type="text/javascript">
                 var menuIsExpanded = jQuery('div.ui-panelmenu-content.ui-widget-content.ui-helper-hidden').is(':visible');
                 if (!menuIsExpanded) {

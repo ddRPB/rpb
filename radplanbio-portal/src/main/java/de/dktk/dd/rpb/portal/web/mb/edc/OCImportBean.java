@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Bean for importing data into RadPlanBio
+ * Bean for importing data into RPB EDC system
  *
  * @author tomas@skripcak.net
  * @since 26 Jan 2015
@@ -258,7 +258,7 @@ public class OCImportBean implements Serializable {
 
     static {
         genderValues = new LinkedHashMap<>();
-        genderValues.put("Male", "m"); //label, value
+        genderValues.put("Male", "m"); // label, value
         genderValues.put("Female", "f");
     }
 
@@ -529,43 +529,6 @@ public class OCImportBean implements Serializable {
         }
 
         this.study = this.studyIntegrationFacade.loadStudy();
-
-    }
-
-    private List<StudySubject> filterOutExistingEvents(List<StudySubject> studySubjectsFromFileList) {
-        List<StudySubject> studySubjectsForUpdate = new ArrayList<>();
-
-        for (StudySubject subject : studySubjectsFromFileList) {
-
-            String queryOdmXmlPath = this.mainBean.getActiveStudy().getOcoid() + "/" + subject.getSubjectKey() + "/*/*";
-            Odm targetSubjectOdm = this.mainBean.getOpenClinicaService().getStudyCasebookOdm(
-                    OpenClinicaService.CasebookFormat.XML,
-                    OpenClinicaService.CasebookMethod.VIEW,
-                    queryOdmXmlPath
-            );
-
-            List<EventData> newEvents = new ArrayList<>();
-
-            for (EventData sourceEvent : subject.getStudyEventDataList()) {
-                List<EventData> eventDataList = targetSubjectOdm.getClinicalDataList().get(0).getStudySubjects().get(0).getStudyEventDataList();
-                if (eventDataList == null) {
-                    eventDataList = new ArrayList<>();
-                }
-                if (eventDataList.size() > 0) {
-                    if (this.getEventFromEventDataListByOid(eventDataList, sourceEvent.getStudyEventOid(), sourceEvent.getStudyEventRepeatKey()) == null) {
-                        newEvents.add(sourceEvent);
-                    }
-                } else {
-                    newEvents.add(sourceEvent);
-                }
-            }
-            if (newEvents.size() > 0) {
-                subject.setStudyEventDataList(newEvents);
-                studySubjectsForUpdate.add(subject);
-            }
-
-        }
-        return studySubjectsForUpdate;
     }
 
     /**
@@ -697,24 +660,6 @@ public class OCImportBean implements Serializable {
         }
     }
 
-    private EventData getEventFromEventDataListByOid(List<EventData> eventDataList, String oid, String repeatKey) {
-
-        if (eventDataList != null) {
-            for (EventData eventData : eventDataList) {
-                if (eventData.getStudyEventOid().equalsIgnoreCase(oid)) {
-                    if (eventData.getStudyEventRepeatKey() == null || repeatKey == null) {
-                        return eventData;
-                    } else {
-                        if (eventData.getStudyEventRepeatKey().equalsIgnoreCase(repeatKey)) {
-                            return eventData;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * Update selected subject
      */
@@ -738,10 +683,12 @@ public class OCImportBean implements Serializable {
     public void handleUpload(FileUploadEvent event) {
         try {
             this.uploadedFile = event.getFile();
-            this.messageUtil.infoText("File name: " +
-                    event.getFile().getFileName() + " file size: " +
-                    event.getFile().getSize() / 1024 + " Kb content type: " +
-                    event.getFile().getContentType() + " The document file was uploaded.");
+            this.messageUtil.infoText(
+                "File name: " +
+                event.getFile().getFileName() + " file size: " +
+                event.getFile().getSize() / 1024 + " Kb content type: " +
+                event.getFile().getContentType() + " The document file was uploaded."
+            );
         } catch (Exception err) {
             this.messageUtil.error(err);
         }
@@ -750,6 +697,62 @@ public class OCImportBean implements Serializable {
     //endregion
 
     //region Private methods
+
+    private List<StudySubject> filterOutExistingEvents(List<StudySubject> studySubjectsFromFileList) {
+
+        List<StudySubject> studySubjectsForUpdate = new ArrayList<>();
+
+        for (StudySubject subject : studySubjectsFromFileList) {
+
+            StudySubject targetStudySubject = this.studyIntegrationFacade.loadStudySubjectWithEvents(subject.getStudySubjectId());
+            List<EventData> newEvents = new ArrayList<>();
+
+            for (EventData sourceEvent : subject.getStudyEventDataList()) {
+
+                List<EventData> eventDataList = targetStudySubject.getStudyEventDataList();
+                if (eventDataList == null) {
+                    eventDataList = new ArrayList<>();
+                }
+                if (eventDataList.size() > 0) {
+                    if (this.getEventFromEventDataListByOid(eventDataList, sourceEvent.getStudyEventOid(), sourceEvent.getStudyEventRepeatKey()) == null) {
+                        newEvents.add(sourceEvent);
+                    }
+                } else {
+                    newEvents.add(sourceEvent);
+                }
+            }
+
+            if (newEvents.size() > 0) {
+                subject.setStudyEventDataList(newEvents);
+                studySubjectsForUpdate.add(subject);
+            }
+        }
+        
+        return studySubjectsForUpdate;
+    }
+
+    private EventData getEventFromEventDataListByOid(List<EventData> eventDataList, String oid, String repeatKey) {
+
+        EventData foundEventData = null;
+
+        if (eventDataList != null) {
+            for (EventData eventData : eventDataList) {
+                if (eventData.getStudyEventOid().equalsIgnoreCase(oid)) {
+                    if (eventData.getStudyEventRepeatKey() == null || repeatKey == null) {
+                        foundEventData = eventData;
+                        break;
+                    } else {
+                        if (eventData.getStudyEventRepeatKey().equalsIgnoreCase(repeatKey)) {
+                            foundEventData = eventData;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return foundEventData;
+    }
 
     /**
      * Need to build an initial sort order for data table multi sort

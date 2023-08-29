@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ public enum EnumConquestMode {
     MOVE_PATIENTS("rpbmovedicompatients"),
     MOVE_STUDIES("rpbmovedicomstudies"),
     MOVE_SERIES("rpbmovedicomseries"),
+    MOVE_IMAGES("rpbmovedicomimages"),
 
     // DICOM update
     //TODO: script needs harmonisation

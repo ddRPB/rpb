@@ -24,7 +24,8 @@ import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.domain.pacs.StagedSubject;
 import de.dktk.dd.rpb.core.util.Constants;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -41,7 +42,7 @@ import java.util.List;
  */
 public class StagedSubjectPacsResultBuilder {
 
-    private static final Logger log = Logger.getLogger(StagedSubjectPacsResultBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(StagedSubjectPacsResultBuilder.class);
     private List<StudySubject> queriedStudySubjects;
     private List<Subject> resultSubjects;
     private List<StagedSubject> stagedSubjectsList;

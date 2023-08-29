@@ -22,9 +22,10 @@ package de.dktk.dd.rpb.core.domain.randomisation;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.service.IRandomisationStrategy;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -47,7 +48,7 @@ public abstract class AbstractRandomisationConfiguration implements Identifiable
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(AbstractRandomisationConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractRandomisationConfiguration.class);
     private final Long seed;
 
     //endregion

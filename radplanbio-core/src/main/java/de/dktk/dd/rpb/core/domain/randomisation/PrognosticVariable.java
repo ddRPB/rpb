@@ -22,12 +22,12 @@ package de.dktk.dd.rpb.core.domain.randomisation;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.criteria.AbstractCriterion;
 import de.dktk.dd.rpb.core.domain.criteria.constraints.AbstractConstraint;
-
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.Target;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
-import java.io.*;
+import java.io.Serializable;
 
 /**
  * Prognostic variable of trial subject is used to construct strata for stratified randomisation
@@ -49,7 +49,7 @@ public class PrognosticVariable<T extends Serializable> implements Identifiable<
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(PrognosticVariable.class);
+    private static final Logger log = LoggerFactory.getLogger(PrognosticVariable.class);
 
     //endregion
 

@@ -23,8 +23,8 @@ import de.dktk.dd.rpb.core.dao.admin.DocTypeDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.ctms.DocType;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -50,7 +50,7 @@ public class DocTypeRepository  extends RepositoryImpl<DocType, Integer> impleme
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(DocTypeRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(DocTypeRepository.class);
 
     //endregion
 

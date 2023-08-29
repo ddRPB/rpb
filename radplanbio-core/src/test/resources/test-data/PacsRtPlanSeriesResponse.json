@@ -1,0 +1,28 @@
+{
+  "Series": [
+    {
+      "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.30286684460880193884990761571633347",
+      "Modality": "RTPLAN",
+      "Images": [
+        {
+          "RTPlanLabel": "O3_HiTu_Ts1",
+          "RTPlanName": "O3_HiTu_Ts1",
+          "RTPlanDate": "20130911",
+          "RTPlanGeometry": "PATIENT",
+          "ReferencedRTStructUID": "1.2.826.0.1.3680043.9.7275.0.26448877768326450505755897753377548",
+          "SOPInstanceUID": "1.2.826.0.1.3680043.9.7275.0.10065351082318159232522002495310668",
+          "Size": "18234"
+        },
+        {
+          "RTPlanLabel": "O3_HiTu_Ts1",
+          "RTPlanName": "O3_HiTu_Ts1",
+          "RTPlanDate": "20140724",
+          "RTPlanGeometry": "PATIENT",
+          "ReferencedRTStructUID": "1.2.826.0.1.3680043.9.7275.0.16463378578534197289764939418188051",
+          "SOPInstanceUID": "1.2.826.0.1.3680043.9.7275.0.23077507803072729582279512822488496",
+          "Size": "27374"
+        }
+      ]
+    }
+  ]
+}

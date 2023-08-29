@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Subject</comment>
+
+    <entry key="subject">Patient</entry>
+    <entry key="subject_plural">Patienten</entry>
+    <entry key="subject_reload">Patientenliste neu laden</entry>
+    <entry key="subject_print">Patientenliste drucken</entry>
+    <entry key="subject_new">Neuen Patienten anlegen</entry>
+    <entry key="subject_edit">Gewählten Patienten ändern</entry>
+    <entry key="subject_delete">Gewählten Patienten löschen</entry>
+
+    <!-- attributes -->
+    <entry key="subject_uniqueIdentifier">PID</entry>
+    <entry key="subject_studySubjectId">StudySubjectId</entry>
+    <entry key="subject_secondaryId">SecondaryId</entry>
+    <entry key="subject_gender">Geschlecht</entry>
+    <entry key="subject_yearOfBirth">Geburtsjahr</entry>
+    <entry key="subject_dateOfBirth">Geburtsdatum</entry>
+    <entry key="subject_enrollmentDate">Eintrittsdatum</entry>
+</properties>

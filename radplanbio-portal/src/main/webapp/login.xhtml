@@ -11,7 +11,7 @@
 	template="/WEB-INF/layouts/main.xhtml"
     >
 
-    <!-- Definition of bradcrumbs place holder -->
+    <!-- Definition of breadcrumbs placeholder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
@@ -84,7 +84,7 @@
                                 </label>
                             </td>
                             <td>
-                                <!-- Username value automatically prefill the user name it it is in param -->
+                                <!-- Username value automatically prefill the username it is in param -->
                                 <c:if test="${not empty param.login_error}">
                                     <c:set
                                         var="username"

@@ -21,21 +21,37 @@ package de.dktk.dd.rpb.api.v1;
 
 import de.dktk.dd.rpb.api.support.BaseService;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.AnnotationType;
+import de.dktk.dd.rpb.core.domain.edc.CrfFieldAnnotation;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
+import de.dktk.dd.rpb.core.domain.edc.FormData;
+import de.dktk.dd.rpb.core.domain.edc.ItemData;
+import de.dktk.dd.rpb.core.domain.edc.ItemGroupData;
+import de.dktk.dd.rpb.core.domain.edc.Odm;
 import de.dktk.dd.rpb.core.ocsoap.types.ScheduledEvent;
 import de.dktk.dd.rpb.core.ocsoap.types.Study;
 import de.dktk.dd.rpb.core.repository.admin.AnnotationTypeRepository;
 import de.dktk.dd.rpb.core.repository.ctms.IStudyRepository;
-import de.dktk.dd.rpb.core.service.*;
-import org.apache.log4j.Logger;
+import de.dktk.dd.rpb.core.service.AuditEvent;
+import de.dktk.dd.rpb.core.service.DataTransformationService;
+import de.dktk.dd.rpb.core.service.IOpenClinicaService;
+import de.dktk.dd.rpb.core.service.OpenClinicaService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openclinica.ws.beans.StudyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -51,7 +67,7 @@ public class StudyEventService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(StudyEventService.class);
+    private static final Logger log = LoggerFactory.getLogger(StudyEventService.class);
 
     //endregion
 
@@ -501,7 +517,7 @@ public class StudyEventService extends BaseService {
         catch (Exception err) {                                              
             // Log
             log.info("EventData - exception");
-            log.error(err);
+            log.error(err.getMessage(), err);
 
             // Error
             return javax.ws.rs.core.Response.status(400).build();

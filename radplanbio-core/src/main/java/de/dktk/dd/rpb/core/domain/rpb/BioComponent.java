@@ -20,10 +20,8 @@
 package de.dktk.dd.rpb.core.domain.rpb;
 
 import com.google.common.base.Objects;
-import org.apache.log4j.Logger;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * BioComponent (Centraxx) domain object entity implementing AbstractComponent
@@ -38,7 +36,7 @@ public class BioComponent extends AbstractComponent {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(BioComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(BioComponent.class);
 
     //endregion
 

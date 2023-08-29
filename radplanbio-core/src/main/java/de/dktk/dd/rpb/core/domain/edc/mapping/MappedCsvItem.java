@@ -20,7 +20,8 @@
 package de.dktk.dd.rpb.core.domain.edc.mapping;
 
 import com.google.common.base.Objects;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -41,7 +42,7 @@ public class MappedCsvItem extends AbstractMappedItem {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(MappedCsvItem.class);
+    private static final Logger log = LoggerFactory.getLogger(MappedCsvItem.class);
 
     //endregion
 

@@ -1,0 +1,14 @@
+<!--
+Landing page for te RPB uploader parameter request. The authorized user allows the uploader to fetch the parameters
+ that should not be transfered within the URL of the first GET request. Uploader and Portal need to use the same
+ host & port to fullfill the same-origin-policy of the browser.
+ -->
+<ui:composition
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:event type="preRenderView" listener="#{mbRpbUploader.renderJsonObjectForUploader}"/>
+        </f:metadata>
+    </ui:define>
+</ui:composition>

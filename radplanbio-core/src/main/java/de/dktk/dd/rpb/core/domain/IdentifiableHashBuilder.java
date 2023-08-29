@@ -19,8 +19,9 @@
 
 package de.dktk.dd.rpb.core.domain;
 
+import org.slf4j.Logger;
+
 import java.io.Serializable;
-import org.apache.log4j.Logger;
 
 /**
  * The first time the {@link #hash(Logger, Identifiable)} is called, we check if the primary key is present or not.

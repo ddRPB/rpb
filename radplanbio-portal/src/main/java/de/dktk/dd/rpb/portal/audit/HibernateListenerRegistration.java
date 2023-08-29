@@ -19,26 +19,25 @@
 
 package de.dktk.dd.rpb.portal.audit;
 
-import static de.dktk.dd.rpb.core.service.AuditEvent.ApplicationShutdown;
-import static de.dktk.dd.rpb.core.service.AuditEvent.ApplicationStartup;
-
 import de.dktk.dd.rpb.core.service.AuditLogService;
-
-import static org.hibernate.event.spi.EventType.POST_DELETE;
-import static org.hibernate.event.spi.EventType.POST_INSERT;
-import static org.hibernate.event.spi.EventType.PRE_UPDATE;
+import org.hibernate.SessionFactory;
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.apache.log4j.Logger;
-import org.springframework.context.annotation.Lazy;
+import static de.dktk.dd.rpb.core.service.AuditEvent.ApplicationShutdown;
+import static de.dktk.dd.rpb.core.service.AuditEvent.ApplicationStartup;
+import static org.hibernate.event.spi.EventType.POST_DELETE;
+import static org.hibernate.event.spi.EventType.POST_INSERT;
+import static org.hibernate.event.spi.EventType.PRE_UPDATE;
 
 /**
  * HibernateListenerRegistration
@@ -55,7 +54,7 @@ public class HibernateListenerRegistration {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(HibernateListenerRegistration.class);
+    private static final Logger log = LoggerFactory.getLogger(HibernateListenerRegistration.class);
 
     //endregion
 

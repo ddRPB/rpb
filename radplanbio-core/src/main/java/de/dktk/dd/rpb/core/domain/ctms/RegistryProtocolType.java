@@ -20,7 +20,8 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import com.google.common.base.Objects;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -39,7 +40,7 @@ public class RegistryProtocolType extends AbstractProtocolType {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(RegistryProtocolType.class);
+    private static final Logger log = LoggerFactory.getLogger(RegistryProtocolType.class);
 
     //endregion
 

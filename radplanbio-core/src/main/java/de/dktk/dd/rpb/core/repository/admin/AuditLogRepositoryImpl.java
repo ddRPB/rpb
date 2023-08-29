@@ -23,9 +23,8 @@ import de.dktk.dd.rpb.core.dao.admin.AuditLogDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.admin.AuditLog;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -49,7 +48,7 @@ public class AuditLogRepositoryImpl extends RepositoryImpl<AuditLog, Integer> im
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(AuditLogRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(AuditLogRepositoryImpl.class);
 
     //endregion
 

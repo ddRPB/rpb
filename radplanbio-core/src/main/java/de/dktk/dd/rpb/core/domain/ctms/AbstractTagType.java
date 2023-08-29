@@ -20,13 +20,12 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
-
-import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -49,7 +48,7 @@ public abstract class AbstractTagType implements Identifiable<Integer>, Named, S
     //region Finals
 
     protected static final long serialVersionUID = 1L;
-    protected static final Logger log = Logger.getLogger(AbstractTagType.class);
+    protected static final Logger log = LoggerFactory.getLogger(AbstractTagType.class);
 
     //endregion
 

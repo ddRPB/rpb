@@ -5,7 +5,7 @@
         <columns>
             <column columnName="ParticipantId">
                 <datatype>varchar</datatype>
-                <columnTitle>Participant ID</columnTitle>
+                <columnTitle>ParticipantId</columnTitle>
                 <description>Subject identifier</description>
                 <propertyURI>http://cpas.labkey.com/Study#ParticipantId</propertyURI>
                 <nullable>false</nullable>
@@ -29,7 +29,7 @@
                     <importAlias>visitid</importAlias>
                 </importAliases>
             </column>
-            <column columnName="date">
+            <column columnName="Date">
                 <datatype>timestamp</datatype>
                 <columnTitle>Date</columnTitle>
                 <propertyURI>http://cpas.labkey.com/Study#VisitDate</propertyURI>
@@ -42,24 +42,24 @@
             </column>
             <column columnName="StudyEventOID">
                 <datatype>varchar</datatype>
-                <columnTitle>Study Event OID</columnTitle>
+                <columnTitle>StudyEventOID</columnTitle>
                 <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
                 <scale>4000</scale>
             </column>
             <column columnName="EventName">
                 <datatype>varchar</datatype>
-                <columnTitle>Event Name</columnTitle>
+                <columnTitle>EventName</columnTitle>
                 <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
                 <scale>4000</scale>
             </column>
             <column columnName="StartDate">
                 <datatype>timestamp</datatype>
-                <columnTitle>Start Date</columnTitle>
+                <columnTitle>StartDate</columnTitle>
                 <rangeURI>http://www.w3.org/2001/XMLSchema#dateTime</rangeURI>
             </column>
             <column columnName="EndDate">
                 <datatype>timestamp</datatype>
-                <columnTitle>End Date</columnTitle>
+                <columnTitle>EndDate</columnTitle>
                 <rangeURI>http://www.w3.org/2001/XMLSchema#dateTime</rangeURI>
             </column>
             <column columnName="Status">
@@ -70,7 +70,7 @@
             </column>
             <column columnName="StudyEventRepeatKey">
                 <datatype>varchar</datatype>
-                <columnTitle>Study Event Repeat Key</columnTitle>
+                <columnTitle>StudyEventRepeatKey</columnTitle>
                 <rangeURI>http://www.w3.org/2001/XMLSchema#string</rangeURI>
                 <scale>4000</scale>
             </column>

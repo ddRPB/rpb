@@ -21,7 +21,8 @@ package de.dktk.dd.rpb.core.builder.edc;
 
 import de.dktk.dd.rpb.core.domain.edc.ClinicalData;
 import de.dktk.dd.rpb.core.domain.edc.Odm;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class OdmBuilder implements IOdmBuilder {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(OdmBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(OdmBuilder.class);
     private final Odm odm = new Odm();
     private final List<ClinicalData> clinicalDataList = new ArrayList<>();
 

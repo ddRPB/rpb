@@ -20,13 +20,12 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-
-import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -46,7 +45,7 @@ public class CrfFieldAnnotation implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(CrfFieldAnnotation.class);
+    private static final Logger log = LoggerFactory.getLogger(CrfFieldAnnotation.class);
 
     //endregion
 

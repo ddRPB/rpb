@@ -22,20 +22,14 @@ package de.dktk.dd.rpb.portal.web.mb.admin.ctms;
 import de.dktk.dd.rpb.core.domain.ctms.StudyTagType;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IStudyTagTypeRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
-import org.primefaces.component.api.UIColumn;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIViewRoot;
-import javax.faces.context.FacesContext;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,7 +114,7 @@ public class StudyTagTypeBean extends CrudEntityViewModel<StudyTagType, Integer>
 
         // Which tags are required
         StudyTagType requiredTagTypeExample = new StudyTagType();
-        requiredTagTypeExample.setIsBoolean(Boolean.TRUE);
+        requiredTagTypeExample.setIsRequired(Boolean.TRUE);
         this.requiredStudyTagTypes = repository.find(requiredTagTypeExample);
     }
 

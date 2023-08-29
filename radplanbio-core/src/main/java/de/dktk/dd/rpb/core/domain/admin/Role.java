@@ -19,16 +19,24 @@
 
 package de.dktk.dd.rpb.core.domain.admin;
 
-import java.io.Serializable;
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-
+import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
-import org.apache.log4j.Logger;
 import org.hibernate.validator.constraints.NotEmpty;
-import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 /**
  * RadPlanBio Role domain entity
@@ -43,7 +51,7 @@ public class Role implements Identifiable<Integer>, Named, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Role.class);
+    private static final Logger log = LoggerFactory.getLogger(Role.class);
 
     //endregion
 

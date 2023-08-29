@@ -23,8 +23,8 @@ import de.dktk.dd.rpb.core.dao.edc.MappingRecordDao;
 import de.dktk.dd.rpb.core.dao.support.GenericDao;
 import de.dktk.dd.rpb.core.domain.edc.mapping.MappingRecord;
 import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -46,7 +46,7 @@ public class MappingRecordRepository extends RepositoryImpl<MappingRecord, Integ
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(MappingRecordRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(MappingRecordRepository.class);
 
     //endregion
 

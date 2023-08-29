@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2016 Tomas Skripcak
+ * Copyright (C) 2013-2021 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,20 +19,27 @@
 
 package de.dktk.dd.rpb.core.domain.admin;
 
-import static javax.persistence.TemporalType.TIMESTAMP;
+import com.google.common.base.Objects;
+import de.dktk.dd.rpb.core.domain.Identifiable;
+import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.Transient;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlTransient;
-
-import de.dktk.dd.rpb.core.domain.Identifiable;
-import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-import org.apache.log4j.Logger;
-
-import com.google.common.base.Objects;
+import static javax.persistence.TemporalType.TIMESTAMP;
 
 /**
  * AuditLog domain entity
@@ -47,7 +54,7 @@ public class AuditLog implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(AuditLog.class);
+    private static final Logger log = LoggerFactory.getLogger(AuditLog.class);
 
     //endregion
 
@@ -161,8 +168,8 @@ public class AuditLog implements Identifiable<Integer>, Serializable {
 
     //region StringAttribute2
 
-    @Size(max = 255)
-    @Column(name = "STRINGATTRIBUTE2", length = 255)
+    @Size(max = 1024)
+    @Column(name = "STRINGATTRIBUTE2", length = 1024)
     public String getStringAttribute2() {
         return this.stringAttribute2;
     }
@@ -175,8 +182,8 @@ public class AuditLog implements Identifiable<Integer>, Serializable {
 
     //region StringAttribute3
 
-    @Size(max = 256)
-    @Column(name = "STRINGATTRIBUTE3", length = 256)
+    @Size(max = 4000)
+    @Column(name = "STRINGATTRIBUTE3", length = 4000)
     public String getStringAttribute3() {
         return this.stringAttribute3;
     }

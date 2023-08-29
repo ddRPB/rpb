@@ -1,6 +1,7 @@
 package de.dktk.dd.rpb.core.converter;
 
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
+import de.dktk.dd.rpb.core.domain.lab.LabKeyExportConfiguration;
 import de.dktk.dd.rpb.core.domain.lab.SubjectAttributes;
 
 /**
@@ -9,29 +10,36 @@ import de.dktk.dd.rpb.core.domain.lab.SubjectAttributes;
 public class SubjectConverter {
 
     /**
-     * Converts a StudySubject into a LabkeySubject
+     * Converts a StudySubject into a LabKeySubject
      *
      * @param subject StudySubject
-     * @return LabkeySubject
+     * @param exportConfiguration LabKeyExportConfiguration
+     * @return LabKeySubject
      */
-    public static SubjectAttributes convertToLabkey(StudySubject subject) {
-        SubjectAttributes labkeySubject = new SubjectAttributes();
+    public static SubjectAttributes convertToLabKey(StudySubject subject, LabKeyExportConfiguration exportConfiguration) {
+        SubjectAttributes labKeySubject = new SubjectAttributes();
 
-        labkeySubject.setUniqueIdentifier(subject.getPid());
-        labkeySubject.setStudySubjectId(subject.getStudySubjectId());
-        labkeySubject.setSecondaryId(subject.getSecondaryId());
-        labkeySubject.setGender(subject.getSex());
-        labkeySubject.setDateOfBirth(subject.getComparableDateOfBirth());
+        labKeySubject.setUniqueIdentifier(subject.getPid());
+        labKeySubject.setStudySubjectId(subject.getStudySubjectId());
+        labKeySubject.setSecondaryId(subject.getSecondaryId());
 
-        if (subject.getYearOfBirth() != null) {
-            labkeySubject.setYearOfBirth(subject.getYearOfBirth());
+        if (exportConfiguration.isSexRequired()) {
+            labKeySubject.setGender(subject.getSex());
         }
 
-        labkeySubject.setEnrollmentDate(subject.getDateEnrollment());
-        labkeySubject.setStatus(subject.getStatus());
-        labkeySubject.setEnabled(subject.getIsEnabled());
+        if (exportConfiguration.isFullDateOfBirthRequired()) {
+            labKeySubject.setDateOfBirth(subject.getComparableDateOfBirth());
+        }
+
+        if (exportConfiguration.isYearOfBirthRequired() && subject.getYearOfBirth() != null) {
+            labKeySubject.setYearOfBirth(subject.getYearOfBirth());
+        }
+
+        labKeySubject.setEnrollmentDate(subject.getDateEnrollment());
+        labKeySubject.setStatus(subject.getStatus());
+        labKeySubject.setEnabled(subject.getIsEnabled());
 
 
-        return labkeySubject;
+        return labKeySubject;
     }
 }

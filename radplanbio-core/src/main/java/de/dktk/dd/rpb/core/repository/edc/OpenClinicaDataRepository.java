@@ -20,10 +20,16 @@
 package de.dktk.dd.rpb.core.repository.edc;
 
 import de.dktk.dd.rpb.core.dao.edc.OpenClinicaDataDao;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.DataQueryResult;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.ItemData;
+import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.Study;
+import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.exception.DataBaseItemNotFoundException;
-import org.apache.log4j.Logger;
 import org.openclinica.ws.beans.StudyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
@@ -47,7 +53,7 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
     //region Logging
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(OpenClinicaDataRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenClinicaDataRepository.class);
 
     //endregion
 
@@ -126,7 +132,24 @@ public class OpenClinicaDataRepository implements IOpenClinicaDataRepository {
 
     @Transactional
     public List<StudySubject> findStudySubjectsWithEvents(String studyIdentifier) {
-        return this.dao.findStudySubjectsWithEvents(studyIdentifier);
+        return this.dao.findStudySubjectsWithEventsAndTreatmentGroups(studyIdentifier);
+    }
+
+
+
+    @Transactional
+    public List<StudySubject> findStudySubjectsOfChildrenStudiesWithEvents(String studyIdentifier) {
+        return this.dao.findStudySubjectsOfChildrenStudiesWithEvents(studyIdentifier);
+    }
+
+    @Transactional
+    public List<StudySubject> findStudySubjectsWithEventsAndTreatmentGroups(String studyIdentifier) {
+        return this.dao.findStudySubjectsWithEventsAndTreatmentGroups(studyIdentifier);
+    }
+
+    @Transactional
+    public List<StudySubject> findStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(String studyIdentifier) {
+        return this.dao.findStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(studyIdentifier);
     }
 
     @Transactional

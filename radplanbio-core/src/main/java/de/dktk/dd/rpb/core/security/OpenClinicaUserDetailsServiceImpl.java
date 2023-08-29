@@ -19,18 +19,11 @@
 
 package de.dktk.dd.rpb.core.security;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collection;
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
+import de.dktk.dd.rpb.core.context.UserWithId;
+import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
 import de.dktk.dd.rpb.core.repository.admin.IDefaultAccountRepository;
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,8 +32,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.dktk.dd.rpb.core.context.UserWithId;
-import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.Collection;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Our OpenClinica implementation of Spring Security's UserDetailsService.
@@ -54,7 +52,7 @@ public class OpenClinicaUserDetailsServiceImpl implements UserDetailsService {
 
     // region Finals
 
-    private static final Logger log = Logger.getLogger(OpenClinicaUserDetailsServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenClinicaUserDetailsServiceImpl.class);
 
     //endregion
 

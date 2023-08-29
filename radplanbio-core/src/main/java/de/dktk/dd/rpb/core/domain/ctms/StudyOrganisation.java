@@ -20,11 +20,10 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -42,7 +41,7 @@ public class StudyOrganisation implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(StudyOrganisation.class);
+    private static final Logger log = LoggerFactory.getLogger(StudyOrganisation.class);
 
     //endregion
 

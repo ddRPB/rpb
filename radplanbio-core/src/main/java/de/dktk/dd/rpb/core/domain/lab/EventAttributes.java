@@ -1,9 +1,14 @@
 package de.dktk.dd.rpb.core.domain.lab;
 
-import com.univocity.parsers.annotations.Format;
-import com.univocity.parsers.annotations.Parsed;
+import org.supercsv.cellprocessor.Optional;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static de.dktk.dd.rpb.core.util.Constants.*;
+import static java.lang.String.valueOf;
 
 /**
  * Contains attributes of the event representation in Labkey
@@ -11,36 +16,24 @@ import java.util.Date;
  */
 public class EventAttributes {
 
-    @Parsed(field = "SequenceNum")
     private Double sequenceNum;
 
-    @Parsed(field = "ParticipantId")
     private String studySubjectId;
 
-    @Parsed(field = "StudyEventOID")
     private String studyEventOid;
 
-    @Parsed(field = "EventName")
     private String eventName;
 
-    @Parsed(field = "StartDate")
-    @Format(formats = {"yyyy-MM-dd"})
-    private Date startDate;
+    private LocalDate startDate;
 
-    @Parsed(field = "EndDate")
-    @Format(formats = {"yyyy-MM-dd"})
-    private Date endDate;
+    private LocalDate endDate;
 
-    @Parsed(field = "Status")
     private String status;
 
-    @Parsed(field = "System Status")
     private String systemStatus;
 
-    @Parsed(field = "StudyEventRepeatKey")
     private String studyEventRepeatKey;
 
-    @Parsed(field = "Type")
     private String type;
 
     public EventAttributes() {
@@ -78,19 +71,19 @@ public class EventAttributes {
         this.eventName = eventName;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 
@@ -124,6 +117,53 @@ public class EventAttributes {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public static CellProcessor[] getCellProcessors(){
+        List<CellProcessor> cellProcessorList = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            cellProcessorList.add(new Optional());
+        }
+        CellProcessor[] array = new CellProcessor[cellProcessorList.size()];
+
+        return cellProcessorList.toArray(array);
+    }
+
+    public static String[] getHeaders(String subjectColumnName){
+        List<String> headerList = new ArrayList<>();
+        headerList.add(LABKEY_SEQUENCE_NUMBER);
+        headerList.add(subjectColumnName);
+        headerList.add(LABKEY_STUDY_EVENT_OID);
+        headerList.add(LABKEY_EVENT_NAME);
+        headerList.add(LABKEY_START_DATE);
+        headerList.add(LABKEY_END_DATE);
+        headerList.add(LABKEY_STATUS);
+        headerList.add(LABKEY_SYSTEM_STATUS);
+        headerList.add(LABKEY_STUDY_EVENT_REPEAT_KEY);
+        headerList.add(LABKEY_TYPE);
+
+        String[] headerArray = new String[headerList.size()];
+        headerList.toArray(headerArray);
+
+        return headerArray;
+    }
+
+    public List<Object> getValues() {
+        List<Object> valueList = new ArrayList<>();
+
+        valueList.add(valueOf(this.sequenceNum));
+        valueList.add(this.studySubjectId);
+        valueList.add(this.studyEventOid);
+        valueList.add(this.eventName);
+        valueList.add(this.startDate);
+        valueList.add(this.endDate);
+        valueList.add(this.status);
+        valueList.add(this.systemStatus);
+        valueList.add(this.studyEventRepeatKey);
+        valueList.add(this.type);
+
+        return valueList;
     }
 
     @Override

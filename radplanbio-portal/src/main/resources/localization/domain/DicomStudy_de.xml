@@ -11,6 +11,8 @@
     <entry key="dicomStudy_new">Neue DICOM Studie definieren</entry>
     <entry key="dicomStudy_edit">Ausgewählte DICOM Studie bearbeiten</entry>
     <entry key="dicomStudy_delete">Ausgewählte DICOM Studie löschen</entry>
+    <entry key="dicomStudy_assign_existing">Assign Existing</entry>
+    <entry key="dicomStudy_upload_new">Upload New</entry>
 
     <!-- attributes -->
     <entry key="dicomStudy_id">Id</entry>

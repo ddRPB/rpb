@@ -23,10 +23,18 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
-import org.apache.log4j.Logger;
+import de.dktk.dd.rpb.core.exception.MissingPropertyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +54,7 @@ public class Odm implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Odm.class);
+    private static final Logger log = LoggerFactory.getLogger(Odm.class);
 
     //endregion
 
@@ -70,12 +78,10 @@ public class Odm implements Identifiable<Integer>, Serializable {
     @XmlAttribute(name = "ODMVersion")
     private String odmVersion;
 
-    //TODO: added by Mirko for elastic but seems to be braking import to EDC
-    //@XmlAttribute(name="expirationDateTime", namespace="http://www.uniklinikum-dresden.de/rpb")
-    //private String expirationDateTime;
-
     @XmlElement(name = "Study")
     private List<Study> studies;
+
+    private Study parentStudy;
 
     @XmlElement(name = "ClinicalData")
     private List<ClinicalData> clinicalDataList;
@@ -223,6 +229,25 @@ public class Odm implements Identifiable<Integer>, Serializable {
     }
 
     //endregion
+
+    /**
+     * The parent study property is set to align the site studies to the parent.
+     *
+     * @return EDC Study representation of the parent study
+     */
+    public Study getParentStudy() {
+        return parentStudy;
+    }
+
+    /**
+     * The parent study property is set to align the site studies to the parent.
+     *
+     * @param parentStudy EDC Study representation of the parent study
+     */
+    public void setParentStudy(Study parentStudy) {
+        this.parentStudy = parentStudy;
+    }
+
 
     //region Clinical Data List
 
@@ -454,6 +479,17 @@ public class Odm implements Identifiable<Integer>, Serializable {
         return null;
     }
 
+    public List<StudySubject> getStudySubjects() {
+        List<StudySubject> studySubjectList = new ArrayList<>();
+        if (this.clinicalDataList != null) {
+            for (ClinicalData clinicaData : this.clinicalDataList) {
+                studySubjectList.addAll(clinicaData.getStudySubjects());
+            }
+        }
+
+        return studySubjectList;
+    }
+
     public StudySubject findUniqueStudySubjectOrNone(String studySubjectIdentifier) {
         if (studySubjectIdentifier != null) {
             if (this.clinicalDataList != null) {
@@ -613,7 +649,11 @@ public class Odm implements Identifiable<Integer>, Serializable {
                 for (FormDefinition fr : ed.getFormRefs()) {
                     for (FormDefinition fd : mdv.getFormDefinitions()) {
                         if (fr.getFormOid() != null && fr.getFormOid().equals(fd.getOid())) {
-                            ed.getFormDefs().add(fd);
+                            List<FormDefinition> formDefinitionList = ed.getFormDefs();
+                            if (!formDefinitionList.contains(fd)) {
+                                formDefinitionList.add(fd);
+                            }
+
                             break;
                         }
                     }
@@ -624,7 +664,10 @@ public class Odm implements Identifiable<Integer>, Serializable {
                     for (ItemGroupDefinition igd : mdv.getItemGroupDefinitions()) {
                         for (ItemGroupDefinition igr : fd.getItemGroupRefs()) {
                             if (igr.getItemGroupOid() != null && igr.getItemGroupOid().equals((igd.getOid()))) {
-                                fd.getItemGroupDefs().add(igd);
+                                List<ItemGroupDefinition> itemGroupDefinitionList = fd.getItemGroupDefs();
+                                if (!itemGroupDefinitionList.contains(igd)) {
+                                    itemGroupDefinitionList.add(igd);
+                                }
                                 break;
                             }
                         }
@@ -634,7 +677,14 @@ public class Odm implements Identifiable<Integer>, Serializable {
                     for (ItemGroupDefinition igd : fd.getItemGroupDefs()) {
                         for (ItemDefinition id : mdv.getItemDefinitions()) {
                             for (ItemDefinition ir : igd.getItemRefs()) {
+
                                 if (ir.getItemOid() != null && ir.getItemOid().equals((id.getOid()))) {
+                                    // copy orderNumber and itemOid from the reference to the definition
+                                    id.setOrderNumber(ir.getOrderNumber());
+                                    id.setItemOid(ir.getItemOid());
+                                    // copy formOids property to filter items that do not belong to the specific form version
+                                    ir.setFormOids(id.getFormOids());
+
                                     igd.addItemDef(id);
                                     break;
                                 }
@@ -996,4 +1046,42 @@ public class Odm implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    /**
+     * By RPB convention, the ODM can just consist of the site specific study or the parent study with site specific studies.
+     * In the second case, the parent study property needs to be set with "setParentStudy", because the information is not
+     * part of the original ODM file. The RPB convention is that the overall study configuration is done in the parent study.
+     * The site study inherits the configuration from the parent and consists of the clinical data of the site.
+     *
+     * @return Study parent study in case that there are more than one and the site specific study if there is just one
+     * @throws MissingPropertyException
+     */
+    public Study getParentOrSiteStudyByConvention() throws MissingPropertyException {
+        if (this.studies == null) {
+            throw new MissingPropertyException("There are no study properties in the ODM: " + this.fileOid + " " + this.description);
+        }
+
+        if (this.studies.size() == 1) {
+            return this.studies.get(0);
+        }
+
+        if (this.parentStudy == null) {
+            throw new MissingPropertyException("The parent study is null. There is no clear way to find out the parent study in the ODM: " +
+                    this.fileOid + " " + this.description
+            );
+        }
+        ;
+
+        for (Study study : this.getStudies()) {
+
+            if (study.getOid().equals(parentStudy.getOcoid())) {
+                return study;
+            }
+
+            throw new MissingPropertyException("There is no study with the oid " + parentStudy.getOcoid() + " in the ODM: " +
+                    this.fileOid + " " + this.description
+            );
+        }
+
+        return null;
+    }
 }

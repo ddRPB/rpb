@@ -24,13 +24,24 @@ import de.dktk.dd.rpb.core.domain.pacs.StagedDicomSeries;
 import de.dktk.dd.rpb.core.util.DicomStudyDescriptionEdcCodeUtil;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({Logger.class, LoggerFactory.class})
 public class DicomSeriesToStagedDicomSeriesConverterTest {
     List<DicomSeries> clinicalSeriesList;
     List<DicomSeries> stageOneSeriesList;
@@ -41,6 +52,11 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
 
     @Before
     public void setUp() throws Exception {
+        mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
+        Logger logger = mock(Logger.class);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
+
         clinicalSeriesList = new ArrayList<DicomSeries>();
         stageOneSeriesList = new ArrayList<DicomSeries>();
         stageTwoSeriesList = new ArrayList<DicomSeries>();
@@ -66,10 +82,14 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
         seriesOne.setSeriesDescription(dummyDescriptionOne);
         stageOneSeriesList.add(seriesOne);
 
-        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(stageOneSeriesList, null, uidPrefix, partnerSideCode, edcCode);
+        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
+                stageOneSeriesList, null, uidPrefix, partnerSideCode, edcCode);
 
         assertEquals("Should have one element", 1, stagedSeries.size());
-        assertEquals("Should be original description, because it has no prefix", dummyDescriptionOne, stagedSeries.get(0).getSeriesDescription());
+        assertEquals(
+                "Should be original description, because it has no prefix",
+                dummyDescriptionOne, stagedSeries.get(0).getSeriesDescription()
+        );
     }
 
     @Test
@@ -83,10 +103,14 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
         seriesOne.setSeriesDescription(dummyDescriptionOne);
         stageOneSeriesList.add(seriesOne);
 
-        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(stageOneSeriesList, stageTwoSeriesList, uidPrefix, partnerSideCode, edcCode);
+        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
+                stageOneSeriesList, stageTwoSeriesList, uidPrefix, partnerSideCode, edcCode);
 
         assertEquals("Should have one element", 1, stagedSeries.size());
-        assertEquals("Should be the description without prefix", dummyDescriptionOne, stagedSeries.get(0).getSeriesDescription());
+        assertEquals(
+                "Should be the description without prefix",
+                dummyDescriptionOne, stagedSeries.get(0).getSeriesDescription()
+        );
     }
 
     @Test
@@ -106,10 +130,14 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
         serieTwo.setSeriesDescription(dummyDescriptionTwo);
         stageOneSeriesList.add(serieTwo);
 
-        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(stageOneSeriesList, stageTwoSeriesList, uidPrefix, partnerSideCode, edcCode);
+        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
+                stageOneSeriesList, stageTwoSeriesList, uidPrefix, partnerSideCode, edcCode);
 
         assertEquals("Should have two elements", 2, stagedSeries.size());
-        assertEquals("Should be the description of the second element", dummyDescriptionTwo, stagedSeries.get(1).getSeriesDescription());
+        assertEquals(
+                "Should be the description of the second element",
+                dummyDescriptionTwo,
+                stagedSeries.get(1).getSeriesDescription());
     }
 
     @Test
@@ -137,10 +165,15 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
         seriesTwo.setSeriesDescription(dummyDescriptionTwo);
         stageOneSeriesList.add(seriesTwo);
 
-        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(stageOneSeriesList, stageTwoSeriesList, uidPrefix, partnerSideCode, edcCode);
+        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
+                stageOneSeriesList, stageTwoSeriesList, uidPrefix, partnerSideCode, edcCode);
 
         assertEquals("Should have two elements", 2, stagedSeries.size());
-        assertEquals("Has a second stage representation", true, stagedSeries.get(0).isStageTwoRepresentation());
+        assertEquals(
+                "Has a second stage representation",
+                true,
+                stagedSeries.get(0).isStageTwoRepresentation()
+        );
     }
 
     // endregion
@@ -169,7 +202,11 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
                 clinicalSeriesList, stageOneSeriesList, uidPrefix);
 
         assertEquals("Should have one element", 1, stagedSeries.size());
-        assertEquals("Should be the original description", dummyDescriptionClinic, stagedSeries.get(0).getSeriesDescription());
+        assertEquals(
+                "Should be the original description",
+                dummyDescriptionClinic,
+                stagedSeries.get(0).getSeriesDescription()
+        );
     }
 
     @Test
@@ -189,10 +226,15 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
         serieTwo.setSeriesDescription(dummyDescriptionTwo);
         clinicalSeriesList.add(serieTwo);
 
-        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(clinicalSeriesList, stageOneSeriesList, uidPrefix);
+        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
+                clinicalSeriesList, stageOneSeriesList, uidPrefix);
 
         assertEquals("Should have two elements", 2, stagedSeries.size());
-        assertEquals("Should be the description of the second element", dummyDescriptionTwo, stagedSeries.get(1).getSeriesDescription());
+        assertEquals(
+                "Should be the description of the second element",
+                dummyDescriptionTwo,
+                stagedSeries.get(1).getSeriesDescription()
+        );
     }
 
     @Test
@@ -220,10 +262,15 @@ public class DicomSeriesToStagedDicomSeriesConverterTest {
         seriesTwo.setSeriesDescription(dummyDescriptionTwo);
         clinicalSeriesList.add(seriesTwo);
 
-        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(clinicalSeriesList, stageOneSeriesList, uidPrefix);
+        List<StagedDicomSeries> stagedSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
+                clinicalSeriesList, stageOneSeriesList, uidPrefix);
 
         assertEquals("Should have two elements", 2, stagedSeries.size());
-        assertEquals("Has a stage one representation", true, stagedSeries.get(0).isStageOneRepresentation());
+        assertEquals(
+                "Has a stage one representation",
+                true,
+                stagedSeries.get(0).isStageOneRepresentation()
+        );
     }
     // endregion
 }

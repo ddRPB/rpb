@@ -1,8 +1,16 @@
 package de.dktk.dd.rpb.core.builder.edc;
 
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.ClinicalData;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.FormData;
+import de.dktk.dd.rpb.core.domain.edc.ItemData;
+import de.dktk.dd.rpb.core.domain.edc.ItemGroupData;
+import de.dktk.dd.rpb.core.domain.edc.Odm;
+import de.dktk.dd.rpb.core.domain.edc.StudySubject;
+import de.dktk.dd.rpb.core.domain.pacs.DicomUploadSlot;
 import de.dktk.dd.rpb.core.exception.MissingPropertyException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
@@ -10,7 +18,7 @@ import java.util.ArrayList;
  * Coordinates building of Odm objects
  */
 public class OdmBuilderDirector {
-    private static final Logger log = Logger.getLogger(OdmBuilderDirector.class);
+    private static final Logger log = LoggerFactory.getLogger(OdmBuilderDirector.class);
     private IOdmBuilder odmBuilder;
 
     public void setOdmBuilder(IOdmBuilder odmBuilder) {
@@ -26,8 +34,8 @@ public class OdmBuilderDirector {
      *
      * @param dicomStudyInstanceItemOid   String
      * @param dicomStudyInstanceItemValue String
-     * @param dicomPatienIdItemOid        String
-     * @param dicomPatienIdItemValue      String
+     * @param dicomPatientIdItemOid       String
+     * @param dicomPatientIdItemValue     String
      * @param itemGroupOid                String
      * @param formOid                     String
      * @param studyEventOid               String
@@ -39,8 +47,8 @@ public class OdmBuilderDirector {
     public Odm buildUpdateCrfAnnotationOdm(
             String dicomStudyInstanceItemOid,
             String dicomStudyInstanceItemValue,
-            String dicomPatienIdItemOid,
-            String dicomPatienIdItemValue,
+            String dicomPatientIdItemOid,
+            String dicomPatientIdItemValue,
             String itemGroupOid,
             String formOid,
             String studyEventOid,
@@ -49,13 +57,56 @@ public class OdmBuilderDirector {
             String studyOid
     ) throws MissingPropertyException {
 
-        ClinicalData newClinicalData = getClinicalData(dicomStudyInstanceItemOid, dicomStudyInstanceItemValue, dicomPatienIdItemOid, dicomPatienIdItemValue, itemGroupOid, formOid, studyEventOid, studyEventRepeatKey, subjectKey, studyOid);
+        ClinicalData newClinicalData = getClinicalData(
+                dicomStudyInstanceItemOid,
+                dicomStudyInstanceItemValue,
+                dicomPatientIdItemOid,
+                dicomPatientIdItemValue,
+                itemGroupOid,
+                formOid,
+                studyEventOid,
+                studyEventRepeatKey,
+                subjectKey,
+                studyOid
+        );
         return this.getOdm(newClinicalData);
     }
 
-    private ClinicalData getClinicalData(String dicomStudyInstanceItemOid, String dicomStudyInstanceItemValue, String dicomPatienIdItemOid, String dicomPatienIdItemValue, String itemGroupOid, String formOid, String studyEventOid, String studyEventRepeatKey, String subjectKey, String studyOid) throws MissingPropertyException {
+    public Odm buildUpdateCrfAnnotationOdm(
+            DicomUploadSlot dicomUploadSlot
+    ) throws MissingPropertyException {
+
+        ClinicalData newClinicalData = getClinicalData(
+                dicomUploadSlot.getDicomStudyInstanceItemOid(),
+                dicomUploadSlot.getDicomStudyInstanceItemValue(),
+                dicomUploadSlot.getDicomPatientIdItemOid(),
+                dicomUploadSlot.getDicomPatientIdItemValue(),
+                dicomUploadSlot.getItemGroupOid(),
+                dicomUploadSlot.getFormOid(),
+                dicomUploadSlot.getStudyEventOid(),
+                dicomUploadSlot.getStudyEventRepeatKey(),
+                dicomUploadSlot.getSubjectKey(),
+                dicomUploadSlot.getStudyOid()
+        );
+
+        return this.getOdm(newClinicalData);
+    }
+
+    private ClinicalData getClinicalData(
+            String dicomStudyInstanceItemOid,
+            String dicomStudyInstanceItemValue,
+            String dicomPatientIdItemOid,
+            String dicomPatientIdItemValue,
+            String itemGroupOid,
+            String formOid,
+            String studyEventOid,
+            String studyEventRepeatKey,
+            String subjectKey,
+            String studyOid
+    ) throws MissingPropertyException {
+
         ItemData dicomStudyInstanceUidData = getItemData(dicomStudyInstanceItemOid, dicomStudyInstanceItemValue);
-        ItemData dicomPatientIdData = getItemData(dicomPatienIdItemOid, dicomPatienIdItemValue);
+        ItemData dicomPatientIdData = getItemData(dicomPatientIdItemOid, dicomPatientIdItemValue);
 
         ItemGroupData itemGroupData = getItemGroupData(itemGroupOid, dicomStudyInstanceUidData, dicomPatientIdData);
         FormData formData = getFormData(formOid, itemGroupData);
@@ -104,12 +155,16 @@ public class OdmBuilderDirector {
                 build();
     }
 
-    private ItemGroupData getItemGroupData(String itemGroupOid, ItemData dicomStudyInstanceUidData, ItemData dicomPatienIdData) throws MissingPropertyException {
+    private ItemGroupData getItemGroupData(
+            String itemGroupOid,
+            ItemData dicomStudyInstanceUidData,
+            ItemData dicomPatientIdData
+    ) throws MissingPropertyException {
         ItemGroupDataBuilder itemGroupDataBuilder = ItemGroupDataBuilder.getInstance();
         return itemGroupDataBuilder.
                 setItemGroupOid(itemGroupOid).
                 addItemData(dicomStudyInstanceUidData).
-                addItemData(dicomPatienIdData).
+                addItemData(dicomPatientIdData).
                 build();
     }
 

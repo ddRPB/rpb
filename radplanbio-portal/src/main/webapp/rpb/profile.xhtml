@@ -259,7 +259,7 @@
                 <p:dataTable
                         id="dtAuditLogs"
                         var="entity"
-                        value="#{mbAuditLogLazy}"
+                        value="#{mbProfileAuditLogLazy}"
                         widgetVar="auditLogEntitiesTable"
                         resizableColumns="true"
                         draggableColumns="false"
@@ -267,7 +267,7 @@
                         rows="15"
                         rowsPerPageTemplate="15,25,50,100"
                         emptyMessage="#{msg.search_empty}"
-                        selection="#{mbAuditLogLazy.selectedEntity}"
+                        selection="#{mbProfileAuditLogLazy.selectedEntity}"
                         selectionMode="single"
                         rowIndexVar="rowIndex"
                         lazy="true"
@@ -283,7 +283,7 @@
                                 trigger=":form:tabView:dtAuditLogs:btnAuditLogEntitiesToggler"
                                 style="width:450px"
                                 >
-                            <p:ajax event="toggle" listener="#{mbAuditLogLazy.onEntityToggle}" />
+                            <p:ajax event="toggle" listener="#{mbProfileAuditLogLazy.onEntityToggle}" />
                         </p:columnToggler>
                     </f:facet>
 
@@ -296,7 +296,7 @@
                     <p:column
                             id="colAuditEventDate"
                             sortBy="#{entity.eventDate}"
-                            visible="#{mbAuditLogLazy.columnVisibilityList[0]}"
+                            visible="#{mbProfileAuditLogLazy.columnVisibilityList[0]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.auditLog_eventDate}" />
@@ -309,22 +309,12 @@
                     <!-- Username -->
                     <p:column
                             sortBy="#{entity.username}"
-                            filterBy="#{entity.username}"
-                            visible="#{mbAuditLogLazy.columnVisibilityList[1]}"
-                            filterMatchMode="exact"
+                            visible="#{mbProfileAuditLogLazy.columnVisibilityList[1]}"
                             >
                         <f:facet name="header">
                             <h:outputText value="#{msg.auditLog_username}" />
                         </f:facet>
-                        <f:facet name="filter">
-                            <!-- Automatically apply non changable filter accoring to current user -->
-                            <p:selectOneButton
-                                    onchange="PF('auditLogEntitiesTable').filter()"
-                                    value="#{mbMain.myAccount.username}"
-                                    >
-                                <f:selectItem itemLabel="#{mbMain.myAccount.username}" itemValue="#{mbMain.myAccount.username}" />
-                            </p:selectOneButton>
-                        </f:facet>
+                        
                         <h:outputText value="#{entity.username}" style="float: left;" />
                     </p:column>
 
@@ -332,7 +322,7 @@
                     <p:column
                             sortBy="#{entity.event}"
                             filterBy="#{entity.event}"
-                            visible="#{mbAuditLogLazy.columnVisibilityList[2]}"
+                            visible="#{mbProfileAuditLogLazy.columnVisibilityList[2]}"
                             filterMatchMode="exact"
                             >
                         <f:facet name="header">
@@ -346,7 +336,7 @@
                                     >
                                 <f:selectItem itemLabel="#{msg.search_select_one}" itemValue="#{null}" noSelectionOption="true" />
                                 <f:selectItems
-                                        value="#{mbAuditLogLazy.auditEvents}"
+                                        value="#{mbProfileAuditLogLazy.auditEvents}"
                                         var="enumAuditEvent"
                                         itemLabel="#{enumAuditEvent.label}"
                                         itemValue="#{enumAuditEvent.toString()}"
@@ -360,7 +350,7 @@
                     <p:column
                             sortBy="#{entity.stringAttribute1}"
                             filterBy="#{entity.stringAttribute1}"
-                            visible="#{mbAuditLogLazy.columnVisibilityList[3]}"
+                            visible="#{mbProfileAuditLogLazy.columnVisibilityList[3]}"
                             filterMatchMode="contains"
                             >
                         <f:facet name="header">
@@ -373,7 +363,7 @@
                     <p:column
                             sortBy="#{entity.stringAttribute2}"
                             filterBy="#{entity.stringAttribute2}"
-                            visible="#{mbAuditLogLazy.columnVisibilityList[4]}"
+                            visible="#{mbProfileAuditLogLazy.columnVisibilityList[4]}"
                             filterMatchMode="contains"
                             >
                         <f:facet name="header">
@@ -386,7 +376,7 @@
                     <p:column
                             sortBy="#{entity.stringAttribute3}"
                             filterBy="#{entity.stringAttribute3}"
-                            visible="#{mbAuditLogLazy.columnVisibilityList[5]}"
+                            visible="#{mbProfileAuditLogLazy.columnVisibilityList[5]}"
                             filterMatchMode="contains"
                             >
                         <f:facet name="header">
@@ -397,13 +387,13 @@
 
                     <!-- Footer -->
                     <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbAuditLogLazy.size == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbAuditLogLazy.size == 1}" />
+                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbProfileAuditLogLazy.size == 0}" />
+                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbProfileAuditLogLazy.size == 1}" />
                         <h:outputFormat
                                 value="#{msg.search_results_status_n}"
-                                rendered="#{mbAuditLogLazy.size > 1}"
+                                rendered="#{mbProfileAuditLogLazy.size > 1}"
                                 >
-                            <f:param value="#{mbAuditLogLazy.size}" />
+                            <f:param value="#{mbProfileAuditLogLazy.size}" />
                         </h:outputFormat>
                     </f:facet>
                 </p:dataTable>

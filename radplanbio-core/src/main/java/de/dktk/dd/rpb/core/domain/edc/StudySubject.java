@@ -20,7 +20,6 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.bio.AbstractSpecimen;
@@ -30,20 +29,27 @@ import de.dktk.dd.rpb.core.domain.ctms.Person;
 import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
 import de.dktk.dd.rpb.core.domain.edc.mapping.MappingRecord;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
-
+import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
 import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudySubjectWithEventsType;
 import org.openclinica.ws.beans.StudyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +72,7 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(StudySubject.class);
+    private static final Logger log = LoggerFactory.getLogger(StudySubject.class);
 
     //endregion
 
@@ -106,11 +112,18 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
     @XmlElement(name="StudyEventData")
     private List<EventData> studyEventDataList;
 
+    @XmlElement(name="SubjectGroupData", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    private List<SubjectGroupData> subjectGroupDataList;
+
+
     @XmlTransient
     private Person person; // Subject as Patient (Person)
 
     @XmlTransient
     private Study study; // EDC study
+
+    @XmlTransient
+    private List<TreatmentArm> treatmentArmList;
 
     @XmlTransient
     private Boolean isEnabled;
@@ -125,6 +138,14 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
     public StudySubject() {
         this.person = new Person();
         this.isEnabled = Boolean.TRUE;
+
+        init();
+
+    }
+
+    private void init() {
+        this.studyEventDataList = new ArrayList<>();
+        this.subjectGroupDataList = new ArrayList<>();
     }
 
     public StudySubject(EnumStudySubjectIdGeneration idStrategy) {
@@ -138,10 +159,11 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
     public StudySubject(StudySubjectWithEventsType sswet) {
         this(sswet, null);
+        init();
     }
 
     public StudySubject(StudySubjectWithEventsType sswet, StudyType st) {
-
+        init();
         if (sswet != null) {
 
             // Get details from StudySubjectWithEventsType
@@ -351,23 +373,19 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
         this.dateOfBirth = value;
     }
 
-    public Date getComparableDateOfBirth() {
+    public LocalDate getComparableDateOfBirth() {
         if (this.dateOfBirth != null && !this.dateOfBirth.equals("")) {
-            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
-            try {
-                return format.parse(this.dateOfBirth);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.OC_DATEFORMAT);
+            return LocalDate.parse(this.dateOfBirth, formatter);
         }
 
         return null;
     }
 
     public String getComparableDateOfBirthString() {
-        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
-        Date date = this.getComparableDateOfBirth();
-        return date != null ? format.format(date) : null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.RPB_DATEFORMAT);
+        LocalDate date = this.getComparableDateOfBirth();
+        return date != null ? formatter.format(date) : null;
     }
 
     //endregion
@@ -376,23 +394,19 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
     public String getEnrollmentDate() { return this.enrollmentDate; }
 
-    public Date getDateEnrollment() {
+    public LocalDate getDateEnrollment() {
         if (this.enrollmentDate != null && !this.enrollmentDate.equals("")) {
-            DateFormat format = new SimpleDateFormat(Constants.OC_DATEFORMAT);
-            try {
-                return format.parse(this.enrollmentDate);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.OC_DATEFORMAT);
+            return LocalDate.parse(this.enrollmentDate, formatter);
         }
 
         return null;
     }
 
     public String getDateEnrollmentString() {
-        DateFormat format = new SimpleDateFormat(Constants.RPB_DATEFORMAT);
-        Date date = this.getDateEnrollment();
-        return date != null ? format.format(date) : null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.RPB_DATEFORMAT);
+        LocalDate date  = this.getDateEnrollment();
+        return date != null ? formatter.format(date) : null;
     }
 
     public void setEnrollmentDate(String enrollmentDate) {
@@ -456,6 +470,18 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    // region SubjectGroupDataList
+
+    public List<SubjectGroupData> getSubjectGroupDataList() {
+        return subjectGroupDataList;
+    }
+
+    public void setSubjectGroupDataList(List<SubjectGroupData> subjectGroupDataList) {
+        this.subjectGroupDataList = subjectGroupDataList;
+    }
+
+    // endregion
+
     //region Person
 
     public Person getPerson() {
@@ -477,6 +503,19 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
     }
 
     //endregion
+
+    // region treatment arm
+
+    public List<TreatmentArm> getTreatmentArmList() {
+        return treatmentArmList;
+    }
+
+    public void setTreatmentArmList(List<TreatmentArm> treatmentArmList) {
+        this.treatmentArmList = treatmentArmList;
+    }
+
+
+    // endregion
 
     //region IsEnabled
 
@@ -981,6 +1020,13 @@ public class StudySubject implements Identifiable<Integer>, Serializable {
 
     //endregion
 
+    // region treatment arms
+
+
+
+    // endregion
+
     //endregion
+
 
 }

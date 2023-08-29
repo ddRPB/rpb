@@ -6,7 +6,7 @@
 //import javax.persistence.EntityManager;
 //import javax.persistence.PersistenceContext;
 //
-//import org.apache.log4j.Logger;
+//import org.apache.logging.log4j.Logger;
 //
 //import static com.google.common.collect.Sets.newHashSet;
 //import static org.fest.assertions.Assertions.*;
@@ -30,7 +30,7 @@
 //@Transactional
 //public class RoleDaoImplTest {
 //    @SuppressWarnings("unused")
-//    private static final Logger log = Logger.getLogger(RoleDaoImplTest.class);
+//    private static final Logger log = LoggerFactory.getLogger(RoleDaoImplTest.class);
 //
 //    @PersistenceContext
 //    private EntityManager entityManager;

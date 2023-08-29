@@ -21,7 +21,8 @@ package de.dktk.dd.rpb.core.domain.criteria.constraints;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.criteria.AbstractCriterion;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -45,7 +46,7 @@ public abstract class AbstractConstraint<T> implements Identifiable<Integer>, Se
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(AbstractConstraint.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractConstraint.class);
 
     //endregion
 

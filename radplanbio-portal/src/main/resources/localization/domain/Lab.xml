@@ -5,6 +5,9 @@
     <comment>Domain resources for Lab</comment>
 
     <entry key="lab">LAB</entry>
+    <entry key="lab_add_decoded_value_columns">Add decoded value columns</entry>
+    <entry key="lab_add_multi_select_value_columns">Add multiselect value columns</entry>
+    <entry key="lab_add_partial_date_columns">Add partial date columns</entry>
     <entry key="lab_plural">LABs</entry>
     <entry key="lab_reload">Reload existing LABs</entry>
     <entry key="lab_print">Print LABs table</entry>
@@ -19,5 +22,9 @@
     <entry key="lab_isEnabled">Enabled</entry>
     <entry key="lab_version">Version</entry>
     <entry key="data_tables">data tables</entry>
+    <entry key="lab_export_only_form_based_crf_attributes_with_data">Don't create tables for FormVersions without data.</entry>
+    <entry key="lab_use_open_clinica_order_in_form">Use the order in form, based on Clinica extension.</entry>
+    <entry key="lab_export_only_item_group_based_crf_attributes_with_data">Don't create tables for ItemGroups without data.</entry>
+    <entry key="lab_export_only_repeating_item_group_based_crf_attributes">Don't create tables for non-repeating ItemGroups.</entry>
 
 </properties>

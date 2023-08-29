@@ -19,7 +19,8 @@
 
 package de.dktk.dd.rpb.core.domain.edc;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -42,7 +43,7 @@ public class BasicDefinitions implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(BasicDefinitions.class);
+    private static final Logger log = LoggerFactory.getLogger(BasicDefinitions.class);
 
     //endregion
 

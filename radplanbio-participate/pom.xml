@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>de.dktk.dd.rpb</groupId>
 		<artifactId>rpb-parent</artifactId>
-		<version>MAINLINE-SNAPSHOT</version>
+		<version>1.0.0.14</version>
 	</parent>
 	<artifactId>radplanbio-participate</artifactId>
 	<packaging>war</packaging>
@@ -59,7 +59,8 @@
 		<primefaces.version>6.1</primefaces.version>
 		<primefaces-themes.version>1.0.10</primefaces-themes.version>
 		<omnifaces.version>1.8.1</omnifaces.version><!-- could consider to bump to version 1.14.1 -->
-		<slf4j.version>1.5.10</slf4j.version>
+		<slf4j.version>1.7.36</slf4j.version>
+		<log4j.version>2.17.2</log4j.version>
 		
 		<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- Variables substituted in resources file at build time -->
@@ -197,7 +198,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>radplanbio-core</artifactId>
-			<version>MAINLINE-SNAPSHOT</version>
+			<version>1.0.0.14</version>
 		</dependency>
 
 		<dependency>
@@ -334,35 +335,27 @@
 		<!-- ~~~~~~ -->
 		<!-- LOGGER -->
 		<!-- ~~~~~~ -->
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
+		<!--		<dependency>-->
+		<!--			<groupId>org.slf4j</groupId>-->
+		<!--			<artifactId>slf4j-api</artifactId>-->
+		<!--			<version>${slf4j.version}</version>-->
+		<!--		</dependency>-->
 
 		<!-- ~~~~~ -->
 		<!-- UTILS -->

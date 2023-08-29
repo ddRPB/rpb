@@ -21,8 +21,8 @@ package de.dktk.dd.rpb.api.v1;
 
 import de.dktk.dd.rpb.api.support.BaseService;
 import de.dktk.dd.rpb.core.domain.admin.DefaultAccount;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
@@ -45,7 +45,7 @@ public class EdcStudyService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(EdcStudyService.class);
+    private static final Logger log = LoggerFactory.getLogger(EdcStudyService.class);
 
     //endregion
 

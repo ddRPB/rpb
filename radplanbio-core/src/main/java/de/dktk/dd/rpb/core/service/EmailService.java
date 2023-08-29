@@ -40,28 +40,21 @@ public class EmailService {
     @Inject
     private MailSender mailSender;
 
-    @Value("${email.admin:}")
+    @Value("${email.admin}")
     private String emailAdmin;
 
     //endregion
 
     //region Methods
 
-    @SuppressWarnings("unused")
-    public void sendMail(String to, String subject, String body) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(body);
-        this.mailSender.send(message);
-    }
-
     public void sendMailToAdmin(String from, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
+        message.setFrom(this.emailAdmin);
         message.setTo(this.emailAdmin);
         message.setSubject(subject);
-        message.setText(body);
+        String footerText = "\n\nThis email was sent by : " + from;
+        String bodyText = body +  footerText;
+        message.setText(bodyText);
 
         this.mailSender.send(message);
     }

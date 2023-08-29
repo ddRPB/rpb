@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2019 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public class Constants {
     public static final String RPB_DATEFORMAT = "dd.MM.yyyy";
     public static final String RPB_TIMEFORMAT = "HH:mm:ss";
 
-    // RPB Spring Security user name and password parameter
+    // RPB Spring Security username and password parameter
     public static final String RPB_UNAMEPARAM = "j_username";
     public static final String RPB_PASSWDPARAM = "j_password";
 
@@ -119,9 +119,14 @@ public class Constants {
 
     // OpenClinica Export - LabKey import
 
+    public static final String ODM = "ODM";
     public static final String DATASETS_FOLDER = "datasets";
     public static final String ODM_FULL_EXPORT_FOLDER = "ODM_1.3_Full";
     public static final String EXPORT_ALL_SUFFIX = "-Export-All";
+
+    // ODM data formats
+    // https://wiki.cdisc.org/display/ODM2/Data+Formats
+    public static final String ODM_PARTIAL_DATE = "partialDate";
 
     //endregion
 
@@ -165,26 +170,165 @@ public class Constants {
 
     //endregion
 
+    // region LabKey
+    public static final String LABKEY_IDENTIFIERSEP = "-";
+    public static final Integer LABKEY_DEFAULT_REPEAT_KEY = 1;
+
+    public static final String LABKEY_SHARED_STUDY_PREFIX = "SHA-";
+
+    public static final String LABKEY_DECODED_VALUE_SUFFIX = "_DECODED";
+    public static final String LABKEY_MULTISELECT_VALUE_SUFFIX = "_MS_CODE_";
+    public static final String LABKEY_PARTIAL_DATE_MIN_SUFFIX = "_MIN";
+    public static final String LABKEY_PARTIAL_DATE_MAX_SUFFIX = "_MAX";
+
+    public static final String LABKEY_EDC_ATTRIBUTES = "EDC-Attributes";
+    public static final String LABKEY_EDC_FORMS = "EDC-Forms";
+    public static final String LABKEY_EDC_FORM_VERSIONS = "EDC-FormVersions";
+    public static final String LABKEY_EDC_ITEM_GROUPS = "EDC-ItemGroups";
+
+    public static final String LABKEY_SUBJECT_ATTRIBUTES = "SubjectAttributes";
+    public static final String LABKEY_SUBJECT_GROUP_ATTRIBUTES = "SubjectGroupAttributes";
+    public static final String LABKEY_EVENT_ATTRIBUTES = "EventAttributes";
+    public static final String LABKEY_FORM_ATTRIBUTES = "FormAttributes";
+
+    // all LabKey tables
+
+    public static final String LABKEY_STUDY_EVENT_OID = "StudyEventOID";
+    public static final String LABKEY_STUDY_EVENT_REPEAT_KEY = "StudyEventRepeatKey";
+
+    // SubjectAttributes; EventAttributes; CRFAttributes and FormAttributes
+
+    public static final String LABKEY_PARTICIPANT_ID = "ParticipantId";
+    public static final String LABKEY_SEQUENCE_NUMBER = "SequenceNum";
+
+    // SubjectAttributes
+    public static final String LABKEY_PATIENT_ID = "PID";
+    public static final String LABKEY_SECONDARY_ID = "SecondaryID";
+    public static final String LABKEY_GENDER = "Gender";
+    public static final String LABKEY_DATE = "Date";
+    public static final String LABKEY_BIRTHDATE = "BirthDate";
+    public static final String LABKEY_BIRTHYEAR = "BirthYear";
+    public static final String LABKEY_ENROLLMENT = "Enrollment";
+
+    // SubjectAttributes and FormAttributes
+
+    public static final String LABKEY_STATUS = "Status";
+
+    // SubjectGroup attributes
+
+    public static final String LABKEY_STUDY_GROUP_CLASS_ID = "StudyGroupClassID";
+    public static final String LABKEY_STUDY_GROUP_CLASS_NAME = "StudyGroupClassName";
+    public static final String LABKEY_STUDY_GROUP_NAME = "StudyGroupName";
+
+
+    // EventAttributes
+
+    public static final String LABKEY_SYSTEM_STATUS= "SystemStatus";
+    public static final String LABKEY_TYPE= "Type";
+    public static final String LABKEY_EVENT_NAME= "EventName";
+    public static final String LABKEY_START_DATE= "StartDate";
+    public static final String LABKEY_END_DATE= "EndDate";
+
+    // CRFAttributes
+
+    public static final String LABKEY_STUDY_OID= "StudyOID";
+    public static final String LABKEY_STUDY_SITE_IDENTIFIER= "StudySiteIdentifier";
+    public static final String LABKEY_FORM_OID= "FormOID";
+    public static final String LABKEY_FORM_REPEAT_KEY= "FormRepeatKey";
+    public static final String LABKEY_ITEM_GROUP_OID= "ItemGroupOID";
+    public static final String LABKEY_ITEM_GROUP_REPEAT_KEY= "ItemGroupRepeatKey";
+    public static final String LABKEY_FORM_ITEM_GROUP_COMBINED_ID = "CombinedID";
+
+    // FormAttributes
+
+    public static final String LABKEY_FORM_VERSION= "Version";
+    public static final String LABKEY_INTERVIEWER_NAME= "InterviewerName";
+    public static final String LABKEY_INTERVIEW_DATE= "InterviewDate";
+
+
+    // endregion
+
     // region CCP
 
     public static final String CCP_PREFIX_PART = "L";
 
     // endregion
+
     //region PACS
 
     // PACS DICOM specific date and time format strings
     public static final String DICOM_DATEFORMAT = "yyyyMMdd";
     public static final String DICOM_TIMEFORMAT = "HHmmss";
 
+    // PACS DICOM SERIES PROPERTIES
+    public static final String DICOM_SERIES_INSTANCE_UID = "SeriesInstanceUID";
+    public static final String DICOM_FRAME_OF_REFERENCE_UID = "FrameOfReferenceUID";
+    public static final String DICOM_SERIES_DESCRIPTION = "SeriesDescription";
+    public static final String DICOM_MODALITY = "Modality";
+    public static final String DICOM_SERIES_TIME = "SeriesTime";
+    public static final String DICOM_SERIES_DATE = "SeriesDate";
+
+
     // PACS DICOM series modalities
     public static final String DICOM_RTSTRUCT = "RTSTRUCT";
     public static final String DICOM_RTPLAN = "RTPLAN";
     public static final String DICOM_RTDOSE = "RTDOSE";
+    public static final String DICOM_RTIMAGE = "RTIMAGE";
     public static final String DICOM_CT = "CT";
     public static final String DICOM_MR = "MR";
     public static final String DICOM_PT = "PT";
     public static final String DICOM_US = "US";
     public static final String DICOM_ST = "ST";
+
+    // PACS DICOM IMAGE PROPERTIES
+    public static final String DICOM_IMAGE_SOP_INSTANCE_UID = "SOPInstanceUID";
+    public static final String DICOM_IMAGE_SIZE = "Size";
+    public static final String DICOM_IMAGE_ROIs = "ROIs";
+    public static final String DICOM_IMAGE_ROI_NAME = "ROIName";
+    public static final String DICOM_IMAGE_REFERENCED_FRAME_OF_REFERENCE_UID = "ReferencedFrameOfReferenceUID";
+    public static final String DICOM_IMAGE_ROI_GENERATION_ALGORITHM = "ROIGenerationAlgorithm";
+    public static final String DICOM_IMAGE_RT_ROI_OBSERVATIONS = "RTROIObservations";
+    public static final String DICOM_IMAGE_ROI_NUMBER = "ROINumber";
+    public static final String DICOM_IMAGE_RT_ROI_INTERPRETED_TYPE = "RTROIInterpretedType";
+    public static final String DICOM_IMAGE_REFERENCED_ROI_NUMBER = "ReferencedROINumber";
+    public static final String DICOM_IMAGE_OBSERVATION_NUMBER = "ObservationNumber";
+    public static final String DICOM_IMAGE_APPROVAL_STATUS = "ApprovalStatus";
+
+
+    // PACS DICOM RTStruct PROPERTIES
+    public static final String RTSTRUCT_STRUCTURE_SET_LABEL = "StructureSetLabel";
+    public static final String RTSTRUCT_STRUCTURE_SET_NAME = "StructureSetName";
+    public static final String RTSTRUCT_STRUCTURE_SET_DESCRIPTION = "StructureSetDescription";
+    public static final String RTSTRUCT_STRUCTURE_SET_DATE = "StructureSetDate";
+    public static final String RTSTRUCT_REFERENCED_FRAME_OF_REFERENCE_UID = "ReferencedFrameOfReferenceUID";
+    public static final String RTSTRUCT_REFERENCED_RTSERIES_UID = "ReferencedRTSeriesUID";
+
+    // PACS DICOM RTPLAN PROPERTIES
+    public static final String RTPLAN_LABEL = "RTPlanLabel";
+    public static final String RTPLAN_MANUFACTURER_MODEL_NAME = "ManufacturerModelName";
+    public static final String RTPLAN_NAME = "RTPlanName";
+    public static final String RTPLAN_DATE = "RTPlanDate";
+    public static final String RTPLAN_MANUFACTURER = "Manufacturer";
+    public static final String RTPLAN_DESCRIPTION = "RTPlanDescription";
+    public static final String RTPLAN_GEOMETRY = "RTPlanGeometry";
+    public static final String SERIES_NUMBER = "SeriesNumber";
+    public static final String REFERENCED_RTSTRUCT_UID = "ReferencedRTStructUID";
+
+    // PACS DICOM RTDOSE AND IMAGE PROPERTIES
+    public static final String IMAGE_TYPE = "ImageType";
+    public static final String REFERENCED_RTPLAN_UID = "ReferencedRTPlanUID";
+    public static final String INSTANCE_CREATION_DATE = "InstanceCreationDate";
+
+    // PACS DICOM RTDOSE PROPERTIES
+    public static final String DOSE_UNIT = "DoseUnits";
+    public static final String DOSE_TYPE = "DoseType";
+    public static final String DOSE_COMMENT = "DoseComment";
+    public static final String DOSE_SUMMATION_TYPE = "DoseSummationType";
+
+    // PACS DICOM IMAGE PROPERTIES
+    public static final String RTIMAGE_LABEL = "RTImageLabel";
+    public static final String RTIMAGE_NAME= "RTImageName";
+    public static final String RTIMAGE_DESCRIPTION= "RTImageDescription";
 
     // RPB DICOM study type (which depends on series modalities)
     public static final String RPB_CONTOURING = "Contouring";
@@ -199,6 +343,40 @@ public class Constants {
     public static final String RPB_OTH = "OTH";
 
     //endregion
+
+    //region UPLOADER
+
+    public static final String UPLOADER_URL_PATH = "/uploader";
+    public static final String UPLOADER_URL_STUDY_IDENTIFIER = "studyidentifier";
+    public static final String UPLOADER_URL_SITE_IDENTIFIER = "siteidentifier";
+    public static final String UPLOADER_URL_STUDY_OID = "studyoid";
+    public static final String UPLOADER_URL_STUDY_INSTANCE_ITEM_OID = "studyinstanceitemoid";
+    public static final String UPLOADER_URL_STUDY_EDC_CODE = "studyedccode";
+
+    public static final String UPLOADER_URL_EVENT_IDENTIFIER = "eventoid";
+    public static final String UPLOADER_URL_EVENT_REPEATKEY = "eventrepeatkey";
+    public static final String UPLOADER_URL_EVENT_START_DATE = "eventstartdate";
+    public static final String UPLOADER_URL_EVENT_END_DATE = "eventenddate";
+    public static final String UPLOADER_URL_EVENT_NAME = "eventname";
+    public static final String UPLOADER_URL_EVENT_DESCRIPTION = "eventdescription";
+
+    public static final String UPLOADER_URL_FORM_IDENTIFIER = "formoid";
+    public static final String UPLOADER_URL_ITEM_GROUP_IDENTIFIER = "itemgroupoid";
+    public static final String UPLOADER_URL_ITEM_GROUP_REPEATKEY = "itemgrouprepeatkey";
+    public static final String UPLOADER_URL_ITEM_LABEL = "itemlabel";
+    public static final String UPLOADER_URL_ITEM_DESCRIPTION = "itemdescription";
+
+    public static final String UPLOADER_URL_SUBJECT_IDENTIFIER = "studysubjectid";
+    public static final String UPLOADER_URL_SUBJECT_KEY = "subjectkey";
+    public static final String UPLOADER_URL_PATIENT_IDENTIFIER = "pid";
+    public static final String UPLOADER_URL_PATIENT_IDENTIFIER_ITEM_OID = "dicompatientiditemoid";
+    public static final String UPLOADER_URL_DATE_OF_BIRTH = "dob";
+    public static final String UPLOADER_URL_YEAR_OF_BIRTH = "yob";
+    public static final String UPLOADER_URL_GENDER = "gender";
+
+    // endregion
+
+
     
     private Constants() {
         // NOOP

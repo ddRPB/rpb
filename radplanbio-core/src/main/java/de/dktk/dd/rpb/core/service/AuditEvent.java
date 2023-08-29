@@ -64,7 +64,9 @@ public enum AuditEvent {
     BIOPatientCreation("BIOPatientCreation"),
     BIOPatientLoad("BIOPatientLoad"),
 
-    CTPLookupUpdate("CTPLookupUpdate");
+    CTPLookupUpdate("CTPLookupUpdate"),
+
+    LABOdmReload("LABOdmReload");
 
     private String label;
 

@@ -3,12 +3,15 @@ package de.dktk.dd.rpb.core.service;
 import com.github.sardine.impl.SardineException;
 import de.dktk.dd.rpb.core.domain.edc.Odm;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
+import de.dktk.dd.rpb.core.domain.lab.LabKeyExportConfiguration;
+import de.dktk.dd.rpb.core.exception.MissingPropertyException;
 import de.dktk.dd.rpb.core.handler.lab.ILabKeyWebdavHandler;
 import de.dktk.dd.rpb.core.util.labkey.StudyUpdater;
 
 import javax.inject.Named;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -25,19 +28,19 @@ public class LabKeyService {
         return pathWithExport.replace("/export/", "/");
     }
 
-    public static String removeLabkeyFromPath(String pathWithLabkey) {
-        return pathWithLabkey.replace("/labkey/", "/");
+    public static String removeLabKeyFromPath(String pathWithLabKey) {
+        return pathWithLabKey.replace("/labkey/", "/");
     }
 
     // endregion
 
     // region object methods
 
-    public boolean checkExportPathExists(ILabKeyWebdavHandler labkeyWebdavHandler) throws IOException {
-        return labkeyWebdavHandler.hasExportPath();
+    public boolean checkExportPathExists(ILabKeyWebdavHandler labKeyWebdavHandler) throws IOException {
+        return labKeyWebdavHandler.hasExportPath();
     }
 
-    public String analyseLabkeyConnection(ILabKeyWebdavHandler webdavHandler) {
+    public String analyseLabKeyConnection(ILabKeyWebdavHandler webdavHandler) {
         boolean studyPathExists;
         try {
             studyPathExists = this.checkStudyFilePathExists(webdavHandler);
@@ -49,7 +52,7 @@ public class LabKeyService {
                 return getErrorBasedOnStatusResponse(status, labkeyUrl);
 
             } else {
-                return "There is a problem connecting to Labkey. Got an exception: " + e.toString();
+                return "There is a problem connecting to LabKey. Got an exception: " + e.toString();
             }
         }
 
@@ -57,23 +60,23 @@ public class LabKeyService {
             return "Found corresponding path on webdav.";
         } else {
             String basicWebDavUrl = webdavHandler.getBasicWebDavUrl();
-            String pathMissingOnLabkey = "The server response indicates that there is no corresponding folder on the Labkey Webdav interface. "
-                    + "Please verify the study configuration on the Labkey server to support the path: "
+            String pathMissingOnLabKey = "The server response indicates that there is no corresponding folder on the LabKey Webdav interface. "
+                    + "Please verify the study configuration on the LabKey server to support the path: "
                     + basicWebDavUrl
                     + " .";
-            return pathMissingOnLabkey;
+            return pathMissingOnLabKey;
         }
     }
 
-    public boolean checkStudyFilePathExists(ILabKeyWebdavHandler labkeyWebdavHandler) throws IOException {
-        return labkeyWebdavHandler.exists("");
+    public boolean checkStudyFilePathExists(ILabKeyWebdavHandler labKeyWebdavHandler) throws IOException {
+        return labKeyWebdavHandler.exists("");
     }
 
-    private String getErrorBasedOnStatusResponse(int status, String labkeyUrl) {
+    private String getErrorBasedOnStatusResponse(int status, String labKeyUrl) {
         String basicErrorMessage = "There was a problem connecting to Labkey. Got response code: "
                 + Integer.toString(status)
                 + " from server : "
-                + labkeyUrl + ". ";
+                + labKeyUrl + ". ";
         String errorMessage = "";
 
         switch (status) {
@@ -82,7 +85,7 @@ public class LabKeyService {
                 break;
 
             case 403:
-                errorMessage = "The server response code indicates that you need additional permissions to perfom the request";
+                errorMessage = "The server response code indicates that you need additional permissions to perform the request";
                 break;
         }
         return basicErrorMessage + errorMessage;
@@ -96,12 +99,12 @@ public class LabKeyService {
         } catch (IOException e) {
             if (e instanceof SardineException) {
                 int status = ((SardineException) e).getStatusCode();
-                String labkeyUrl = webdavHandler.getLabkeyUrl();
+                String labKeyUrl = webdavHandler.getLabkeyUrl();
 
-                return getErrorBasedOnStatusResponse(status, labkeyUrl);
+                return getErrorBasedOnStatusResponse(status, labKeyUrl);
 
             } else {
-                return "There is a problem connecting to Labkey. Got an exception: " + e.toString();
+                return "There is a problem connecting to LabKey. Got an exception: " + e.toString();
             }
         }
 
@@ -125,8 +128,13 @@ public class LabKeyService {
      * @param odm              ODM object that includes MetaDataVersion and ClinicalData. Includes only participants with event data.
      * @throws IOException, JAXBException exceptions that are supposed to generate error messages  on the UI for the user.
      */
-    public void handleUpdate(ILabKeyWebdavHandler webdavHandler, List<StudySubject> studySubjectList, Odm odm) throws IOException, JAXBException {
-        StudyUpdater studyUpdater = new StudyUpdater(webdavHandler, studySubjectList, odm);
+    public void handleUpdate(
+            ILabKeyWebdavHandler webdavHandler,
+            List<StudySubject> studySubjectList,
+            Odm odm,
+            LabKeyExportConfiguration labKeyExportConfiguration
+    ) throws IOException, JAXBException, MissingPropertyException, ParseException {
+        StudyUpdater studyUpdater = new StudyUpdater(webdavHandler, studySubjectList, odm, labKeyExportConfiguration);
         studyUpdater.runUpdate();
     }
 

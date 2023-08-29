@@ -17,6 +17,7 @@
     <entry key="mappingRecord_defaultValue">Default value</entry>
     <entry key="mappingRecord_multiValueSeparator">Multi value separator</entry>
     <entry key="mappingRecord_dateFormatString">Datum format string</entry>
+    <entry key="mappingRecord_calculationString">Calculation string</entry>
     <entry key="mappingRecord_priority">Priorität</entry>
 
     <!-- one-to-one -->

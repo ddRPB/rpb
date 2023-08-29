@@ -35,4 +35,6 @@ public interface IPacsConfigService {
     public String getPacsUser();
 
     public String getPacsPassword();
+
+    public int getThreadPoolSize();
 }

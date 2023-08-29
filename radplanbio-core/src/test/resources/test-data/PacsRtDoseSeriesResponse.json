@@ -1,0 +1,16 @@
+{ "Series": [
+  { "SeriesInstanceUID": "1.2.826.0.1.3680043.9.7275.0.19130346792467144003968630784247980",
+    "Modality": "RTDOSE",
+    "Images": [
+      {
+        "ImageType": "ORIGINAL\\PRIMARY\\DOSE",
+        "DoseUnits": "GY",
+        "DoseType": "PHYSICAL",
+        "DoseComment": "InsufficientExtensionBeamNotCrossingDefinedOutline",
+        "DoseSummationType": "BEAM",
+        "InstanceCreationDate": "20140724",
+        "ReferencedRTPlanUID": "1.2.826.0.1.3680043.9.7275.0.14841995832981181012296079716343549",
+        "SOPInstanceUID": "1.2.826.0.1.3680043.9.7275.0.19890850180147323619131037272449672",
+        "Size": "3752" }
+    ] }
+] }

@@ -1,9 +1,13 @@
 package de.dktk.dd.rpb.core.util;
 
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +15,23 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
+@PrepareForTest({LoggerFactory.class, Logger.class})
 public class StudySubjectListUtilTest {
+
+    @Before
+    public void setUp() throws Exception {
+        // prepare logger
+        mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
+        Logger logger = mock(Logger.class);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
+    }
 
     @Test
     public void getPidKeyHashMap_returns_empty_map_if_list_is_empty() {

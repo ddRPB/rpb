@@ -21,11 +21,11 @@ package de.dktk.dd.rpb.core.domain.randomisation;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.ctms.Study;
-
 import de.dktk.dd.rpb.core.util.MathUtil;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -51,7 +51,7 @@ public class Block implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Block.class);
+    private static final Logger log = LoggerFactory.getLogger(Block.class);
 
     //endregion
 

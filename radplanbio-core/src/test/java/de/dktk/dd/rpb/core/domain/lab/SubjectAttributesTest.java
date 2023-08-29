@@ -1,21 +1,16 @@
 package de.dktk.dd.rpb.core.domain.lab;
 
-import com.univocity.parsers.common.processor.BeanListProcessor;
-import com.univocity.parsers.common.processor.BeanWriterProcessor;
-import com.univocity.parsers.tsv.TsvParser;
-import com.univocity.parsers.tsv.TsvParserSettings;
-import com.univocity.parsers.tsv.TsvWriter;
-import com.univocity.parsers.tsv.TsvWriterSettings;
+import de.dktk.dd.rpb.core.util.Constants;
 import org.junit.Test;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.io.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class SubjectAttributesTest {
 
@@ -24,57 +19,40 @@ public class SubjectAttributesTest {
     private final String secondaryId = "secondaryId";
     private final String uniqueIdentifier = "uniqueIdentifier";
     private final String gender = "f";
-    private final Date dateOfBirth = new SimpleDateFormat("YYYY-MM-dd").parse("1900-01-20");
+    private final LocalDate dateOfBirth = LocalDate.parse("1900-01-20", DateTimeFormatter.ofPattern(Constants.OC_DATEFORMAT));
     private final int yearOfBirth = 1900;
-    private final Date enrollmentDate = new SimpleDateFormat("YYYY-MM-dd").parse("2000-12-20");
+    private final LocalDate enrollmentDate = LocalDate.parse("2000-12-20", DateTimeFormatter.ofPattern(Constants.OC_DATEFORMAT));
     private final String status = "status";
-    private final Boolean isEnabled = true;
-
-    private final String filePath = "./src/test/data/labkey/labkey_subject_attributes.tsv";
 
 
-    public SubjectAttributesTest() throws ParseException {
+    public SubjectAttributesTest() throws ParseException { }
+
+    @Test
+    public void getCellProcessors_returns_correct_items() {
+        SubjectAttributes subject = getDummySubject();
+        CellProcessor[] cellProcessors = subject.getCellProcessors();
+        assertNotNull(cellProcessors);
+        assertEquals(9, cellProcessors.length);
     }
 
     @Test
-    public void create_and_read_Tsv_file() throws FileNotFoundException {
+    public void getValues_returns_correct_items() {
 
-        createTsvFile();
-        List<SubjectAttributes> beans = getSubjectAttributesFromFile();
-        SubjectAttributes subject = beans.get(0);
+        SubjectAttributes subject = getDummySubject();
+        List<Object> values = subject.getValues();
 
-        assertThat(subject, samePropertyValuesAs(this.getDummySubject()));
+        assertNotNull(values);
+        assertEquals(9, values.size());
+        values.get(1).equals(subject.getSequenceNum());
+        values.get(0).equals(subject.getStudySubjectId());
+        values.get(2).equals(subject.getUniqueIdentifier());
+        values.get(3).equals(subject.getSecondaryId());
+        values.get(4).equals(subject.getGender());
+        values.get(5).equals(subject.getDateOfBirth());
+        values.get(6).equals(subject.getYearOfBirth());
+        values.get(7).equals(subject.getEnrollmentDate());
+        values.get(8).equals(subject.getStatus());
 
-    }
-
-    private List<SubjectAttributes> getSubjectAttributesFromFile() {
-        BeanListProcessor<SubjectAttributes> rowProcessor = new BeanListProcessor<SubjectAttributes>(SubjectAttributes.class);
-
-        TsvParserSettings parserSettings = new TsvParserSettings();
-        parserSettings.getFormat().setLineSeparator("\n");
-        parserSettings.setRowProcessor(rowProcessor);
-        parserSettings.setHeaderExtractionEnabled(true);
-
-        TsvParser parser = new TsvParser(parserSettings);
-        parser.parse(new File(filePath));
-
-        return rowProcessor.getBeans();
-    }
-
-    private void createTsvFile() throws FileNotFoundException {
-        TsvWriterSettings tsvWriterSettings = new TsvWriterSettings();
-        tsvWriterSettings.setRowWriterProcessor(new BeanWriterProcessor<SubjectAttributes>(SubjectAttributes.class));
-
-        FileOutputStream fileOutputStream = new FileOutputStream(filePath);
-        Writer outputWriter = new OutputStreamWriter(fileOutputStream);
-        TsvWriter writer = new TsvWriter(outputWriter, tsvWriterSettings);
-
-        writer.writeHeaders();
-
-        SubjectAttributes subjectOne = getDummySubject();
-        writer.processRecord(subjectOne);
-
-        writer.close();
     }
 
     private SubjectAttributes getDummySubject() {
@@ -84,6 +62,7 @@ public class SubjectAttributesTest {
         subjectOne.setUniqueIdentifier(uniqueIdentifier);
         subjectOne.setGender(gender);
         subjectOne.setDateOfBirth(dateOfBirth);
+        subjectOne.setYearOfBirth(yearOfBirth);
         subjectOne.setEnrollmentDate(enrollmentDate);
         subjectOne.setStatus(status);
         return subjectOne;

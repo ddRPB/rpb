@@ -4,13 +4,13 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static de.dktk.dd.rpb.core.util.Constants.study0EdcCode;
 import static org.junit.Assert.assertFalse;
@@ -18,26 +18,31 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @SuppressWarnings("ConstantConditions")
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CtpService.class, Logger.class, Client.class})
+@PrepareForTest({CtpService.class, Logger.class, LoggerFactory.class, Client.class})
 public class CtpServiceTest {
+    private Logger logger;
     private Client clientMock;
     private ClientResponse responseMock;
     private WebResource webResourceMock;
     private final String method = "lookup";
 
-    @InjectMocks
     CtpService ctpService;
 
     @Before
     public void setUp() {
         // Logger
         mockStatic(Logger.class);
-        Logger logger = mock(Logger.class);
-        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+        mockStatic(LoggerFactory.class);
+        logger = mock(Logger.class);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
+
+        ctpService = new CtpService();
 
         // Client
         mockStatic(Client.class);

@@ -3,63 +3,26 @@
 <ui:composition
         xmlns="http://www.w3.org/1999/xhtml"
         xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
         xmlns:p="http://primefaces.org/ui"
         template="/WEB-INF/layouts/main.xhtml"
         >
 
-    <!-- Definition of breadcrumbs place holder -->
+    <!-- Definition of breadcrumbs placeholder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
-            <p:menuitem value="#{msg.licence}" title="#{msg.licence}" url="/license.faces" />
+            <p:menuitem value="#{msg.license}" title="#{msg.license}" url="/license.faces" />
         </p:breadCrumb>
     </ui:define>
 
-    <!-- Definition of content place holder content -->
+    <!-- Definition of content placeholder content -->
     <ui:define name="content">
-        <p:panel header="#{msg.software} #{msg.licence}">
-            <p>
-                <p:outputPanel>
-                    RPB components developed by DKTK:
-                    <ul>
-                        <li><a href="https://github.com/ddRPB/rpb">ddRPB</a> -- radiotherapy clinical research IT infrastructure (GNU GPL):
-                            <ul>
-                                <li>ddRPB-core -- Core library </li>
-                                <li>ddRPB-api -- Unified platform web-API</li>
-                                <li>ddRPB-portal -- Unified platform portal</li>
-                                <li>ddRPB-mobile -- Patient Reported Outcomes (ePRO) and Clinician Outcome Assessment (eCOA)</li>
-                                <li>Randomisation (inspired by <a href="https://dschrimpf.github.io/randi3">RANDI</a>) -- Randomization process in clinical trials</li>
-                            </ul>
-                        </li>
-                        <li><a href="https://github.com/ddRPB/rpb-server">ddRPB-server</a> -- Program access to the platform functionality - web services (GNU GPL)</li>
-                        <li><a href="https://github.com/ddRPB/rpb-client">ddRPB-client</a> -- Application for DICOM data de/re-identification and upload/download (GNU GPL)</li>
-                    </ul>
-
-                    RPB integrates with several existing OSS, each with its own source license:
-                    <ul>
-                        <li>EDC - <a href="https://www.openclinica.com">OpenClinica</a> -- Electronic Data Capture (GNU LGPL)</li>
-                        <li>PACS - <a href="https://ingenium.home.xs4all.nl/dicom.html">Conquest</a> -- DICOM Server (PUBLIC DOMAIN)</li>
-                        <li>LAB - <a href="https://www.labkey.com">LabKey</a> -- Laboratory Data Management (ALv2)</li>
-                        <li>PID - <a href="https://www.unimedizin-mainz.de/imbei/informatik/ag-verbundforschung/mainzelliste.html">Mainzelliste</a> -- Patient PID Generator (pseudonymisation) (AGPL)</li>
-                        <li>HL7 - <a href="https://www.nextgen.com/products-and-services/integration-engine">NextGen Connect</a>-- Health care integration engine (MPL 1.1)</li>
-                        <li>XForms - <a href="https://enketo.org">Enketo</a> -- Web form rendering engine (OpenRosa API support) for ePRO/eCOA (ASL)</li>
-                        <li>CTP - <a href="https://www.rsna.org/research/imaging-research-tools">Clinical Trials Processor</a> -- Image processing application for imaging clinical trials data (RSNA Public License)</li>
-                    </ul>
-
-                    RPB recommends the following OSS desktop applications:
-                    <ul>
-                        <li>DICOM: <a href="https://nroduit.github.io">Weasis</a> -- Standalone DICOM/DICOM-RT viewer written in Java (EPL)</li>
-                        <li>WebDAV: <a href="https://winscp.net">WinSCP</a> -- Standalone WebDAV client (GNU GPL)</li>
-                    </ul>
-
-                    RPB integrates with commercial software systems:
-                    <ul>
-                        <li>BIO - <a href="https://www.kairos.de/produkte/centraxx-bio">CentraXX</a> -- BIO bank</li>
-                    </ul>
-              </p:outputPanel>
-            </p>
+        <p:panel header="#{msg.software} #{msg.license}">
+            <p:outputPanel>
+                <h:outputText value="#{msg.license_text}" escape="false" />
+            </p:outputPanel>
         </p:panel>
-
         <!-- Give focus to first link to ease keyboard navigation -->
         <script type="text/javascript">
             $(function() {

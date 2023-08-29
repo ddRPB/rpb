@@ -18,9 +18,8 @@
 
 package de.dktk.dd.rpb.core.ocsoap.soap;
 
-import org.apache.log4j.Logger;
-
-import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
@@ -29,6 +28,7 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
+import java.util.Set;
 
 /**
  * Message handler that adds a WSSE security section to the SOAP Header.
@@ -39,7 +39,7 @@ public final class WsseSecurityHandler implements SOAPHandler<SOAPMessageContext
 
 	//region Finals
 
-	private static final Logger log = Logger.getLogger(WsseSecurityHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(WsseSecurityHandler.class);
 
 	//endregion
 
@@ -148,7 +148,7 @@ public final class WsseSecurityHandler implements SOAPHandler<SOAPMessageContext
 				userToken.addChildElement("Password", "wsse").addTextNode(this.password);
 			}
 			catch (final Exception e) {
-				log.warn(e);
+				log.warn(e.getMessage(),e);
 				result = Boolean.FALSE;
 			}
 		}

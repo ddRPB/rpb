@@ -4,7 +4,8 @@
         xmlns="http://www.w3.org/1999/xhtml"
         xmlns:ui="http://java.sun.com/jsf/facelets"
         xmlns:h="http://java.sun.com/jsf/html"
-        xmlns:p="http://primefaces.org/ui" xmlns:f="http://xmlns.jcp.org/jsf/core"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:f="http://xmlns.jcp.org/jsf/core"
         template="/WEB-INF/layouts/main.xhtml"
 >
 
@@ -13,7 +14,7 @@
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces"/>
             <p:menuitem value="#{msg.pacs}" title="#{msg.pacs} - medical imaging" url="#"/>
-            <p:menuitem value="DICOM #{msg.study_plural}" title="LabKey Update"
+            <p:menuitem value="DICOM #{msg.study_plural}" title="#{msg.study_plural} #{msg.data_plural} #{msg.menu_update}"
                         url="/lab/labkeyStudyUpdate.faces"/>
         </p:breadCrumb>
     </ui:define>
@@ -39,7 +40,12 @@
                     >
                         <p:panel>
                             <h:outputText
-                                    value="#{mbLab.analyseLabkeyConnection()}"
+                                    rendered="#{!mbLab.checkExportPathExistsOnLabKey()}"
+                                    value="#{mbLab.analyseLabKeyConnection()}"
+                            ></h:outputText>
+                            <h:outputText
+                                    rendered="#{!mbLab.checkLocalOdmExportFile()}"
+                                    value="#{mbLab.analyseOdmExportFileStatus()}"
                             ></h:outputText>
                         </p:panel>
                     </p:tab>
@@ -73,6 +79,99 @@
                             <h:outputText value="Export path was modified: #{mbLab.getExportPathModificationDate()}">
                                 <f:convertDateTime pattern="MM/dd/yyyy" type="date"/>
                             </h:outputText>
+
+                            <p:accordionPanel
+                                    id="uploadDataPanelGrid"
+                                    columns="1"
+                                    cellpadding="4"
+                                    multiple="true"
+                                    style="margin:0 auto;width: auto; height: auto;"
+                                    activeIndex="0,1"
+                            >
+                                <p:tab
+                                        title="Export Configuration - Tables"
+                                        id="exportConfigurationTablesTab"
+                                        closable="true"
+                                        style="width: auto; height: auto;"
+                                >
+
+                                    <p:panelGrid
+                                            id="labkeyExportConfigurationTablesPanelGrid"
+                                            columnClasses="column"
+                                            columns="2"
+                                    >
+
+                                        <p:outputLabel
+                                                value="#{msg.lab_export_only_form_based_crf_attributes_with_data}"/>
+                                        <p:selectBooleanButton
+                                                value="#{mbLab.labKeyExportConfiguration.exportOnlyFormFormBasedCrfAttributesWithData}"
+                                                onLabel="Yes"
+                                                offLabel="No"
+                                                style="width:6rem"/>
+
+                                        <p:outputLabel
+                                                value="#{msg.lab_export_only_item_group_based_crf_attributes_with_data}"/>
+                                        <p:selectBooleanButton
+                                                value="#{mbLab.labKeyExportConfiguration.exportOnlyItemGroupBasedCrfAttributesWithData}"
+                                                onLabel="Yes"
+                                                offLabel="No"
+                                                style="width:6rem"/>
+
+                                        <p:outputLabel
+                                                value="#{msg.lab_export_only_repeating_item_group_based_crf_attributes}"/>
+                                        <p:selectBooleanButton
+                                                value="#{mbLab.labKeyExportConfiguration.exportOnlyRepeatingItemGroupBasedCrfAttributes}"
+                                                onLabel="Yes"
+                                                offLabel="No"
+                                                style="width:6rem"/>
+
+
+
+                                    </p:panelGrid>
+
+
+                                </p:tab>
+                                <p:tab
+                                        title="Export Configuration - Additional Columns"
+                                        id="exportConfigurationAdditionalColumnsTab"
+                                        closable="true"
+                                        style="width: auto; height: auto;"
+                                >
+
+                                    <p:panelGrid
+                                            id="labkeyExportConfigurationPanelGrid"
+                                            columnClasses="column"
+                                            columns="2"
+                                    >
+
+                                        <p:outputLabel
+                                                value="#{msg.lab_add_decoded_value_columns}"/>
+                                        <p:selectBooleanButton
+                                                value="#{mbLab.labKeyExportConfiguration.addDecodedValueColumns}"
+                                                onLabel="#{msg.yes}"
+                                                offLabel="#{msg.no}"
+                                                style="width:6rem"/>
+
+                                        <p:outputLabel
+                                                value="#{msg.lab_add_multi_select_value_columns}"/>
+                                        <p:selectBooleanButton
+                                                value="#{mbLab.labKeyExportConfiguration.addMultiSelectValueColumns}"
+                                                onLabel="#{msg.yes}"
+                                                offLabel="#{msg.no}"
+                                                style="width:6rem"/>
+
+                                        <p:outputLabel
+                                                value="#{msg.lab_add_partial_date_columns}"/>
+                                        <p:selectBooleanButton
+                                                value="#{mbLab.labKeyExportConfiguration.addPartialDateColumns}"
+                                                onLabel="#{msg.yes}"
+                                                offLabel="#{msg.no}"
+                                                style="width:6rem"/>
+                                    </p:panelGrid>
+
+
+                                </p:tab>
+                            </p:accordionPanel>
                             <p:toolbar>
 
                                 <!-- Left -->
@@ -84,10 +183,10 @@
                                             value="#{msg.menu_upload}"
                                             title="#{msg.menu_upload}"
                                             icon=" ui-icon-arrowreturn-1-e"
-                                            action="#{mbLab.updateLabkeyData()}"
+                                            action="#{mbLab.updateLabKeyData()}"
                                             ajax="true"
                                             update=":form:tabView, :growl"
-                                            oncomplete="PF('reloadLabkeyStudyDataWizard').loadStep(PF('reloadLabkeyStudyDataWizard').cfg.steps[3])"
+                                            oncomplete="handleSubmitRequest(xhr, status, args, null,'form');"
                                     />
                                     <p:blockUI block="form:tabView" trigger="form:tabView:uploadStudyToLabkeyButton">
                                         Processing<br/><p:graphicImage name="icons/ajaxloading.gif"/>
@@ -96,8 +195,8 @@
 
 
                             </p:toolbar>
-                        </p:panel>
 
+                        </p:panel>
                     </p:tab>
                     <p:tab
                             title="Reload"
@@ -124,13 +223,17 @@
         <!-- Submit from dialog -->
         <script type="text/javascript">
             function handleSubmitRequest(xhr, status, args, dialogName, formName) {
-                dialog = jQuery('#' + dialogName);
+                let dialog = jQuery('#' + dialogName);
                 if (args.validationFailed) {
-                    dialog.effect("shake", {times: 3}, 100);
+                    if (dialog != null) {
+                        dialog.effect("shake", {times: 3}, 100);
+                    }
                 } else {
                     clearForm(formName);
 
-                    PF('newDicomDialog').hide();
+                    if (dialogName != null) {
+                        PF(dialogName).hide();
+                    }
                 }
             }
 

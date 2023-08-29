@@ -19,20 +19,19 @@
 
 package de.dktk.dd.rpb.core.repository.admin;
 
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
-
-import javax.inject.Inject;
-
-import org.apache.log4j.Logger;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import de.dktk.dd.rpb.core.dao.admin.RoleDao;
+import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.domain.admin.Role;
+import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.dktk.dd.rpb.core.dao.support.GenericDao;
-import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-import de.dktk.dd.rpb.core.domain.admin.Role;
-import de.dktk.dd.rpb.core.dao.admin.RoleDao;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * Default implementation of the {@link RoleRepository} interface.
@@ -51,7 +50,7 @@ public class RoleRepositoryImpl extends RepositoryImpl<Role, Integer> implements
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(RoleRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RoleRepositoryImpl.class);
 
     //endregion
 

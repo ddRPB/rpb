@@ -22,7 +22,8 @@ package de.dktk.dd.rpb.core.builder.edc;
 import de.dktk.dd.rpb.core.domain.edc.EventData;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.exception.MissingPropertyException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.List;
 public class SubjectDataBuilder {
     //region Finals
 
-    private static final Logger log = Logger.getLogger(SubjectDataBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(SubjectDataBuilder.class);
     private final StudySubject studySubject = new StudySubject();
     private final List<EventData> studyEventDataList = new ArrayList<>();
 

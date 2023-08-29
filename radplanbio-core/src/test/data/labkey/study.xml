@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<study archiveVersion="17.3" label="Dresden Study" timepointType="VISIT" subjectNounSingular="Participant" subjectNounPlural="Participants" subjectColumnName="ParticipantId" investigator="Prof. Dr. med. Mechthild Krause" grant="" species="" alternateIdPrefix="" alternateIdDigits="6" defaultTimepointDuration="1" startDate="2014-06-18+02:00" securityType="BASIC_READ" xmlns="http://labkey.org/study/xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <assaySchedule dir="assaySchedule"/>
+    <cohorts type="AUTOMATIC" mode="SIMPLE" file="cohorts.xml"/>
+    <datasets dir="datasets" file="datasets_manifest.xml">
+        <definition file="Dresden.dataset"/>
+    </datasets>
+    <comments/>
+    <specimens dir="specimens" settings="specimen_settings.xml" file="Dresden.specimens"/>
+    <treatmentData dir="treatmentData"/>
+    <visits file="visit_map.xml"/>
+    <studyViews dir="views" settings="settings.xml"/>
+    <studyDescription rendererType="TEXT_WITH_LINKS">
+        <description xsi:nil="true"/>
+    </studyDescription>
+    <properties dir="properties"/>
+</study>

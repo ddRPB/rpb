@@ -26,14 +26,13 @@ import de.dktk.dd.rpb.core.domain.edc.Odm;
 import de.dktk.dd.rpb.core.domain.edc.Study;
 import de.dktk.dd.rpb.core.ocsoap.odm.MetadataODM;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
-
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
 import net.java.dev.webdav.jaxrs.xml.elements.*;
 import net.java.dev.webdav.jaxrs.xml.properties.CreationDate;
 import net.java.dev.webdav.jaxrs.xml.properties.DisplayName;
 import net.java.dev.webdav.jaxrs.xml.properties.GetLastModified;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,9 +40,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
-
-import java.util.*;
 import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
 
 import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -60,7 +59,7 @@ public class WebDavStudySiteService  extends BaseService{
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(WebDavStudySiteService.class);
+    private static final Logger log = LoggerFactory.getLogger(WebDavStudySiteService.class);
 
     //endregion
 
@@ -139,15 +138,13 @@ public class WebDavStudySiteService  extends BaseService{
         if (odm != null && odm.getStudies() != null) {
             // Multi-centre
             if (odm.getStudies().size() > 1) {
-                String parentStudyProtocolId = "";
+
                 for (int i = 0; i < odm.getStudies().size(); i++) {
 
                     Study site = odm.getStudies().get(i);
-                    if (i == 0) {
-                        parentStudyProtocolId = site.getGlobalVariables().getProtocolName();
-                    }
-                    else {
-                        String siteIdentifier = site.extractStudySiteIdentifier(parentStudyProtocolId);
+
+                    if (i != 0) {
+                        String siteIdentifier = site.extractStudySiteIdentifier();
 
                         Response siteFolder = new Response(
                             new HRef(sitesUrl + siteIdentifier),

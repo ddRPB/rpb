@@ -20,10 +20,16 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 //import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.base.Objects;
-import org.apache.log4j.Logger;
 
-import javax.xml.bind.annotation.*;
+import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,14 +41,14 @@ import java.util.List;
  * @since 15 Dec 2014
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="MetaDataVersion")
+@XmlType(name = "MetaDataVersion")
 public class MetaDataVersion implements Serializable {
 
     //region Finals
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(MetaDataVersion.class);
+    private static final Logger log = LoggerFactory.getLogger(MetaDataVersion.class);
 
     //endregion
 
@@ -68,20 +74,23 @@ public class MetaDataVersion implements Serializable {
     @XmlElement(name = "ItemGroupDef")
     private List<ItemGroupDefinition> itemGroupDefinitions;
 
-    @XmlElement(name="ItemDef")
+    @XmlElement(name = "ItemDef")
     private List<ItemDefinition> itemDefinitions;
 
-    @XmlElement(name="CodeList")
+    @XmlElement(name = "CodeList")
     private List<CodeListDefinition> codeListDefinitions;
 
     //endregion
 
     //region OpenClinica
 
-    @XmlElement(name="MultiSelectList", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlElement(name = "MultiSelectList", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     private List<MultiSelectListDefinition> multiSelectListDefinitions;
 
-    @XmlElement(name="StudyDetails", namespace="http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    @XmlElement(name = "StudyGroupClassList", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
+    private List<StudyGroupClassList> studyGroupClassDefinitions;
+
+    @XmlElement(name = "StudyDetails", namespace = "http://www.openclinica.org/ns/odm_ext_v130/v3.1")
     //@JsonInclude(JsonInclude.Include.NON_NULL)
     private StudyDetails studyDetails;
 
@@ -98,6 +107,7 @@ public class MetaDataVersion implements Serializable {
         this.itemDefinitions = new ArrayList<>();
         this.codeListDefinitions = new ArrayList<>();
         this.multiSelectListDefinitions = new ArrayList<>();
+        this.studyGroupClassDefinitions = new ArrayList<>();
     }
 
     //endregion
@@ -218,6 +228,15 @@ public class MetaDataVersion implements Serializable {
 
     //endregion
 
+    public List<StudyGroupClassList> getStudyGroupClassDefinitions() {
+        return studyGroupClassDefinitions;
+    }
+
+    public void setStudyGroupClassDefinitions(List<StudyGroupClassList> studyGroupClassDefinitions) {
+        this.studyGroupClassDefinitions = studyGroupClassDefinitions;
+    }
+
+
     //region StudyDetails
 
     //@JsonInclude(JsonInclude.Include.NON_NULL)
@@ -241,7 +260,7 @@ public class MetaDataVersion implements Serializable {
         List<EventDefinition> uniqueStudyEventDefinitionList = new ArrayList<>();
 
         for (EventDefinition ed : this.studyEventDefinitions) {
-            
+
             boolean oidExists = false;
             for (EventDefinition newEd : uniqueStudyEventDefinitionList) {
                 if (newEd.equals(ed)) {
@@ -277,6 +296,7 @@ public class MetaDataVersion implements Serializable {
 
     /**
      * Construct a readable string representation for this entity instance.
+     *
      * @see java.lang.Object#toString()
      */
     @Override

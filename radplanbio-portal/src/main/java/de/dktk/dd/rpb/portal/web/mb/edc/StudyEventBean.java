@@ -20,18 +20,15 @@
 package de.dktk.dd.rpb.portal.web.mb.edc;
 
 import de.dktk.dd.rpb.core.domain.edc.EventData;
-
 import de.dktk.dd.rpb.core.repository.edc.IStudyEventRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
-
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 import org.springframework.context.annotation.Scope;
 
-import javax.inject.Named;
-
 import javax.annotation.PostConstruct;
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,7 +122,7 @@ public class StudyEventBean extends CrudEntityViewModel<EventData, Integer> {
         // Initial visibility of columns
         results.add(Boolean.TRUE); // Name
         results.add(Boolean.FALSE); // Description
-        results.add(Boolean.TRUE); // Category
+        results.add(Boolean.TRUE); // Logger
         results.add(Boolean.FALSE); // Type
         results.add(Boolean.TRUE); // Repeating
         results.add(Boolean.TRUE); // StartDate

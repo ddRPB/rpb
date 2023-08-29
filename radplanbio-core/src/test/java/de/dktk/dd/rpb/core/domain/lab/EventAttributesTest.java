@@ -1,21 +1,16 @@
 package de.dktk.dd.rpb.core.domain.lab;
 
-import com.univocity.parsers.common.processor.BeanListProcessor;
-import com.univocity.parsers.common.processor.BeanWriterProcessor;
-import com.univocity.parsers.tsv.TsvParser;
-import com.univocity.parsers.tsv.TsvParserSettings;
-import com.univocity.parsers.tsv.TsvWriter;
-import com.univocity.parsers.tsv.TsvWriterSettings;
 import org.junit.Test;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.io.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.Assert.assertThat;
+import static de.dktk.dd.rpb.core.util.Constants.OC_TIMESTAMPFORMAT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class EventAttributesTest {
 
@@ -24,54 +19,46 @@ public class EventAttributesTest {
     private final Integer id = 11;
     private final String studyEventOid = "Study Event Oid";
     private final String eventName = "Event Name";
-    private final Date startDate = new SimpleDateFormat("YYYY-MM-dd").parse("2020-01-19");
-    private final Date endDate = new SimpleDateFormat("YYYY-MM-dd").parse("2020-01-25");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(OC_TIMESTAMPFORMAT);
+    private final LocalDate startDate = LocalDate.parse("2020-01-19 01:23:46.0",formatter);
+    private final LocalDate endDate = LocalDate.parse("2020-01-25 01:23:46.0",formatter);
     private final String status = "status";
     private final String studyEventRepeatKey = "Study Event Repeat Key";
+    private final String systemStatus = "dummy system status";
+    private final String type = "dummy type";
 
-    private final String filePath = "src/test/data/labkey/labkey_event_data.tsv";
 
     public EventAttributesTest() throws ParseException {
     }
 
     @Test
-    public void create_read_tsv_file() throws FileNotFoundException {
-        createTsvFile();
+    public void getCellProcessors_returns_correct_items() {
+        EventAttributes event = getLabkeyDummyEvent();
+        CellProcessor[] cellProcessors = event.getCellProcessors();
+        assertNotNull(cellProcessors);
+        assertEquals(10, cellProcessors.length);
 
-        List<EventAttributes> beans = getEventAttributesFromFile();
-        EventAttributes eventData = beans.get(0);
-
-        assertThat(eventData, samePropertyValuesAs(this.getLabkeyDummyEvent()));
     }
 
-    private void createTsvFile() throws FileNotFoundException {
-        TsvWriterSettings tsvWriterSettings = new TsvWriterSettings();
-        tsvWriterSettings.setRowWriterProcessor(new BeanWriterProcessor<EventAttributes>(EventAttributes.class));
-
-        FileOutputStream fileOutputStream = new FileOutputStream(filePath);
-        Writer outputWriter = new OutputStreamWriter(fileOutputStream);
-        TsvWriter writer = new TsvWriter(outputWriter, tsvWriterSettings);
-
-        writer.writeHeaders();
+    @Test
+    public void getValues_returns_correct_items() {
 
         EventAttributes event = getLabkeyDummyEvent();
-        writer.processRecord(event);
+        List<Object> values = event.getValues();
 
-        writer.close();
-    }
+        assertNotNull(values);
+        assertEquals(10, values.size());
+        values.get(1).equals(event.getSequenceNum());
+        values.get(0).equals(event.getStudySubjectId());
+        values.get(2).equals(event.getStudyEventOid());
+        values.get(3).equals(event.getEventName());
+        values.get(4).equals(event.getStartDate());
+        values.get(5).equals(event.getEndDate());
+        values.get(6).equals(event.getStatus());
+        values.get(7).equals(event.getSystemStatus());
+        values.get(8).equals(event.getStudyEventRepeatKey());
+        values.get(8).equals(event.getType());
 
-    private List<EventAttributes> getEventAttributesFromFile() {
-        BeanListProcessor<EventAttributes> rowProcessor = new BeanListProcessor<EventAttributes>(EventAttributes.class);
-
-        TsvParserSettings parserSettings = new TsvParserSettings();
-        parserSettings.getFormat().setLineSeparator("\n");
-        parserSettings.setRowProcessor(rowProcessor);
-        parserSettings.setHeaderExtractionEnabled(true);
-
-        TsvParser parser = new TsvParser(parserSettings);
-        parser.parse(new File(filePath));
-
-        return rowProcessor.getBeans();
     }
 
     private EventAttributes getLabkeyDummyEvent() {
@@ -83,7 +70,10 @@ public class EventAttributesTest {
         event.setStartDate(startDate);
         event.setEndDate(endDate);
         event.setStatus(status);
+        event.setSystemStatus(systemStatus);
         event.setStudyEventRepeatKey(studyEventRepeatKey);
+        event.setType(type);
+
         return event;
     }
 }

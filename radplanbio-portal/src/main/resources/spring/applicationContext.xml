@@ -66,6 +66,7 @@
             classpath*:elastic.properties,
             classpath*:pacs.properties,
             classpath*:rpblite.properties,
+            classpath*:uploader.properties,
             classpath*:ccp.properties"
     />
 
@@ -328,6 +329,7 @@
                 <value>classpath:/localization/domain/CrfFieldAnnotation</value>
                 <value>classpath:/localization/domain/CurriculumVitaeItem</value>
                 <value>classpath:/localization/domain/CurriculumVitaeItemType</value>
+                <value>classpath:/localization/domain/Data</value>
                 <value>classpath:/localization/domain/DefaultAccount</value>
                 <value>classpath:/localization/domain/DicomSeries</value>
                 <value>classpath:/localization/domain/DicomStudy</value>
@@ -387,17 +389,18 @@
     </bean>
 
     <!-- Email -->
+    <!--    https://javaee.github.io/javamail/docs/api/com/sun/mail/smtp/package-summary.html-->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="host" value="${email.host}"/>
         <property name="port" value="${email.port}"/>
         <property name="username" value="${email.username}"/>
         <property name="password" value="${email.password}"/>
-        <property name="protocol" value="smtp"/>
         <property name="javaMailProperties">
             <props>
-                <prop key="mail.transport.protocol">smtp</prop>
-                <prop key="mail.smtp.auth">false</prop>
-                <prop key="mail.smtp.starttls.enable">false</prop>
+                <prop key="mail.transport.protocol">${email.transport.protocol}</prop>
+                <prop key="mail.smtp.auth">${email.smtp.auth}</prop>
+                <prop key="mail.smtp.starttls.enable">${email.smtp.starttls.enable}</prop>
+                <prop key="mail.smtp.ssl.enable">${email.smtp.ssl.enable}</prop>
             </props>
         </property>
     </bean>

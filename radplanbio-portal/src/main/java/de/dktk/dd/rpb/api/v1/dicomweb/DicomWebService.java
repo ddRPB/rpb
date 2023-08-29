@@ -21,19 +21,21 @@ package de.dktk.dd.rpb.api.v1.dicomweb;
 
 import de.dktk.dd.rpb.api.support.BaseService;
 import de.dktk.dd.rpb.core.service.CtpService;
-
-import org.apache.log4j.Logger;
-
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.io.DicomInputStream;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -52,12 +54,12 @@ public class DicomWebService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DicomWebService.class);
+    private static final Logger log = LoggerFactory.getLogger(DicomWebService.class);
 
     //endregion
 
     //region Members
-    
+
     private CtpService svcCtp;
 
     //endregion
@@ -92,6 +94,14 @@ public class DicomWebService extends BaseService {
         return this.storeDicomStudy(headers, null, multi);
     }
 
+    /**
+     * Post request allows to send DICOM Study files to the PACS Backend
+     *
+     * @param headers              HTTP header
+     * @param dicomStudyIdentifier DICOM Study UID
+     * @param multi                MimeMultipart Body with the DICOM file content
+     * @return
+     */
     @POST
     @Path("/studies/{dicomStudyIdentifier}")
     @Consumes("multipart/related")
@@ -130,14 +140,12 @@ public class DicomWebService extends BaseService {
                 else if (param.startsWith("type=")) {
                     int index = param.indexOf("type=");
                     type = param.substring(index + 5);
-                }
-                else if (param.startsWith("boundary=")) {
+                } else if (param.startsWith("boundary=")) {
                     int index = param.indexOf("boundary=");
                     boundaryMessage = param.substring(index + 9);
                 }
             }
-        }
-        else {
+        } else {
             type = contentType;
         }
 
@@ -175,7 +183,7 @@ public class DicomWebService extends BaseService {
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             byte[] buffer = new byte[1024];
                             int len;
-                            while ((len = is.read(buffer)) > -1 ) {
+                            while ((len = is.read(buffer)) > -1) {
                                 baos.write(buffer, 0, len);
                             }
                             baos.flush();
@@ -188,18 +196,15 @@ public class DicomWebService extends BaseService {
                             try {
                                 din = new DicomInputStream(dis);
                                 dcmAttributes = din.readDataset(-1, -1);
-                            }
-                            catch (IOException e) {
-                                log.error(e);
-                            }
-                            finally {
+                            } catch (IOException e) {
+                                log.error(e.getMessage(), e);
+                            } finally {
                                 try {
                                     if (din != null) {
                                         din.close();
                                     }
-                                }
-                                catch (IOException err) {
-                                    log.error(err);
+                                } catch (IOException err) {
+                                    log.error(err.getMessage(), err);
                                 }
                             }
 
@@ -224,12 +229,11 @@ public class DicomWebService extends BaseService {
                             if (dicomStudyIdentifierProvided && !dicomStudyIdentifierMatch) {
                                 continue;
                             }
-                            
+
                             boolean importSuccessful;
                             if (this.svcCtp != null) {
                                 importSuccessful = this.svcCtp.httpImportDicom(iis);
-                            }
-                            else {
+                            } else {
                                 log.error("CTP service is not defined.");
                                 return Response.status(400).build();
                             }
@@ -238,8 +242,7 @@ public class DicomWebService extends BaseService {
                             if (importSuccessful) {
                                 importedParts++;
                             }
-                        }
-                        else {
+                        } else {
                             log.info("STOWRS part " + i + ". unsupported media type");
                         }
                     }
@@ -255,13 +258,11 @@ public class DicomWebService extends BaseService {
                     // Partially stored = Accepted
                     else if (importedParts < parts) {
                         return Response.status(202).build();
-                    }
-                    else {
+                    } else {
                         return Response.status(400).build();
                     }
-                }
-                catch (Exception err) {
-                    log.error(err);
+                } catch (Exception err) {
+                    log.error(err.getMessage(), err);
                     return Response.status(400).build();
                 }
                 // Specifies that the post is PS3.19 XML metadata and bulk data
@@ -281,6 +282,5 @@ public class DicomWebService extends BaseService {
 
     //endregion
 
-    //endregion
 
 }

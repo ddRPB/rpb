@@ -732,6 +732,148 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
     }
 
     /**
+     * Find all StudySubjects in the children of the specified Study
+     *
+     * @param studyIdentifier identifier of the parent study where the subjects are enrolled
+     * @return list of StudySubject entities
+     */
+    public List<StudySubject> findStudySubjectsOfChildrenStudies(String studyIdentifier) {
+
+        String sql = "SELECT ss.study_subject_id as id,\n" +
+                "  ss.label as studySubjectId,\n" +
+                "  ss.secondary_label as secondaryId,\n" +
+                "  sub.unique_identifier as pid,\n" +
+                "  ss.oc_oid as subjectKey,\n" +
+                "  sub.gender as sex,\n" +
+                "  sub.date_of_birth as dateOfBirth,\n" +
+                "  ss.enrollment_date as enrollmentDate,\n" +
+                "  st.name as studySubjectStatus\n" +
+                "  FROM STUDY_SUBJECT ss\n" +
+                "  LEFT JOIN STATUS st on st.status_id = ss.status_id\n" +
+                "  LEFT JOIN SUBJECT sub on sub.subject_id = ss.subject_id\n" +
+                "  LEFT JOIN STUDY s1 on s1.study_id = ss.study_id\n" +
+                "  LEFT JOIN STUDY s2 on s1.parent_study_id = s2.study_id\n" +
+                "  WHERE s2.unique_identifier = ?\n" +
+                "  ORDER BY ss.label";
+
+        Object[] params = {studyIdentifier};
+        List<Map<String, Object>> rowsStudySubjects = getJdbcTemplate().queryForList(sql, params);
+        List<StudySubject> results = convertDbResultsToStudySubjectList(rowsStudySubjects);
+
+        return results;
+    }
+
+    public List<StudySubject> findStudySubjectsWithEventsAndTreatmentGroups(String studyIdentifier) {
+        List<StudySubject> studySubjectList = this.findStudySubjectsWithEvents(studyIdentifier);
+
+        String sqlTreatmentGroupData = "SELECT ss.label as studySubjectId\n," +
+                "sgc.study_group_class_id as studyGroupClassId\n," +
+                "sg.name as studyGroupName\n," +
+                "sg.description as StudyGroupDescription\n," +
+                "gct.name as groupClassName\n," +
+                "sgc.name as studyGroupClassName\n," +
+                "gct.description as groupClassDescription\n" +
+                "from subject_group_map as sgm\n" +
+                "left join study_group_class as sgc on sgc.study_group_class_id=sgm.study_group_class_id\n" +
+                "left join study_group as sg on sgm.study_group_id=sg.study_group_id\n" +
+                "left join group_class_types as gct on sgc.group_class_type_id = gct.group_class_type_id\n" +
+                "left join study_subject as ss on ss.study_subject_id=sgm.study_subject_id\n" +
+                "left join study s on s.study_id=ss.study_id\n" +
+                "where s.unique_identifier = ?\n";
+
+        Object[] params = {studyIdentifier};
+        List<Map<String, Object>> rowsTreatmentGroups = getJdbcTemplate().queryForList(sqlTreatmentGroupData, params);
+
+        HashMap<String, List<SubjectGroupData>> subjectIdToSubjectGroupDataMap = new HashMap<>();
+
+        if (rowsTreatmentGroups != null) {
+            for (Map<String, Object> row : rowsTreatmentGroups) {
+                String studySubjectId = (String) row.get("studysubjectid");
+                int studyGroupClassId = (int) row.get("studygroupclassid");
+                String studyGroupClassName = (String) row.get("studyGroupClassName");
+                String studyGroupName = (String) row.get("studygroupname");
+
+                SubjectGroupData subjectGroupData = new SubjectGroupData();
+                subjectGroupData.setStudyGroupClassID("SGC_" + String.valueOf(studyGroupClassId));
+                subjectGroupData.setStudyGroupClassName(studyGroupClassName);
+                subjectGroupData.setStudyGroupName(studyGroupName);
+
+                if (subjectIdToSubjectGroupDataMap.containsKey(studySubjectId)) {
+                    subjectIdToSubjectGroupDataMap.get(studySubjectId).add(subjectGroupData);
+                } else {
+                    List<SubjectGroupData> subjectGroupDataList = new ArrayList<>();
+                    subjectGroupDataList.add(subjectGroupData);
+                    subjectIdToSubjectGroupDataMap.put(studySubjectId, subjectGroupDataList);
+                }
+            }
+        }
+
+        for (StudySubject subject : studySubjectList) {
+            if (subjectIdToSubjectGroupDataMap.containsKey(subject.getStudySubjectId())) {
+                subject.setSubjectGroupDataList(subjectIdToSubjectGroupDataMap.get(subject.getStudySubjectId()));
+            }
+        }
+
+        return studySubjectList;
+    }
+
+    public List<StudySubject> findStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(String studyIdentifier) {
+        List<StudySubject> studySubjectList = this.findStudySubjectsOfChildrenStudiesWithEvents(studyIdentifier);
+
+        String sqlTreatmentGroupData = "SELECT ss.label as studySubjectId\n," +
+                "sgc.study_group_class_id as studyGroupClassId\n," +
+                "sg.name as studyGroupName\n," +
+                "sg.description as StudyGroupDescription\n," +
+                "gct.name as groupClassName\n," +
+                "sgc.name as studyGroupClassName\n," +
+                "gct.description as groupClassDescription\n" +
+                "from subject_group_map as sgm\n" +
+                "left join study_group_class as sgc on sgc.study_group_class_id=sgm.study_group_class_id\n" +
+                "left join study_group as sg on sgm.study_group_id=sg.study_group_id\n" +
+                "left join group_class_types as gct on sgc.group_class_type_id = gct.group_class_type_id\n" +
+                "left join study_subject as ss on ss.study_subject_id=sgm.study_subject_id\n" +
+                "left join study s1 on s1.study_id=ss.study_id\n" +
+                "LEFT JOIN STUDY s2 on s1.parent_study_id = s2.study_id\n" +
+                "WHERE s2.unique_identifier = ?\n";
+
+
+        Object[] params = {studyIdentifier};
+        List<Map<String, Object>> rowsTreatmentGroups = getJdbcTemplate().queryForList(sqlTreatmentGroupData, params);
+
+        HashMap<String, List<SubjectGroupData>> subjectIdToSubjectGroupDataMap = new HashMap<>();
+
+        if (rowsTreatmentGroups != null) {
+            for (Map<String, Object> row : rowsTreatmentGroups) {
+                String studySubjectId = (String) row.get("studysubjectid");
+                int studyGroupClassId = (int) row.get("studygroupclassid");
+                String studyGroupClassName = (String) row.get("studyGroupClassName");
+                String studyGroupName = (String) row.get("studygroupname");
+
+                SubjectGroupData subjectGroupData = new SubjectGroupData();
+                subjectGroupData.setStudyGroupClassID("SGC_" + String.valueOf(studyGroupClassId));
+                subjectGroupData.setStudyGroupClassName(studyGroupClassName);
+                subjectGroupData.setStudyGroupName(studyGroupName);
+
+                if (subjectIdToSubjectGroupDataMap.containsKey(studySubjectId)) {
+                    subjectIdToSubjectGroupDataMap.get(studySubjectId).add(subjectGroupData);
+                } else {
+                    List<SubjectGroupData> subjectGroupDataList = new ArrayList<>();
+                    subjectGroupDataList.add(subjectGroupData);
+                    subjectIdToSubjectGroupDataMap.put(studySubjectId, subjectGroupDataList);
+                }
+            }
+        }
+
+        for (StudySubject subject : studySubjectList) {
+            if (subjectIdToSubjectGroupDataMap.containsKey(subject.getStudySubjectId())) {
+                subject.setSubjectGroupDataList(subjectIdToSubjectGroupDataMap.get(subject.getStudySubjectId()));
+            }
+        }
+
+        return studySubjectList;
+    }
+
+    /**
      * Find all StudySubjects with StudyEvents in specified Study
      *
      * @param studyIdentifier identifier of study where subject is enrolled
@@ -763,6 +905,56 @@ public class OpenClinicaDataDao extends JdbcDaoSupport {
                 "  LEFT JOIN STUDY_SUBJECT ss on ss.study_subject_id = ed.study_subject_id\n" +
                 "  LEFT JOIN STUDY s on s.study_id = ss.study_id\n" +
                 "  WHERE s.unique_identifier = ?\n" +
+                "  ORDER BY ss.label, sed.ordinal, ed.sample_ordinal";
+
+        Object[] params = {studyIdentifier};
+        List<Map<String, Object>> rowsStudySubjectEvents = getJdbcTemplate().queryForList(sqlEventData, params);
+
+        HashMap<String, List<EventData>> mapStudySubjectEvents = convertDbResultsToStudyEventHashMap(rowsStudySubjectEvents);
+
+        // Assign events
+        for (StudySubject studySubject : results) {
+            studySubject.setStudyEventDataList(
+                    mapStudySubjectEvents.get(studySubject.getStudySubjectId())
+            );
+        }
+
+        return results;
+    }
+
+    /**
+     * Find all StudySubjects with StudyEvents in the children of the specified Study
+     *
+     * @param studyIdentifier identifier of the parent study where the subjects are enrolled
+     * @return list of StudySubject entities with events in StudyEventDataList
+     */
+    public List<StudySubject> findStudySubjectsOfChildrenStudiesWithEvents(String studyIdentifier) {
+
+        List<StudySubject> results = this.findStudySubjectsOfChildrenStudies(studyIdentifier);
+
+        String sqlEventData = "SELECT ss.label as studySubjectId,\n" +
+                "  ed.study_event_id as eventId,\n" +
+                "  sed.oc_oid as studyEventOid,\n" +
+                "  sed.study_event_definition_id as eventDefinitionId,\n" +
+                "  sed.name as eventName,\n" +
+                "  sed.description as eventDescription,\n" +
+                "  sed.type as eventType,\n" +
+                "  sed.category as eventCategory,\n" +
+                "  sed.repeating as isRepeating,\n" +
+                "  sed.ordinal as eventDefinitionOrdinal,\n" +
+                "  ed.sample_ordinal as studyEventRepeatKey,\n" +
+                "  ed.date_start as startDate,\n" +
+                "  ed.date_end as endDate,\n" +
+                "  st.name as eventSystemStatus,\n" +
+                "  ses.name as eventStatus\n" +
+                "  FROM STUDY_EVENT ed\n" +
+                "  LEFT JOIN STUDY_EVENT_DEFINITION sed on sed.study_event_definition_id = ed.study_event_definition_id\n" +
+                "  LEFT JOIN STATUS st on st.status_id = ed.status_id\n" +
+                "  LEFT JOIN SUBJECT_EVENT_STATUS ses on ses.subject_event_status_id = ed.subject_event_status_id\n" +
+                "  LEFT JOIN STUDY_SUBJECT ss on ss.study_subject_id = ed.study_subject_id\n" +
+                "  LEFT JOIN STUDY s1 on s1.study_id = ss.study_id\n" +
+                "  LEFT JOIN STUDY s2 on s1.parent_study_id = s2.study_id\n" +
+                "  WHERE s2.unique_identifier = ?\n" +
                 "  ORDER BY ss.label, sed.ordinal, ed.sample_ordinal";
 
         Object[] params = {studyIdentifier};

@@ -6,4 +6,60 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
     >
 
+    <!-- Alter AuditLog table -->
+    <changeSet id="alter-table-auditlog-stringattribute2" author="Tomas Skripcak">
+        <modifyDataType tableName="AUDITLOG" columnName="stringattribute2" newDataType="varchar(1024)"/>
+    </changeSet>
+    <changeSet id="alter-table-auditlog-stringattribute3" author="Tomas Skripcak">
+        <modifyDataType tableName="AUDITLOG" columnName="stringattribute3" newDataType="varchar(4000)"/>
+    </changeSet>
+
+    <!-- Add CCP study tag type  -->
+    <changeSet id="insert-tag-type-study-ccp" author="Tomas Skripcak">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(name) FROM tagtype WHERE name = 'CCP' and entity = 'STUDY'</sqlCheck>
+        </preConditions>
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="CCP" />
+            <column name="description" value="CCP study (usage of PSP and ID manager)" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+
+    <!-- Add CCP-code study tag type  -->
+    <changeSet id="insert-tag-type-study-ccp-code" author="Tomas Skripcak">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(name) FROM tagtype WHERE name = 'CCP-code' and entity = 'STUDY'</sqlCheck>
+        </preConditions>
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="CCP-code" />
+            <column name="description" value="CCP unique trial registry code (for CCP integration purposes)" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="false" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+
+    <!-- Add IDAT study tag type  -->
+    <changeSet id="insert-tag-type-study-idat" author="Tomas Skripcak">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(name) FROM tagtype WHERE name = 'IDAT' and entity = 'STUDY'</sqlCheck>
+        </preConditions>
+        <insert tableName="TAGTYPE">
+            <column name="id"  valueSequenceNext="tagtype_id_seq" />
+            <column name="name" value="IDAT" />
+            <column name="description" value="IDAT is used to generate sites patient pseudonyms" />
+            <column name="entity" value="STUDY" />
+            <column name="isboolean" value="true" />
+            <column name="isrequired" value="false" />
+            <column name="maxoccurence" value="1" />
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>

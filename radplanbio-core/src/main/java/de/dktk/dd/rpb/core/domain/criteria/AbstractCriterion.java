@@ -20,13 +20,12 @@
 package de.dktk.dd.rpb.core.domain.criteria;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
-import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.criteria.constraints.AbstractConstraint;
-
-import org.apache.log4j.Logger;
-
+import de.dktk.dd.rpb.core.domain.ctms.Study;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -58,7 +57,7 @@ public abstract  class AbstractCriterion<T extends Serializable, C extends Abstr
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(AbstractCriterion.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractCriterion.class);
 
     //endregion
 

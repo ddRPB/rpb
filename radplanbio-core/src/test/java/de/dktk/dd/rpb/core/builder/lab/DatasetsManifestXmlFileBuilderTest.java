@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import static de.dktk.dd.rpb.core.util.Constants.LABKEY_EDC_ATTRIBUTES;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.xmlunit.matchers.ValidationMatcher.valid;
@@ -31,7 +32,7 @@ public class DatasetsManifestXmlFileBuilderTest {
     @Test
     public void adds_a_new_dataset() throws JAXBException {
         DatasetsManifestXmlFileBuilder builder = new DatasetsManifestXmlFileBuilder();
-        Integer id = builder.findOrCreateDataset("Participants");
+        Integer id = builder.findOrCreateDataset("Participants", LABKEY_EDC_ATTRIBUTES);
         String xmlContent = builder.build();
 
         Datasets datasets = JAXBHelper.unmashalString2(Datasets.class, xmlContent);
@@ -44,8 +45,8 @@ public class DatasetsManifestXmlFileBuilderTest {
     @Test
     public void adds_a_new_dataset_once_only() throws JAXBException {
         DatasetsManifestXmlFileBuilder builder = new DatasetsManifestXmlFileBuilder();
-        Integer idFirstCall = builder.findOrCreateDataset("Participants");
-        Integer idSecondCall = builder.findOrCreateDataset("Participants");
+        Integer idFirstCall = builder.findOrCreateDataset("Participants", LABKEY_EDC_ATTRIBUTES);
+        Integer idSecondCall = builder.findOrCreateDataset("Participants", LABKEY_EDC_ATTRIBUTES);
         String xmlContent = builder.build();
 
         Datasets datasets = JAXBHelper.unmashalString2(Datasets.class, xmlContent);
@@ -102,7 +103,7 @@ public class DatasetsManifestXmlFileBuilderTest {
         File file = new File("src/test/data/labkey/datasets-manifest/has_other_item.xml");
 
         DatasetsManifestXmlFileBuilder builder = new DatasetsManifestXmlFileBuilder(new FileInputStream(file));
-        Integer id = builder.findOrCreateDataset("OtherItem");
+        Integer id = builder.findOrCreateDataset("OtherItem", "dummy");
         String xmlContent = builder.build();
 
         Datasets datasets = JAXBHelper.unmashalString2(Datasets.class, xmlContent);
@@ -127,7 +128,7 @@ public class DatasetsManifestXmlFileBuilderTest {
         File file = new File("src/test/data/labkey/datasets-manifest/has_other_item.xml");
 
         DatasetsManifestXmlFileBuilder builder = new DatasetsManifestXmlFileBuilder(new FileInputStream(file));
-        Integer id = builder.findOrCreateDataset("NewItem");
+        Integer id = builder.findOrCreateDataset("NewItem", "dummy");
         String xmlContent = builder.build();
 
         Datasets datasets = JAXBHelper.unmashalString2(Datasets.class, xmlContent);

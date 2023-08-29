@@ -21,9 +21,13 @@ package de.dktk.dd.rpb.portal.web.mb.ctms;
 
 import de.dktk.dd.rpb.core.dao.support.OrderByDirection;
 import de.dktk.dd.rpb.core.dao.support.SearchParameters;
-import de.dktk.dd.rpb.core.domain.ctms.*;
+import de.dktk.dd.rpb.core.domain.ctms.Person;
+import de.dktk.dd.rpb.core.domain.ctms.PersonStatus;
+import de.dktk.dd.rpb.core.domain.ctms.Person_;
+import de.dktk.dd.rpb.core.domain.ctms.StudyPerson;
 import de.dktk.dd.rpb.core.repository.admin.ctms.IPersonStatusRepository;
 import de.dktk.dd.rpb.core.repository.ctms.IPersonRepository;
+import de.dktk.dd.rpb.core.repository.rpb.IRadPlanBioDataRepository;
 import de.dktk.dd.rpb.portal.web.mb.support.GenericLazyDataModel;
 import org.springframework.context.annotation.Scope;
 
@@ -41,25 +45,43 @@ import java.util.Map;
  * @since 25 May 2020
  */
 @Named("mbPersonLazy")
-@Scope(value="view")
+@Scope(value = "view")
 public class PersonLazyBean extends GenericLazyDataModel<Person, Integer> {
 
     //region Members
 
-    private IPersonStatusRepository personStatusRepository;
+    private final IPersonStatusRepository personStatusRepository;
+    private final IRadPlanBioDataRepository radPlanBioDataRepository;
+    private final int maxSearchResults = 25;
+    private List<Person> personList = new ArrayList<>();
 
     //endregion
 
     //region Constructors
 
     @Inject
-    public PersonLazyBean(IPersonRepository repository, IPersonStatusRepository personStatusRepository) {
+    public PersonLazyBean(
+            IPersonRepository repository,
+            IPersonStatusRepository personStatusRepository,
+            IRadPlanBioDataRepository radPlanBioDataRepository
+    ) {
         super(repository);
 
         this.personStatusRepository = personStatusRepository;
+        this.radPlanBioDataRepository = radPlanBioDataRepository;
     }
 
     //endregion
+
+
+    public List<Person> getPersonList() {
+        return personList;
+    }
+
+    public int getMaxSearchResults() {
+        return maxSearchResults;
+    }
+
 
     //region Init
 
@@ -81,6 +103,11 @@ public class PersonLazyBean extends GenericLazyDataModel<Person, Integer> {
     }
 
     //endregion
+
+    public List<Person> getMatchingPersonList(String searchString) {
+        this.personList = this.radPlanBioDataRepository.getPersonsWithMatchingName(searchString.trim(), maxSearchResults + 1);
+        return this.personList;
+    }
 
     //endregion
 
@@ -141,7 +168,7 @@ public class PersonLazyBean extends GenericLazyDataModel<Person, Integer> {
     protected SearchParameters defaultOrder(SearchParameters searchParameters) {
         return searchParameters.orderBy(Person_.surname, OrderByDirection.ASC);
     }
-    
+
     //endregion
 
 }

@@ -20,7 +20,8 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import de.dktk.dd.rpb.core.domain.Identifiable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
@@ -36,7 +37,7 @@ public abstract class ListItem implements Identifiable<Integer>, Serializable {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(ListItem.class);
+    private static final Logger log = LoggerFactory.getLogger(ListItem.class);
 
     //ednregion
 

@@ -1,3 +1,23 @@
+/*
+ * This file is part of RadPlanBio
+ *
+ * Copyright (C) 2013-2022 RPB Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 package de.dktk.dd.rpb.core.util;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -29,7 +49,8 @@ public class DicomUidReGeneratorUtil {
         String hashHex = DigestUtils.md5Hex(originUidAndSalt);
         String hashBigintString = new BigInteger(hashHex, 16).toString();
         String extra = hashBigintString.startsWith("0") ? "9" : "";
-        return (dicomUidPrefix + extra + hashBigintString).substring(0, 64);
+        String combined = dicomUidPrefix + extra + hashBigintString;
+        return combined.length() < 64 ? combined : combined.substring(0, 64);
     }
 
     /**

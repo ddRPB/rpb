@@ -19,22 +19,19 @@
 
 package de.dktk.dd.rpb.core.domain.rpb;
 
-import org.apache.log4j.Logger;
-
 import com.google.common.base.Objects;
-
-import javax.persistence.*;
-import java.io.Serializable;
-import java.util.List;
-
-import javax.validation.constraints.Size;
-
+import de.dktk.dd.rpb.core.domain.Identifiable;
+import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import de.dktk.dd.rpb.core.domain.Identifiable;
-import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import javax.persistence.*;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * RPB Portal domain entity - Portal Server of partner site
@@ -50,7 +47,7 @@ public class Portal implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Portal.class);
+    private static final Logger log = LoggerFactory.getLogger(Portal.class);
 
     //endregion
 

@@ -19,16 +19,11 @@
 
 package de.dktk.dd.rpb.core.dao.support;
 
-import static de.dktk.dd.rpb.core.dao.support.JpaUtil.compositePkPropertyName;
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
-import static javax.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
-import static javax.persistence.metamodel.Attribute.PersistentAttributeType.MANY_TO_ONE;
-import static javax.persistence.metamodel.Attribute.PersistentAttributeType.ONE_TO_ONE;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
-
-import java.lang.reflect.Method;
-import java.util.List;
+import com.google.common.base.Throwables;
+import de.dktk.dd.rpb.core.domain.Identifiable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.ReflectionUtils;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -43,13 +38,16 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import java.lang.reflect.Method;
+import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.springframework.util.ReflectionUtils;
-
-import com.google.common.base.Throwables;
-
-import de.dktk.dd.rpb.core.domain.Identifiable;
+import static com.google.common.collect.Lists.newArrayList;
+import static de.dktk.dd.rpb.core.dao.support.JpaUtil.compositePkPropertyName;
+import static java.util.Collections.emptyList;
+import static javax.persistence.metamodel.Attribute.PersistentAttributeType.EMBEDDED;
+import static javax.persistence.metamodel.Attribute.PersistentAttributeType.MANY_TO_ONE;
+import static javax.persistence.metamodel.Attribute.PersistentAttributeType.ONE_TO_ONE;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * Helper to create predicate by example. It processes associated entities (1 level deep).
@@ -65,7 +63,7 @@ public class ByExampleUtil {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(ByExampleUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(ByExampleUtil.class);
 
     //endregion
 

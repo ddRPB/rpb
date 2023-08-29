@@ -19,19 +19,17 @@
 
 package de.dktk.dd.rpb.core.repository.edc;
 
-import javax.inject.Inject;
-
-import org.apache.log4j.Logger;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+import de.dktk.dd.rpb.core.dao.edc.EdcDao;
+import de.dktk.dd.rpb.core.dao.support.GenericDao;
+import de.dktk.dd.rpb.core.domain.edc.Edc;
+import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.dktk.dd.rpb.core.dao.support.GenericDao;
-import de.dktk.dd.rpb.core.repository.support.RepositoryImpl;
-
-import de.dktk.dd.rpb.core.domain.edc.Edc;
-import de.dktk.dd.rpb.core.dao.edc.EdcDao;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * Default implementation of the {@link Edc} interface.
@@ -50,7 +48,7 @@ public class EdcRepository extends RepositoryImpl<Edc, Integer> implements IEdcR
     //region Finals
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(EdcRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(EdcRepository.class);
 
     //endregion
 

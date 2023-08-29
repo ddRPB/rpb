@@ -19,6 +19,19 @@
 
 package de.dktk.dd.rpb.api;
 
+import com.rometools.rome.feed.synd.SyndContent;
+import com.rometools.rome.feed.synd.SyndContentImpl;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndEntryImpl;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.feed.synd.SyndFeedImpl;
+import com.rometools.rome.io.SyndFeedOutput;
+import de.dktk.dd.rpb.core.domain.cms.SampleContent;
+import de.dktk.dd.rpb.core.repository.cms.SampleContentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,16 +39,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
-import com.rometools.rome.feed.synd.*;
-import com.rometools.rome.io.SyndFeedOutput;
-
-import de.dktk.dd.rpb.core.domain.cms.SampleContent;
-import de.dktk.dd.rpb.core.repository.cms.SampleContentRepository;
-
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
-
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -50,7 +53,7 @@ public class RssService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(RssService.class);
+    private static final Logger log = LoggerFactory.getLogger(RssService.class);
 
     //endregion
 
@@ -80,7 +83,7 @@ public class RssService {
             return Response.ok(writer.toString()).build();
         }
         catch(Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
             return Response.status(500).build();
         }
     }

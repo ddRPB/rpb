@@ -20,23 +20,33 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Personed;
-
 import de.dktk.dd.rpb.core.domain.bio.AbstractSpecimen;
-import de.dktk.dd.rpb.core.domain.bio.Specimen;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import de.dktk.dd.rpb.core.util.Constants;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.openclinica.ws.beans.SubjectType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -46,13 +56,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 //TODO: refactor .... see the Subject class, many things should be moved there
+
 /**
  * Person domain entity
- *
+ * <p>
  * Person in RPB can be patient (from EDC, PACS, BIO point of view) or study personnel (from CTMS point of view)
- *
+ * <p>
  * Study personnel is persistent entity stored in RPB database
  * Patient is transient entity and has identifiable data (persisted via first level pseudonym generator)
  *
@@ -66,7 +78,7 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Person.class);
+    private static final Logger log = LoggerFactory.getLogger(Person.class);
 
     //endregion
 
@@ -136,6 +148,27 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     public Person(SubjectType st) {
         this.pid = st.getUniqueIdentifier();
+    }
+
+    /**
+     * The Person object is created from the database query results
+     *
+     * @param row
+     */
+    public Person(Map<String, Object> row) {
+        this.id = (Integer) row.get("id");
+        this.titlesBefore = (String) row.get("titlesbefore");
+        this.firstname = (String) row.get("firstname");
+        this.surname = (String) row.get("surname");
+        this.titlesAfter = (String) row.get("titlesafter");
+        this.birthname = (String) row.get("birthname");
+        this.comment = (String) row.get("comment");
+
+        this.isSure = false;
+
+        this.studySubjects = new ArrayList<>();
+        this.dicomStudies = new ArrayList<>();
+        this.bioSpecimens = new ArrayList<>();
     }
 
     //endregion
@@ -381,8 +414,8 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     //region Status
 
-    @ManyToOne(fetch=FetchType.EAGER)
-    @JoinColumn(name="STATUSID")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "STATUSID")
     public PersonStatus getStatus() {
         return this.status;
     }
@@ -463,8 +496,7 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
             // True mean that what was possible to match was modified
             return Boolean.TRUE;
-        }
-        else {
+        } else {
             return Boolean.FALSE;
         }
     }
@@ -607,13 +639,14 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     /**
      * Return true when patient IDAT matches
+     *
      * @param otherPatient patient to compare to
      * @return true if patient IDAT matches
      */
     public boolean patientIdatEquals(Person otherPatient) {
         // Check the full name without cases
         if (this.surname.equalsIgnoreCase(otherPatient.getSurname()) &&
-            this.firstname.equalsIgnoreCase(otherPatient.getFirstname())) {
+                this.firstname.equalsIgnoreCase(otherPatient.getFirstname())) {
 
             // If both have birth name set than check also birth name (when one does not have consider as a match, because this data is optional)
             boolean birthNamePresent = !"".equalsIgnoreCase(this.birthname) && !"".equalsIgnoreCase(otherPatient.getBirthname());
@@ -634,8 +667,8 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
                 // Check if birth date is the same
                 birthDateMatch = (
                         thisCal.get(Calendar.YEAR) == otherCal.get(Calendar.YEAR) &&
-                        thisCal.get(Calendar.MONTH) == otherCal.get(Calendar.MONTH) &&
-                        thisCal.get(Calendar.DAY_OF_MONTH) == otherCal.get(Calendar.DAY_OF_MONTH)
+                                thisCal.get(Calendar.MONTH) == otherCal.get(Calendar.MONTH) &&
+                                thisCal.get(Calendar.DAY_OF_MONTH) == otherCal.get(Calendar.DAY_OF_MONTH)
                 );
             }
 
@@ -654,8 +687,7 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
             }
 
             return birthNameMatch && birthDateMatch && cityMatch && zipcodeMatch;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -679,6 +711,7 @@ public class Person implements Identifiable<Integer>, Personed, Serializable {
 
     /**
      * Construct a readable string representation for this Study instance.
+     *
      * @see java.lang.Object#toString()
      */
     @Override

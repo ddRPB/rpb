@@ -20,11 +20,16 @@
 package de.dktk.dd.rpb.core.service;
 
 import de.dktk.dd.rpb.core.domain.edc.*;
-import de.dktk.dd.rpb.core.domain.edc.mapping.*;
+import de.dktk.dd.rpb.core.domain.edc.mapping.AbstractMappedItem;
+import de.dktk.dd.rpb.core.domain.edc.mapping.MappedCsvItem;
+import de.dktk.dd.rpb.core.domain.edc.mapping.MappedOdmItem;
+import de.dktk.dd.rpb.core.domain.edc.mapping.Mapping;
+import de.dktk.dd.rpb.core.domain.edc.mapping.MappingRecord;
 import de.dktk.dd.rpb.core.util.Constants;
 import de.dktk.dd.rpb.core.util.FileUtil;
 import de.dktk.dd.rpb.core.util.JAXBHelper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.ICsvListReader;
 import org.supercsv.prefs.CsvPreference;
@@ -35,10 +40,19 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static de.dktk.dd.rpb.core.util.Constants.PSEUDO_DATE;
 
@@ -53,7 +67,7 @@ public class DataTransformationService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DataTransformationService.class);
+    private static final Logger log = LoggerFactory.getLogger(DataTransformationService.class);
 
     //endregion
 
@@ -215,7 +229,7 @@ public class DataTransformationService {
                 odm.updateHierarchy();
                 result = this.extractMappedDataItemDefinitionsFromOdm(odm);
             } catch (JAXBException e) {
-                log.error(e);
+                log.error(e.getMessage(), e);
             }
         }
 
@@ -240,7 +254,7 @@ public class DataTransformationService {
             Unmarshaller un = context.createUnmarshaller();
             result = (Odm) un.unmarshal(input);
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         }
 
         return result;
@@ -507,7 +521,7 @@ public class DataTransformationService {
 
             odmResult.populateSubjects(subjects);
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(),err);
         } finally {
             if (this.reader != null) {
                 try {

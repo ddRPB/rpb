@@ -31,7 +31,7 @@ public class DatasetsManifestXmlFileBuilder {
         }
     }
 
-    public Integer findOrCreateDataset(String name) {
+    public Integer findOrCreateDataset(String name, String category) {
         List<Integer> existingIds = new ArrayList<>();
         existingIds.add(startValue);
 
@@ -44,14 +44,14 @@ public class DatasetsManifestXmlFileBuilder {
         }
 
         Integer newIdentifier = Collections.max(existingIds) + 1;
-        createNewDataset(newIdentifier, name);
+        createNewDataset(newIdentifier, name, category);
         return newIdentifier;
     }
 
-    private void createNewDataset(Integer id, String name) {
+    private void createNewDataset(Integer id, String name, String category) {
         Datasets.InnerDatasets.Dataset dataset = new Datasets.InnerDatasets.Dataset();
         dataset.setType("Standard");
-        dataset.setCategory("EDC");
+        dataset.setCategory(category);
         dataset.setId(id);
         dataset.setName(name);
 

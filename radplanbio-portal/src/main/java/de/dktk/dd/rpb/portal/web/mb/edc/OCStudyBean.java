@@ -21,7 +21,13 @@ package de.dktk.dd.rpb.portal.web.mb.edc;
 
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
 import de.dktk.dd.rpb.core.domain.ctms.Person;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.EnumCollectSubjectDob;
+import de.dktk.dd.rpb.core.domain.edc.EnumPidGenerationStrategy;
+import de.dktk.dd.rpb.core.domain.edc.EnumRequired;
+import de.dktk.dd.rpb.core.domain.edc.EnumStudySubjectIdGeneration;
+import de.dktk.dd.rpb.core.domain.edc.EventData;
+import de.dktk.dd.rpb.core.domain.edc.StudyParameterConfiguration;
+import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.exception.DataBaseItemNotFoundException;
 import de.dktk.dd.rpb.core.exception.MissingPropertyException;
 import de.dktk.dd.rpb.core.ocsoap.types.Study;
@@ -37,15 +43,24 @@ import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
+import de.dktk.dd.rpb.portal.web.util.UserContextUtil;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.openclinica.ws.beans.SiteType;
 import org.openclinica.ws.beans.StudyType;
 import org.primefaces.component.tabview.TabView;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
-import org.primefaces.model.chart.*;
+import org.primefaces.model.chart.Axis;
+import org.primefaces.model.chart.AxisType;
+import org.primefaces.model.chart.BarChartSeries;
+import org.primefaces.model.chart.CategoryAxis;
+import org.primefaces.model.chart.LineChartModel;
+import org.primefaces.model.chart.LineChartSeries;
+import org.primefaces.model.chart.LinearAxis;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.web.util.UriComponents;
@@ -60,6 +75,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static de.dktk.dd.rpb.core.util.Constants.RPB_IDENTIFIERSEP;
@@ -78,7 +94,7 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(OCStudyBean.class);
+    private static final Logger log = LoggerFactory.getLogger(OCStudyBean.class);
     private static final long serialVersionUID = 1L;
 
     private static Map<String, Object> genderValues;
@@ -99,6 +115,8 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
     private AuditLogService auditLogService;
     private StudyIntegrationFacade studyIntegrationFacade;
 
+    @Autowired
+    private UserContextUtil userContext;
     //region Repository - Dummy
 
     @SuppressWarnings("unused")
@@ -397,6 +415,7 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
         this.enumPidGenerationStrategy = enumPidGenerationStrategy;
     }
 
+    // TODO: Refactor or Rewrite
     public boolean getCanDepseudonymisePatient() {
         if (this.selectedStudy != null && this.selectedStudy.isMulticentric()) {
             return this.selectedStudy.getSiteName().contains(this.mainBean.getMyAccount().getPartnerSite().getIdentifier()) &&
@@ -688,6 +707,36 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
         return false;
     }
 
+    public boolean showSubjectFromStudyZeroEnrollmentDialog() {
+
+        if (!this.selectedStudyIsStudyZero() && this.canUseStudyZeroPatients() && this.usePidGenerator) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public boolean showGeneratePidSectionInNewSubjectDialog() {
+        if (!this.portalRunsOnSamePartnerSide()) {
+            return false;
+        }
+
+        if (this.hasIdatFlag() && this.usePidGenerator && userContext.hasRole("ROLE_PID_NEW")) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean showGeneratePidButtonInNewSubjectDialog() {
+        Person person = this.newSubject.getPerson();
+        if (person.getPid() != null) {
+            return false;
+        }
+
+        return showGeneratePidSectionInNewSubjectDialog();
+    }
+
     /**
      * Returns the IDAT flag of the selected study. Default value is true if the flag is null
      *
@@ -697,7 +746,7 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
         if (this.rpbStudy.getTagValue("IDAT") != null) {
             return Boolean.parseBoolean(this.rpbStudy.getTagValue("IDAT"));
         } else {
-            // study without tag == study has IDAT
+            // legacy design for the study where each site had a pseudonym generator
             return true;
         }
     }
@@ -741,15 +790,20 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
             return false;
         }
 
-        for(StudyType study : this.studyTypeList){
+        for (StudyType study : this.studyTypeList) {
 
-            if(study.getIdentifier().equals(Constants.study0Identifier)){
+            if (study.getIdentifier().equals(Constants.study0Identifier)) {
                 return true;
             }
 
         }
 
         return false;
+    }
+
+    public boolean showPidSectionInNewSubjectDialog() {
+        return showGeneratePidSectionInNewSubjectDialog() || showSubjectFromStudyZeroEnrollmentDialog();
+
     }
 
     //endregion
@@ -804,7 +858,9 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
                 for (de.dktk.dd.rpb.core.domain.edc.StudySubject ss : this.entityList) {
 
                     GregorianCalendar c = new GregorianCalendar();
-                    c.setTime(ss.getDateEnrollment());
+                    SimpleDateFormat formatter = new SimpleDateFormat(Constants.OC_DATEFORMAT);
+                    Date enrollmentDate = formatter.parse(ss.getEnrollmentDate());
+                    c.setTime(enrollmentDate);
                     XMLGregorianCalendar cXML = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
 
                     // Sum enrollment report
@@ -914,16 +970,22 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
     }
 
     public void onStudySubjectIdChange() {
-        // Only apply this pseudonym generation strategy when PID generator is not used and PID is required
-        if (!this.usePidGenerator &&
-                this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.REQUIRED)) {
+        // Only apply this pseudonym generation strategy when PID generator is not used and PID is Required or Optional
+        if (this.showPidSectionInNewSubjectDialog()) {
+            return;
+        }
 
-            if (this.newSubject != null) {
-                this.newSubject.generateUniqueIdentifier(
-                        this.rpbStudy,
-                        this.mainBean.getMyAccount().getPartnerSite()
-                );
-            }
+        if (this.studyConfiguration.getPersonIdRequired().equals(EnumRequired.NOT_USED)) {
+            return;
+        }
+
+
+        if (this.newSubject != null) {
+            this.newSubject.generateUniqueIdentifier(
+                    this.rpbStudy,
+                    this.mainBean.getMyAccount().getPartnerSite()
+            );
+            messageUtil.info("PID: " + this.newSubject.getUniqueIdentifier());
         }
     }
 
@@ -975,6 +1037,7 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
             Person dummyPerson = new Person();
             this.newSubject.setPerson(dummyPerson);
         }
+        this.isSure = true;
 
         // Reset the autocomplete component
         this.selectedStudySubject = null;
@@ -986,6 +1049,7 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
     public void onCloseNewSubjectDialog() {
         resetNewStudySubject();
         this.selectedStudySubject = null;
+        this.usePidGenerator = true;
     }
 
     public void loadSelectedSubjectDetails() {
@@ -1163,17 +1227,21 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
      */
     public void identifySelectedPatient() {
         String uniqueIdentifier = this.selectedStudySubject.getPid();
+
         if (uniqueIdentifier.isEmpty()) {
             this.messageUtil.warning("Pid is empty");
             return;
         }
 
         this.newSubject.setUniqueIdentifier(uniqueIdentifier);
-        Person person = getIdentity(uniqueIdentifier);
+        this.newSubject.setGender(this.selectedStudySubject.getSex());
 
-        if (person != null) {
-            this.newSubject.setPerson(person);
-            this.newSubject.setGender(this.selectedStudySubject.getSex());
+        if (userContext.hasRole("ROLE_REIDENTIFY")) {
+            Person person = getIdentity(uniqueIdentifier);
+
+            if (person != null) {
+                this.newSubject.setPerson(person);
+            }
         }
     }
 
@@ -1394,7 +1462,7 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
         this.mainBean.getOpenClinicaDataRepository().setPidOnExistingStudySubject(edcSubject, ocUserName);
     }
 
-    private boolean portalRunsOnSamePartnerSide() {
+    public boolean portalRunsOnSamePartnerSide() {
         String partnerSideIdentifierPortal = this.messageUtil.getResourcesUtil().getProperty("partner_site_identifier");
 
         if (partnerSideIdentifierPortal == null || partnerSideIdentifierPortal.isEmpty()) {
@@ -1553,19 +1621,23 @@ public class OCStudyBean extends CrudEntityViewModel<de.dktk.dd.rpb.core.domain.
                 }
 
                 this.newSubject.setUniqueIdentifier(newId);
+                person.setPid(newId);
             }
 
-            // Delete session if it exists (however session cleanup can be also automaticaly done by Mainzelliste)
+            // Delete session if it exists (however session cleanup can be also automatically done by Mainzelliste)
             this.mainBean.getSvcPid().deleteSession(sessionId);
         } catch (Exception err) {
-            this.messageUtil.error(err);
 
             // Unsure patient
             if (err.getMessage().contains("Failed : HTTP error code: 409")) {
+                this.messageUtil.warning("Unable to definitely determined whether the data refers to an existing or to a new patient." +
+                        "Please check data or resubmit with activated checkbox to get a tentative result.");
                 this.auditLogService.event(AuditEvent.PIDUnsure, this.newSubject.getPerson().toString());
 
                 this.newSubject.getPerson().setIsSure(Boolean.FALSE);
                 this.setIsSure(Boolean.FALSE);
+            } else {
+                this.messageUtil.error(err);
             }
         }
     }

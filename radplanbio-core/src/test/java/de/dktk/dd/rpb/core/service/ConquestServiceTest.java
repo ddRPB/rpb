@@ -25,8 +25,12 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
-import de.dktk.dd.rpb.core.domain.pacs.*;
-import org.apache.log4j.Logger;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeriesRtDose;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeriesRtImage;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeriesRtPlan;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeriesRtStruct;
+import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
 import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -35,22 +39,29 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @SuppressWarnings({"unchecked"})
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ConquestService.class, Logger.class, Client.class})
+@PrepareForTest({ConquestService.class, Logger.class, LoggerFactory.class, Client.class})
 public class ConquestServiceTest {
     private ConquestService conquestService;
     private Logger logger;
@@ -68,8 +79,9 @@ public class ConquestServiceTest {
     @Before
     public void executedBeforeEach() {
         mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
         logger = mock(Logger.class);
-        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
 
         mockStatic(Client.class);
         clientMock = mock(Client.class);
@@ -90,7 +102,7 @@ public class ConquestServiceTest {
     private ConquestService getConquestService() {
         conquestService = new ConquestService();
         baseUrl = "dummyBaseUrl";
-        conquestService.setupConnection(baseUrl);
+        conquestService.setupConnection(baseUrl, 1);
         return conquestService;
     }
 
@@ -99,7 +111,7 @@ public class ConquestServiceTest {
         baseUrl = "dummyBaseUrl";
         user = "dummyUser";
         password = "dummyPassword";
-        conquestService.setupConnection(baseUrl, user, password);
+        conquestService.setupConnection(baseUrl, 1, user, password);
         return conquestService;
     }
 
@@ -302,16 +314,16 @@ public class ConquestServiceTest {
 
         DicomSeries series = seriesList.get(1);
         String className = series.getClass().getSimpleName();
-        assertEquals("Should be an instance of the RtImageDicomSeries class", "RtImageDicomSeries",
+        assertEquals("Should be an instance of the DicomSeriesRtImage class", "DicomSeriesRtImage",
                 className);
         assertEquals("RTIMAGE SeriesInstanceUID", "1.2.826.0.1.3680043.9.7275.0.3",
                 series.getSeriesInstanceUID());
         assertEquals("RTIMAGE SeriesDescription", "RTIMAGE SeriesDescription", series.getSeriesDescription());
         assertEquals("RTIMAGE Modality", "RTIMAGE", series.getSeriesModality());
-        assertEquals("RTImageLabel", "RTIMAGE RTImageLabel", ((RtImageDicomSeries) series).getRtImageLabel());
-        assertEquals("RtImageName", "RTIMAGE RTImageName", ((RtImageDicomSeries) series).getRtImageName());
-        assertEquals("RtImageDescription", "RTIMAGE RTImageDescription", ((RtImageDicomSeries) series).getRtImageDescription());
-        assertEquals("RTIMAGE InstanceCreationDate", "20140811", ((RtImageDicomSeries) series).getInstanceCreationDate());
+        assertEquals("RTImageLabel", "RTIMAGE RTImageLabel", ((DicomSeriesRtImage) series).getRtImageLabel());
+        assertEquals("RtImageName", "RTIMAGE RTImageName", ((DicomSeriesRtImage) series).getRtImageName());
+        assertEquals("RtImageDescription", "RTIMAGE RTImageDescription", ((DicomSeriesRtImage) series).getRtImageDescription());
+        assertEquals("RTIMAGE InstanceCreationDate", "20140811", ((DicomSeriesRtImage) series).getInstanceCreationDate());
     }
 
     @Test
@@ -327,16 +339,16 @@ public class ConquestServiceTest {
 
         DicomSeries series = seriesList.get(2);
         String className = series.getClass().getSimpleName();
-        assertEquals("Should be an instance of the RtPlanDicomSeries class", "RtPlanDicomSeries",
+        assertEquals("Should be an instance of the DicomSeriesRtPlan class", "DicomSeriesRtPlan",
                 className);
         assertEquals("RTPLAN SeriesInstanceUID", "1.2.826.0.1.3680043.9.7275.0.4",
                 series.getSeriesInstanceUID());
         assertEquals("RTPLAN SeriesDescription", "RTPLAN SeriesDescription", series.getSeriesDescription());
         assertEquals("RTPLAN Modality", "RTPLAN", series.getSeriesModality());
-        assertEquals("RTPlanLabel", "RTPLAN RTPlanLabel", ((RtPlanDicomSeries) series).getRtPlanLabel());
-        assertEquals("RtPlanName", "RTPLAN RTPlanName", ((RtPlanDicomSeries) series).getRtPlanName());
-        assertEquals("RtPlanDate", "20140812", ((RtPlanDicomSeries) series).getRtPlanDate());
-        assertEquals("RtPlanDescription", "RTPLAN RTPlanDescription", ((RtPlanDicomSeries) series).getRtPlanDescription());
+        assertEquals("RTPlanLabel", "RTPLAN RTPlanLabel", ((DicomSeriesRtPlan) series).getRtPlanLabel());
+        assertEquals("RtPlanName", "RTPLAN RTPlanName", ((DicomSeriesRtPlan) series).getRtPlanName());
+        assertEquals("RtPlanDate", "20140812", ((DicomSeriesRtPlan) series).getRtPlanDate());
+        assertEquals("RtPlanDescription", "RTPLAN RTPlanDescription", ((DicomSeriesRtPlan) series).getRtPlanDescription());
     }
 
     @Test
@@ -352,16 +364,16 @@ public class ConquestServiceTest {
 
         DicomSeries series = seriesList.get(3);
         String className = series.getClass().getSimpleName();
-        assertEquals("Should be an instance of the RtDoseDicomSeries class", "RtDoseDicomSeries",
+        assertEquals("Should be an instance of the DicomSeriesRtDose class", "DicomSeriesRtDose",
                 className);
         assertEquals("RTDOSE SeriesInstanceUID", "1.2.826.0.1.3680043.9.7275.0.5", series.getSeriesInstanceUID());
         assertEquals("RTDOSE SeriesDescription", "RTDOSE SeriesDescription", series.getSeriesDescription());
         assertEquals("RTDOSE Modality", "RTDOSE", series.getSeriesModality());
-        assertEquals("RTDOSE DoseUnits", "RTDOSE DoseUnits", ((RtDoseDicomSeries) series).getDoseUnits());
-        assertEquals("RTDOSE DoseType", "RTDOSE DoseType", ((RtDoseDicomSeries) series).getDoseType());
-        assertEquals("RTDOSE DoseComment", "RTDOSE DoseComment", ((RtDoseDicomSeries) series).getDoseComment());
-        assertEquals("RTDOSE DoseSummationType", "RTDOSE DoseSummationType", ((RtDoseDicomSeries) series).getDoseSummationType());
-        assertEquals("RTDOSE InstanceCreationDate", "20140811", ((RtDoseDicomSeries) series).getInstanceCreationDate());
+        assertEquals("RTDOSE DoseUnits", "RTDOSE DoseUnits", ((DicomSeriesRtDose) series).getDoseUnits());
+        assertEquals("RTDOSE DoseType", "RTDOSE DoseType", ((DicomSeriesRtDose) series).getDoseType());
+        assertEquals("RTDOSE DoseComment", "RTDOSE DoseComment", ((DicomSeriesRtDose) series).getDoseComment());
+        assertEquals("RTDOSE DoseSummationType", "RTDOSE DoseSummationType", ((DicomSeriesRtDose) series).getDoseSummationType());
+        assertEquals("RTDOSE InstanceCreationDate", "20140811", ((DicomSeriesRtDose) series).getInstanceCreationDate());
     }
 
     @Test
@@ -377,19 +389,108 @@ public class ConquestServiceTest {
 
         DicomSeries series = seriesList.get(4);
         String className = series.getClass().getSimpleName();
-        assertEquals("Should be an instance of the RtStructDicomSeries class", "RtStructDicomSeries",
+        assertEquals("Should be an instance of the DicomSeriesRtStruct class", "DicomSeriesRtStruct",
                 className);
         assertEquals("RTSTRUCT SeriesInstanceUID", "1.2.826.0.1.3680043.9.7275.0.6",
                 series.getSeriesInstanceUID());
         assertEquals("RTSTRUCT SeriesDescription", "RTSTRUCT SeriesDescription", series.getSeriesDescription());
         assertEquals("RTSTRUCT Modality", "RTSTRUCT", series.getSeriesModality());
-        assertEquals("RTSTRUCT StructureSetLabel", "RTSTRUCT StructureSetLabel", ((RtStructDicomSeries) series).getStructureSetLabel());
-        assertEquals("RTSTRUCT StructureSetName", "RTSTRUCT StructureSetName", ((RtStructDicomSeries) series).getStructureSetName());
-        assertEquals("RTSTRUCT StructureSetDescription", "RTSTRUCT StructureSetDescription", ((RtStructDicomSeries) series).getStructureSetDescription());
-        assertEquals("RTSTRUCT StructureSetDate", "20140821", ((RtStructDicomSeries) series).getStructureSetDate());
+        assertEquals("RTSTRUCT StructureSetLabel", "RTSTRUCT StructureSetLabel", ((DicomSeriesRtStruct) series).getStructureSetLabel());
+        assertEquals("RTSTRUCT StructureSetName", "RTSTRUCT StructureSetName", ((DicomSeriesRtStruct) series).getStructureSetName());
+        assertEquals("RTSTRUCT StructureSetDescription", "RTSTRUCT StructureSetDescription", ((DicomSeriesRtStruct) series).getStructureSetDescription());
+        assertEquals("RTSTRUCT StructureSetDate", "20140821", ((DicomSeriesRtStruct) series).getStructureSetDate());
     }
 
 // endregion
+
+    // region addStudySeriesImages
+
+//    @Test
+//    public void addStudySeriesImages_ignores_non_rt_related_series() throws InterruptedException, ExecutionException, JSONException {
+//        List<StagedDicomSeries> stagedDicomSeriesList = new ArrayList<>();
+//        StagedDicomSeries stagedRtPlanDicomSeries = new StagedDicomSeries();
+//        stagedRtPlanDicomSeries.setSeriesModality("dummy");
+//        stagedDicomSeriesList.add(stagedRtPlanDicomSeries);
+//
+//        List<StagedDicomSeries> updatedSeriesList = conquestService.addStudySeriesImages(stagedDicomSeriesList, "1", "dicomStudyUid");
+//
+//        assertEquals(1, updatedSeriesList.size());
+//        verify(responseMock, times(0)).getEntity(String.class);
+//
+//    }
+
+//    @Test
+//    public void addStudySeriesImages_handles_rt_related_series() throws InterruptedException, ExecutionException, JSONException {
+//        String rtPlanSeriesResponseFileName = "./src/test/resources/test-data/PacsRtPlanSeriesResponse.json";
+//        String rtImageSeriesResponseFileName = "./src/test/resources/test-data/PacsRtImageSeriesResponse.json";
+//        String rtStructSeriesResponseFileName = "./src/test/resources/test-data/PacsRtStructSeriesResponse.json";
+//        String rtDoseSeriesResponseFileName = "./src/test/resources/test-data/PacsRtDoseSeriesResponse.json";
+//
+//
+//        String dicomStudyUid = "1.2.826.0.1.3680043.9.7275.0.1";
+//
+//        JSONObject rtPlanSeriesResponse = getJsonFromFile(rtPlanSeriesResponseFileName);
+//        JSONObject rtImageSeriesResponse = getJsonFromFile(rtImageSeriesResponseFileName);
+//        JSONObject rtStructSeriesResponse = getJsonFromFile(rtStructSeriesResponseFileName);
+//        JSONObject rtDoseSeriesResponse = getJsonFromFile(rtDoseSeriesResponseFileName);
+//
+//
+//        when(responseMock.getEntity(String.class)).thenReturn(
+//                rtPlanSeriesResponse.toString(),
+//                rtImageSeriesResponse.toString(),
+//                rtStructSeriesResponse.toString(),
+//                rtDoseSeriesResponse.toString()
+//        );
+//
+//        List<StagedDicomSeries> stagedDicomSeriesList = new ArrayList<>();
+//        StagedDicomSeries stagedRtPlanDicomSeries = new StagedDicomSeries();
+//        stagedRtPlanDicomSeries.setSeriesModality(DICOM_RTPLAN);
+//        stagedDicomSeriesList.add(stagedRtPlanDicomSeries);
+//
+//        StagedDicomSeries stagedRtImageDicomSeries = new StagedDicomSeries();
+//        stagedRtImageDicomSeries.setSeriesModality(DICOM_RTIMAGE);
+//        stagedDicomSeriesList.add(stagedRtImageDicomSeries);
+//
+//        StagedDicomSeries stagedRtStructDicomSeries = new StagedDicomSeries();
+//        stagedRtStructDicomSeries.setSeriesModality(DICOM_RTSTRUCT);
+//        stagedDicomSeriesList.add(stagedRtStructDicomSeries);
+//
+//        StagedDicomSeries stagedRtDoseDicomSeries = new StagedDicomSeries();
+//        stagedRtDoseDicomSeries.setSeriesModality(DICOM_RTDOSE);
+//        stagedDicomSeriesList.add(stagedRtDoseDicomSeries);
+//
+//        List<StagedDicomSeries> updatedSeriesList = conquestService.addStudySeriesImages(stagedDicomSeriesList, "1", dicomStudyUid);
+//
+//        assertEquals(4, updatedSeriesList.size());
+//
+//        for (StagedDicomSeries series :
+//                updatedSeriesList) {
+//            switch (series.getSeriesModality()) {
+//                case DICOM_RTPLAN:
+//                    assertNotNull(series.getSeriesImages());
+//                    assertEquals(2, series.getSeriesImages().size());
+//                    break;
+//                case DICOM_RTIMAGE:
+//                    assertNotNull(series.getSeriesImages());
+//                    assertEquals(2, series.getSeriesImages().size());
+//                    break;
+//                case DICOM_RTSTRUCT:
+//                    assertNotNull(series.getSeriesImages());
+//                    assertEquals(1, series.getSeriesImages().size());
+//                    break;
+//                case DICOM_RTDOSE:
+//                    assertNotNull(series.getSeriesImages());
+//                    assertEquals(1, series.getSeriesImages().size());
+//                    break;
+//
+//            }
+//        }
+//
+
+
+//    }
+
+    // endregion
 
 // region moveDicomStudy
 
@@ -463,13 +564,13 @@ public class ConquestServiceTest {
         try {
             reader = new FileReader(fileName);
         } catch (FileNotFoundException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage());
         }
         {
             try {
                 jsonObject = (JSONObject) jsonParser.parse(reader);
             } catch (Exception e) {
-                logger.error(e.getStackTrace());
+                logger.error(e.getMessage());
             }
         }
         return jsonObject;

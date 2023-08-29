@@ -1,53 +1,44 @@
 package de.dktk.dd.rpb.core.domain.lab;
 
-import com.univocity.parsers.annotations.Format;
-import com.univocity.parsers.annotations.Parsed;
+import org.supercsv.cellprocessor.Optional;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.valueOf;
 
 /**
  * Contains attributes of the subject representation in Labkey
  * including the mapping annotations for the tsv writer.
  */
 public class SubjectAttributes {
-
-    @Parsed(field = "SequenceNum")
     private Double sequenceNum;
 
     // Study Subject ID
-    @Parsed(field = "ParticipantId")
     private String studySubjectId;
 
     // Person ID (PID) - pseudo identificator
-    @Parsed(field = "Pid")
     private String uniqueIdentifier;
 
     // Secondary ID
-    @Parsed(field = "SecondaryId")
     private String secondaryId;
 
     // can be 'm' of 'f'
     // TODO: change to enumeration
-    @Parsed(field = "Gender")
     private String gender;
 
 
-    @Parsed(field = "BirthDate")
-    @Format(formats = {"yyyy-MM-dd"})
-    private Date dateOfBirth;
+    private LocalDate dateOfBirth;
 
-    @Parsed(field = "BirthYear")
     private int yearOfBirth;
 
     // Date of enrollment into RadPlanBio study;
-    @Parsed(field = "Enrollment")
-    @Format(formats = {"yyyy-MM-dd"})
-    private Date enrollmentDate;
+    private LocalDate enrollmentDate;
 
-    @Parsed(field = "Status")
     private String status;
 
-    //    @Parsed(field = "Is_Enabled")
     private Boolean isEnabled;
 
 
@@ -70,11 +61,11 @@ public class SubjectAttributes {
                 '}';
     }
 
-    public Date getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
@@ -86,11 +77,11 @@ public class SubjectAttributes {
         this.yearOfBirth = yearOfBirth;
     }
 
-    public Date getEnrollmentDate() {
+    public LocalDate getEnrollmentDate() {
         return enrollmentDate;
     }
 
-    public void setEnrollmentDate(Date enrollmentDate) {
+    public void setEnrollmentDate(LocalDate enrollmentDate) {
         this.enrollmentDate = enrollmentDate;
     }
 
@@ -149,4 +140,38 @@ public class SubjectAttributes {
     public void setEnabled(Boolean enabled) {
         isEnabled = enabled;
     }
+
+    public CellProcessor[] getCellProcessors() {
+        List<CellProcessor> cellProcessorList = new ArrayList<>();
+
+        for (int i = 0; i < this.getValues().size(); i++) {
+            cellProcessorList.add(new Optional());
+        }
+        CellProcessor[] array = new CellProcessor[cellProcessorList.size()];
+
+        return cellProcessorList.toArray(array);
+    }
+
+    public List<Object> getValues() {
+        List<Object> valueList = new ArrayList<>();
+
+        valueList.add(valueOf(this.sequenceNum));
+        valueList.add(this.studySubjectId);
+        valueList.add(this.uniqueIdentifier);
+        valueList.add(this.secondaryId);
+        if (this.gender != null) {
+            valueList.add(this.gender);
+        }
+        if (this.dateOfBirth != null) {
+            valueList.add(this.dateOfBirth);
+        }
+        if (this.yearOfBirth > 0) {
+            valueList.add(this.yearOfBirth);
+        }
+        valueList.add(this.enrollmentDate);
+        valueList.add(this.status);
+
+        return valueList;
+    }
+
 }

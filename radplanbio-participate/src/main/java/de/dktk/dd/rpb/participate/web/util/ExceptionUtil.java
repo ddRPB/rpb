@@ -30,7 +30,7 @@ import javax.inject.Singleton;
 public class ExceptionUtil {
 
     /**
-     * Use it during development as an action to throw exceptions and thus verify that your error handling code is correct.
+     * Use it during development as an action to throw exceptions and thus verify that your error handling code is correct
      */
     @SuppressWarnings("unused")
     public void throwRuntimeException() {

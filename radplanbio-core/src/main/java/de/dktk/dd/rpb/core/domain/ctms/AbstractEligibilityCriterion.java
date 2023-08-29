@@ -20,7 +20,8 @@
 package de.dktk.dd.rpb.core.domain.ctms;
 
 import de.dktk.dd.rpb.core.domain.Named;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
@@ -36,7 +37,7 @@ public class AbstractEligibilityCriterion implements Named, Serializable {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(AbstractEligibilityCriterion.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractEligibilityCriterion.class);
 
     //endregion
 

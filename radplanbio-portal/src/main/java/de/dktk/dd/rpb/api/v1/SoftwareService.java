@@ -25,6 +25,8 @@ import de.dktk.dd.rpb.core.domain.rpb.Software;
 import de.dktk.dd.rpb.core.repository.rpb.ISoftwareRepository;
 import de.dktk.dd.rpb.core.service.IOpenClinicaService;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -37,8 +39,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
-
 /**
  * Service handling Software as aggregate root resources
  */
@@ -48,7 +48,7 @@ public class SoftwareService extends BaseService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(SoftwareService.class);
+    private static final Logger log = LoggerFactory.getLogger(SoftwareService.class);
 
     //endregion
 
@@ -163,7 +163,7 @@ public class SoftwareService extends BaseService {
 
         } catch (Exception err) {
 
-            log.error(err);
+            log.error(err.getMessage(), err);
             return javax.ws.rs.core.Response.status(500).build();
         }
 

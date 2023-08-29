@@ -12,13 +12,13 @@
     <!-- Metadata -->
     <ui:define name="metadata">
         <f:metadata>
-            <!-- View quiery strings -->
+            <!-- View query strings -->
             <f:viewParam name="pid" value="#{mbPatient.newSearchPerson.pid}" />
             <f:event type="preRenderView" listener="#{mbPatient.onLoad}" />
         </f:metadata>
     </ui:define>
 
-    <!-- Definition of breadcrumbs place holder -->
+    <!-- Definition of breadcrumbs placeholder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
@@ -26,7 +26,7 @@
         </p:breadCrumb>
     </ui:define>
 
-    <!-- Definition of page content place holder -->
+    <!-- Definition of page content placeholder -->
     <ui:define name="content">
 
         <!-- Main Tab -->
@@ -204,7 +204,7 @@
                     >
 
                     <!--AJAX onclick on datatable row -->
-                    <p:ajax event="rowSelect" listener="#{mbPatient.loadPatientDetails}" update=":form:tabView:dtStudySubjects, :form:tabView:dtDicomStudies, :form:tabView:dtSpecimenEntities, :growl" />
+                    <p:ajax event="rowSelect" listener="#{mbPatient.loadPatientDetails}" update=":form:tabView:dtStudySubjects, :form:tabView:dtDicomStudies, :growl" />
 
                     <!-- Data table header -->
                     <f:facet name="header">
@@ -562,7 +562,7 @@
 
             </p:tab>
 
-            <!-- Patient have DICOM data in research PACS -->
+            <!-- Patient has DICOM data in research PACS -->
             <p:tab title="DICOM">
                 <!-- Toolbar -->
                 <p:toolbar>
@@ -815,155 +815,157 @@
 
             </p:tab>
 
-            <p:tab title="#{msg.specimen_plural}">
+            <!-- Patient has biospecimens data in Biobank -->
+            <!-- Postponed until vendor neutral interfaces are available for biobank -->
+<!--            <p:tab title="#{msg.specimen_plural}">-->
 
-                <!-- Toolbar -->
-                <p:toolbar>
-                    <!-- Left -->
-                    <p:toolbarGroup align="left">
-                        <p:commandButton
-                                value="#{msg.menu_reload}"
-                                title="#{msg.specimen_reload}"
-                                icon="ui-icon-refresh"
-                                style="float: left;"
-                                immediate="true"
-                                process="@this"
-                                update=":form:tabView:dtSpecimenEntities, :growl"
-                                actionListener="#{mbPatient.loadPatientSpecimens}"
-                        />
-                    </p:toolbarGroup>
+<!--                &lt;!&ndash; Toolbar &ndash;&gt;-->
+<!--                <p:toolbar>-->
+<!--                    &lt;!&ndash; Left &ndash;&gt;-->
+<!--                    <p:toolbarGroup align="left">-->
+<!--                        <p:commandButton-->
+<!--                                value="#{msg.menu_reload}"-->
+<!--                                title="#{msg.specimen_reload}"-->
+<!--                                icon="ui-icon-refresh"-->
+<!--                                style="float: left;"-->
+<!--                                immediate="true"-->
+<!--                                process="@this"-->
+<!--                                update=":form:tabView:dtSpecimenEntities, :growl"-->
+<!--                                actionListener="#{mbPatient.loadPatientSpecimens}"-->
+<!--                        />-->
+<!--                    </p:toolbarGroup>-->
 
-                    <!-- Right -->
-                    <p:toolbarGroup align="right">
-                        <p:commandButton
-                            value="#{msg.menu_print}"
-                            title="#{msg.specimen_print}"
-                            icon="ui-icon-print"
-                            >
-                            <p:printer target="dtSpecimenEntities" />
-                        </p:commandButton>
-                        <p:commandButton
-                            value="#{msg.menu_help}"
-                            title="#{msg.menu_help}"
-                            icon="ui-icon-help"
-                            onclick="target='_blank'"
-                            ajax="false"
-                            immediate="true"
-                            action="#{mbMain.navigateToHelp('x1-240003')}"
-                            />
-                    </p:toolbarGroup>
-                </p:toolbar>
+<!--                    &lt;!&ndash; Right &ndash;&gt;-->
+<!--                    <p:toolbarGroup align="right">-->
+<!--                        <p:commandButton-->
+<!--                            value="#{msg.menu_print}"-->
+<!--                            title="#{msg.specimen_print}"-->
+<!--                            icon="ui-icon-print"-->
+<!--                            >-->
+<!--                            <p:printer target="dtSpecimenEntities" />-->
+<!--                        </p:commandButton>-->
+<!--                        <p:commandButton-->
+<!--                            value="#{msg.menu_help}"-->
+<!--                            title="#{msg.menu_help}"-->
+<!--                            icon="ui-icon-help"-->
+<!--                            onclick="target='_blank'"-->
+<!--                            ajax="false"-->
+<!--                            immediate="true"-->
+<!--                            action="#{mbMain.navigateToHelp('x1-240003')}"-->
+<!--                            />-->
+<!--                    </p:toolbarGroup>-->
+<!--                </p:toolbar>-->
 
-                <!-- Tree Table-->
-                <p:treeTable
-                    id="dtSpecimenEntities"
-                    var="bioSpecimen"
-                    value="#{mbPatient.specimenRoot}"
-                    widgetVar="specimenEntitiesTable"
-                    resizableColumns="true"
-                    draggableColumns="false"
-                    emptyMessage="#{msg.search_empty}"
-                    selection="#{mbBioLookup.selectedEntity}"
-                    sortBy="#{bioSpecimen.sampleId}"
-                    >
+<!--                &lt;!&ndash; Tree Table&ndash;&gt;-->
+<!--                <p:treeTable-->
+<!--                    id="dtSpecimenEntities"-->
+<!--                    var="bioSpecimen"-->
+<!--                    value="#{mbPatient.specimenRoot}"-->
+<!--                    widgetVar="specimenEntitiesTable"-->
+<!--                    resizableColumns="true"-->
+<!--                    draggableColumns="false"-->
+<!--                    emptyMessage="#{msg.search_empty}"-->
+<!--                    selection="#{mbBioLookup.selectedEntity}"-->
+<!--                    sortBy="#{bioSpecimen.sampleId}"-->
+<!--                    >-->
 
-                    <!-- Data table header -->
-                    <f:facet name="header">
-                        <h:outputText value="#{mbMain.myAccount.partnerSite.identifier}-#{mbPatient.selectedEntity.pid}" style="float:left" />
-                    </f:facet>
+<!--                    &lt;!&ndash; Data table header &ndash;&gt;-->
+<!--                    <f:facet name="header">-->
+<!--                        <h:outputText value="#{mbMain.myAccount.partnerSite.identifier}-#{mbPatient.selectedEntity.pid}" style="float:left" />-->
+<!--                    </f:facet>-->
 
-                    <!-- SampleID -->
-                    <p:column
-                        id="colSampleId"
-                        headerText="#{msg.specimen_sampleId}"
-                        sortBy="#{bioSpecimen.sampleId}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{bioSpecimen.sampleId}" style="float: left;" />
-                    </p:column>
+<!--                    &lt;!&ndash; SampleID &ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        id="colSampleId"-->
+<!--                        headerText="#{msg.specimen_sampleId}"-->
+<!--                        sortBy="#{bioSpecimen.sampleId}"-->
+<!--                        style="width:10%"-->
+<!--                        >-->
+<!--                        <h:outputText value="#{bioSpecimen.sampleId}" style="float: left;" />-->
+<!--                    </p:column>-->
 
-                    <!-- Type -->
-                    <p:column
-                        headerText="#{msg.specimen_type}"
-                        sortBy="#{bioSpecimen.type}"
-                        style="width:7%"
-                        >
-                        <h:outputText value="#{bioSpecimen.type}" style="float: left;" />
-                    </p:column>
+<!--                    &lt;!&ndash; Type &ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        headerText="#{msg.specimen_type}"-->
+<!--                        sortBy="#{bioSpecimen.type}"-->
+<!--                        style="width:7%"-->
+<!--                        >-->
+<!--                        <h:outputText value="#{bioSpecimen.type}" style="float: left;" />-->
+<!--                    </p:column>-->
 
-                    <!-- Kind -->
-                    <p:column
-                        headerText="#{msg.specimen_kind}"
-                        sortBy="#{bioSpecimen.kind}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{bioSpecimen.kind}" style="float: left;" />
-                    </p:column>
+<!--                    &lt;!&ndash; Kind &ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        headerText="#{msg.specimen_kind}"-->
+<!--                        sortBy="#{bioSpecimen.kind}"-->
+<!--                        style="width:10%"-->
+<!--                        >-->
+<!--                        <h:outputText value="#{bioSpecimen.kind}" style="float: left;" />-->
+<!--                    </p:column>-->
 
-                    <!-- AmountRest-->
-                    <p:column
-                        headerText="Rest"
-                        sortBy="#{bioSpecimen.amountRest}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{bioSpecimen.amountRest}" style="float: right;" />
-                    </p:column>
+<!--                    &lt;!&ndash; AmountRest&ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        headerText="Rest"-->
+<!--                        sortBy="#{bioSpecimen.amountRest}"-->
+<!--                        style="width:10%"-->
+<!--                        >-->
+<!--                        <h:outputText value="#{bioSpecimen.amountRest}" style="float: right;" />-->
+<!--                    </p:column>-->
 
-                    <!-- Unit -->
-                    <p:column
-                        headerText="Unit"
-                        sortBy="#{bioSpecimen.amountRestUnit}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{bioSpecimen.amountRestUnit}" style="float: left;" />
-                    </p:column>
+<!--                    &lt;!&ndash; Unit &ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        headerText="Unit"-->
+<!--                        sortBy="#{bioSpecimen.amountRestUnit}"-->
+<!--                        style="width:10%"-->
+<!--                        >-->
+<!--                        <h:outputText value="#{bioSpecimen.amountRestUnit}" style="float: left;" />-->
+<!--                    </p:column>-->
 
-                    <!-- SamplingDate -->
-                    <p:column
-                        headerText="Sampling"
-                        sortBy="#{bioSpecimen.samplingDate}"
-                        style="width:10%"
-                        >
-                        <h:outputText value="#{bioSpecimen.samplingDate}" style="float: left;" />
-                    </p:column>
+<!--                    &lt;!&ndash; SamplingDate &ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        headerText="Sampling"-->
+<!--                        sortBy="#{bioSpecimen.samplingDate}"-->
+<!--                        style="width:10%"-->
+<!--                        >-->
+<!--                        <h:outputText value="#{bioSpecimen.samplingDate}" style="float: left;" />-->
+<!--                    </p:column>-->
 
-                    <!-- Commands -->
-                    <p:column
-                        headerText="#{msg.menu_commands}"
-                        exportable="false"
-                        toggleable="false"
-                        style="width:11%"
-                        >
-                        <!-- Edit -->
-                        <!--<p:commandButton-->
-                            <!--title="#{msg.menu_edit}"-->
-                            <!--icon="ui-icon-contact"-->
-                            <!--immediate="true"-->
-                            <!--process="@this"-->
-                            <!--update=":entityDetailsForm:editDisplay"-->
-                            <!--oncomplete="PF('editEntityDialog').show();"-->
-                            <!--&gt;-->
-                            <!--<f:setPropertyActionListener-->
-                                <!--value="#{bioSpecimen}"-->
-                                <!--target="#{mbBioLookup.selectedEntity}"-->
-                                <!--/>-->
-                        <!--</p:commandButton>-->
-                    </p:column>
+<!--                    &lt;!&ndash; Commands &ndash;&gt;-->
+<!--                    <p:column-->
+<!--                        headerText="#{msg.menu_commands}"-->
+<!--                        exportable="false"-->
+<!--                        toggleable="false"-->
+<!--                        style="width:11%"-->
+<!--                        >-->
+<!--                        &lt;!&ndash; Edit &ndash;&gt;-->
+<!--                        &lt;!&ndash;<p:commandButton&ndash;&gt;-->
+<!--                            &lt;!&ndash;title="#{msg.menu_edit}"&ndash;&gt;-->
+<!--                            &lt;!&ndash;icon="ui-icon-contact"&ndash;&gt;-->
+<!--                            &lt;!&ndash;immediate="true"&ndash;&gt;-->
+<!--                            &lt;!&ndash;process="@this"&ndash;&gt;-->
+<!--                            &lt;!&ndash;update=":entityDetailsForm:editDisplay"&ndash;&gt;-->
+<!--                            &lt;!&ndash;oncomplete="PF('editEntityDialog').show();"&ndash;&gt;-->
+<!--                            &lt;!&ndash;&gt;&ndash;&gt;-->
+<!--                            &lt;!&ndash;<f:setPropertyActionListener&ndash;&gt;-->
+<!--                                &lt;!&ndash;value="#{bioSpecimen}"&ndash;&gt;-->
+<!--                                &lt;!&ndash;target="#{mbBioLookup.selectedEntity}"&ndash;&gt;-->
+<!--                                &lt;!&ndash;/>&ndash;&gt;-->
+<!--                        &lt;!&ndash;</p:commandButton>&ndash;&gt;-->
+<!--                    </p:column>-->
 
-                    <!-- Footer -->
-                    <f:facet name="footer">
-                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbBioLookup.entityList.size() == 0}" />
-                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbBioLookup.entityList.size() == 1}" />
-                        <h:outputFormat value="#{msg.search_results_status_n}" rendered="#{mbBioLookup.entityList.size() > 1}">
-                            <f:param value="#{mbPatient.selectedEntity.bioSpecimens.size()}" />
-                        </h:outputFormat>
-                    </f:facet>
-                </p:treeTable>
-            </p:tab>
+<!--                    &lt;!&ndash; Footer &ndash;&gt;-->
+<!--                    <f:facet name="footer">-->
+<!--                        <h:outputText value="#{msg.search_results_status_0}" rendered="#{mbBioLookup.entityList.size() == 0}" />-->
+<!--                        <h:outputText value="#{msg.search_results_status_1}" rendered="#{mbBioLookup.entityList.size() == 1}" />-->
+<!--                        <h:outputFormat value="#{msg.search_results_status_n}" rendered="#{mbBioLookup.entityList.size() > 1}">-->
+<!--                            <f:param value="#{mbPatient.selectedEntity.bioSpecimens.size()}" />-->
+<!--                        </h:outputFormat>-->
+<!--                    </f:facet>-->
+<!--                </p:treeTable>-->
+<!--            </p:tab>-->
         </p:tabView>
     </ui:define>
 
-    <!-- Definition of dialogs place holder -->
+    <!-- Definition of dialogs placeholder -->
     <ui:define name="dialogs">
 
         <!-- New -->

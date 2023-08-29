@@ -67,6 +67,12 @@ public interface IOpenClinicaDataRepository {
 
     List<StudySubject> findStudySubjectsWithEvents(String studyIdentifier);
 
+    List<StudySubject> findStudySubjectsOfChildrenStudiesWithEvents(String studyIdentifier);
+
+    List<StudySubject> findStudySubjectsWithEventsAndTreatmentGroups(String studyIdentifier);
+
+    List<StudySubject> findStudySubjectsOfChildrenStudiesWithEventsAndTreatmentGroups(String studyIdentifier);
+
     public int setPidOnExistingStudySubject(StudySubject studySubject, String ocUserName) throws DataBaseItemNotFoundException;
 
     int setSecondaryIdOnExistingStudySubject(StudySubject studySubject, String ocUserName) throws DataBaseItemNotFoundException;

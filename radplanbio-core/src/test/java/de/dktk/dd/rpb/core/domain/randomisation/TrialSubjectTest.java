@@ -21,12 +21,13 @@ package de.dktk.dd.rpb.core.domain.randomisation;
 
 import de.dktk.dd.rpb.core.domain.criteria.DichotomousCriterion;
 import de.dktk.dd.rpb.core.domain.criteria.constraints.DichotomousConstraint;
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,9 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Trial subject
@@ -46,7 +49,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
  * http://dschrimpf.github.io/randi3/
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TrialSubjectTest.class, Logger.class})
+@PrepareForTest({TrialSubjectTest.class, Logger.class, LoggerFactory.class})
 public class TrialSubjectTest {
 
     private int id = 0;
@@ -54,8 +57,9 @@ public class TrialSubjectTest {
     @Before
     public void setUp() {
         mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
         Logger logger = mock(Logger.class);
-        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
     }
 
     @Test

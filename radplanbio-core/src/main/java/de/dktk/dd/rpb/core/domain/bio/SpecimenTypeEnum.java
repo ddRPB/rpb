@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2017 Tomas Skripcak
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,6 @@
 
 package de.dktk.dd.rpb.core.domain.bio;
 
-/**
- * Created by root on 12/22/16.
- */
 public enum SpecimenTypeEnum {
 
     LIQUID("LIQUID"),

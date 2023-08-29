@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Pid</comment>
+
+    <entry key="pid">PID</entry>
+    <entry key="pid_plural">PIDs</entry>
+    <entry key="pid_reload">Vorhandenen PIDs neu laden</entry>
+    <entry key="pid_print">Tabelle PIDs drucken</entry>
+    <entry key="pid_new">Neue PID definieren</entry>
+    <entry key="pid_edit">Ausgewählten PID bearbeiten</entry>
+    <entry key="pid_delete">Ausgewählten PID löschen</entry>
+
+    <!-- attributes -->
+    <entry key="pid_id">ID</entry>
+    <entry key="pid_baseUrl">Base URL</entry>
+    <entry key="pid_apiKey">API key</entry>
+    <entry key="pid_username">Benutzername</entry>
+    <entry key="pid_password">Passwort</entry>
+    <entry key="pid_isEnabled">Aktiviert</entry>
+    <entry key="pid_version">Version</entry>
+
+</properties>

@@ -8,14 +8,14 @@
 	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/main.xhtml"
     >
-    <!-- Definition of bradcrumbs place holder -->
+    <!-- Definition of breadcrumbs placeholder -->
     <ui:define name="breadcrumbs">
         <p:breadCrumb>
             <p:menuitem value="#{msg.home}" title="#{msg.home}" url="/home.faces" />
         </p:breadCrumb>
     </ui:define>
 
-    <!-- Definition of content place holder content -->
+    <!-- Definition of content placeholder content -->
 	<ui:define name="content">
         <!-- Main Homepage Panel-->
 		<p:panel header="#{msg.welcome}">
@@ -32,20 +32,25 @@
                         It delivers a study management and electronic data capture system with special extensions dedicated to secure upload of medical imaging and treatment plans in DICOM format.
                     </p>
                     <p style="text-align:justify;">
-                        The RPB-portal requirements:
+                        The RPB web applications requirements:
                     </p>
                     <ul>
-                        <li>Web browsers: Firefox >= 78, Chrome/Chromium/Microsoft Edge >= 86</li>
-                        <li>DICOM viewer: Java Runtime Environment (JRE) >= 8.0</li>
+                        <li>Web browsers: Firefox >= 91, Chrome/Chromium/Microsoft Edge >= 103</li>
                     </ul>
                     <p style="text-align:justify;">
-                        The RPB-client requirements (for DICOM data de-identification and upload):
+                        The RPB desktop client requirements (for DICOM data de-identification and upload):
                     </p>
                     <ul>
                         <li>64-bit desktop computer (Windows 10)</li>
                     </ul>
                     <p style="text-align:justify;">
-                        The connection to the RPB platform is only allowed for registered <h:outputLink value="collaboration.faces">partner sites</h:outputLink>.
+                        The Weasis DICOM viewer requirements:
+                    </p>
+                    <ul>
+                        <li>Java Runtime Environment (JRE) >= 8.0</li>
+                    </ul>
+                    <p style="text-align:justify;">
+                        The connection to the RPB platform is only allowed for registered partner sites.
                     </p>
 				</p:outputPanel>
 			</p>

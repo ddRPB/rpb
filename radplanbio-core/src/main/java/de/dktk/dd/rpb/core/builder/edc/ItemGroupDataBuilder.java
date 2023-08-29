@@ -22,7 +22,8 @@ package de.dktk.dd.rpb.core.builder.edc;
 import de.dktk.dd.rpb.core.domain.edc.ItemData;
 import de.dktk.dd.rpb.core.domain.edc.ItemGroupData;
 import de.dktk.dd.rpb.core.exception.MissingPropertyException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -32,7 +33,7 @@ import org.apache.log4j.Logger;
 public class ItemGroupDataBuilder {
     //region Finals
 
-    private static final Logger log = Logger.getLogger(ItemGroupDataBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(ItemGroupDataBuilder.class);
     private final ItemGroupData itemGroupData = new ItemGroupData();
 
     // endregion

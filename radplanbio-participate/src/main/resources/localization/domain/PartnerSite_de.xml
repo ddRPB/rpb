@@ -13,19 +13,23 @@
     <entry key="partnerSite_delete">Ausgewählten Standort löschen</entry>
 
     <!-- attributes -->
-    <entry key="partnerSite_id">Id</entry>
+    <entry key="partnerSite_id">ID</entry>
     <entry key="partnerSite_identifier">Kennzeichnung</entry>
     <entry key="partnerSite_siteName">Name</entry>
     <entry key="partnerSite_description">Beschreibung</entry>
     <entry key="partnerSite_latitude">Latitude</entry>
     <entry key="partnerSite_longitude">Longitude</entry>
+    <entry key="partnerSite_ipRange">IP Bereich</entry>
     <entry key="partnerSite_isEnabled">Aktiviert</entry>
 
     <!-- one-to-one -->
     <entry key="partnerSite_pacs">PACS</entry>
     <entry key="partnerSite_edc">EDC</entry>
+    <entry key="partnerSite_formEngine">FORM</entry>
     <entry key="partnerSite_portal">Portal</entry>
     <entry key="partnerSite_pid">PID</entry>
+    <entry key="partnerSite_bio">BIO</entry>
+    <entry key="partnerSite_lab">LAB</entry>
     <entry key="partnerSite_server">Web-API</entry>
 
     <!-- one-to-many -->

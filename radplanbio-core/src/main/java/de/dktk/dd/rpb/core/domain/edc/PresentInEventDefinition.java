@@ -20,8 +20,8 @@
 package de.dktk.dd.rpb.core.domain.edc;
 
 import de.dktk.dd.rpb.core.adapter.NoYesBooleanAdapter;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -45,7 +45,7 @@ public class PresentInEventDefinition implements Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(PresentInEventDefinition.class);
+    private static final Logger log = LoggerFactory.getLogger(PresentInEventDefinition.class);
 
     //endregion
 

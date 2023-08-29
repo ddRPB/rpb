@@ -1,7 +1,7 @@
 /*
  * This file is part of RadPlanBio
  *
- * Copyright (C) 2013-2020 RPB Team
+ * Copyright (C) 2013-2022 RPB Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,14 @@ import de.dktk.dd.rpb.core.domain.ctms.Study;
 import de.dktk.dd.rpb.core.domain.edc.StudySubject;
 import de.dktk.dd.rpb.core.domain.edc.Subject;
 import de.dktk.dd.rpb.core.domain.edc.sorter.StudyListSorter;
-import de.dktk.dd.rpb.core.domain.pacs.*;
+import de.dktk.dd.rpb.core.domain.pacs.DicomImage;
+import de.dktk.dd.rpb.core.domain.pacs.DicomSeries;
+import de.dktk.dd.rpb.core.domain.pacs.DicomStudy;
+import de.dktk.dd.rpb.core.domain.pacs.StagedDicomSeries;
+import de.dktk.dd.rpb.core.domain.pacs.StagedDicomSeriesVirtualSeries;
+import de.dktk.dd.rpb.core.domain.pacs.StagedDicomStudy;
+import de.dktk.dd.rpb.core.domain.pacs.StagedSubject;
+import de.dktk.dd.rpb.core.facade.ParallelConquestRequestsFacade;
 import de.dktk.dd.rpb.core.repository.support.Repository;
 import de.dktk.dd.rpb.core.service.AuditEvent;
 import de.dktk.dd.rpb.core.service.AuditLogService;
@@ -35,13 +42,21 @@ import de.dktk.dd.rpb.core.util.DicomUidReGeneratorUtil;
 import de.dktk.dd.rpb.core.util.PatientIdentifierUtil;
 import de.dktk.dd.rpb.core.util.StudySubjectListUtil;
 import de.dktk.dd.rpb.portal.facade.StudyIntegrationFacade;
+import de.dktk.dd.rpb.portal.web.builder.DicomStudyVirtualNodeTreeBuilder;
 import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.DataTableUtil;
-import org.apache.log4j.Logger;
+import de.dktk.dd.rpb.portal.web.util.PrimeFacesTreeHelper;
+import org.apache.commons.lang.SerializationUtils;
+import org.json.JSONException;
 import org.omnifaces.util.Faces;
+import org.primefaces.component.tabview.Tab;
+import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
+import org.primefaces.model.TreeNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
@@ -51,9 +66,22 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
-import static de.dktk.dd.rpb.core.util.Constants.*;
+import static de.dktk.dd.rpb.core.util.Constants.DICOM_RTDOSE;
+import static de.dktk.dd.rpb.core.util.Constants.DICOM_RTIMAGE;
+import static de.dktk.dd.rpb.core.util.Constants.DICOM_RTPLAN;
+import static de.dktk.dd.rpb.core.util.Constants.DICOM_RTSTRUCT;
+import static de.dktk.dd.rpb.core.util.Constants.RPB_IDENTIFIERSEP;
+import static de.dktk.dd.rpb.core.util.Constants.study0EdcCode;
+import static de.dktk.dd.rpb.core.util.Constants.study0Identifier;
 
 /**
  * ViewModel bean for PACS (User PartnerSite PACS) centric DICOM lookup
@@ -67,8 +95,8 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(DicomLookupBean.class);
-    
+    private static final Logger log = LoggerFactory.getLogger(DicomLookupBean.class);
+
     private final MainBean mainBean;
     private final StudyIntegrationFacade studyIntegrationFacade;
     private final ICtpService ctpService;
@@ -76,7 +104,7 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
     //endregion
 
     //region Members
-    
+
     private final AuditLogService auditLogService;
     private Study rpbStudy;
     private List<StudySubject> studySubjectsList;
@@ -94,6 +122,18 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
     private List<StagedDicomSeries> selectedDicomSeries = new ArrayList<>();
     private List<StagedDicomSeries> stagedDicomSeries;
 
+    private DicomStudyVirtualNodeTreeBuilder dicomStudyVirtualNodeTreeBuilder;
+    private TreeNode dicomSeriesTree;
+    private TreeNode[] selectedDicomSeriesNodes;
+    private StagedDicomSeries selectedStagedSeries;
+
+    private int progress = 0;
+    // limits the count of subjects per search in ddlStudySubjects component
+    private int maxSubjectsPerSearch = 10;
+
+    private List<String> availableSeriesModalities = new ArrayList<>();
+    private String[] queriedDicomSeriesModality;
+
     //endregion
 
     //region Constructor
@@ -108,7 +148,7 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
     }
 
     // endregion
-    
+
     //region Properties
 
     public List<StagedSubject> getStagedSubjects() {
@@ -215,6 +255,50 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         this.selectedDicomStudy = selectedDicomStudy;
     }
 
+    public TreeNode getDicomSeriesTree() {
+        return dicomSeriesTree;
+    }
+
+    public void setDicomSeriesTree(TreeNode dicomSeriesTree) {
+        this.dicomSeriesTree = dicomSeriesTree;
+    }
+
+    public TreeNode[] getSelectedDicomSeriesNodes() {
+        return selectedDicomSeriesNodes;
+    }
+
+    public void setSelectedDicomSeriesNodes(TreeNode[] selectedDicomSeriesNodes) {
+        this.selectedDicomSeriesNodes = selectedDicomSeriesNodes;
+    }
+
+    public StagedDicomSeries getSelectedStagedSeries() {
+        return selectedStagedSeries;
+    }
+
+    public void setSelectedStagedSeries(StagedDicomSeries selectedStagedSeries) {
+        this.selectedStagedSeries = selectedStagedSeries;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public int getMaxSubjectsPerSearch() {
+        return maxSubjectsPerSearch;
+    }
+
+    public List<String> getAvailableSeriesModalities() {
+        return availableSeriesModalities;
+    }
+
+    public String[] getQueriedDicomSeriesModality() {
+        return queriedDicomSeriesModality;
+    }
+
+    public void setQueriedDicomSeriesModality(String[] queriedDicomSeriesModality) {
+        this.queriedDicomSeriesModality = queriedDicomSeriesModality;
+    }
+
     /**
      * Get Repository
      *
@@ -239,9 +323,13 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
                 this.buildSortOrder()
         );
 
+        createAvailableSeriesModalities();
+        this.queriedDicomSeriesModality = new String[]{DICOM_RTSTRUCT, DICOM_RTPLAN, DICOM_RTDOSE};
+
         this.studyIntegrationFacade.init(this.mainBean);
         this.studyIntegrationFacade.setRetrieveStudySubjectOID(Boolean.FALSE);
         this.initializeVisibleComponentMap();
+
 
         try {
             this.rpbStudy = this.studyIntegrationFacade.loadStudyWithMetadata();
@@ -253,6 +341,13 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         }
     }
 
+    private void createAvailableSeriesModalities() {
+        this.availableSeriesModalities.add(DICOM_RTSTRUCT);
+        this.availableSeriesModalities.add(DICOM_RTPLAN);
+        this.availableSeriesModalities.add(DICOM_RTDOSE);
+        this.availableSeriesModalities.add(DICOM_RTIMAGE);
+    }
+
     /**
      * After initialisation
      */
@@ -260,6 +355,10 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         // Do not trigger load when is is AJAX post back that refreshes the partial component views
         if (!FacesContext.getCurrentInstance().isPostback()) {
             if (this.collectsDicomData()) {
+
+                DicomStudyVirtualNodeTreeBuilder dicomStudyVirtualNodeTreeBuilder = new DicomStudyVirtualNodeTreeBuilder();
+                this.dicomSeriesTree = dicomStudyVirtualNodeTreeBuilder.build();
+
                 try {
                     this.studySubjectsList = this.studyIntegrationFacade.loadStudySubjects();
                     if (this.isInStudyZero()) {
@@ -279,22 +378,24 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             }
         }
     }
-    
+
     //endregion
 
     //region Methods
-    
+
     public boolean collectsDicomData() {
         return Boolean.parseBoolean(this.rpbStudy.getTagValue("DICOM"));
     }
 
     /**
-     * Iterates on the studySubjectList and returns a list of subjects where the StudySubjectId matches the queryString
+     * Iterates on the studySubjectList and returns a list of subjects where the StudySubjectId or PID
+     * matches the queryString. The count of results depends in the this.maxSubjectsPerSearch property and is
+     * maxSubjectsPerSearch + 1 to trigger in the UI that the information is shows that there are more results.
      *
-     * @param studySubjectIdQuery partial string of the StudySubjectId
+     * @param studySubjectIdOrPidQuery partial string of the StudySubjectId or PID
      * @return Ordered list of matching StudySubjects
      */
-    public List<StudySubject> filterMatchingStudySubjects(String studySubjectIdQuery) {
+    public List<StudySubject> filterMatchingStudySubjects(String studySubjectIdOrPidQuery) {
 
         List<StudySubject> filteredResults = new ArrayList<>();
 
@@ -306,9 +407,26 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             return filteredResults;
         }
 
+
         for (StudySubject ss : this.studySubjectsList) {
-            if (ss.getStudySubjectId().contains(studySubjectIdQuery)) {
+            // the UI shows a maximum count of subjects -> stop adding more results if we have 11
+            // one more, because the UI then shows that there are more results
+            if (filteredResults.size() > this.maxSubjectsPerSearch) {
+                break;
+            }
+
+            if (ss.getStudySubjectId().toUpperCase().contains(studySubjectIdOrPidQuery.toUpperCase())) {
                 filteredResults.add(ss);
+            } else {
+
+                if (ss.getPid() != null) {
+                    if (!ss.getPid().isEmpty()) {
+                        if (ss.getPid().toUpperCase().contains(studySubjectIdOrPidQuery.toUpperCase())) {
+                            filteredResults.add(ss);
+                        }
+                    }
+                }
+
             }
         }
 
@@ -425,7 +543,6 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         String dicomPatientId = selectedSubject.getUniqueIdentifier();
         String clinicalStudyUid = selectedDicomStudy.getClinicalStudyInstanceUid();
 
-        DicomStudy clinicalStudy = getClinicalDicomStudyFromPacs(clinicalStudyUid);
         DicomStudy stageOneStudy = getStageOneDicomStudyFromPacs(dicomPatientId);
         DicomStudy stageTwoStudy = getStageTwoDicomStudyFromPacs(dicomPatientId);
 
@@ -434,6 +551,7 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         String partnerSideCode = this.mainBean.getMyAccount().getPartnerSite().getIdentifier();
 
         if (!clinicalStudyUid.isEmpty()) {
+            DicomStudy clinicalStudy = getClinicalDicomStudyFromPacs(clinicalStudyUid);
             this.stagedDicomSeries = DicomSeriesToStagedDicomSeriesConverter.getStagedDicomSeries(
                     clinicalStudy.getStudySeries(), stageOneStudy.getStudySeries(), uidPrefix);
             updateSelectedStagedStudyWithSeriesInformation(clinicalStudy);
@@ -442,6 +560,120 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
                     stageOneStudy.getStudySeries(), stageTwoStudy.getStudySeries(), uidPrefix, partnerSideCode, edcCode);
             updateSelectedStagedStudyWithSeriesInformation(stageOneStudy);
         }
+
+        if (minOneStagedSeriesHasRtStructImage()) {
+            this.dicomStudyVirtualNodeTreeBuilder = new DicomStudyVirtualNodeTreeBuilder(this.stagedDicomSeries);
+            this.dicomSeriesTree = this.dicomStudyVirtualNodeTreeBuilder.build();
+        } else {
+            this.dicomSeriesTree.getChildren().clear();
+        }
+    }
+
+    private boolean minOneStagedSeriesHasRtStructImage() {
+        for (StagedDicomSeries series : this.stagedDicomSeries) {
+            if (series.getSeriesModality().equals(DICOM_RTSTRUCT)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Creates a tree of StagedDicomSeries, based on the relations from series details if details are not loaded yet.
+     * The tree will be stored on this.dicomSeriesTree.
+     *
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws JSONException
+     */
+    public void updateSeriesTreeWithDetailsIfNecessary() throws InterruptedException, ExecutionException, JSONException {
+        if (this.selectedDicomStudy == null) {
+            return;
+        }
+
+        if (this.dicomStudyVirtualNodeTreeBuilder.hasDicomSeriesDetailData()) {
+            return;
+        }
+        this.updateSeriesTreeWithDetails();
+
+    }
+
+    /**
+     * Creates a tree of StagedDicomSeries, based on the relations from series details.
+     * The tree will be stored on this.dicomSeriesTree.
+     *
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws JSONException
+     */
+    public void updateSeriesTreeWithDetails() throws InterruptedException, ExecutionException, JSONException {
+
+        if (this.selectedDicomStudy == null) {
+            return;
+        }
+
+        ParallelConquestRequestsFacade parallelConquestRequests = new ParallelConquestRequestsFacade(
+                this.mainBean.getClinicalPacsService(),
+                this.mainBean.getPacsService(),
+                this.selectedDicomStudy,
+                this.selectedSubject
+        );
+
+        // Clone to avoid side effect when requesting details again with fewer details
+        List<StagedDicomSeries> updatedStagedDicomSeries = new ArrayList<>();
+        for (StagedDicomSeries series : this.stagedDicomSeries
+        ) {
+            updatedStagedDicomSeries.add((StagedDicomSeries) SerializationUtils.clone(series));
+        }
+
+        List<StagedDicomSeries> requestImagesList = new ArrayList<>();
+
+        // limit the requests of DicomSeries instances to improve the performance
+        if (queriedDicomSeriesModality.length < this.availableSeriesModalities.size()) {
+            addStagedDicomSeriesBasedOnModalityList(requestImagesList, updatedStagedDicomSeries);
+        } else {
+            requestImagesList.addAll(updatedStagedDicomSeries);
+        }
+
+        parallelConquestRequests.addDicomImagesToDicomSeriesList(requestImagesList);
+
+        this.dicomStudyVirtualNodeTreeBuilder = new DicomStudyVirtualNodeTreeBuilder(updatedStagedDicomSeries);
+        this.dicomSeriesTree = this.dicomStudyVirtualNodeTreeBuilder.build();
+    }
+
+    /**
+     * Adds StagedDicomSeries to the list that have a Modality that is not on the filter list.
+     *
+     * @param filteredStagedDicomSeriesList List where StagedDicomSeries will be added
+     */
+    private void addStagedDicomSeriesBasedOnModalityList(List<StagedDicomSeries> filteredStagedDicomSeriesList, List<StagedDicomSeries> updatedStagedDicomSeries) {
+        for (StagedDicomSeries stagedDicomSeries : updatedStagedDicomSeries
+        ) {
+            if (Arrays.asList(this.queriedDicomSeriesModality).contains(stagedDicomSeries.getSeriesModality())) {
+                filteredStagedDicomSeriesList.add(stagedDicomSeries);
+            }
+        }
+    }
+
+    /**
+     * Iterates on the tree of StagedDicomSeries nodes and copies selected nodes and its parents into
+     * the selectedDicomSeries List to be staged in the same way as in the table view.
+     */
+    public void stageChosenDicomSeriesFromTreeView() {
+
+        if (this.selectedDicomSeriesNodes == null) {
+            return;
+        }
+
+        try {
+            this.selectedDicomSeries = PrimeFacesTreeHelper.extractAllDataIncludingParents(this.selectedDicomSeriesNodes);
+        } catch (Exception e) {
+            String message = "There was a problem to get StagedDicomSeries from a node that was selected in tree view.";
+            log.warn(message, e);
+            messageUtil.warning(message, e);
+        }
+
+        this.stageChosenDicomSeries();
     }
 
     /**
@@ -454,11 +686,6 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             return;
         }
 
-        if (this.selectedDicomSeries.size() == this.stagedDicomSeries.size()) {
-            stageCompleteDicomStudy();
-            return;
-        }
-
         String dicomPatientId;
         String patientPseudonym;
         String dicomStudyUid;
@@ -468,6 +695,13 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             dicomPatientId = PatientIdentifierUtil.removePatientIdPrefix(this.selectedSubject.getStudySubjectId());
             patientPseudonym = this.selectedSubject.getUniqueIdentifier();
             dicomStudyUid = this.selectedDicomStudy.getClinicalStudyInstanceUid();
+
+            if (dicomStudyUid.isEmpty()) {
+                String errorMessage = "The clinical study identifier is empty. " +
+                        "The study was probably uploaded from another system to study zero.";
+                this.messageUtil.errorText(errorMessage);
+            }
+
             update = this.selectedDicomStudy.hasStageOneRepresentation();
         } else {
             dicomPatientId = this.selectedSubject.getUniqueIdentifier();
@@ -485,14 +719,81 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
 
         for (StagedDicomSeries series : this.selectedDicomSeries) {
             boolean moveSuccess;
-            if (isInStudyZero()) {
-                moveSuccess = triggerDicomSeriesMoveOnClinicalPacs(patientPseudonym, dicomPatientId, dicomStudyUid, auditEvent, aetPrefix, edcCode, uidPrefix, series);
+            /**
+             * StagedDicomSeriesVirtualSeries represent just a part of a series with the DicomImages that have
+             * a reference to the same DICOM Series. Here we need to move image by image to exclude unwanted
+             * images that would come with the full series.
+             */
+            if (isMoveCompleteSeries(series)) {
+                if (isInStudyZero()) {
+                    moveSuccess = triggerDicomSeriesMoveOnClinicalPacs(patientPseudonym, dicomPatientId, dicomStudyUid, auditEvent, aetPrefix, edcCode, uidPrefix, series);
+                } else {
+                    moveSuccess = triggerDicomSeriesMoveOnPacsService(patientPseudonym, dicomPatientId, dicomStudyUid, auditEvent, aetPrefix, edcCode, uidPrefix, partnerSideCode, series);
+                }
+                handleStagingSeriesErrors(series, moveSuccess);
             } else {
-                moveSuccess = triggerDicomSeriesMoveOnPacsService(patientPseudonym, dicomPatientId, dicomStudyUid, auditEvent, aetPrefix, edcCode, uidPrefix, partnerSideCode, series);
+                if (series.getAvailableDicomImages() != null) {
+                    for (DicomImage image : series.getAvailableDicomImages()) {
+
+                        if (isInStudyZero()) {
+                            moveSuccess = triggerDicomSopInstanceMoveOnClinicalPacs(patientPseudonym, dicomPatientId, dicomStudyUid, series.getSeriesInstanceUID(), image.getSopInstanceUID(), auditEvent, aetPrefix, edcCode, uidPrefix, partnerSideCode);
+                        } else {
+                            moveSuccess = triggerDicomSopInstanceMoveOnPacsService(patientPseudonym, dicomPatientId, dicomStudyUid, series.getSeriesInstanceUID(), image.getSopInstanceUID(), auditEvent, aetPrefix, edcCode, uidPrefix, partnerSideCode);
+                        }
+                        handleStagingImageErrors(image, moveSuccess);
+                    }
+                }
             }
-            handleStagingSeriesErrors(series, moveSuccess);
         }
 
+    }
+
+    /**
+     * Decides if a series can be moved complete as it is or if it needs to be moved image by image
+     *
+     * @param stagedDicomSeries series that should be moved
+     * @return boolean true if the series can be moved complete
+     */
+    private boolean isMoveCompleteSeries(StagedDicomSeries stagedDicomSeries) {
+
+        if (stagedDicomSeries instanceof StagedDicomSeriesVirtualSeries) {
+            return ((StagedDicomSeriesVirtualSeries) stagedDicomSeries).isOriginal();
+        }
+
+        return true;
+    }
+
+    /**
+     * Verifies that all identifier are present to allow to stage the selected study
+     *
+     * @return Study can be staged
+     */
+    public boolean selectedStudyCanBeStaged() {
+
+        if (this.selectedDicomStudy == null) {
+            return false;
+        }
+
+        String dicomStudyUid = "";
+
+        if (isInStudyZero()) {
+            dicomStudyUid = this.selectedDicomStudy.getClinicalStudyInstanceUid();
+
+            if (dicomStudyUid.isEmpty()) {
+                String errorMessage = "The clinical study identifier is empty. " +
+                        "The study was probably uploaded from another system to study zero.";
+                messageUtil.errorText(errorMessage);
+                return false;
+            } else {
+                dicomStudyUid = this.selectedDicomStudy.getStudyInstanceUID();
+                if (dicomStudyUid.isEmpty()) {
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
     }
 
     /**
@@ -527,6 +828,41 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             return false;
         }
         return this.getCurrentStudyEdcCode().equals(study0EdcCode);
+    }
+
+    /**
+     * On tab change event listener
+     *
+     * @param event TabChangeEvent triggered on changing the tab in the view
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws JSONException
+     */
+    public void onDicomStagedSeriesDialogFormTabViewTabChange(TabChangeEvent event) throws
+            InterruptedException, ExecutionException, JSONException {
+        if (event != null) {
+            Tab tab = event.getTab();
+            if (tab.getId().equals("dicomStagedSeriesDialogFormTreeTableTab")) {
+                this.updateSeriesTreeWithDetailsIfNecessary();
+            }
+        }
+    }
+
+    /**
+     * UI helper
+     *
+     * @return true if one or more DicomSeriesNodes are selected
+     */
+    public boolean hasSelectedDicomSeriesNodes() {
+        if (this.selectedDicomSeriesNodes == null) {
+            return false;
+        }
+
+        if (this.selectedDicomSeriesNodes.length == 0) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -643,10 +979,9 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         colPath = ":dicomStagedSeriesDialogForm:DicomStudyDetailTable:seriesUidColumn";
         column = viewRoot.findComponent(colPath);
         if (column != null) {
-            DataTableUtil.addSortOrder(results, colPath, "colSubjectUid", SortOrder.ASCENDING);
+            DataTableUtil.addSortOrder(results, colPath, "seriesUidColumn", SortOrder.ASCENDING);
         }
 
-        DataTableUtil.addSortOrder(results, colPath, "seriesUidColumn", SortOrder.ASCENDING);
         return results;
     }
 
@@ -823,14 +1158,39 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         }
     }
 
-    private boolean triggerDicomSeriesMoveOnPacsService(String patientPseudonym, String dicomPatientId, String dicomStudyUid, AuditEvent auditEvent, String aetPrefix, String edcCode, String uidPrefix, String partnerSideCode, StagedDicomSeries series) {
+    private void handleStagingImageErrors(DicomImage image, boolean moveSuccess) {
+        if (!moveSuccess) {
+            String errorMessage = "There was a problem staging the image";
+            if (image != null) {
+                errorMessage += image.toString();
+            }
+            log.error(errorMessage);
+            messageUtil.errorText(errorMessage);
+        }
+    }
+
+    private boolean triggerDicomSeriesMoveOnPacsService(String patientPseudonym, String dicomPatientId, String
+            dicomStudyUid, AuditEvent auditEvent, String aetPrefix, String edcCode, String uidPrefix, String
+                                                                partnerSideCode, StagedDicomSeries series) {
         this.auditLogService.event(auditEvent, "DicomSeries", this.rpbStudy.getProtocolId() + "/" + patientPseudonym, DicomUidReGeneratorUtil.generateStageTwoUid(uidPrefix, partnerSideCode, edcCode, dicomStudyUid) + " / " + DicomUidReGeneratorUtil.generateStageTwoUid(uidPrefix, partnerSideCode, edcCode, series.getSeriesInstanceUID()));
         return this.mainBean.getPacsService().moveDicomSeries(dicomPatientId, dicomStudyUid, series.getSeriesInstanceUID(), aetPrefix + edcCode);
     }
 
-    private boolean triggerDicomSeriesMoveOnClinicalPacs(String patientPseudonym, String dicomPatientId, String dicomStudyUid, AuditEvent auditEvent, String aetPrefix, String edcCode, String uidPrefix, StagedDicomSeries series) {
+    private boolean triggerDicomSeriesMoveOnClinicalPacs(String patientPseudonym, String dicomPatientId, String
+            dicomStudyUid, AuditEvent auditEvent, String aetPrefix, String edcCode, String uidPrefix, StagedDicomSeries
+                                                                 series) {
         this.auditLogService.event(auditEvent, "DicomSeries", this.rpbStudy.getProtocolId() + "/" + patientPseudonym, DicomUidReGeneratorUtil.generateStageOneUid(uidPrefix, dicomStudyUid) + " / " + DicomUidReGeneratorUtil.generateStageOneUid(uidPrefix, series.getSeriesInstanceUID()));
         return this.mainBean.getClinicalPacsService().moveDicomSeries(dicomPatientId, dicomStudyUid, series.getSeriesInstanceUID(), aetPrefix + edcCode);
+    }
+
+    private boolean triggerDicomSopInstanceMoveOnPacsService(String patientPseudonym, String dicomPatientId, String dicomStudyUid, String dicomSeriesUid, String dicomSopInstanceId, AuditEvent auditEvent, String aetPrefix, String edcCode, String uidPrefix, String partnerSideCode) {
+        this.auditLogService.event(auditEvent, "SOP Instance", this.rpbStudy.getProtocolId() + "/" + patientPseudonym, DicomUidReGeneratorUtil.generateStageTwoUid(uidPrefix, partnerSideCode, edcCode, dicomStudyUid) + " / " + DicomUidReGeneratorUtil.generateStageTwoUid(uidPrefix, partnerSideCode, edcCode, dicomSeriesUid) + " / " + DicomUidReGeneratorUtil.generateStageTwoUid(uidPrefix, partnerSideCode, edcCode, dicomSopInstanceId));
+        return this.mainBean.getPacsService().moveDicomSopInstance(dicomPatientId, dicomStudyUid, dicomSeriesUid, dicomSopInstanceId, aetPrefix + edcCode);
+    }
+
+    private boolean triggerDicomSopInstanceMoveOnClinicalPacs(String patientPseudonym, String dicomPatientId, String dicomStudyUid, String dicomSeriesUid, String dicomSopInstanceId, AuditEvent auditEvent, String aetPrefix, String edcCode, String uidPrefix, String partnerSideCode) {
+        this.auditLogService.event(auditEvent, "SOP Instance", this.rpbStudy.getProtocolId() + "/" + patientPseudonym, DicomUidReGeneratorUtil.generateStageOneUid(uidPrefix, dicomStudyUid) + " / " + DicomUidReGeneratorUtil.generateStageOneUid(uidPrefix, dicomSeriesUid) + " / " + DicomUidReGeneratorUtil.generateStageOneUid(uidPrefix, dicomSopInstanceId));
+        return this.mainBean.getClinicalPacsService().moveDicomSopInstance(dicomPatientId, dicomStudyUid, dicomSeriesUid, dicomSopInstanceId, aetPrefix + edcCode);
     }
 
     private AuditEvent getPacsDataAuditEvent(Boolean update) {
@@ -840,7 +1200,8 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         return AuditEvent.PACSDataCreation;
     }
 
-    private boolean triggerDicomStudyMoveOnPacsService(String aetPrefix, String uidPrefix, String edcCode, String partnerSideCode) {
+    private boolean triggerDicomStudyMoveOnPacsService(String aetPrefix, String uidPrefix, String edcCode, String
+            partnerSideCode) {
         String dicomPatientId = selectedSubject.getUniqueIdentifier();
         String dicomStudyUid = selectedDicomStudy.getStudyInstanceUID();
         Boolean update = selectedDicomStudy.hasStageTwoRepresentation();
@@ -858,6 +1219,7 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
         this.auditLogService.event(auditEvent, "DicomStudy", this.rpbStudy.getProtocolId() + "/" + patientPseudonym, DicomUidReGeneratorUtil.generateStageOneUid(uidPrefix, dicomStudyUid));
         return this.mainBean.getClinicalPacsService().moveDicomStudy(dicomPatientId, dicomStudyUid, aetPrefix + edcCode);
     }
+
 
     private void handleStagingStudyErrors(boolean moveSuccess) {
         if (!moveSuccess) {
@@ -887,7 +1249,7 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             }
 
         } catch (Exception err) {
-            log.error(err);
+            log.error(err.getMessage(), err);
             this.messageUtil.error(err);
         }
     }
@@ -912,12 +1274,12 @@ public class DicomLookupBean extends CrudEntityViewModel<StagedSubject, Integer>
             }
 
         } catch (Exception err) {
-            this.log.error(err);
+            this.log.error(err.getMessage(), err);
             this.messageUtil.error(err);
         }
 
     }
 
     //endregion
-    
+
 }

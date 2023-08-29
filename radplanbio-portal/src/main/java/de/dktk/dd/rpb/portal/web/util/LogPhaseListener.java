@@ -19,11 +19,12 @@
 
 package de.dktk.dd.rpb.portal.web.util;
 
+import org.omnifaces.eventlistener.DefaultPhaseListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.faces.event.PhaseEvent;
 import javax.faces.event.PhaseId;
-
-import org.apache.log4j.Logger;
-import org.omnifaces.eventlistener.DefaultPhaseListener;
 
 /**
  * Simple phase listener logger. Convenient when learning/debugging JSF.
@@ -33,7 +34,7 @@ import org.omnifaces.eventlistener.DefaultPhaseListener;
  */
 public class LogPhaseListener extends DefaultPhaseListener {
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(LogPhaseListener.class);
+    private static final Logger log = LoggerFactory.getLogger(LogPhaseListener.class);
 
     public LogPhaseListener() {
         super(PhaseId.ANY_PHASE);
@@ -42,7 +43,7 @@ public class LogPhaseListener extends DefaultPhaseListener {
     @Override
     public void afterPhase(PhaseEvent event) {
         if (log.isDebugEnabled()) {
-            log.debug(event.getPhaseId());
+            log.debug(String.valueOf(event.getPhaseId()));
         }
     }
 

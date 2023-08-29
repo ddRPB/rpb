@@ -21,19 +21,23 @@ package de.dktk.dd.rpb.api.support;
 
 import de.dktk.dd.rpb.core.domain.edc.EventData;
 import de.dktk.dd.rpb.core.util.Constants;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class WebDavUtils {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(WebDavUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(WebDavUtils.class);
 
     //endregion
 

@@ -20,6 +20,8 @@ public interface ILabKeyWebdavHandler {
 
     public String getLabkeyUrl();
 
+    public InputStream getStudyFile() throws IOException;
+
     public InputStream getVisitMapFile() throws IOException;
 
     public void putVisitMapFile(byte[] fileContent) throws IOException;

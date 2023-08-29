@@ -19,28 +19,27 @@
 
 package de.dktk.dd.rpb.core.service;
 
-import de.dktk.dd.rpb.core.util.CacheUtil;
-import net.sf.ehcache.Element;
-import org.apache.log4j.Logger;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPDigestAuthFilter;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-
-import org.json.JSONObject;
+import de.dktk.dd.rpb.core.domain.ctms.Person;
+import de.dktk.dd.rpb.core.util.CacheUtil;
+import net.sf.ehcache.Element;
 import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Named;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-
-import de.dktk.dd.rpb.core.domain.ctms.Person;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * Mainzelliste Pseudonym Generation Service Interface Implementation
@@ -54,7 +53,7 @@ public class MainzellisteService implements IMainzellisteService {
 
     //region Finals
 
-    private static final Logger log = Logger.getLogger(MainzellisteService.class);
+    private static final Logger log = LoggerFactory.getLogger(MainzellisteService.class);
 
     //endregion
 
@@ -262,7 +261,7 @@ public class MainzellisteService implements IMainzellisteService {
                 finalResult = new JSONObject(output);
             }
             catch (Exception err) {
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
 
@@ -624,7 +623,7 @@ public class MainzellisteService implements IMainzellisteService {
                 finalResult = new JSONObject(output);
             }
             catch (Exception err){
-                log.error(err);
+                log.error(err.getMessage(),err);
             }
         }
 

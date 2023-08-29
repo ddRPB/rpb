@@ -20,23 +20,18 @@
 package de.dktk.dd.rpb.core.domain.rpb;
 
 import com.google.common.base.Objects;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-
 import de.dktk.dd.rpb.core.domain.ctms.PartnerSite;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
-import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.persistence.*;
-import javax.validation.constraints.Size;
+import javax.persistence.ManyToMany;
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.util.List;
-
-import static javax.persistence.CascadeType.MERGE;
-import static javax.persistence.CascadeType.PERSIST;
 
 /**
  * AbstractComponent domain entity
@@ -54,7 +49,7 @@ public abstract class AbstractComponent  implements Identifiable<Integer>, Seria
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(AbstractComponent.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractComponent.class);
 
     //endregion
 

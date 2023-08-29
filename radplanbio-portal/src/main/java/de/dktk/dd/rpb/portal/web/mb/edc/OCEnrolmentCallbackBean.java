@@ -37,8 +37,9 @@ import de.dktk.dd.rpb.portal.web.mb.MainBean;
 import de.dktk.dd.rpb.portal.web.mb.support.CrudEntityViewModel;
 import de.dktk.dd.rpb.portal.web.util.MessageUtil;
 import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.log4j.Logger;
 import org.primefaces.model.SortMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 
 import javax.annotation.PostConstruct;
@@ -77,7 +78,7 @@ public class OCEnrolmentCallbackBean extends CrudEntityViewModel<de.dktk.dd.rpb.
     private final MessageUtil messageUtil;
     private final CtpService ctpService;
 
-    private final Logger log = Logger.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private StudyParameterConfiguration studyParameterConfiguration;
     private TreatmentArm treatmentArm;
@@ -442,7 +443,7 @@ public class OCEnrolmentCallbackBean extends CrudEntityViewModel<de.dktk.dd.rpb.
 
         } catch (ParseException e) {
             WrongDateFormatException exception = new WrongDateFormatException(dateString, Constants.RPB_DATEFORMAT);
-            this.log.error(exception);
+            this.log.error(exception.getMessage(), exception);
             throw exception;
         }
     }

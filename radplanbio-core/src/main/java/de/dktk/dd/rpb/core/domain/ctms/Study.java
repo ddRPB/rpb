@@ -25,14 +25,20 @@ import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
 import de.dktk.dd.rpb.core.domain.Named;
 import de.dktk.dd.rpb.core.domain.criteria.AbstractCriterion;
 import de.dktk.dd.rpb.core.domain.criteria.constraints.AbstractConstraint;
-import de.dktk.dd.rpb.core.domain.edc.*;
+import de.dktk.dd.rpb.core.domain.edc.AnnotationType;
+import de.dktk.dd.rpb.core.domain.edc.CrfFieldAnnotation;
+import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
+import de.dktk.dd.rpb.core.domain.edc.FormDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
+import de.dktk.dd.rpb.core.domain.edc.ItemGroupDefinition;
 import de.dktk.dd.rpb.core.domain.edc.mapping.Mapping;
 import de.dktk.dd.rpb.core.domain.randomisation.AbstractRandomisationConfiguration;
 import de.dktk.dd.rpb.core.domain.randomisation.TreatmentArm;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -60,7 +66,7 @@ public class Study implements Identifiable<Integer>, Named, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(Study.class);
+    private static final Logger log = LoggerFactory.getLogger(Study.class);
 
     //endregion
 

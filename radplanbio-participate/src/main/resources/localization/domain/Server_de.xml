@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>Domain resources for Server</comment>
+
+    <entry key="server">Server</entry>
+    <entry key="server_plural">Servers</entry>
+    <entry key="server_reload">Vorhandenen Servers neu laden</entry>
+    <entry key="server_print">Tabelle Servers drucken</entry>
+    <entry key="server_new">Neue Server definieren</entry>
+    <entry key="server_edit">Ausgewählten Server bearbeiten</entry>
+    <entry key="server_delete">Ausgewählten Server löschen</entry>
+
+    <!-- attributes -->
+    <entry key="server_id">ID</entry>
+    <entry key="server_ipAddress">IP Adresse</entry>
+    <entry key="server_port">Port</entry>
+    <entry key="server_publicUrl">Public URL</entry>
+    <entry key="server_isEnabled">Aktiviert</entry>
+    <entry key="server_version">Version</entry>
+
+</properties>

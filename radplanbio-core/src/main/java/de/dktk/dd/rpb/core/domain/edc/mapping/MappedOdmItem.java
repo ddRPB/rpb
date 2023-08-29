@@ -24,7 +24,8 @@ import de.dktk.dd.rpb.core.domain.edc.EventDefinition;
 import de.dktk.dd.rpb.core.domain.edc.FormDefinition;
 import de.dktk.dd.rpb.core.domain.edc.ItemDefinition;
 import de.dktk.dd.rpb.core.domain.edc.ItemGroupDefinition;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -46,7 +47,7 @@ public class MappedOdmItem extends AbstractMappedItem {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(MappedOdmItem.class);
+    private static final Logger log = LoggerFactory.getLogger(MappedOdmItem.class);
 
     //endregion
 

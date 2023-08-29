@@ -19,19 +19,22 @@
 
 package de.dktk.dd.rpb.core.domain.pacs;
 
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({DicomSeries.class, Logger.class})
+@PrepareForTest({DicomSeries.class, Logger.class, LoggerFactory.class})
 public class DicomSeriesTest {
     private Logger logger;
     private DicomSeries dicomSeries;
@@ -39,8 +42,9 @@ public class DicomSeriesTest {
     @Before
     public void setUp() throws Exception {
         mockStatic(Logger.class);
+        mockStatic(LoggerFactory.class);
         logger = mock(Logger.class);
-        when(Logger.getLogger(any(Class.class))).thenReturn(logger);
+        when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
 
         dicomSeries = new DicomSeries();
     }

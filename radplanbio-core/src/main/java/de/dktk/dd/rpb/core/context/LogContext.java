@@ -19,7 +19,7 @@
 
 package de.dktk.dd.rpb.core.context;
 
-import org.apache.log4j.MDC;
+import org.slf4j.MDC;
 
 /**
  * Used to store to use global info for logging purposes. This method prevents passing all the data you want to see in your logs in all the methods.
@@ -61,7 +61,7 @@ public class LogContext {
      * Put a context value (the o parameter) as identified with the key parameter into the current thread's context map.
      */
     public static void put(String key, Object o) {
-        MDC.put(key, o);
+        MDC.put(key, o.toString());
     }
 
     /**
@@ -76,8 +76,8 @@ public class LogContext {
      */
     @SuppressWarnings("unused")
     public static void resetLogContext() {
-        if (MDC.getContext() != null) {
-            MDC.getContext().clear();
+        if (MDC.getCopyOfContextMap() != null) {
+            MDC.clear();
         }
     }
 

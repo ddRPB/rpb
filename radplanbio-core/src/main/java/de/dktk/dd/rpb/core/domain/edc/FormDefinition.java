@@ -23,10 +23,16 @@ import com.google.common.base.Objects;
 import de.dktk.dd.rpb.core.adapter.NoYesBooleanAdapter;
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Transient;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,7 +51,7 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(FormDefinition.class);
+    private static final Logger log = LoggerFactory.getLogger(FormDefinition.class);
 
     //endregion
 
@@ -153,7 +159,7 @@ public class FormDefinition implements Identifiable<Integer>, Serializable {
     //region IsRepeating
 
     public Boolean getIsRepeating() {
-        return this.getIsRepeating();
+        return this.isRepeating;
     }
 
     public void setIsRepeating(Boolean value) {

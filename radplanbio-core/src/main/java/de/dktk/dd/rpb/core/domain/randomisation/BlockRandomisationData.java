@@ -19,12 +19,18 @@
 
 package de.dktk.dd.rpb.core.domain.randomisation;
 
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This randomisation data represents generated sequence of blocks from block randomisation
@@ -42,7 +48,7 @@ public class BlockRandomisationData extends AbstractRandomisationData {
 
     private static final long serialVersionUID = 1L;
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger(BlockRandomisationData.class);
+    private static final Logger log = LoggerFactory.getLogger(BlockRandomisationData.class);
 
     //endregion
 

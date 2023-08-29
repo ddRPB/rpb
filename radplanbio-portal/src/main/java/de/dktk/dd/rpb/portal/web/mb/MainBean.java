@@ -683,11 +683,15 @@ public class MainBean implements Serializable {
             if (this.pacsConfigService.isAuth()) {
                 pacsService.setupConnection(
                         url,
+                        this.pacsConfigService.getThreadPoolSize(),
                         this.pacsConfigService.getPacsUser(),
                         this.pacsConfigService.getPacsPassword()
                 );
             } else {
-                pacsService.setupConnection(url);
+                pacsService.setupConnection(
+                        url,
+                        this.pacsConfigService.getThreadPoolSize()
+                );
             }
         }
 
@@ -747,12 +751,12 @@ public class MainBean implements Serializable {
         if (this.myAccount != null &&
                 this.myAccount.getPartnerSite().hasEnabledBio()) {
 
-//            this.svcBio = new CentraxxService();
-//            this.svcBio.setupConnection(
-//                    this.myAccount.getPartnerSite().getBio().getBaseUrl(),
-//                    this.myAccount.getPartnerSite().getBio().getUsername(),
-//                    this.myAccount.getPartnerSite().getBio().getPassword()
-//            );
+            this.svcBio = new CentraxxService();
+            this.svcBio.setupConnection(
+                    this.myAccount.getPartnerSite().getBio().getBaseUrl(),
+                    this.myAccount.getPartnerSite().getBio().getUsername(),
+                    this.myAccount.getPartnerSite().getBio().getPassword()
+            );
         }
     }
 

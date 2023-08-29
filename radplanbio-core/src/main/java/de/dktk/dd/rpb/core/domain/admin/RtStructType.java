@@ -20,14 +20,20 @@
 package de.dktk.dd.rpb.core.domain.admin;
 
 import com.google.common.base.Objects;
-
-import org.apache.log4j.Logger;
-import org.hibernate.validator.constraints.NotEmpty;
-
 import de.dktk.dd.rpb.core.domain.Identifiable;
 import de.dktk.dd.rpb.core.domain.IdentifiableHashBuilder;
+import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 
@@ -46,7 +52,7 @@ public class RtStructType implements Identifiable<Integer>, Serializable {
     //region Finals
 
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(RtStructType.class);
+    private static final Logger log = LoggerFactory.getLogger(RtStructType.class);
 
     //endregion
 
